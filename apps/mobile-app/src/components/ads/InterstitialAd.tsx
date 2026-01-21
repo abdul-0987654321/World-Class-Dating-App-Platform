@@ -222,11 +222,7 @@ export const SwipeInterstitialTracker: React.FC<SwipeInterstitialTrackerProps> =
     onSwipe();
   }, [recordAction, onSwipe]);
 
-  return (
-    <View style={styles.trackerContainer}>
-      {children}
-    </View>
-  );
+  return <View style={styles.trackerContainer}>{children}</View>;
 };
 
 /**
@@ -289,9 +285,7 @@ export const AdFrequencyIndicator: React.FC<AdFrequencyIndicatorProps> = ({
 
   return (
     <View style={[styles.frequencyIndicator, style]}>
-      <Text style={styles.frequencyText}>
-        Next ad in: {timeUntilNextAd}s
-      </Text>
+      <Text style={styles.frequencyText}>Next ad in: {timeUntilNextAd}s</Text>
     </View>
   );
 };

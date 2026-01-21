@@ -161,7 +161,7 @@ test.describe('Accessibility - WCAG 2.1 AA Compliance', () => {
           .analyze();
 
         expect(
-          accessibilityScanResults.violations.filter(v => v.id === 'color-contrast')
+          accessibilityScanResults.violations.filter((v) => v.id === 'color-contrast')
         ).toEqual([]);
       }
     });
@@ -180,7 +180,9 @@ test.describe('Accessibility - WCAG 2.1 AA Compliance', () => {
       const modal = page.getByRole('dialog');
       if (await modal.isVisible()) {
         // Focus should be within modal
-        const focusedElement = await page.evaluate(() => document.activeElement?.closest('[role="dialog"]'));
+        const focusedElement = await page.evaluate(() =>
+          document.activeElement?.closest('[role="dialog"]')
+        );
         expect(focusedElement).toBeTruthy();
       }
     });

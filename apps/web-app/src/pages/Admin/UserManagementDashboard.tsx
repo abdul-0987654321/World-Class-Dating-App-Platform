@@ -7,11 +7,17 @@ interface UserManagementDashboardProps {
   onSelectUser?: (user: AdminUser) => void;
 }
 
-export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = ({ onSelectUser }) => {
+export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = ({
+  onSelectUser,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'verified' | 'premium' | 'banned' | 'reported' | 'suspended' | 'active'>('all');
+  const [filter, setFilter] = useState<
+    'all' | 'verified' | 'premium' | 'banned' | 'reported' | 'suspended' | 'active'
+  >('all');
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<'createdAt' | 'lastActive' | 'reportCount' | 'firstName'>('createdAt');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'lastActive' | 'reportCount' | 'firstName'>(
+    'createdAt'
+  );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const params: UsersListParams = {
@@ -37,15 +43,31 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
 
   const getStatusBadge = (user: AdminUser) => {
     if (user.isBanned) {
-      return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Banned</span>;
+      return (
+        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+          Banned
+        </span>
+      );
     }
     if (user.isSuspended) {
-      return <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">Suspended</span>;
+      return (
+        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+          Suspended
+        </span>
+      );
     }
     if (user.isActive) {
-      return <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Active</span>;
+      return (
+        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+          Active
+        </span>
+      );
     }
-    return <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">Inactive</span>;
+    return (
+      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+        Inactive
+      </span>
+    );
   };
 
   const formatLastActive = (dateString: string) => {
@@ -96,15 +118,17 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
 
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-2">
-            {([
-              { value: 'all', label: 'All' },
-              { value: 'active', label: 'Active' },
-              { value: 'verified', label: 'Verified' },
-              { value: 'premium', label: 'Premium' },
-              { value: 'suspended', label: 'Suspended' },
-              { value: 'banned', label: 'Banned' },
-              { value: 'reported', label: 'Reported' },
-            ] as const).map((filterOption) => (
+            {(
+              [
+                { value: 'all', label: 'All' },
+                { value: 'active', label: 'Active' },
+                { value: 'verified', label: 'Verified' },
+                { value: 'premium', label: 'Premium' },
+                { value: 'suspended', label: 'Suspended' },
+                { value: 'banned', label: 'Banned' },
+                { value: 'reported', label: 'Reported' },
+              ] as const
+            ).map((filterOption) => (
               <button
                 key={filterOption.value}
                 onClick={() => {
@@ -127,7 +151,8 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
         <div className="mt-4 text-sm text-gray-600">
           {data && (
             <span>
-              Showing {((page - 1) * 10) + 1} - {Math.min(page * 10, data.totalCount)} of {data.totalCount} users
+              Showing {(page - 1) * 10 + 1} - {Math.min(page * 10, data.totalCount)} of{' '}
+              {data.totalCount} users
             </span>
           )}
         </div>
@@ -159,9 +184,7 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                     className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-pink-600 transition"
                   >
                     User
-                    {sortBy === 'firstName' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    {sortBy === 'firstName' && <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -176,9 +199,7 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                     className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-pink-600 transition"
                   >
                     Joined
-                    {sortBy === 'createdAt' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    {sortBy === 'createdAt' && <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
@@ -187,9 +208,7 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                     className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-pink-600 transition"
                   >
                     Last Active
-                    {sortBy === 'lastActive' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    {sortBy === 'lastActive' && <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
@@ -198,9 +217,7 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                     className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-pink-600 transition"
                   >
                     Reports
-                    {sortBy === 'reportCount' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    {sortBy === 'reportCount' && <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -225,7 +242,8 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                          {user.firstName[0]}{user.lastName[0]}
+                          {user.firstName[0]}
+                          {user.lastName[0]}
                         </div>
                       )}
                       <div>
@@ -234,8 +252,16 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                             {user.firstName} {user.lastName}
                           </span>
                           {user.isVerified && (
-                            <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <svg
+                              className="w-4 h-4 text-blue-500"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           )}
                         </div>
@@ -244,11 +270,11 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
                       </div>
                     </div>
                   </td>
+                  <td className="px-6 py-4">{getStatusBadge(user)}</td>
                   <td className="px-6 py-4">
-                    {getStatusBadge(user)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getSubscriptionBadgeClass(user.subscription)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getSubscriptionBadgeClass(user.subscription)}`}
+                    >
                       {user.subscription}
                     </span>
                   </td>

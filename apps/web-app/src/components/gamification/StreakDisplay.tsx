@@ -75,37 +75,40 @@ export const StreakDisplay: React.FC<Props> = ({
       const streak = streaks[type as keyof typeof streaks];
       if (streak && streak.currentStreak > 0) {
         const timer = setTimeout(() => {
-          setAnimatedStreaks(prev => new Set([...prev, type]));
+          setAnimatedStreaks((prev) => new Set([...prev, type]));
         }, index * 200);
         timers.push(timer);
       }
     });
-    return () => timers.forEach(t => clearTimeout(t));
+    return () => timers.forEach((t) => clearTimeout(t));
   }, [streaks]);
 
-  const handleProtectStreak = useCallback(async (streakType: string) => {
-    if (!onProtectStreak || protectingType) return;
+  const handleProtectStreak = useCallback(
+    async (streakType: string) => {
+      if (!onProtectStreak || protectingType) return;
 
-    if (!canAffordProtection) {
-      setProtectionError(`Not enough coins. You need ${protectionCost} coins.`);
-      setTimeout(() => setProtectionError(null), 3000);
-      return;
-    }
+      if (!canAffordProtection) {
+        setProtectionError(`Not enough coins. You need ${protectionCost} coins.`);
+        setTimeout(() => setProtectionError(null), 3000);
+        return;
+      }
 
-    setProtectingType(streakType);
-    setProtectionError(null);
+      setProtectingType(streakType);
+      setProtectionError(null);
 
-    try {
-      await onProtectStreak(streakType);
-      setProtectionSuccess(`Your ${streakType} streak is now protected for 24 hours!`);
-      setTimeout(() => setProtectionSuccess(null), 3000);
-    } catch (err) {
-      setProtectionError('Failed to protect streak. Please try again.');
-      setTimeout(() => setProtectionError(null), 3000);
-    } finally {
-      setProtectingType(null);
-    }
-  }, [onProtectStreak, protectingType, canAffordProtection, protectionCost]);
+      try {
+        await onProtectStreak(streakType);
+        setProtectionSuccess(`Your ${streakType} streak is now protected for 24 hours!`);
+        setTimeout(() => setProtectionSuccess(null), 3000);
+      } catch (err) {
+        setProtectionError('Failed to protect streak. Please try again.');
+        setTimeout(() => setProtectionError(null), 3000);
+      } finally {
+        setProtectingType(null);
+      }
+    },
+    [onProtectStreak, protectingType, canAffordProtection, protectionCost]
+  );
 
   const formatTimeRemaining = useCallback((expiresAt: string): string => {
     const now = new Date();
@@ -121,18 +124,21 @@ export const StreakDisplay: React.FC<Props> = ({
     return `${minutes}m remaining`;
   }, []);
 
-  const getStreakStatus = useCallback((streak: StreakData | null): 'active' | 'at_risk' | 'protected' | 'inactive' => {
-    if (!streak) return 'inactive';
-    if (streak.isProtected) return 'protected';
+  const getStreakStatus = useCallback(
+    (streak: StreakData | null): 'active' | 'at_risk' | 'protected' | 'inactive' => {
+      if (!streak) return 'inactive';
+      if (streak.isProtected) return 'protected';
 
-    const lastActivity = new Date(streak.lastActivityDate);
-    const now = new Date();
-    const hoursSinceActivity = (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60);
+      const lastActivity = new Date(streak.lastActivityDate);
+      const now = new Date();
+      const hoursSinceActivity = (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60);
 
-    if (hoursSinceActivity > 20 && hoursSinceActivity < 24) return 'at_risk';
-    if (hoursSinceActivity >= 24) return 'inactive';
-    return 'active';
-  }, []);
+      if (hoursSinceActivity > 20 && hoursSinceActivity < 24) return 'at_risk';
+      if (hoursSinceActivity >= 24) return 'inactive';
+      return 'active';
+    },
+    []
+  );
 
   const getStreakLevel = (count: number): { level: string; color: string } => {
     if (count >= 100) return { level: 'Legendary', color: '#FFD700' };
@@ -144,7 +150,7 @@ export const StreakDisplay: React.FC<Props> = ({
   };
 
   const getMilestones = (currentStreak: number): StreakMilestone[] => {
-    return defaultMilestones.map(m => ({
+    return defaultMilestones.map((m) => ({
       ...m,
       achieved: currentStreak >= m.days,
     }));
@@ -156,10 +162,8 @@ export const StreakDisplay: React.FC<Props> = ({
     const longest = streak?.longestStreak || 0;
     const { level, color: levelColor } = getStreakLevel(current);
     const milestones = getMilestones(current);
-    const nextMilestone = milestones.find(m => !m.achieved);
-    const progressToNext = nextMilestone
-      ? Math.round((current / nextMilestone.days) * 100)
-      : 100;
+    const nextMilestone = milestones.find((m) => !m.achieved);
+    const progressToNext = nextMilestone ? Math.round((current / nextMilestone.days) * 100) : 100;
     const status = getStreakStatus(streak);
     const isAnimated = animatedStreaks.has(type);
     const isExpanded = expandedCard === type;
@@ -258,7 +262,10 @@ export const StreakDisplay: React.FC<Props> = ({
                 {current}/{nextMilestone.days} days
               </span>
             </div>
-            <div className="rounded-full h-2 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <div
+              className="rounded-full h-2 overflow-hidden"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
               <div
                 className="h-2 rounded-full transition-all duration-1000 relative"
                 style={{
@@ -270,16 +277,23 @@ export const StreakDisplay: React.FC<Props> = ({
                 <div
                   className="absolute inset-0 opacity-40"
                   style={{
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                    background:
+                      'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
                     animation: 'shimmer 2s infinite',
                   }}
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-2 text-xs flex-wrap" style={{ color: 'var(--text-muted)' }}>
+            <div
+              className="flex items-center gap-2 mt-2 text-xs flex-wrap"
+              style={{ color: 'var(--text-muted)' }}
+            >
               <span>Rewards:</span>
               {nextMilestone.reward.coins && (
-                <span className="flex items-center gap-0.5" style={{ color: 'var(--coin-primary)' }}>
+                <span
+                  className="flex items-center gap-0.5"
+                  style={{ color: 'var(--coin-primary)' }}
+                >
                   +{nextMilestone.reward.coins} 🪙
                 </span>
               )}
@@ -344,7 +358,9 @@ export const StreakDisplay: React.FC<Props> = ({
         )}
 
         {/* Milestones - expandable */}
-        <div className={`mt-4 transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-80'}`}>
+        <div
+          className={`mt-4 transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-80'}`}
+        >
           <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
             Milestones
           </p>
@@ -360,12 +376,17 @@ export const StreakDisplay: React.FC<Props> = ({
                   background: m.achieved ? 'rgba(76,175,80,0.15)' : 'rgba(255,255,255,0.05)',
                   transform: isExpanded && m.achieved ? 'scale(1.1)' : 'scale(1)',
                 }}
-                title={`${m.title}: ${Object.entries(m.reward).map(([k, v]) => `${v} ${k}`).join(', ')}`}
+                title={`${m.title}: ${Object.entries(m.reward)
+                  .map(([k, v]) => `${v} ${k}`)
+                  .join(', ')}`}
               >
                 <p className={`text-lg ${m.achieved && isExpanded ? 'animate-bounce' : ''}`}>
                   {m.achieved ? '✅' : '🔒'}
                 </p>
-                <p className="text-xs mt-1" style={{ color: m.achieved ? '#4CAF50' : 'var(--text-muted)' }}>
+                <p
+                  className="text-xs mt-1"
+                  style={{ color: m.achieved ? '#4CAF50' : 'var(--text-muted)' }}
+                >
                   {m.days}d
                 </p>
               </div>
@@ -419,7 +440,9 @@ export const StreakDisplay: React.FC<Props> = ({
           style={{ background: 'rgba(76,175,80,0.1)', border: '1px solid rgba(76,175,80,0.3)' }}
         >
           <span className="text-xl">🛡️</span>
-          <p className="text-sm font-medium" style={{ color: '#4CAF50' }}>{protectionSuccess}</p>
+          <p className="text-sm font-medium" style={{ color: '#4CAF50' }}>
+            {protectionSuccess}
+          </p>
         </div>
       )}
 
@@ -429,7 +452,9 @@ export const StreakDisplay: React.FC<Props> = ({
           style={{ background: 'rgba(244,67,54,0.1)', border: '1px solid rgba(244,67,54,0.3)' }}
         >
           <span className="text-xl">⚠️</span>
-          <p className="text-sm font-medium" style={{ color: '#f44336' }}>{protectionError}</p>
+          <p className="text-sm font-medium" style={{ color: '#f44336' }}>
+            {protectionError}
+          </p>
         </div>
       )}
 

@@ -66,7 +66,9 @@ function transformBackendUser(data: BackendUser): User {
     photoUrl: data.photo_url || data.photoUrl,
     subscription: data.subscription || data.subscription_tier || 'free',
     isVerified: toBoolean(data.is_email_verified ?? data.is_verified ?? data.isVerified ?? false),
-    premiumTier: normalizeSubscriptionTier(data.premium_tier || data.premiumTier || data.subscription_tier) || undefined,
+    premiumTier:
+      normalizeSubscriptionTier(data.premium_tier || data.premiumTier || data.subscription_tier) ||
+      undefined,
     coinBalance: toNumber(data.coin_balance || data.coinBalance, 0),
     profileCompletion: toNumber(data.profile_completion || data.profileCompletion, 0),
   };
@@ -156,7 +158,7 @@ class AuthService {
   async register(data: RegisterData): Promise<LoginResponse> {
     if (this.isMock) {
       // Mock registration - create a complete user object
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
       const mockUser: User = {
         id: `user-${Date.now()}`,
         email: data.email,
@@ -237,10 +239,13 @@ class AuthService {
     }
 
     // Backend may return wrapped response { success, data } or direct user
-    const response = await apiClient.get<{ success: boolean; data: BackendUser } | BackendUser>('/api/v1/auth/me');
+    const response = await apiClient.get<{ success: boolean; data: BackendUser } | BackendUser>(
+      '/api/v1/auth/me'
+    );
 
     // Handle both wrapped and unwrapped response formats
-    const backendUser = 'success' in response && response.data ? response.data : response as BackendUser;
+    const backendUser =
+      'success' in response && response.data ? response.data : (response as BackendUser);
     return transformBackendUser(backendUser);
   }
 
@@ -322,7 +327,16 @@ class AuthService {
       },
       PLATINUM: {
         tier: 'PLATINUM',
-        features: ['basic_matching', 'messaging', 'unlimited_likes', 'see_likes', 'rewind', 'priority', 'read_receipts', 'incognito'],
+        features: [
+          'basic_matching',
+          'messaging',
+          'unlimited_likes',
+          'see_likes',
+          'rewind',
+          'priority',
+          'read_receipts',
+          'incognito',
+        ],
         limits: {
           dailyLikes: -1,
           dailySuperLikes: 10,
@@ -430,7 +444,11 @@ class AuthService {
       return;
     }
 
-    await apiClient.post('/api/v1/auth/forgot-password', { email }, { skipAuth: true, skipCsrf: true });
+    await apiClient.post(
+      '/api/v1/auth/forgot-password',
+      { email },
+      { skipAuth: true, skipCsrf: true }
+    );
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
@@ -452,7 +470,11 @@ class AuthService {
       return;
     }
 
-    await apiClient.post('/api/v1/auth/verify-email', { token }, { skipAuth: true, skipCsrf: true });
+    await apiClient.post(
+      '/api/v1/auth/verify-email',
+      { token },
+      { skipAuth: true, skipCsrf: true }
+    );
   }
 
   async resendVerificationEmail(): Promise<void> {

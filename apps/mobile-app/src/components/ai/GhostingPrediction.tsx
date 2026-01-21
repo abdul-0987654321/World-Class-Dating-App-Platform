@@ -56,14 +56,18 @@ export const analyzeGhostingRisk = (
 
   if (probability > 30) {
     preventive_actions.push('Send a light, no-pressure message');
-    preventive_actions.push('Give them space - don\'t double text');
+    preventive_actions.push("Give them space - don't double text");
     preventive_actions.push('If no response in 3-5 days, consider moving on');
   }
 
   const risk_level =
-    probability >= 75 ? 'critical' :
-    probability >= 50 ? 'high' :
-    probability >= 25 ? 'medium' : 'low';
+    probability >= 75
+      ? 'critical'
+      : probability >= 50
+        ? 'high'
+        : probability >= 25
+          ? 'medium'
+          : 'low';
 
   return {
     risk_level,
@@ -77,10 +81,14 @@ export const analyzeGhostingRisk = (
 const GhostingPrediction: React.FC<{ assessment: GhostingRiskAssessment }> = ({ assessment }) => {
   const getColor = () => {
     switch (assessment.risk_level) {
-      case 'critical': return '#ef4444';
-      case 'high': return '#f59e0b';
-      case 'medium': return '#3b82f6';
-      default: return '#10b981';
+      case 'critical':
+        return '#ef4444';
+      case 'high':
+        return '#f59e0b';
+      case 'medium':
+        return '#3b82f6';
+      default:
+        return '#10b981';
     }
   };
 
@@ -95,7 +103,9 @@ const GhostingPrediction: React.FC<{ assessment: GhostingRiskAssessment }> = ({ 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>⚠️ Warning Signs:</Text>
           {assessment.warning_signs.map((sign, i) => (
-            <Text key={i} style={styles.listItem}>• {sign}</Text>
+            <Text key={i} style={styles.listItem}>
+              • {sign}
+            </Text>
           ))}
         </View>
       )}
@@ -104,7 +114,9 @@ const GhostingPrediction: React.FC<{ assessment: GhostingRiskAssessment }> = ({ 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💡 What to Do:</Text>
           {assessment.preventive_actions.map((action, i) => (
-            <Text key={i} style={styles.listItem}>• {action}</Text>
+            <Text key={i} style={styles.listItem}>
+              • {action}
+            </Text>
           ))}
         </View>
       )}

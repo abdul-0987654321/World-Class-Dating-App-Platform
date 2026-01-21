@@ -22,7 +22,7 @@ const apiClient = createApiClient({
   getToken: async () => {
     const token = await secureTokenStorage.getAccessToken();
     return token;
-  }
+  },
 });
 
 const authApi = new AuthApi(apiClient);
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authApi.login(credentials);
 
       // Calculate token expiration (assuming 15 minutes for access token)
-      const expiresAt = Date.now() + (15 * 60 * 1000);
+      const expiresAt = Date.now() + 15 * 60 * 1000;
 
       // Store tokens securely with biometric protection
       await secureTokenStorage.storeTokens({
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authApi.register(data);
 
       // Calculate token expiration
-      const expiresAt = Date.now() + (15 * 60 * 1000);
+      const expiresAt = Date.now() + 15 * 60 * 1000;
 
       // Store tokens securely
       await secureTokenStorage.storeTokens({

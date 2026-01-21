@@ -8,11 +8,10 @@ interface PhotoVerificationProps {
   onCancel?: () => void;
 }
 
-export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
-  onComplete,
-  onCancel,
-}) => {
-  const [step, setStep] = useState<'intro' | 'camera' | 'preview' | 'uploading' | 'result'>('intro');
+export const PhotoVerification: React.FC<PhotoVerificationProps> = ({ onComplete, onCancel }) => {
+  const [step, setStep] = useState<'intro' | 'camera' | 'preview' | 'uploading' | 'result'>(
+    'intro'
+  );
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<{
@@ -52,7 +51,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
   // Stop camera
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
   }, []);
@@ -144,7 +143,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
       const apiResponse = await fetch('/api/photo-verification/submit', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -199,25 +198,34 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
             <Content>
               <InstructionsList>
                 <InstructionItem>
-                  <CheckIcon><Check size={20} /></CheckIcon>
+                  <CheckIcon>
+                    <Check size={20} />
+                  </CheckIcon>
                   <InstructionText>
                     <strong>Take a clear selfie</strong> with good lighting
                   </InstructionText>
                 </InstructionItem>
                 <InstructionItem>
-                  <CheckIcon><Check size={20} /></CheckIcon>
+                  <CheckIcon>
+                    <Check size={20} />
+                  </CheckIcon>
                   <InstructionText>
                     <strong>Show your full face</strong> - no sunglasses or hats
                   </InstructionText>
                 </InstructionItem>
                 <InstructionItem>
-                  <CheckIcon><Check size={20} /></CheckIcon>
+                  <CheckIcon>
+                    <Check size={20} />
+                  </CheckIcon>
                   <InstructionText>
-                    <strong>Match your profile photos</strong> - we'll compare your selfie with your profile
+                    <strong>Match your profile photos</strong> - we'll compare your selfie with your
+                    profile
                   </InstructionText>
                 </InstructionItem>
                 <InstructionItem>
-                  <CheckIcon><Check size={20} /></CheckIcon>
+                  <CheckIcon>
+                    <Check size={20} />
+                  </CheckIcon>
                   <InstructionText>
                     <strong>Be yourself</strong> - no filters or heavy editing
                   </InstructionText>
@@ -225,7 +233,8 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
               </InstructionsList>
 
               <InfoBox>
-                Most verifications are approved automatically within seconds. Some may require manual review within 24 hours.
+                Most verifications are approved automatically within seconds. Some may require
+                manual review within 24 hours.
               </InfoBox>
             </Content>
 
@@ -238,9 +247,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
                 <Upload size={20} />
                 Upload Photo
               </SecondaryButton>
-              {onCancel && (
-                <TextButton onClick={onCancel}>Cancel</TextButton>
-              )}
+              {onCancel && <TextButton onClick={onCancel}>Cancel</TextButton>}
             </Actions>
 
             <HiddenFileInput
@@ -259,9 +266,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
               <Video ref={videoRef} autoPlay playsInline />
               <CameraOverlay>
                 <FaceOutline />
-                <CameraInstructions>
-                  Position your face in the circle
-                </CameraInstructions>
+                <CameraInstructions>Position your face in the circle</CameraInstructions>
               </CameraOverlay>
             </CameraContainer>
 
@@ -270,7 +275,12 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
                 <Camera size={20} />
                 Capture
               </PrimaryButton>
-              <TextButton onClick={() => { stopCamera(); setStep('intro'); }}>
+              <TextButton
+                onClick={() => {
+                  stopCamera();
+                  setStep('intro');
+                }}
+              >
                 Cancel
               </TextButton>
             </Actions>
@@ -297,7 +307,12 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
                 <RefreshCw size={20} />
                 Retake
               </SecondaryButton>
-              <TextButton onClick={() => { setCapturedImage(null); setStep('intro'); }}>
+              <TextButton
+                onClick={() => {
+                  setCapturedImage(null);
+                  setStep('intro');
+                }}
+              >
                 Cancel
               </TextButton>
             </Actions>
@@ -351,13 +366,9 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
             </ResultContainer>
 
             <Actions>
-              <PrimaryButton onClick={onComplete || (() => setStep('intro'))}>
-                Done
-              </PrimaryButton>
+              <PrimaryButton onClick={onComplete || (() => setStep('intro'))}>Done</PrimaryButton>
               {result.status === 'rejected' && (
-                <SecondaryButton onClick={() => setStep('intro')}>
-                  Try Again
-                </SecondaryButton>
+                <SecondaryButton onClick={() => setStep('intro')}>Try Again</SecondaryButton>
               )}
             </Actions>
           </>
@@ -611,8 +622,12 @@ const Spinner = styled.div`
   animation: spin 1s linear infinite;
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 

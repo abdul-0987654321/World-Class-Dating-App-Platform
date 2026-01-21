@@ -214,8 +214,8 @@ export const DailyLoginRewards: React.FC<DailyLoginRewardsProps> = ({ onRewardCl
                 reward.isCompleted
                   ? ['#95A5A6', '#7F8C8D']
                   : reward.isCurrent
-                  ? getRewardColor(reward.rewardType)
-                  : ['#ECF0F1', '#BDC3C7']
+                    ? getRewardColor(reward.rewardType)
+                    : ['#ECF0F1', '#BDC3C7']
               }
               style={styles.cardGradient}
             >
@@ -283,9 +283,7 @@ export const DailyLoginRewards: React.FC<DailyLoginRewardsProps> = ({ onRewardCl
             ]}
           >
             <LinearGradient
-              colors={
-                claimedReward ? getRewardColor(claimedReward.type) : ['#4A90E2', '#357ABD']
-              }
+              colors={claimedReward ? getRewardColor(claimedReward.type) : ['#4A90E2', '#357ABD']}
               style={styles.modalGradient}
             >
               <Icon name="gift" size={64} color="white" />

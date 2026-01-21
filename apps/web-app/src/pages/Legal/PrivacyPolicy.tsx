@@ -31,7 +31,10 @@ const StaticPrivacyPolicy: React.FC = () => {
 
       <Section>
         <Paragraph>
-          At Flamoral, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our dating platform and mobile application. Please read this policy carefully. If you do not agree with the terms of this Privacy Policy, please do not access the Service.
+          At Flamoral, we take your privacy seriously. This Privacy Policy explains how we collect,
+          use, disclose, and safeguard your information when you use our dating platform and mobile
+          application. Please read this policy carefully. If you do not agree with the terms of this
+          Privacy Policy, please do not access the Service.
         </Paragraph>
       </Section>
 
@@ -40,50 +43,98 @@ const StaticPrivacyPolicy: React.FC = () => {
 
         <SubsectionTitle>1.1 Information You Provide to Us</SubsectionTitle>
         <Paragraph>
-          We collect information that you voluntarily provide to us when you register on the Service, express an interest in obtaining information about us or our products and services, or otherwise contact us.
+          We collect information that you voluntarily provide to us when you register on the
+          Service, express an interest in obtaining information about us or our products and
+          services, or otherwise contact us.
         </Paragraph>
         <List>
-          <ListItem><Strong>Account Information:</Strong> Name, email address, date of birth, gender, location, phone number</ListItem>
-          <ListItem><Strong>Profile Information:</Strong> Photos, bio, interests, preferences, prompts and answers</ListItem>
-          <ListItem><Strong>Payment Information:</Strong> Credit card details, billing address (processed securely by Stripe)</ListItem>
-          <ListItem><Strong>Communications:</Strong> Messages sent through the Service, customer support interactions</ListItem>
-          <ListItem><Strong>User Content:</Strong> Photos, videos, and other content you upload or create</ListItem>
+          <ListItem>
+            <Strong>Account Information:</Strong> Name, email address, date of birth, gender,
+            location, phone number
+          </ListItem>
+          <ListItem>
+            <Strong>Profile Information:</Strong> Photos, bio, interests, preferences, prompts and
+            answers
+          </ListItem>
+          <ListItem>
+            <Strong>Payment Information:</Strong> Credit card details, billing address (processed
+            securely by Stripe)
+          </ListItem>
+          <ListItem>
+            <Strong>Communications:</Strong> Messages sent through the Service, customer support
+            interactions
+          </ListItem>
+          <ListItem>
+            <Strong>User Content:</Strong> Photos, videos, and other content you upload or create
+          </ListItem>
         </List>
 
         <SubsectionTitle>1.2 Information Automatically Collected</SubsectionTitle>
         <Paragraph>
-          When you access the Service, we automatically collect certain information about your device and usage:
+          When you access the Service, we automatically collect certain information about your
+          device and usage:
         </Paragraph>
         <List>
-          <ListItem><Strong>Device Information:</Strong> IP address, browser type, operating system, device identifiers</ListItem>
-          <ListItem><Strong>Usage Data:</Strong> Pages visited, features used, time spent on the Service, swipes, matches, messages</ListItem>
-          <ListItem><Strong>Location Data:</Strong> Approximate location based on IP address or precise location (if you grant permission)</ListItem>
-          <ListItem><Strong>Cookies and Tracking Technologies:</Strong> Cookies, web beacons, pixel tags, and similar technologies</ListItem>
+          <ListItem>
+            <Strong>Device Information:</Strong> IP address, browser type, operating system, device
+            identifiers
+          </ListItem>
+          <ListItem>
+            <Strong>Usage Data:</Strong> Pages visited, features used, time spent on the Service,
+            swipes, matches, messages
+          </ListItem>
+          <ListItem>
+            <Strong>Location Data:</Strong> Approximate location based on IP address or precise
+            location (if you grant permission)
+          </ListItem>
+          <ListItem>
+            <Strong>Cookies and Tracking Technologies:</Strong> Cookies, web beacons, pixel tags,
+            and similar technologies
+          </ListItem>
         </List>
       </Section>
 
       <Section>
         <SectionTitle>2. How We Use Your Information</SectionTitle>
-        <Paragraph>
-          We use the information we collect for the following purposes:
-        </Paragraph>
+        <Paragraph>We use the information we collect for the following purposes:</Paragraph>
         <List>
-          <ListItem><Strong>Provide the Service:</Strong> Create and manage your account, facilitate matches and connections, process payments</ListItem>
-          <ListItem><Strong>Personalization:</Strong> Show you potential matches based on your preferences, location, and behavior</ListItem>
-          <ListItem><Strong>Communication:</Strong> Send you notifications, updates, customer support responses, and marketing communications (with your consent)</ListItem>
-          <ListItem><Strong>Safety and Security:</Strong> Detect and prevent fraud, spam, abuse, and other harmful activity; enforce our Terms of Service</ListItem>
-          <ListItem><Strong>Analytics and Improvement:</Strong> Understand how users interact with the Service, improve features, develop new products</ListItem>
-          <ListItem><Strong>Legal Compliance:</Strong> Comply with applicable laws, regulations, and legal processes</ListItem>
+          <ListItem>
+            <Strong>Provide the Service:</Strong> Create and manage your account, facilitate matches
+            and connections, process payments
+          </ListItem>
+          <ListItem>
+            <Strong>Personalization:</Strong> Show you potential matches based on your preferences,
+            location, and behavior
+          </ListItem>
+          <ListItem>
+            <Strong>Communication:</Strong> Send you notifications, updates, customer support
+            responses, and marketing communications (with your consent)
+          </ListItem>
+          <ListItem>
+            <Strong>Safety and Security:</Strong> Detect and prevent fraud, spam, abuse, and other
+            harmful activity; enforce our Terms of Service
+          </ListItem>
+          <ListItem>
+            <Strong>Analytics and Improvement:</Strong> Understand how users interact with the
+            Service, improve features, develop new products
+          </ListItem>
+          <ListItem>
+            <Strong>Legal Compliance:</Strong> Comply with applicable laws, regulations, and legal
+            processes
+          </ListItem>
         </List>
       </Section>
 
       <Section>
         <SectionTitle>Contact Us</SectionTitle>
         <Paragraph>
-          If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:
+          If you have questions or concerns about this Privacy Policy or our data practices, please
+          contact us at:
         </Paragraph>
         <ContactInfo>
-          <div><Strong>Flamoral, Inc.</Strong></div>
+          <div>
+            <Strong>Flamoral, Inc.</Strong>
+          </div>
           <div>Email: privacy@flamoral.com</div>
           <div>Address: 548 Market St, Suite 95879, San Francisco, CA 94104</div>
           <div>Data Protection Officer: dpo@flamoral.com</div>
@@ -145,7 +196,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #EC4899 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -214,7 +265,7 @@ const ContactInfo = styled.div`
   background: rgba(59, 130, 246, 0.1);
   padding: 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #3b82f6;
   margin-top: 1rem;
 
   div {

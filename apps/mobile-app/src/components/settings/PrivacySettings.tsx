@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
 import { Button } from '../common/Button';
 
 export interface PrivacyPreferences {
@@ -60,10 +52,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
       setHasChanges(false);
       Alert.alert('Success', 'Your privacy settings have been saved.');
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to save settings. Please try again.'
-      );
+      Alert.alert('Error', error.message || 'Failed to save settings. Please try again.');
       console.error('Save preferences error:', error);
     } finally {
       setIsLoading(false);
@@ -130,18 +119,14 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            Alert.alert(
-              'Are You Sure?',
-              'Type DELETE to confirm account deletion',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Confirm Delete',
-                  style: 'destructive',
-                  onPress: onDeleteAccount,
-                },
-              ]
-            );
+            Alert.alert('Are You Sure?', 'Type DELETE to confirm account deletion', [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Confirm Delete',
+                style: 'destructive',
+                onPress: onDeleteAccount,
+              },
+            ]);
           },
         },
       ]
@@ -166,9 +151,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
               </View>
             )}
           </View>
-          {description && (
-            <Text style={styles.settingDescription}>{description}</Text>
-          )}
+          {description && <Text style={styles.settingDescription}>{description}</Text>}
         </View>
         <Switch
           value={value}
@@ -189,10 +172,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
   ) => {
     return (
       <TouchableOpacity
-        style={[
-          styles.actionButton,
-          variant === 'danger' && styles.actionButtonDanger,
-        ]}
+        style={[styles.actionButton, variant === 'danger' && styles.actionButtonDanger]}
         onPress={onPress}
       >
         <View style={styles.actionButtonInfo}>
@@ -213,23 +193,17 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Visibility */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile Visibility</Text>
-          <Text style={styles.sectionDescription}>
-            Control what information others can see
-          </Text>
+          <Text style={styles.sectionDescription}>Control what information others can see</Text>
 
           <View style={styles.settingsCard}>
             {renderToggle(
               'Show Online Status',
               preferences.showOnlineStatus,
-              () =>
-                updatePreference('showOnlineStatus', !preferences.showOnlineStatus),
+              () => updatePreference('showOnlineStatus', !preferences.showOnlineStatus),
               'Let others see when you are online'
             )}
             <View style={styles.divider} />
@@ -275,11 +249,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
             {renderToggle(
               'Allow Profile Indexing',
               preferences.allowProfileIndexing,
-              () =>
-                updatePreference(
-                  'allowProfileIndexing',
-                  !preferences.allowProfileIndexing
-                ),
+              () => updatePreference('allowProfileIndexing', !preferences.allowProfileIndexing),
               'Show my profile in search results and recommendations'
             )}
           </View>
@@ -288,27 +258,20 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
         {/* Communication Privacy */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Communication</Text>
-          <Text style={styles.sectionDescription}>
-            Manage message and interaction privacy
-          </Text>
+          <Text style={styles.sectionDescription}>Manage message and interaction privacy</Text>
 
           <View style={styles.settingsCard}>
             {renderToggle(
               'Share Read Receipts',
               preferences.shareReadReceipts,
-              () =>
-                updatePreference('shareReadReceipts', !preferences.shareReadReceipts),
+              () => updatePreference('shareReadReceipts', !preferences.shareReadReceipts),
               'Let others see when you read their messages'
             )}
             <View style={styles.divider} />
             {renderToggle(
               'Share Typing Indicator',
               preferences.shareTypingIndicator,
-              () =>
-                updatePreference(
-                  'shareTypingIndicator',
-                  !preferences.shareTypingIndicator
-                ),
+              () => updatePreference('shareTypingIndicator', !preferences.shareTypingIndicator),
               'Show when you are typing a message'
             )}
           </View>
@@ -317,16 +280,13 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
         {/* Security */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Security</Text>
-          <Text style={styles.sectionDescription}>
-            Additional security settings
-          </Text>
+          <Text style={styles.sectionDescription}>Additional security settings</Text>
 
           <View style={styles.settingsCard}>
             {renderToggle(
               'Allow Screenshots',
               preferences.allowScreenshots,
-              () =>
-                updatePreference('allowScreenshots', !preferences.allowScreenshots),
+              () => updatePreference('allowScreenshots', !preferences.allowScreenshots),
               'Prevent others from taking screenshots of your profile'
             )}
           </View>
@@ -335,9 +295,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
         {/* Data & Account */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Data & Account</Text>
-          <Text style={styles.sectionDescription}>
-            Manage your personal data and account
-          </Text>
+          <Text style={styles.sectionDescription}>Manage your personal data and account</Text>
 
           <View style={styles.settingsCard}>
             {renderActionButton(
@@ -358,8 +316,8 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
         <View style={styles.infoContainer}>
           <Text style={styles.infoIcon}>🔒</Text>
           <Text style={styles.infoText}>
-            We take your privacy seriously. Your personal information is never sold
-            to third parties. For more details, see our Privacy Policy.
+            We take your privacy seriously. Your personal information is never sold to third
+            parties. For more details, see our Privacy Policy.
           </Text>
           <TouchableOpacity>
             <Text style={styles.infoLink}>Read Privacy Policy</Text>

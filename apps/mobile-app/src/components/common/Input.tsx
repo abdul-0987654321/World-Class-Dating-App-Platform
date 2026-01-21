@@ -24,11 +24,13 @@ export const Input: React.FC<InputProps> = ({
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[
-        styles.inputContainer,
-        isFocused && styles.inputContainerFocused,
-        error && styles.inputContainerError,
-      ]}>
+      <View
+        style={[
+          styles.inputContainer,
+          isFocused && styles.inputContainerFocused,
+          error && styles.inputContainerError,
+        ]}
+      >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
           style={[styles.input, style]}
@@ -39,16 +41,11 @@ export const Input: React.FC<InputProps> = ({
           {...props}
         />
         {secureTextEntry && (
-          <TouchableOpacity
-            style={styles.rightIcon}
-            onPress={() => setIsSecure(!isSecure)}
-          >
+          <TouchableOpacity style={styles.rightIcon} onPress={() => setIsSecure(!isSecure)}>
             <Text style={styles.showHideText}>{isSecure ? 'Show' : 'Hide'}</Text>
           </TouchableOpacity>
         )}
-        {rightIcon && !secureTextEntry && (
-          <View style={styles.rightIcon}>{rightIcon}</View>
-        )}
+        {rightIcon && !secureTextEntry && <View style={styles.rightIcon}>{rightIcon}</View>}
       </View>
       {error && <Text style={styles.error}>{error}</Text>}
     </View>

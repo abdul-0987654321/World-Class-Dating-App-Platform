@@ -18,7 +18,9 @@ test.describe('Discovery Page', () => {
 
   test('should display discovery page with profile cards', async ({ page }) => {
     // Wait for profiles to load
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Should display user info
     await expect(page.locator('text=/\\d+/')).toBeVisible(); // Age
@@ -35,11 +37,15 @@ test.describe('Discovery Page', () => {
     // Should have pass, like, and super like buttons
     await expect(page.locator('button[title="Pass"], [data-testid="pass-button"]')).toBeVisible();
     await expect(page.locator('button[title="Like"], [data-testid="like-button"]')).toBeVisible();
-    await expect(page.locator('button[title="Super Like"], [data-testid="superlike-button"]')).toBeVisible();
+    await expect(
+      page.locator('button[title="Super Like"], [data-testid="superlike-button"]')
+    ).toBeVisible();
   });
 
   test('should navigate through photos', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Check if photo dots are visible (for profiles with multiple photos)
     const photoDots = page.locator('[class*="dot"], [data-testid="photo-dot"]');
@@ -65,10 +71,15 @@ test.describe('Swipe Actions', () => {
   });
 
   test('should pass on profile when clicking pass button', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Get current profile name
-    const profileName = await page.locator('[data-testid="profile-name"], h2').first().textContent();
+    const profileName = await page
+      .locator('[data-testid="profile-name"], h2')
+      .first()
+      .textContent();
 
     // Click pass button
     await page.click('button[title="Pass"], [data-testid="pass-button"]');
@@ -77,14 +88,19 @@ test.describe('Swipe Actions', () => {
     await page.waitForTimeout(500);
 
     // Profile should change
-    const newProfileName = await page.locator('[data-testid="profile-name"], h2').first().textContent();
+    const newProfileName = await page
+      .locator('[data-testid="profile-name"], h2')
+      .first()
+      .textContent();
 
     // In most cases, profile should be different (unless at end of list)
     // This test verifies the action was processed
   });
 
   test('should like profile when clicking like button', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Click like button
     await page.click('button[title="Like"], [data-testid="like-button"]');
@@ -100,7 +116,9 @@ test.describe('Swipe Actions', () => {
   });
 
   test('should super like profile when clicking super like button', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Click super like button
     await page.click('button[title="Super Like"], [data-testid="superlike-button"]');
@@ -112,7 +130,9 @@ test.describe('Swipe Actions', () => {
   });
 
   test('should handle swipe gestures', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     const card = page.locator('[data-testid="swipe-card"], [class*="card"]').first();
     const box = await card.boundingBox();
@@ -142,7 +162,9 @@ test.describe('Match Modal', () => {
   test('should show match modal when mutual like occurs', async ({ page }) => {
     // This test depends on backend returning a match
     // In a controlled test environment, you would set up the data
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Like profiles until we get a match (or max attempts)
     for (let i = 0; i < 5; i++) {
@@ -188,7 +210,9 @@ test.describe('Profile Details', () => {
   });
 
   test('should display profile bio', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Bio section should be visible
     const bioElement = page.locator('[data-testid="profile-bio"], [class*="bio"]');
@@ -199,7 +223,9 @@ test.describe('Profile Details', () => {
   });
 
   test('should display profile interests', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Look for interest tags
     const interests = page.locator('[data-testid="interest-tag"], [class*="interest"]');
@@ -209,7 +235,9 @@ test.describe('Profile Details', () => {
   });
 
   test('should display verified badge for verified users', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Look for verified badge (may not be present on all profiles)
     const verifiedBadge = page.locator('[data-testid="verified-badge"], [class*="verified"]');
@@ -218,7 +246,9 @@ test.describe('Profile Details', () => {
   });
 
   test('should display location and distance', async ({ page }) => {
-    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="swipe-card"], [class*="card"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Location info should be visible
     await expect(page.getByText(/km|miles|away/i)).toBeVisible();
@@ -234,7 +264,9 @@ test.describe('Empty State', () => {
     await page.waitForURL('**/discover', { timeout: 10000 });
 
     // If there are no profiles, should show empty state
-    const emptyState = page.locator('[data-testid="no-profiles"], text=/no more profiles|come back later/i');
+    const emptyState = page.locator(
+      '[data-testid="no-profiles"], text=/no more profiles|come back later/i'
+    );
 
     // This depends on test data availability
   });
@@ -251,7 +283,9 @@ test.describe('Filters', () => {
 
   test('should open filters panel', async ({ page }) => {
     // Click on filters button
-    const filtersButton = page.locator('[data-testid="filters-button"], button:has-text("Filters")');
+    const filtersButton = page.locator(
+      '[data-testid="filters-button"], button:has-text("Filters")'
+    );
 
     if (await filtersButton.isVisible()) {
       await filtersButton.click();
@@ -260,7 +294,9 @@ test.describe('Filters', () => {
   });
 
   test('should update age range filter', async ({ page }) => {
-    const filtersButton = page.locator('[data-testid="filters-button"], button:has-text("Filters")');
+    const filtersButton = page.locator(
+      '[data-testid="filters-button"], button:has-text("Filters")'
+    );
 
     if (await filtersButton.isVisible()) {
       await filtersButton.click();

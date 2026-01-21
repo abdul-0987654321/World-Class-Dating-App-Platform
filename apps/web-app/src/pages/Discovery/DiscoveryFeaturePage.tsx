@@ -15,13 +15,22 @@ import { ProfileGrid } from '../../components/Discovery/ProfileGrid';
 import { ViewToggle, DiscoveryViewMode } from '../../components/Discovery/ViewToggle';
 import { CuratedPicks } from '../../components/Discovery/CuratedPicks';
 import { PassportMode } from '../../components/Discovery/PassportMode';
-import { AdvancedSearchUI, SearchFilters, FilterPreset } from '../../components/Discovery/AdvancedSearchUI';
+import {
+  AdvancedSearchUI,
+  SearchFilters,
+  FilterPreset,
+} from '../../components/Discovery/AdvancedSearchUI';
 import { SwipeCard } from '../../components/SwipeCard';
 
 // Services
 import { discoveryService, DiscoveryProfile } from '../../services/discovery.service';
 import { curatedPicksService, CuratedPick } from '../../services/curated-picks.service';
-import { passportService, PassportStatus, PopularDestination, PassportLocation } from '../../services/passport.service';
+import {
+  passportService,
+  PassportStatus,
+  PopularDestination,
+  PassportLocation,
+} from '../../services/passport.service';
 
 type DiscoveryTab = 'discover' | 'picks' | 'passport';
 
@@ -52,13 +61,11 @@ const TabButton = styled.button<{ active: boolean }>`
   justify-content: center;
   gap: 8px;
   padding: 12px 16px;
-  background: ${props => props.active
-    ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
-    : 'transparent'
-  };
+  background: ${(props) =>
+    props.active ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)' : 'transparent'};
   border: none;
   border-radius: 8px;
-  color: ${props => props.active ? 'white' : 'rgba(255, 255, 255, 0.6)'};
+  color: ${(props) => (props.active ? 'white' : 'rgba(255, 255, 255, 0.6)')};
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -66,10 +73,10 @@ const TabButton = styled.button<{ active: boolean }>`
 
   &:hover {
     color: white;
-    background: ${props => props.active
-      ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
-      : 'rgba(255, 255, 255, 0.1)'
-    };
+    background: ${(props) =>
+      props.active
+        ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
+        : 'rgba(255, 255, 255, 0.1)'};
   }
 
   svg {
@@ -128,7 +135,7 @@ const PassportIndicator = styled.div`
   border: 1px solid rgba(78, 205, 196, 0.3);
   border-radius: 20px;
   font-size: 13px;
-  color: #4ECDC4;
+  color: #4ecdc4;
 
   svg {
     width: 14px;
@@ -151,7 +158,7 @@ const StatItem = styled.div`
   p:first-child {
     font-size: 24px;
     font-weight: 700;
-    color: #FF6B6B;
+    color: #ff6b6b;
     margin: 0;
   }
 
@@ -162,11 +169,11 @@ const StatItem = styled.div`
   }
 
   &:nth-child(2) p:first-child {
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 
   &:nth-child(3) p:first-child {
-    color: #A78BFA;
+    color: #a78bfa;
   }
 `;
 
@@ -241,7 +248,7 @@ const MatchContent = styled.div`
   h2 {
     font-size: 28px;
     font-weight: 700;
-    background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+    background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0 0 12px 0;
@@ -258,7 +265,7 @@ const MatchContent = styled.div`
     height: 100px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid #FF6B6B;
+    border: 4px solid #ff6b6b;
     margin-bottom: 24px;
   }
 
@@ -276,7 +283,7 @@ const MatchContent = styled.div`
       transition: all 0.2s;
 
       &.primary {
-        background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
         border: none;
         color: white;
 
@@ -309,13 +316,15 @@ const LoadingSpinner = styled.div`
     width: 48px;
     height: 48px;
     border: 3px solid rgba(255, 107, 107, 0.2);
-    border-top-color: #FF6B6B;
+    border-top-color: #ff6b6b;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -431,49 +440,58 @@ export const DiscoveryFeaturePage: React.FC = () => {
   };
 
   // Swipe handlers
-  const handleLike = useCallback(async (userId?: string) => {
-    const targetId = userId || profiles[currentIndex]?.user_id;
-    if (!targetId) return;
+  const handleLike = useCallback(
+    async (userId?: string) => {
+      const targetId = userId || profiles[currentIndex]?.user_id;
+      if (!targetId) return;
 
-    try {
-      const result = await discoveryService.swipe(targetId, 'like');
-      if (result.isMatch) {
-        setMatchedProfile(result.match);
-        setShowMatch(true);
+      try {
+        const result = await discoveryService.swipe(targetId, 'like');
+        if (result.isMatch) {
+          setMatchedProfile(result.match);
+          setShowMatch(true);
+        }
+        if (!userId) nextProfile();
+      } catch (error) {
+        console.error('Like failed:', error);
       }
-      if (!userId) nextProfile();
-    } catch (error) {
-      console.error('Like failed:', error);
-    }
-  }, [profiles, currentIndex]);
+    },
+    [profiles, currentIndex]
+  );
 
-  const handlePass = useCallback(async (userId?: string) => {
-    const targetId = userId || profiles[currentIndex]?.user_id;
-    if (!targetId) return;
+  const handlePass = useCallback(
+    async (userId?: string) => {
+      const targetId = userId || profiles[currentIndex]?.user_id;
+      if (!targetId) return;
 
-    try {
-      await discoveryService.swipe(targetId, 'pass');
-      if (!userId) nextProfile();
-    } catch (error) {
-      console.error('Pass failed:', error);
-    }
-  }, [profiles, currentIndex]);
-
-  const handleSuperLike = useCallback(async (userId?: string) => {
-    const targetId = userId || profiles[currentIndex]?.user_id;
-    if (!targetId) return;
-
-    try {
-      const result = await discoveryService.swipe(targetId, 'super_like');
-      if (result.isMatch) {
-        setMatchedProfile(result.match);
-        setShowMatch(true);
+      try {
+        await discoveryService.swipe(targetId, 'pass');
+        if (!userId) nextProfile();
+      } catch (error) {
+        console.error('Pass failed:', error);
       }
-      if (!userId) nextProfile();
-    } catch (error) {
-      console.error('Super like failed:', error);
-    }
-  }, [profiles, currentIndex]);
+    },
+    [profiles, currentIndex]
+  );
+
+  const handleSuperLike = useCallback(
+    async (userId?: string) => {
+      const targetId = userId || profiles[currentIndex]?.user_id;
+      if (!targetId) return;
+
+      try {
+        const result = await discoveryService.swipe(targetId, 'super_like');
+        if (result.isMatch) {
+          setMatchedProfile(result.match);
+          setShowMatch(true);
+        }
+        if (!userId) nextProfile();
+      } catch (error) {
+        console.error('Super like failed:', error);
+      }
+    },
+    [profiles, currentIndex]
+  );
 
   const nextProfile = useCallback(() => {
     if (currentIndex < profiles.length - 1) {
@@ -494,10 +512,13 @@ export const DiscoveryFeaturePage: React.FC = () => {
     curatedPicksService.markViewed(pick.pickId);
   }, []);
 
-  const handlePickLike = useCallback(async (userId: string, pickId: string) => {
-    await handleLike(userId);
-    curatedPicksService.markActedUpon(pickId);
-  }, [handleLike]);
+  const handlePickLike = useCallback(
+    async (userId: string, pickId: string) => {
+      await handleLike(userId);
+      curatedPicksService.markActedUpon(pickId);
+    },
+    [handleLike]
+  );
 
   const handleRefreshPicks = useCallback(async () => {
     setPicksLoading(true);
@@ -555,11 +576,11 @@ export const DiscoveryFeaturePage: React.FC = () => {
       isDefault: false,
       createdAt: new Date(),
     };
-    setFilterPresets(prev => [...prev, newPreset]);
+    setFilterPresets((prev) => [...prev, newPreset]);
   }, []);
 
   const handleDeletePreset = useCallback(async (id: string) => {
-    setFilterPresets(prev => prev.filter(p => p.id !== id));
+    setFilterPresets((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
   const currentProfile = profiles[currentIndex];
@@ -572,24 +593,15 @@ export const DiscoveryFeaturePage: React.FC = () => {
         <MainContent>
           {/* Tab Navigation */}
           <TabNav>
-            <TabButton
-              active={activeTab === 'discover'}
-              onClick={() => setActiveTab('discover')}
-            >
+            <TabButton active={activeTab === 'discover'} onClick={() => setActiveTab('discover')}>
               <FiLayers />
               Discover
             </TabButton>
-            <TabButton
-              active={activeTab === 'picks'}
-              onClick={() => setActiveTab('picks')}
-            >
+            <TabButton active={activeTab === 'picks'} onClick={() => setActiveTab('picks')}>
               <FiStar />
               Today's Picks
             </TabButton>
-            <TabButton
-              active={activeTab === 'passport'}
-              onClick={() => setActiveTab('passport')}
-            >
+            <TabButton active={activeTab === 'passport'} onClick={() => setActiveTab('passport')}>
               <FiGlobe />
               Passport
             </TabButton>
@@ -617,10 +629,7 @@ export const DiscoveryFeaturePage: React.FC = () => {
           {activeTab === 'discover' && (
             <ControlBar>
               <ControlGroup>
-                <ViewToggle
-                  currentView={viewMode}
-                  onViewChange={setViewMode}
-                />
+                <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
               </ControlGroup>
               <ControlGroup>
                 {passportStatus?.activeLocation && (

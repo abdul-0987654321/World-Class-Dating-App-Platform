@@ -80,7 +80,8 @@ export const EnhancedMessagesPage: React.FC = () => {
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentUserId = JSON.parse(localStorage.getItem('currentUser') || '{}')?.id || 'test-user-1';
+  const currentUserId =
+    JSON.parse(localStorage.getItem('currentUser') || '{}')?.id || 'test-user-1';
 
   // Derived state
   const selectedParticipant = conversations.find((c) => c.id === selectedConversation)?.participant;
@@ -419,11 +420,7 @@ export const EnhancedMessagesPage: React.FC = () => {
       if (existing.userReacted) {
         // Remove reaction
         return reactions
-          .map((r) =>
-            r.emoji === emoji
-              ? { ...r, count: r.count - 1, userReacted: false }
-              : r
-          )
+          .map((r) => (r.emoji === emoji ? { ...r, count: r.count - 1, userReacted: false } : r))
           .filter((r) => r.count > 0);
       } else {
         // Add reaction
@@ -515,14 +512,23 @@ export const EnhancedMessagesPage: React.FC = () => {
             Flamoral
           </h1>
           <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">
+            <button
+              onClick={() => navigate('/discover')}
+              className="text-gray-600 hover:text-pink-500"
+            >
               Discover
             </button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-pink-500">
+            <button
+              onClick={() => navigate('/matches')}
+              className="text-gray-600 hover:text-pink-500"
+            >
               Matches
             </button>
             <button className="text-pink-500 font-medium">Messages</button>
-            <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">
+            <button
+              onClick={() => navigate('/profile')}
+              className="text-gray-600 hover:text-pink-500"
+            >
               Profile
             </button>
           </nav>
@@ -532,7 +538,9 @@ export const EnhancedMessagesPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex max-w-6xl mx-auto w-full">
         {/* Conversations List */}
-        <div className={`w-full md:w-80 bg-white border-r ${selectedConversation ? 'hidden md:block' : ''}`}>
+        <div
+          className={`w-full md:w-80 bg-white border-r ${selectedConversation ? 'hidden md:block' : ''}`}
+        >
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
           </div>
@@ -562,7 +570,9 @@ export const EnhancedMessagesPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-gray-800">{conv.participant.name}</p>
                     {conv.lastMessage && (
-                      <span className="text-xs text-gray-400">{formatTime(conv.lastMessage.sentAt)}</span>
+                      <span className="text-xs text-gray-400">
+                        {formatTime(conv.lastMessage.sentAt)}
+                      </span>
                     )}
                   </div>
                   <p
@@ -596,7 +606,9 @@ export const EnhancedMessagesPage: React.FC = () => {
         </div>
 
         {/* Chat Area */}
-        <div className={`flex-1 flex flex-col bg-gray-50 ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}>
+        <div
+          className={`flex-1 flex flex-col bg-gray-50 ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}
+        >
           {selectedConversation && selectedParticipant ? (
             <>
               {/* Chat Header */}
@@ -609,7 +621,12 @@ export const EnhancedMessagesPage: React.FC = () => {
                   className="md:hidden text-gray-600"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <img
@@ -695,17 +712,19 @@ export const EnhancedMessagesPage: React.FC = () => {
                               onDoubleClick={() => setActiveReactionMessage(message.id)}
                             >
                               <p>{message.content}</p>
-                              <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-400'}`}>
+                              <p
+                                className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-400'}`}
+                              >
                                 {formatTime(message.sentAt)}
                                 {isMe && (
                                   <span className="ml-2">
                                     {message.status === 'read'
                                       ? '✓✓'
                                       : message.status === 'delivered'
-                                      ? '✓✓'
-                                      : message.status === 'sending'
-                                      ? '...'
-                                      : '✓'}
+                                        ? '✓✓'
+                                        : message.status === 'sending'
+                                          ? '...'
+                                          : '✓'}
                                   </span>
                                 )}
                               </p>
@@ -754,16 +773,21 @@ export const EnhancedMessagesPage: React.FC = () => {
               </div>
 
               {/* AI Coach Suggestions */}
-              {showCoachSuggestions && (icebreakerSuggestions.length > 0 || responseSuggestions.length > 0) && (
-                <div className="px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border-t">
-                  <SuggestionCard
-                    suggestions={icebreakerSuggestions.length > 0 ? icebreakerSuggestions : responseSuggestions}
-                    onSelect={handleSelectSuggestion}
-                    onDismiss={handleDismissSuggestions}
-                    type={icebreakerSuggestions.length > 0 ? 'icebreaker' : 'response'}
-                  />
-                </div>
-              )}
+              {showCoachSuggestions &&
+                (icebreakerSuggestions.length > 0 || responseSuggestions.length > 0) && (
+                  <div className="px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border-t">
+                    <SuggestionCard
+                      suggestions={
+                        icebreakerSuggestions.length > 0
+                          ? icebreakerSuggestions
+                          : responseSuggestions
+                      }
+                      onSelect={handleSelectSuggestion}
+                      onDismiss={handleDismissSuggestions}
+                      type={icebreakerSuggestions.length > 0 ? 'icebreaker' : 'response'}
+                    />
+                  </div>
+                )}
 
               {/* AI Coach Buttons */}
               <div className="px-4 py-2 bg-white border-t flex items-center gap-2">
@@ -785,8 +809,20 @@ export const EnhancedMessagesPage: React.FC = () => {
                 {coachLoading && (
                   <span className="text-sm text-gray-500 flex items-center gap-2">
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Getting suggestions...
                   </span>

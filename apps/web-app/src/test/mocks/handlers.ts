@@ -22,10 +22,7 @@ interface MockResponseOptions {
 /**
  * Create a mock fetch response
  */
-export function createMockResponse<T>(
-  data: T,
-  options: MockResponseOptions = {}
-): Response {
+export function createMockResponse<T>(data: T, options: MockResponseOptions = {}): Response {
   const { status = 200, ok = true, headers = {} } = options;
 
   return {
@@ -102,9 +99,7 @@ export function createMockFetch() {
 
     // CSRF token
     if (endpoint.includes('/csrf/token') && method === 'GET') {
-      return Promise.resolve(
-        createMockResponse({ csrfToken: 'mock-csrf-token' })
-      );
+      return Promise.resolve(createMockResponse({ csrfToken: 'mock-csrf-token' }));
     }
 
     // Discovery endpoints
@@ -185,12 +180,11 @@ export function createMockFetch() {
  * Mock fetch to reject with an error
  */
 export function mockFetchError(message: string, status = 500) {
-  return vi.fn().mockRejectedValue(
-    createMockResponse(
-      { message, errorCode: 'TEST_ERROR' },
-      { status, ok: false }
-    )
-  );
+  return vi
+    .fn()
+    .mockRejectedValue(
+      createMockResponse({ message, errorCode: 'TEST_ERROR' }, { status, ok: false })
+    );
 }
 
 /**
@@ -206,41 +200,42 @@ export const fetchScenarios = {
     ),
 
   loginFailure: (message = 'Invalid credentials') =>
-    vi.fn().mockResolvedValue(
-      createMockResponse(
-        { message, errorCode: 'AUTH_INVALID_CREDENTIALS' },
-        { status: 401, ok: false }
-      )
-    ),
+    vi
+      .fn()
+      .mockResolvedValue(
+        createMockResponse(
+          { message, errorCode: 'AUTH_INVALID_CREDENTIALS' },
+          { status: 401, ok: false }
+        )
+      ),
 
   networkError: () => vi.fn().mockRejectedValue(new TypeError('Failed to fetch')),
 
-  timeout: () =>
-    vi.fn().mockRejectedValue(new DOMException('Aborted', 'AbortError')),
+  timeout: () => vi.fn().mockRejectedValue(new DOMException('Aborted', 'AbortError')),
 
   serverError: () =>
-    vi.fn().mockResolvedValue(
-      createMockResponse(
-        { message: 'Internal server error' },
-        { status: 500, ok: false }
-      )
-    ),
+    vi
+      .fn()
+      .mockResolvedValue(
+        createMockResponse({ message: 'Internal server error' }, { status: 500, ok: false })
+      ),
 
   rateLimited: (retryAfter = 60) =>
-    vi.fn().mockResolvedValue(
-      createMockResponse(
-        { message: 'Too many requests', retryAfter },
-        { status: 429, ok: false }
-      )
-    ),
+    vi
+      .fn()
+      .mockResolvedValue(
+        createMockResponse({ message: 'Too many requests', retryAfter }, { status: 429, ok: false })
+      ),
 
   unauthorized: () =>
-    vi.fn().mockResolvedValue(
-      createMockResponse(
-        { message: 'Unauthorized', errorCode: 'AUTH_TOKEN_EXPIRED' },
-        { status: 401, ok: false }
-      )
-    ),
+    vi
+      .fn()
+      .mockResolvedValue(
+        createMockResponse(
+          { message: 'Unauthorized', errorCode: 'AUTH_TOKEN_EXPIRED' },
+          { status: 401, ok: false }
+        )
+      ),
 
   validationError: (errors: Record<string, string>) =>
     vi.fn().mockResolvedValue(

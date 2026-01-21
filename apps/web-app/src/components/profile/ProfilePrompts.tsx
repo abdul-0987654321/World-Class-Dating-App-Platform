@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import {
-  FiPlus,
-  FiEdit2,
-  FiTrash2,
-  FiChevronRight,
-  FiX,
-  FiCheck,
-} from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiChevronRight, FiX, FiCheck } from 'react-icons/fi';
 
 interface Prompt {
   id: string;
@@ -55,7 +48,7 @@ const AddButton = styled.button`
   align-items: center;
   gap: 4px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #4ECDC4, #95E1D3);
+  background: linear-gradient(135deg, #4ecdc4, #95e1d3);
   border: none;
   border-radius: 20px;
   color: white;
@@ -241,8 +234,7 @@ const QuestionItem = styled.button<{ isSelected: boolean; isUsed: boolean }>`
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: ${({ isSelected }) =>
-    isSelected ? 'rgba(78, 205, 196, 0.1)' : 'white'};
+  background: ${({ isSelected }) => (isSelected ? 'rgba(78, 205, 196, 0.1)' : 'white')};
   border: 1px solid ${({ isSelected }) => (isSelected ? '#4ECDC4' : '#eee')};
   border-radius: 12px;
   font-size: 14px;
@@ -272,7 +264,7 @@ const AnswerSection = styled.div`
 const SelectedQuestion = styled.div`
   font-size: 14px;
   font-weight: 600;
-  color: #4ECDC4;
+  color: #4ecdc4;
   margin-bottom: 12px;
 `;
 
@@ -287,7 +279,7 @@ const AnswerTextarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #4ECDC4;
+    border-color: #4ecdc4;
   }
 `;
 
@@ -354,25 +346,25 @@ const promptCategories = [
 // Default prompt questions
 const defaultQuestions: PromptQuestion[] = [
   { id: 'q1', question: "I'm looking for...", category: 'dating', emoji: '💝' },
-  { id: 'q2', question: "My ideal first date is...", category: 'dating', emoji: '🌹' },
-  { id: 'q3', question: "A deal breaker for me is...", category: 'dating', emoji: '🚫' },
-  { id: 'q4', question: "My weekend looks like...", category: 'lifestyle', emoji: '☀️' },
+  { id: 'q2', question: 'My ideal first date is...', category: 'dating', emoji: '🌹' },
+  { id: 'q3', question: 'A deal breaker for me is...', category: 'dating', emoji: '🚫' },
+  { id: 'q4', question: 'My weekend looks like...', category: 'lifestyle', emoji: '☀️' },
   { id: 'q5', question: "I'm passionate about...", category: 'about', emoji: '🔥' },
-  { id: 'q6', question: "What I value most is...", category: 'values', emoji: '💎' },
-  { id: 'q7', question: "My love language is...", category: 'dating', emoji: '💕' },
+  { id: 'q6', question: 'What I value most is...', category: 'values', emoji: '💎' },
+  { id: 'q7', question: 'My love language is...', category: 'dating', emoji: '💕' },
   { id: 'q8', question: "I'll know we're a match if...", category: 'dating', emoji: '✨' },
   { id: 'q9', question: "Something I'm really good at...", category: 'about', emoji: '🏆' },
-  { id: 'q10', question: "A fun fact about me...", category: 'fun', emoji: '🎭' },
-  { id: 'q11', question: "My most controversial opinion is...", category: 'fun', emoji: '🌶️' },
-  { id: 'q12', question: "I geek out about...", category: 'about', emoji: '🤓' },
-  { id: 'q13', question: "My favorite travel memory is...", category: 'lifestyle', emoji: '✈️' },
-  { id: 'q14', question: "Green flag I look for...", category: 'dating', emoji: '🟢' },
-  { id: 'q15', question: "My happy place is...", category: 'lifestyle', emoji: '🏡' },
+  { id: 'q10', question: 'A fun fact about me...', category: 'fun', emoji: '🎭' },
+  { id: 'q11', question: 'My most controversial opinion is...', category: 'fun', emoji: '🌶️' },
+  { id: 'q12', question: 'I geek out about...', category: 'about', emoji: '🤓' },
+  { id: 'q13', question: 'My favorite travel memory is...', category: 'lifestyle', emoji: '✈️' },
+  { id: 'q14', question: 'Green flag I look for...', category: 'dating', emoji: '🟢' },
+  { id: 'q15', question: 'My happy place is...', category: 'lifestyle', emoji: '🏡' },
   { id: 'q16', question: "I won't shut up about...", category: 'about', emoji: '🗣️' },
-  { id: 'q17', question: "My dream dinner guest is...", category: 'fun', emoji: '🍽️' },
-  { id: 'q18', question: "Two truths and a lie...", category: 'fun', emoji: '🤔' },
+  { id: 'q17', question: 'My dream dinner guest is...', category: 'fun', emoji: '🍽️' },
+  { id: 'q18', question: 'Two truths and a lie...', category: 'fun', emoji: '🤔' },
   { id: 'q19', question: "You'll find me on a Sunday...", category: 'lifestyle', emoji: '😴' },
-  { id: 'q20', question: "My comfort food is...", category: 'preferences', emoji: '🍕' },
+  { id: 'q20', question: 'My comfort food is...', category: 'preferences', emoji: '🍕' },
 ];
 
 const MAX_ANSWER_LENGTH = 200;
@@ -399,13 +391,16 @@ export const ProfilePrompts: React.FC<ProfilePromptsProps> = ({
   });
 
   // Group questions by category
-  const questionsByCategory = availableQuestions.reduce((acc, question) => {
-    if (!acc[question.category]) {
-      acc[question.category] = [];
-    }
-    acc[question.category].push(question);
-    return acc;
-  }, {} as Record<string, PromptQuestion[]>);
+  const questionsByCategory = availableQuestions.reduce(
+    (acc, question) => {
+      if (!acc[question.category]) {
+        acc[question.category] = [];
+      }
+      acc[question.category].push(question);
+      return acc;
+    },
+    {} as Record<string, PromptQuestion[]>
+  );
 
   const handleOpenAddModal = () => {
     setSelectedQuestion(null);
@@ -460,9 +455,7 @@ export const ProfilePrompts: React.FC<ProfilePromptsProps> = ({
         <EmptyState>
           <EmptyIcon>💬</EmptyIcon>
           <EmptyText>
-            {isOwnProfile
-              ? 'Add prompts to help others get to know you better!'
-              : 'No prompts yet'}
+            {isOwnProfile ? 'Add prompts to help others get to know you better!' : 'No prompts yet'}
           </EmptyText>
           {isOwnProfile && (
             <AddButton onClick={handleOpenAddModal}>
@@ -583,7 +576,8 @@ export const ProfilePrompts: React.FC<ProfilePromptsProps> = ({
 
             <ModalBody>
               <SelectedQuestion>
-                {availableQuestions.find((q) => q.question === editingPrompt.question)?.emoji || '💬'}{' '}
+                {availableQuestions.find((q) => q.question === editingPrompt.question)?.emoji ||
+                  '💬'}{' '}
                 {editingPrompt.question}
               </SelectedQuestion>
               <AnswerTextarea
@@ -599,11 +593,7 @@ export const ProfilePrompts: React.FC<ProfilePromptsProps> = ({
 
             <ModalFooter>
               <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
-              <Button
-                variant="primary"
-                onClick={handleEditPrompt}
-                disabled={!answer.trim()}
-              >
+              <Button variant="primary" onClick={handleEditPrompt} disabled={!answer.trim()}>
                 Save Changes
               </Button>
             </ModalFooter>

@@ -113,19 +113,15 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
       clearInterval(challengeTimer.current);
     }
 
-    Alert.alert(
-      "Time's Up",
-      'You ran out of time. Please try again.',
-      [
-        {
-          text: 'Retry',
-          onPress: () => {
-            setCurrentStep('position');
-            setCurrentChallenge(getRandomChallenge());
-          },
+    Alert.alert("Time's Up", 'You ran out of time. Please try again.', [
+      {
+        text: 'Retry',
+        onPress: () => {
+          setCurrentStep('position');
+          setCurrentChallenge(getRandomChallenge());
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getRandomChallenge = (): LivenessChallenge => {
@@ -254,8 +250,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
 
       <Text style={styles.stepTitle}>Verify Your Photos</Text>
       <Text style={styles.stepDescription}>
-        Let's make sure you're a real person! We'll take a quick selfie to verify your
-        identity.
+        Let's make sure you're a real person! We'll take a quick selfie to verify your identity.
       </Text>
 
       <View style={styles.benefitsContainer}>
@@ -321,9 +316,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
         />
 
         <View style={styles.positionOverlay}>
-          <Text style={styles.positionInstruction}>
-            Position your face in the oval
-          </Text>
+          <Text style={styles.positionInstruction}>Position your face in the oval</Text>
           <Text style={styles.positionSubtext}>
             Make sure your face is well-lit and clearly visible
           </Text>
@@ -358,9 +351,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
         <View style={styles.challengeOverlay}>
           <View style={styles.challengeCard}>
             <Text style={styles.challengeIcon}>{getChallengeIcon(currentChallenge)}</Text>
-            <Text style={styles.challengeText}>
-              {getChallengeInstruction(currentChallenge)}
-            </Text>
+            <Text style={styles.challengeText}>{getChallengeInstruction(currentChallenge)}</Text>
             <View style={styles.timerContainer}>
               <Text style={styles.timerText}>{remainingTime}s</Text>
             </View>
@@ -382,9 +373,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
       <View style={styles.processingContainer}>
         <ActivityIndicator size="large" color="#E91E63" />
         <Text style={styles.processingTitle}>Verifying Your Photo</Text>
-        <Text style={styles.processingText}>
-          This will only take a moment...
-        </Text>
+        <Text style={styles.processingText}>This will only take a moment...</Text>
 
         <View style={styles.processingSteps}>
           <View style={styles.processingStep}>
@@ -515,8 +504,8 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
                       currentStep === 'position'
                         ? '33%'
                         : currentStep === 'capture'
-                        ? '66%'
-                        : '100%',
+                          ? '66%'
+                          : '100%',
                   },
                 ]}
               />
@@ -532,8 +521,8 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
           <View style={styles.privacyNotice}>
             <Text style={styles.privacyNoticeIcon}>🔒</Text>
             <Text style={styles.privacyNoticeText}>
-              Your verification photo is encrypted and only used to confirm your identity. It
-              won't be shown on your profile.
+              Your verification photo is encrypted and only used to confirm your identity. It won't
+              be shown on your profile.
             </Text>
           </View>
         )}

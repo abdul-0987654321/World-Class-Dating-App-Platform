@@ -150,10 +150,7 @@ class RecommendationService {
     });
   }
 
-  async calculateCompatibility(
-    userId: string,
-    targetUserId: string
-  ): Promise<CompatibilityResult> {
+  async calculateCompatibility(userId: string, targetUserId: string): Promise<CompatibilityResult> {
     return apiClient.post<CompatibilityResult>(`${this.baseUrl}/compatibility`, {
       user_id: userId,
       target_user_id: targetUserId,

@@ -401,10 +401,7 @@ export const ROUTE_CONFIG: RouteConfig[] = [
  */
 export const preloadCriticalChunks = () => {
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    const criticalChunks = [
-      '/assets/discovery.js',
-      '/assets/messages.js',
-    ];
+    const criticalChunks = ['/assets/discovery.js', '/assets/messages.js'];
 
     criticalChunks.forEach((chunk) => {
       navigator.serviceWorker.controller?.postMessage({

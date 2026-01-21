@@ -3,7 +3,14 @@
  * React context for managing video/voice call state across the app
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { useVideoCall, CallState, CallType, IncomingCall, CallStats } from '../hooks/useVideoCall';
 
 interface VideoCallContextValue {
@@ -18,7 +25,12 @@ interface VideoCallContextValue {
   showIncomingCallNotification: boolean;
 
   // Actions
-  initiateCall: (recipientId: string, recipientName: string, recipientAvatar: string | undefined, callType: CallType) => Promise<void>;
+  initiateCall: (
+    recipientId: string,
+    recipientName: string,
+    recipientAvatar: string | undefined,
+    callType: CallType
+  ) => Promise<void>;
   acceptIncomingCall: () => Promise<void>;
   rejectIncomingCall: (reason?: string) => void;
   endCurrentCall: (reason?: string) => void;
@@ -65,17 +77,20 @@ export function VideoCallProvider({
     playRingtone();
   }, []);
 
-  const handleCallEnded = useCallback((reason: string, duration: number) => {
-    stopRingtone();
-    setShowIncomingCallNotification(false);
+  const handleCallEnded = useCallback(
+    (reason: string, duration: number) => {
+      stopRingtone();
+      setShowIncomingCallNotification(false);
 
-    // Keep modal open briefly to show call ended state
-    if (showCallModal) {
-      setTimeout(() => {
-        setShowCallModal(false);
-      }, 2000);
-    }
-  }, [showCallModal]);
+      // Keep modal open briefly to show call ended state
+      if (showCallModal) {
+        setTimeout(() => {
+          setShowCallModal(false);
+        }, 2000);
+      }
+    },
+    [showCallModal]
+  );
 
   const handleError = useCallback((error: Error) => {
     console.error('Video call error:', error);
@@ -146,24 +161,27 @@ export function VideoCallProvider({
     }
   }, [callState.status, stopRingtone]);
 
-  const initiateCall = useCallback(async (
-    recipientId: string,
-    recipientName: string,
-    recipientAvatar: string | undefined,
-    callType: CallType
-  ) => {
-    setPendingCall({ recipientId, recipientName, recipientAvatar, callType });
-    setShowCallModal(true);
+  const initiateCall = useCallback(
+    async (
+      recipientId: string,
+      recipientName: string,
+      recipientAvatar: string | undefined,
+      callType: CallType
+    ) => {
+      setPendingCall({ recipientId, recipientName, recipientAvatar, callType });
+      setShowCallModal(true);
 
-    try {
-      await startCall(recipientId, recipientName, callType);
-    } catch (error) {
-      console.error('Failed to initiate call:', error);
-      setShowCallModal(false);
-      setPendingCall(null);
-      throw error;
-    }
-  }, [startCall]);
+      try {
+        await startCall(recipientId, recipientName, callType);
+      } catch (error) {
+        console.error('Failed to initiate call:', error);
+        setShowCallModal(false);
+        setPendingCall(null);
+        throw error;
+      }
+    },
+    [startCall]
+  );
 
   const acceptIncomingCall = useCallback(async () => {
     stopRingtone();
@@ -172,16 +190,22 @@ export function VideoCallProvider({
     await acceptCall();
   }, [acceptCall, stopRingtone]);
 
-  const rejectIncomingCall = useCallback((reason?: string) => {
-    stopRingtone();
-    setShowIncomingCallNotification(false);
-    rejectCall(reason);
-  }, [rejectCall, stopRingtone]);
+  const rejectIncomingCall = useCallback(
+    (reason?: string) => {
+      stopRingtone();
+      setShowIncomingCallNotification(false);
+      rejectCall(reason);
+    },
+    [rejectCall, stopRingtone]
+  );
 
-  const endCurrentCall = useCallback((reason?: string) => {
-    stopRingtone();
-    endCall(reason);
-  }, [endCall, stopRingtone]);
+  const endCurrentCall = useCallback(
+    (reason?: string) => {
+      stopRingtone();
+      endCall(reason);
+    },
+    [endCall, stopRingtone]
+  );
 
   const dismissIncomingCallNotification = useCallback(() => {
     stopRingtone();
@@ -213,11 +237,7 @@ export function VideoCallProvider({
     dismissIncomingCallNotification,
   };
 
-  return (
-    <VideoCallContext.Provider value={value}>
-      {children}
-    </VideoCallContext.Provider>
-  );
+  return <VideoCallContext.Provider value={value}>{children}</VideoCallContext.Provider>;
 }
 
 export function useVideoCallContext(): VideoCallContextValue {

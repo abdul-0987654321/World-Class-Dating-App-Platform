@@ -33,35 +33,38 @@ const CallHistoryScreen: React.FC<Props> = ({ navigation }) => {
   /**
    * Load call history
    */
-  const loadCallHistory = useCallback(async (refresh: boolean = false) => {
-    const currentOffset = refresh ? 0 : offset;
+  const loadCallHistory = useCallback(
+    async (refresh: boolean = false) => {
+      const currentOffset = refresh ? 0 : offset;
 
-    try {
-      if (refresh) {
-        setRefreshing(true);
-      } else if (currentOffset === 0) {
-        setLoading(true);
-      }
-
-      const response = await videoCallService.getCallHistory(limit, currentOffset);
-
-      if (response.success) {
+      try {
         if (refresh) {
-          setCalls(response.calls);
-        } else {
-          setCalls((prev) => [...prev, ...response.calls]);
+          setRefreshing(true);
+        } else if (currentOffset === 0) {
+          setLoading(true);
         }
 
-        setHasMore(response.pagination.hasMore);
-        setOffset(refresh ? limit : currentOffset + limit);
+        const response = await videoCallService.getCallHistory(limit, currentOffset);
+
+        if (response.success) {
+          if (refresh) {
+            setCalls(response.calls);
+          } else {
+            setCalls((prev) => [...prev, ...response.calls]);
+          }
+
+          setHasMore(response.pagination.hasMore);
+          setOffset(refresh ? limit : currentOffset + limit);
+        }
+      } catch (error) {
+        console.error('Load call history error:', error);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-    } catch (error) {
-      console.error('Load call history error:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [offset]);
+    },
+    [offset]
+  );
 
   useEffect(() => {
     loadCallHistory();
@@ -181,14 +184,9 @@ const CallHistoryScreen: React.FC<Props> = ({ navigation }) => {
     const { icon, color } = getCallIcon(item);
 
     return (
-      <TouchableOpacity
-        style={styles.callItem}
-        onPress={() => handleCallPress(item)}
-      >
+      <TouchableOpacity style={styles.callItem} onPress={() => handleCallPress(item)}>
         <View style={styles.callAvatar}>
-          <Text style={styles.callAvatarText}>
-            {item.otherUser.firstName[0]?.toUpperCase()}
-          </Text>
+          <Text style={styles.callAvatarText}>{item.otherUser.firstName[0]?.toUpperCase()}</Text>
         </View>
 
         <View style={styles.callInfo}>
@@ -213,20 +211,13 @@ const CallHistoryScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           {item.connectionQuality && (
-            <Text style={styles.callQuality}>
-              Quality: {item.connectionQuality}
-            </Text>
+            <Text style={styles.callQuality}>Quality: {item.connectionQuality}</Text>
           )}
         </View>
 
         <View style={styles.callActions}>
-          <Text style={[styles.callStatus, { color }]}>
-            {getStatusText(item)}
-          </Text>
-          <TouchableOpacity
-            style={styles.callAgainButton}
-            onPress={() => handleCallAgain(item)}
-          >
+          <Text style={[styles.callStatus, { color }]}>{getStatusText(item)}</Text>
+          <TouchableOpacity style={styles.callAgainButton} onPress={() => handleCallAgain(item)}>
             <Text style={styles.callAgainIcon}>📞</Text>
           </TouchableOpacity>
         </View>
@@ -244,9 +235,7 @@ const CallHistoryScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>📞</Text>
         <Text style={styles.emptyTitle}>No Call History</Text>
-        <Text style={styles.emptyText}>
-          Your video and audio call history will appear here
-        </Text>
+        <Text style={styles.emptyText}>Your video and audio call history will appear here</Text>
       </View>
     );
   };
@@ -267,10 +256,7 @@ const CallHistoryScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Call History</Text>
@@ -288,11 +274,7 @@ const CallHistoryScreen: React.FC<Props> = ({ navigation }) => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor="#FF6B6B"
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF6B6B" />
           }
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={renderFooter}

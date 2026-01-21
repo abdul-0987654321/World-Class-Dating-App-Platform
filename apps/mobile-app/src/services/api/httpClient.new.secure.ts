@@ -75,7 +75,7 @@ class HttpClient {
       const data = await response.json();
 
       // Update access token in secure storage
-      const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minutes
+      const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
       await secureTokenStorage.updateAccessToken(data.accessToken, expiresAt);
 
       return true;
@@ -189,8 +189,9 @@ class HttpClient {
         }
 
         // Exponential backoff
-        const delay = API_CONFIG.RETRY.RETRY_DELAY * Math.pow(API_CONFIG.RETRY.BACKOFF_MULTIPLIER, retryCount);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay =
+          API_CONFIG.RETRY.RETRY_DELAY * Math.pow(API_CONFIG.RETRY.BACKOFF_MULTIPLIER, retryCount);
+        await new Promise((resolve) => setTimeout(resolve, delay));
         retryCount++;
       }
     }
@@ -255,7 +256,7 @@ class HttpClient {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : '',
           'Content-Type': 'multipart/form-data',
           ...options?.headers,
         },

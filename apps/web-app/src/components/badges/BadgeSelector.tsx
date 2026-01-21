@@ -69,7 +69,9 @@ const BadgeSelector: React.FC<BadgeSelectorProps> = ({
   };
 
   const categories = categorized
-    ? Array.from(new Set(availableBadges.map((b) => b.category).filter((c): c is string => Boolean(c))))
+    ? Array.from(
+        new Set(availableBadges.map((b) => b.category).filter((c): c is string => Boolean(c)))
+      )
     : [];
 
   const formatCategoryName = (category: string) => {
@@ -167,8 +169,8 @@ const BadgeSelector: React.FC<BadgeSelectorProps> = ({
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                       : 'border-pink-500 bg-pink-50 dark:bg-pink-900/20'
                     : canSelect
-                    ? 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
+                      ? 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
                 }
                 ${canSelect ? 'hover:shadow-md' : ''}
               `}

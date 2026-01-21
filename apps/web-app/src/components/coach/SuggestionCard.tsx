@@ -100,8 +100,7 @@ const SuggestionList = styled.div`
 const SuggestionItem = styled.div<{ $selected: boolean }>`
   background: ${({ theme, $selected }) =>
     $selected ? theme.colors.primaryLight : theme.colors.backgroundSecondary};
-  border: 2px solid ${({ theme, $selected }) =>
-    $selected ? theme.colors.primary : 'transparent'};
+  border: 2px solid ${({ theme, $selected }) => ($selected ? theme.colors.primary : 'transparent')};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ theme }) => theme.spacing.md};
   cursor: pointer;
@@ -131,8 +130,7 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   background: ${({ theme, $variant }) =>
     $variant === 'primary' ? theme.colors.gradient : theme.colors.backgroundTertiary};
-  color: ${({ theme, $variant }) =>
-    $variant === 'primary' ? 'white' : theme.colors.text};
+  color: ${({ theme, $variant }) => ($variant === 'primary' ? 'white' : theme.colors.text)};
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   font-weight: ${({ theme }) => theme.fontWeight.semibold};
@@ -198,7 +196,12 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
         {onDismiss && (
           <CloseButton onClick={onDismiss}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </CloseButton>
         )}

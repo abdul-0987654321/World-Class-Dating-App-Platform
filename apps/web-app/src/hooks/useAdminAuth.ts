@@ -60,7 +60,7 @@ export function useAdminAuth(): AdminAuthState {
   });
 
   const verifyAdminStatus = useCallback(async () => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       // SECURITY: Verify admin status via API call
@@ -156,7 +156,9 @@ export function useAdminPermission(permission: string): boolean {
   }
 
   // Check if user has the specific permission or wildcard admin access
-  return permissions.includes(permission) || permissions.includes('*') || permissions.includes('admin:*');
+  return (
+    permissions.includes(permission) || permissions.includes('*') || permissions.includes('admin:*')
+  );
 }
 
 export default useAdminAuth;

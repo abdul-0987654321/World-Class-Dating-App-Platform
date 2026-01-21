@@ -195,10 +195,15 @@ describe('Authentication Flow', () => {
       cy.login(testUser.email, testUser.password);
 
       // Intercept token refresh
-      cy.interceptAPI('POST', '**/api/v1/auth/refresh', {
-        token: 'new-token',
-        expiresIn: 3600,
-      }, 'refreshToken');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/auth/refresh',
+        {
+          token: 'new-token',
+          expiresIn: 3600,
+        },
+        'refreshToken'
+      );
 
       // Trigger token refresh (wait for expiry - simulated)
       cy.wait(5000);

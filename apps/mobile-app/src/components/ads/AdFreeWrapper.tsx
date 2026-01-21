@@ -78,9 +78,7 @@ export const AdFreeWrapper: React.FC<AdFreeWrapperProps> = ({
       {adPlacement === 'top' && renderAd()}
       {adPlacement === 'top' && renderUpgradePrompt()}
 
-      <View style={styles.contentContainer}>
-        {children}
-      </View>
+      <View style={styles.contentContainer}>{children}</View>
 
       {adPlacement === 'bottom' && renderUpgradePrompt()}
       {adPlacement === 'bottom' && renderAd()}
@@ -128,10 +126,7 @@ interface PremiumBadgeProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
-  tier,
-  size = 'small',
-}) => {
+export const PremiumBadge: React.FC<PremiumBadgeProps> = ({ tier, size = 'small' }) => {
   const isAdFree = AD_FREE_TIERS.includes(tier);
 
   if (!isAdFree) return null;
@@ -194,9 +189,7 @@ export const AdFreeStatusCard: React.FC<AdFreeStatusCardProps> = ({
         You're enjoying an ad-free experience with your {tier} subscription.
       </Text>
       {expiresAt && (
-        <Text style={styles.expiresText}>
-          Renews on {expiresAt.toLocaleDateString()}
-        </Text>
+        <Text style={styles.expiresText}>Renews on {expiresAt.toLocaleDateString()}</Text>
       )}
       <TouchableOpacity style={styles.manageButton} onPress={onManagePress}>
         <Text style={styles.manageButtonText}>Manage Subscription</Text>

@@ -22,7 +22,7 @@ describe('Accessibility Tests', () => {
       cy.checkA11y(null, {
         rules: {
           'color-contrast': { enabled: true },
-          'label': { enabled: true },
+          label: { enabled: true },
           'button-name': { enabled: true },
         },
       });
@@ -174,9 +174,7 @@ describe('Accessibility Tests', () => {
 
       cy.visit('/profile');
 
-      cy.get('[aria-live="polite"]')
-        .should('exist')
-        .and('contain.text', 'Profile page');
+      cy.get('[aria-live="polite"]').should('exist').and('contain.text', 'Profile page');
     });
 
     it('should have descriptive alt text for images', () => {
@@ -252,7 +250,9 @@ describe('Accessibility Tests', () => {
     it('should mark required fields', () => {
       cy.visit('/register');
 
-      cy.get('[data-testid="email-input"]').should('have.attr', 'required').or('have.attr', 'aria-required', 'true');
+      cy.get('[data-testid="email-input"]')
+        .should('have.attr', 'required')
+        .or('have.attr', 'aria-required', 'true');
     });
   });
 
@@ -289,10 +289,7 @@ describe('Accessibility Tests', () => {
       cy.visit('/discover');
 
       cy.get('[data-icon]').each(($icon) => {
-        cy.wrap($icon)
-          .parent()
-          .should('have.attr', 'aria-label')
-          .or('contain.text');
+        cy.wrap($icon).parent().should('have.attr', 'aria-label').or('contain.text');
       });
     });
   });

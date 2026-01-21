@@ -69,44 +69,43 @@ class InAppPurchaseServiceClass extends EventEmitter {
       console.log('IAP connection initialized:', result);
 
       // Set up purchase listeners
-      this.purchaseUpdateSubscription = purchaseUpdatedListener(
-        async (purchase: Purchase) => {
-          console.log('Purchase updated:', purchase);
-          const receipt = purchase.transactionReceipt;
+      this.purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase: Purchase) => {
+        console.log('Purchase updated:', purchase);
+        const receipt = purchase.transactionReceipt;
 
-          if (receipt) {
-            try {
-              // Verify purchase with backend
-              await this.verifyPurchaseWithBackend(purchase);
+        if (receipt) {
+          try {
+            // Verify purchase with backend
+            await this.verifyPurchaseWithBackend(purchase);
 
-              // Finish the transaction
-              if (Platform.OS === 'android') {
-                await acknowledgePurchaseAndroid({
-                  token: purchase.purchaseToken!,
-                  developerPayload: purchase.developerPayloadAndroid,
-                });
-              }
-              await finishTransaction({ purchase, isConsumable: this.isConsumable(purchase.productId) });
-
-              this.emit('purchaseSuccess', purchase);
-            } catch (error) {
-              console.error('Error finishing transaction:', error);
-              this.emit('purchaseError', error);
+            // Finish the transaction
+            if (Platform.OS === 'android') {
+              await acknowledgePurchaseAndroid({
+                token: purchase.purchaseToken!,
+                developerPayload: purchase.developerPayloadAndroid,
+              });
             }
+            await finishTransaction({
+              purchase,
+              isConsumable: this.isConsumable(purchase.productId),
+            });
+
+            this.emit('purchaseSuccess', purchase);
+          } catch (error) {
+            console.error('Error finishing transaction:', error);
+            this.emit('purchaseError', error);
           }
         }
-      );
+      });
 
-      this.purchaseErrorSubscription = purchaseErrorListener(
-        (error: PurchaseError) => {
-          console.error('Purchase error:', error);
-          this.emit('purchaseError', error);
+      this.purchaseErrorSubscription = purchaseErrorListener((error: PurchaseError) => {
+        console.error('Purchase error:', error);
+        this.emit('purchaseError', error);
 
-          if (error.code !== 'E_USER_CANCELLED') {
-            Alert.alert('Purchase Error', error.message);
-          }
+        if (error.code !== 'E_USER_CANCELLED') {
+          Alert.alert('Purchase Error', error.message);
         }
-      );
+      });
 
       this.isInitialized = true;
       return true;
@@ -249,7 +248,7 @@ class InAppPurchaseServiceClass extends EventEmitter {
     try {
       // Send purchase receipt to backend for verification
       // This prevents fraud and ensures purchases are valid
-      const response = await fetch(`${process.env.API_URL}/api/purchases/verify`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/purchases/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

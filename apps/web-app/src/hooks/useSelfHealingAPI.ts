@@ -88,10 +88,7 @@ function getCircuitBreaker(pattern: string): CircuitBreakerState {
   return circuitBreakers.get(pattern)!;
 }
 
-export function useSelfHealingAPI<T>(
-  endpoint: string,
-  config: SelfHealingConfig = {}
-) {
+export function useSelfHealingAPI<T>(endpoint: string, config: SelfHealingConfig = {}) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(false);
@@ -155,7 +152,7 @@ export function useSelfHealingAPI<T>(
     }
   }, [pattern, circuitConfig.failureThreshold, config.onCircuitOpen]);
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const calculateDelay = (attempt: number): number => {
     // Exponential backoff with jitter
@@ -240,18 +237,14 @@ export function useSelfHealingAPI<T>(
             return null;
           }
 
-          lastError =
-            err instanceof ApiError
-              ? err
-              : new ApiError('Network error', 0, err);
+          lastError = err instanceof ApiError ? err : new ApiError('Network error', 0, err);
 
           attempts++;
 
           // Check if we should retry
           const shouldRetry =
             attempts <= retryConfig.maxRetries &&
-            (retryConfig.retryOn.includes(lastError.status) ||
-              lastError.status === 0); // Network error
+            (retryConfig.retryOn.includes(lastError.status) || lastError.status === 0); // Network error
 
           if (shouldRetry) {
             const delay = calculateDelay(attempts - 1);
@@ -279,14 +272,7 @@ export function useSelfHealingAPI<T>(
 
       return null;
     },
-    [
-      endpoint,
-      checkCircuitBreaker,
-      recordSuccess,
-      recordFailure,
-      retryConfig,
-      config,
-    ]
+    [endpoint, checkCircuitBreaker, recordSuccess, recordFailure, retryConfig, config]
   );
 
   // Cleanup on unmount

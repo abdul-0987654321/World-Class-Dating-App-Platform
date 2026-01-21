@@ -27,10 +27,7 @@ interface PhoneVerificationScreenProps {
   };
 }
 
-const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
-  navigation,
-  route,
-}) => {
+const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({ navigation, route }) => {
   const { phoneNumber } = route.params;
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -93,7 +90,7 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
       setLoading(true);
 
       const response = await axios.post(
-        `${process.env.API_URL}/api/auth/verify-phone`,
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/auth/verify-phone`,
         {
           phoneNumber,
           code: codeToVerify,
@@ -104,10 +101,7 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
         // Phone verified successfully
         navigation.navigate('LocationScreen');
       } else {
-        Alert.alert(
-          'Verification Failed',
-          response.data.message || 'Invalid verification code'
-        );
+        Alert.alert('Verification Failed', response.data.message || 'Invalid verification code');
         setCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
       }
@@ -115,8 +109,7 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
       console.error('Verification error:', error);
       Alert.alert(
         'Verification Failed',
-        error.response?.data?.message ||
-          'Failed to verify code. Please try again.'
+        error.response?.data?.message || 'Failed to verify code. Please try again.'
       );
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -130,7 +123,7 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
       setResending(true);
 
       const response = await axios.post(
-        `${process.env.API_URL}/api/auth/resend-verification`,
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/auth/resend-verification`,
         {
           phoneNumber,
         }
@@ -190,10 +183,7 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
             <TextInput
               key={index}
               ref={(ref) => (inputRefs.current[index] = ref)}
-              style={[
-                styles.codeInput,
-                digit && styles.codeInputFilled,
-              ]}
+              style={[styles.codeInput, digit && styles.codeInputFilled]}
               value={digit}
               onChangeText={(text) => handleCodeChange(text, index)}
               onKeyPress={(e) => handleKeyPress(e, index)}
@@ -209,10 +199,7 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
           <ActivityIndicator size="large" color="#FF6B6B" style={styles.loader} />
         ) : (
           <TouchableOpacity
-            style={[
-              styles.verifyButton,
-              code.join('').length !== 6 && styles.verifyButtonDisabled,
-            ]}
+            style={[styles.verifyButton, code.join('').length !== 6 && styles.verifyButtonDisabled]}
             onPress={() => handleVerify()}
             disabled={code.join('').length !== 6}
           >
@@ -222,25 +209,15 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({
 
         <View style={styles.resendContainer}>
           {canResend ? (
-            <TouchableOpacity
-              onPress={handleResendCode}
-              disabled={resending}
-            >
-              <Text style={styles.resendText}>
-                {resending ? 'Sending...' : 'Resend Code'}
-              </Text>
+            <TouchableOpacity onPress={handleResendCode} disabled={resending}>
+              <Text style={styles.resendText}>{resending ? 'Sending...' : 'Resend Code'}</Text>
             </TouchableOpacity>
           ) : (
-            <Text style={styles.timerText}>
-              Resend code in {timer}s
-            </Text>
+            <Text style={styles.timerText}>Resend code in {timer}s</Text>
           )}
         </View>
 
-        <TouchableOpacity
-          style={styles.changeNumberButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.changeNumberButton} onPress={() => navigation.goBack()}>
           <Text style={styles.changeNumberText}>Change Phone Number</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>

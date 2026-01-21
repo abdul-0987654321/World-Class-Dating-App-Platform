@@ -59,9 +59,7 @@ export interface UseTypingIndicatorReturn {
   getTypingText: () => string;
 }
 
-export function useTypingIndicator(
-  options: TypingIndicatorOptions
-): UseTypingIndicatorReturn {
+export function useTypingIndicator(options: TypingIndicatorOptions): UseTypingIndicatorReturn {
   const {
     conversationId,
     socket,
@@ -145,9 +143,7 @@ export function useTypingIndicator(
     const interval = setInterval(() => {
       const now = Date.now();
       setTypingUsers((prev) => {
-        const filtered = prev.filter(
-          (user) => now - user.startedAt.getTime() < staleTimeout
-        );
+        const filtered = prev.filter((user) => now - user.startedAt.getTime() < staleTimeout);
         return filtered.length !== prev.length ? filtered : prev;
       });
     }, 1000);

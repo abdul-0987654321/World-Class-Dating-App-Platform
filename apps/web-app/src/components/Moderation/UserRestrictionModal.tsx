@@ -40,9 +40,7 @@ const UserRestrictionModal: React.FC<UserRestrictionModalProps> = ({
               <InfoValue>
                 {format(new Date(restriction.endsAt), 'MMMM dd, yyyy at h:mm a')}
               </InfoValue>
-              <TimeRemaining>
-                {getTimeRemaining(new Date(restriction.endsAt))}
-              </TimeRemaining>
+              <TimeRemaining>{getTimeRemaining(new Date(restriction.endsAt))}</TimeRemaining>
             </SuspensionInfo>
           )}
 
@@ -56,8 +54,8 @@ const UserRestrictionModal: React.FC<UserRestrictionModalProps> = ({
           <GuidelinesSection>
             <h3>Community Guidelines</h3>
             <p>
-              To maintain a safe and respectful environment, we enforce strict community
-              guidelines. Please review our{' '}
+              To maintain a safe and respectful environment, we enforce strict community guidelines.
+              Please review our{' '}
               <a href="/community-guidelines" target="_blank">
                 Community Guidelines
               </a>{' '}
@@ -80,9 +78,7 @@ const UserRestrictionModal: React.FC<UserRestrictionModalProps> = ({
         </Content>
 
         <Footer>
-          <CloseButton onClick={onClose}>
-            {isSuspended ? 'I Understand' : 'Close'}
-          </CloseButton>
+          <CloseButton onClick={onClose}>{isSuspended ? 'I Understand' : 'Close'}</CloseButton>
         </Footer>
       </Modal>
     </Overlay>
@@ -130,7 +126,9 @@ const Modal = styled.div`
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 `;
 
 const Header = styled.div<{ $type: 'suspended' | 'banned' }>`

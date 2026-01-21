@@ -131,7 +131,7 @@ const AddIcon = styled.div`
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4ECDC4, #95E1D3);
+  background: linear-gradient(135deg, #4ecdc4, #95e1d3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,11 +261,7 @@ export const StoryFeed: React.FC<StoryFeedProps> = ({
 
   return (
     <Container>
-      <ScrollButton
-        position="left"
-        onClick={() => scroll('left')}
-        disabled={!canScrollLeft}
-      >
+      <ScrollButton position="left" onClick={() => scroll('left')} disabled={!canScrollLeft}>
         <FiChevronLeft />
       </ScrollButton>
 
@@ -278,17 +274,19 @@ export const StoryFeed: React.FC<StoryFeedProps> = ({
             displayName={currentUserName}
             hasUnviewedStories={false}
             storyCount={0}
-            onClick={() => handleUserClick({
-              userId: currentUserId,
-              displayName: currentUserName,
-              avatarUrl: currentUserAvatar,
-              isVerified: false,
-              hasUnviewedStories: false,
-              storyCount: 1,
-              latestStoryAt: new Date().toISOString(),
-              isCloseFriend: false,
-              isMatch: false,
-            })}
+            onClick={() =>
+              handleUserClick({
+                userId: currentUserId,
+                displayName: currentUserName,
+                avatarUrl: currentUserAvatar,
+                isVerified: false,
+                hasUnviewedStories: false,
+                storyCount: 1,
+                latestStoryAt: new Date().toISOString(),
+                isCloseFriend: false,
+                isMatch: false,
+              })
+            }
             showAddButton={true}
             isOwnProfile={true}
           />
@@ -321,11 +319,7 @@ export const StoryFeed: React.FC<StoryFeedProps> = ({
         ))}
       </ScrollContainer>
 
-      <ScrollButton
-        position="right"
-        onClick={() => scroll('right')}
-        disabled={!canScrollRight}
-      >
+      <ScrollButton position="right" onClick={() => scroll('right')} disabled={!canScrollRight}>
         <FiChevronRight />
       </ScrollButton>
 

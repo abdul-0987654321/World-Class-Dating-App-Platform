@@ -41,7 +41,7 @@ export const PhotoVerificationPage: React.FC = () => {
   useEffect(() => {
     return () => {
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     };
   }, [stream]);
@@ -59,7 +59,9 @@ export const PhotoVerificationPage: React.FC = () => {
       setStep('pose1');
     } catch (err) {
       console.error('Camera access denied:', err);
-      setErrorMessage('Camera access is required for verification. Please allow camera access and try again.');
+      setErrorMessage(
+        'Camera access is required for verification. Please allow camera access and try again.'
+      );
     }
   };
 
@@ -68,7 +70,7 @@ export const PhotoVerificationPage: React.FC = () => {
 
     setCountdown(3);
     const interval = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
           return null;
@@ -86,10 +88,10 @@ export const PhotoVerificationPage: React.FC = () => {
       ctx.drawImage(video, 0, 0);
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
 
-      setCaptures(prev => [...prev, imageData]);
+      setCaptures((prev) => [...prev, imageData]);
 
       if (currentPoseIndex < POSES.length - 1) {
-        setCurrentPoseIndex(prev => prev + 1);
+        setCurrentPoseIndex((prev) => prev + 1);
         setStep(POSES[currentPoseIndex + 1].id as VerificationStep);
       } else {
         setStep('processing');
@@ -105,13 +107,13 @@ export const PhotoVerificationPage: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ photos }),
       });
 
       // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       if (res.ok) {
         const data = await res.json();
@@ -127,7 +129,9 @@ export const PhotoVerificationPage: React.FC = () => {
           setStep('success');
         } else {
           setStep('failed');
-          setErrorMessage('Face could not be clearly detected. Please try again with better lighting.');
+          setErrorMessage(
+            'Face could not be clearly detected. Please try again with better lighting.'
+          );
         }
       }
     } catch (err) {
@@ -136,7 +140,7 @@ export const PhotoVerificationPage: React.FC = () => {
       setStep('success');
     } finally {
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     }
   };
@@ -160,8 +164,18 @@ export const PhotoVerificationPage: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                <svg
+                  className="w-10 h-10 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-gray-800 mb-2">Photo Verification</h1>
@@ -186,7 +200,9 @@ export const PhotoVerificationPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-800">Your privacy is protected</h3>
-                  <p className="text-sm text-gray-500">Photos are only used for verification and never shared</p>
+                  <p className="text-sm text-gray-500">
+                    Photos are only used for verification and never shared
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -228,11 +244,10 @@ export const PhotoVerificationPage: React.FC = () => {
             {/* Progress */}
             <div className="p-4 border-b">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-500">Step {currentPoseIndex + 1} of 3</span>
-                <button
-                  onClick={handleRetry}
-                  className="text-sm text-pink-500 hover:text-pink-600"
-                >
+                <span className="text-sm font-medium text-gray-500">
+                  Step {currentPoseIndex + 1} of 3
+                </span>
+                <button onClick={handleRetry} className="text-sm text-pink-500 hover:text-pink-600">
                   Start Over
                 </button>
               </div>
@@ -244,8 +259,8 @@ export const PhotoVerificationPage: React.FC = () => {
                       index < currentPoseIndex
                         ? 'bg-green-500'
                         : index === currentPoseIndex
-                        ? 'bg-pink-500'
-                        : 'bg-gray-200'
+                          ? 'bg-pink-500'
+                          : 'bg-gray-200'
                     }`}
                   />
                 ))}
@@ -305,8 +320,15 @@ export const PhotoVerificationPage: React.FC = () => {
             {/* Preview captured photos */}
             <div className="flex justify-center gap-3 mt-6">
               {captures.map((capture, index) => (
-                <div key={index} className="w-16 h-20 rounded-lg overflow-hidden border-2 border-gray-200">
-                  <img src={capture} alt={`Capture ${index + 1}`} className="w-full h-full object-cover transform -scale-x-100" />
+                <div
+                  key={index}
+                  className="w-16 h-20 rounded-lg overflow-hidden border-2 border-gray-200"
+                >
+                  <img
+                    src={capture}
+                    alt={`Capture ${index + 1}`}
+                    className="w-full h-full object-cover transform -scale-x-100"
+                  />
                 </div>
               ))}
             </div>
@@ -317,8 +339,18 @@ export const PhotoVerificationPage: React.FC = () => {
         {step === 'success' && (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-10 h-10 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">You're Verified!</h2>
@@ -328,7 +360,11 @@ export const PhotoVerificationPage: React.FC = () => {
 
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-4 py-2 rounded-full mb-8">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span className="font-medium">Verified Profile</span>
             </div>
@@ -346,8 +382,18 @@ export const PhotoVerificationPage: React.FC = () => {
         {step === 'failed' && (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-10 h-10 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Verification Failed</h2>

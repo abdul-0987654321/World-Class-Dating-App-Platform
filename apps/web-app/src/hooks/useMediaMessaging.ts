@@ -92,12 +92,7 @@ async function compressImage(
   file: File,
   options: CompressionOptions = {}
 ): Promise<{ blob: Blob; width: number; height: number }> {
-  const {
-    maxWidth = 1920,
-    maxHeight = 1920,
-    quality = 0.85,
-    format = 'jpeg',
-  } = options;
+  const { maxWidth = 1920, maxHeight = 1920, quality = 0.85, format = 'jpeg' } = options;
 
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -154,9 +149,7 @@ async function compressImage(
 }
 
 // Get image dimensions
-async function getImageDimensions(
-  file: File
-): Promise<{ width: number; height: number }> {
+async function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
 
@@ -175,10 +168,7 @@ async function getImageDimensions(
 }
 
 // Create thumbnail from file
-async function createThumbnail(
-  file: File,
-  maxSize: number = 200
-): Promise<string> {
+async function createThumbnail(file: File, maxSize: number = 200): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const canvas = document.createElement('canvas');
@@ -306,9 +296,7 @@ export function useMediaMessaging(options: UseMediaMessagingOptions) {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setTypingUsers((prev) =>
-        prev.filter((user) => now - user.startedAt.getTime() < 5000)
-      );
+      setTypingUsers((prev) => prev.filter((user) => now - user.startedAt.getTime() < 5000));
     }, 1000);
 
     return () => clearInterval(interval);
@@ -433,10 +421,7 @@ export function useMediaMessaging(options: UseMediaMessagingOptions) {
    * Upload and send a photo message
    */
   const sendPhoto = useCallback(
-    async (
-      file: File,
-      compressionOptions?: CompressionOptions
-    ): Promise<PhotoUploadResult> => {
+    async (file: File, compressionOptions?: CompressionOptions): Promise<PhotoUploadResult> => {
       if (!conversationId) {
         return { success: false, error: 'No conversation selected' };
       }
@@ -484,11 +469,7 @@ export function useMediaMessaging(options: UseMediaMessagingOptions) {
 
         // Create form data
         const formData = new FormData();
-        formData.append(
-          'photo',
-          prepared.blob,
-          file.name.replace(/\.[^.]+$/, '.jpg')
-        );
+        formData.append('photo', prepared.blob, file.name.replace(/\.[^.]+$/, '.jpg'));
 
         // Upload with progress tracking
         const response = await uploadWithProgress(
@@ -616,8 +597,8 @@ export function useMediaMessaging(options: UseMediaMessagingOptions) {
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : 'audio/mp4';
+          ? 'audio/webm'
+          : 'audio/mp4';
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
 
@@ -747,9 +728,7 @@ export function useMediaMessaging(options: UseMediaMessagingOptions) {
           duration: response.data?.metadata?.duration,
           waveform: response.data?.metadata?.waveform,
           transcription:
-            response.data?.content !== '[Voice Message]'
-              ? response.data?.content
-              : undefined,
+            response.data?.content !== '[Voice Message]' ? response.data?.content : undefined,
         };
 
         onVoiceSent?.(result);

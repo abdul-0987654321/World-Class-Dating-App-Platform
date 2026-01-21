@@ -55,7 +55,10 @@ export class AgoraService extends EventEmitter {
   private client: IAgoraRTCClient | null = null;
   private localAudioTrack: IMicrophoneAudioTrack | null = null;
   private localVideoTrack: ICameraVideoTrack | null = null;
-  private remoteUsers: Map<UID, { audio: IRemoteAudioTrack | null; video: IRemoteVideoTrack | null }> = new Map();
+  private remoteUsers: Map<
+    UID,
+    { audio: IRemoteAudioTrack | null; video: IRemoteVideoTrack | null }
+  > = new Map();
   private config: AgoraConfig;
   private isJoined: boolean = false;
   private currentChannel: string | null = null;
@@ -458,12 +461,8 @@ export class AgoraService extends EventEmitter {
 
       try {
         const stats = this.client.getRTCStats();
-        const localVideoStats = this.localVideoTrack
-          ? this.client.getLocalVideoStats()
-          : undefined;
-        const localAudioStats = this.localAudioTrack
-          ? this.client.getLocalAudioStats()
-          : undefined;
+        const localVideoStats = this.localVideoTrack ? this.client.getLocalVideoStats() : undefined;
+        const localAudioStats = this.localAudioTrack ? this.client.getLocalAudioStats() : undefined;
 
         const callStats: CallStatistics = {
           duration: stats.Duration,
@@ -472,7 +471,10 @@ export class AgoraService extends EventEmitter {
           sendPacketLossRate: stats.OutgoingAvailableBandwidth || 0,
           receivePacketLossRate: 0,
           videoSendResolution: localVideoStats
-            ? { width: localVideoStats.sendResolutionWidth!, height: localVideoStats.sendResolutionHeight! }
+            ? {
+                width: localVideoStats.sendResolutionWidth!,
+                height: localVideoStats.sendResolutionHeight!,
+              }
             : undefined,
           audioSendBitrate: localAudioStats?.sendBitrate || 0,
           audioReceiveBitrate: 0,

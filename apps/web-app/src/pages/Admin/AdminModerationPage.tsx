@@ -30,7 +30,7 @@ export const AdminModerationPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/moderation?type=${filter}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -56,7 +56,8 @@ export const AdminModerationPage: React.FC = () => {
             type: 'bio',
             userId: 'user2',
             userName: 'Sarah Williams',
-            content: 'Looking for someone special! Contact me on Instagram @suspicious_account or WhatsApp +1234567890',
+            content:
+              'Looking for someone special! Contact me on Instagram @suspicious_account or WhatsApp +1234567890',
             reason: 'External contact information',
             flaggedAt: new Date(Date.now() - 7200000).toISOString(),
             autoDetected: true,
@@ -78,7 +79,8 @@ export const AdminModerationPage: React.FC = () => {
             type: 'prompt',
             userId: 'user4',
             userName: 'Emma Davis',
-            content: 'My ideal first date is... something I can\'t say here without getting banned 😏',
+            content:
+              "My ideal first date is... something I can't say here without getting banned 😏",
             reason: 'Potentially inappropriate content',
             flaggedAt: new Date(Date.now() - 14400000).toISOString(),
             autoDetected: true,
@@ -110,10 +112,10 @@ export const AdminModerationPage: React.FC = () => {
       const token = authTokenService.getToken();
       await fetch(`/api/admin/moderation/${contentId}/${action}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      setFlaggedContent(prev => prev.filter(c => c.id !== contentId));
+      setFlaggedContent((prev) => prev.filter((c) => c.id !== contentId));
       setSelectedItem(null);
     } catch (err) {
       console.error(`Failed to ${action} content:`, err);
@@ -243,7 +245,9 @@ export const AdminModerationPage: React.FC = () => {
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xl">{getTypeIcon(item.type)}</span>
-                    <span className="text-sm font-medium text-gray-800 capitalize">{item.type}</span>
+                    <span className="text-sm font-medium text-gray-800 capitalize">
+                      {item.type}
+                    </span>
                     {item.autoDetected && (
                       <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
                         Auto-detected
@@ -264,8 +268,11 @@ export const AdminModerationPage: React.FC = () => {
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full ${
-                            item.confidenceScore > 0.8 ? 'bg-red-500' :
-                            item.confidenceScore > 0.6 ? 'bg-orange-500' : 'bg-yellow-500'
+                            item.confidenceScore > 0.8
+                              ? 'bg-red-500'
+                              : item.confidenceScore > 0.6
+                                ? 'bg-orange-500'
+                                : 'bg-yellow-500'
                           }`}
                           style={{ width: `${item.confidenceScore * 100}%` }}
                         />
@@ -287,7 +294,9 @@ export const AdminModerationPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{getTypeIcon(selectedItem.type)}</span>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 capitalize">{selectedItem.type} Content</h3>
+                  <h3 className="text-xl font-bold text-gray-800 capitalize">
+                    {selectedItem.type} Content
+                  </h3>
                   <p className="text-gray-500">{selectedItem.userName}</p>
                 </div>
               </div>
@@ -296,7 +305,12 @@ export const AdminModerationPage: React.FC = () => {
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -333,7 +347,10 @@ export const AdminModerationPage: React.FC = () => {
                 <h4 className="font-semibold text-gray-800 mb-2">User</h4>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {selectedItem.userName.split(' ').map(n => n[0]).join('')}
+                    {selectedItem.userName
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')}
                   </div>
                   <div>
                     <p className="font-medium text-gray-800">{selectedItem.userName}</p>

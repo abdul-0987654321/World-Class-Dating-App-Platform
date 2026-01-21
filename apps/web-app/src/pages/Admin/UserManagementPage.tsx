@@ -80,7 +80,8 @@ export const UserManagementPage: React.FC = () => {
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white text-xl font-semibold">
-                      {selectedUser.firstName[0]}{selectedUser.lastName[0]}
+                      {selectedUser.firstName[0]}
+                      {selectedUser.lastName[0]}
                     </div>
                   )}
                   <div>
@@ -127,9 +128,7 @@ export const UserManagementPage: React.FC = () => {
 
               {/* Section Content */}
               <div className="p-6">
-                {activeSection === 'overview' && (
-                  <UserDetailView userId={selectedUser.id} />
-                )}
+                {activeSection === 'overview' && <UserDetailView userId={selectedUser.id} />}
 
                 {activeSection === 'edit' && (
                   <UserEditForm
@@ -149,13 +148,9 @@ export const UserManagementPage: React.FC = () => {
                   />
                 )}
 
-                {activeSection === 'reports' && (
-                  <UserReportsView userId={selectedUser.id} />
-                )}
+                {activeSection === 'reports' && <UserReportsView userId={selectedUser.id} />}
 
-                {activeSection === 'matches' && (
-                  <UserMatchesView userId={selectedUser.id} />
-                )}
+                {activeSection === 'matches' && <UserMatchesView userId={selectedUser.id} />}
 
                 {activeSection === 'subscription' && (
                   <SubscriptionManagement

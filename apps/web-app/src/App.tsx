@@ -143,151 +143,324 @@ const App: React.FC = () => {
         <AuthContext.Provider value={authContextValue}>
           <AvatarProvider>
             <Routes>
-          {/* Landing page - public (animated premium design) */}
-          <Route path="/" element={
-            isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
-          } />
+              {/* Landing page - public (animated premium design) */}
+              <Route
+                path="/"
+                element={
+                  isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
+                }
+              />
 
-        {/* Legacy Landing pages - fallback */}
-        <Route path="/landing-simple" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
-        } />
-        <Route path="/landing-old" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
-        } />
+              {/* Legacy Landing pages - fallback */}
+              <Route
+                path="/landing-simple"
+                element={isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />}
+              />
+              <Route
+                path="/landing-old"
+                element={
+                  isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
+                }
+              />
 
-        {/* Public routes */}
-        <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <LoginPage />
-        } />
-        <Route path="/register" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />
-        } />
-        <Route path="/signup" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />
-        } />
-        <Route path="/forgot-password" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <ForgotPasswordPage />
-        } />
+              {/* Public routes */}
+              <Route
+                path="/login"
+                element={isAuthenticated ? <Navigate to="/discover" replace /> : <LoginPage />}
+              />
+              <Route
+                path="/register"
+                element={isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />}
+              />
+              <Route
+                path="/signup"
+                element={isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />}
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  isAuthenticated ? <Navigate to="/discover" replace /> : <ForgotPasswordPage />
+                }
+              />
 
-        {/* Public demo route */}
-        <Route path="/tier-showcase" element={<TierShowcase />} />
+              {/* Public demo route */}
+              <Route path="/tier-showcase" element={<TierShowcase />} />
 
-        {/* Legal pages - public */}
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/community-guidelines" element={<CommunityGuidelines />} />
-        <Route path="/cookie-policy" element={<CookiePolicy />} />
-        <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
-        <Route path="/refund-policy" element={<RefundPolicy />} />
-        <Route path="/support" element={<SupportPage />} />
+              {/* Legal pages - public */}
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+              <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
+              <Route path="/support" element={<SupportPage />} />
 
-        {/* Unauthorized page for admin access denied */}
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              {/* Unauthorized page for admin access denied */}
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-        {/* Protected routes */}
-        <Route path="/discover" element={
-          <ProtectedRoute><DiscoveryFeaturePage /></ProtectedRoute>
-        } />
-        <Route path="/discover/simple" element={
-          <ProtectedRoute><DiscoveryPage /></ProtectedRoute>
-        } />
-        <Route path="/matches" element={
-          <ProtectedRoute><MatchesPage /></ProtectedRoute>
-        } />
-        <Route path="/messages" element={
-          <ProtectedRoute><MessagesPage /></ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute><ProfilePage /></ProtectedRoute>
-        } />
-        <Route path="/safety" element={
-          <ProtectedRoute><SafetyCenterPage /></ProtectedRoute>
-        } />
-        <Route path="/rewards" element={
-          <ProtectedRoute><EnhancedGamificationPage /></ProtectedRoute>
-        } />
-        <Route path="/rewards/old" element={
-          <ProtectedRoute><GamificationPage /></ProtectedRoute>
-        } />
-        <Route path="/communities" element={
-          <ProtectedRoute><CommunitiesPage /></ProtectedRoute>
-        } />
-        <Route path="/speed-dating" element={
-          <ProtectedRoute><SpeedDatingPage /></ProtectedRoute>
-        } />
-        <Route path="/referrals" element={
-          <ProtectedRoute><ReferralPage /></ProtectedRoute>
-        } />
-        <Route path="/subscription" element={
-          <ProtectedRoute><SubscriptionPage /></ProtectedRoute>
-        } />
-        <Route path="/premium" element={
-          <ProtectedRoute><SubscriptionPage /></ProtectedRoute>
-        } />
-        <Route path="/checkout" element={
-          <ProtectedRoute><CheckoutPage /></ProtectedRoute>
-        } />
-        <Route path="/payment/success" element={
-          <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>
-        } />
-        <Route path="/payment/cancel" element={
-          <ProtectedRoute><PaymentCancelPage /></ProtectedRoute>
-        } />
-        <Route path="/coins" element={
-          <ProtectedRoute><CoinShopPage /></ProtectedRoute>
-        } />
-        <Route path="/filters" element={
-          <ProtectedRoute><AdvancedFiltersPage /></ProtectedRoute>
-        } />
-        <Route path="/video-call/:matchId" element={
-          <ProtectedRoute><VideoCallPage /></ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute><SettingsPage /></ProtectedRoute>
-        } />
-        <Route path="/profile/edit" element={
-          <ProtectedRoute><ProfileEditPage /></ProtectedRoute>
-        } />
-        <Route path="/verification" element={
-          <ProtectedRoute><PhotoVerificationPage /></ProtectedRoute>
-        } />
-        <Route path="/privacy" element={
-          <ProtectedRoute><PrivacySettingsPage /></ProtectedRoute>
-        } />
-        <Route path="/notifications" element={
-          <ProtectedRoute><NotificationSettingsPage /></ProtectedRoute>
-        } />
-        <Route path="/help" element={
-          <ProtectedRoute><HelpSupportPage /></ProtectedRoute>
-        } />
+              {/* Protected routes */}
+              <Route
+                path="/discover"
+                element={
+                  <ProtectedRoute>
+                    <DiscoveryFeaturePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/discover/simple"
+                element={
+                  <ProtectedRoute>
+                    <DiscoveryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/matches"
+                element={
+                  <ProtectedRoute>
+                    <MatchesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute>
+                    <MessagesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/safety"
+                element={
+                  <ProtectedRoute>
+                    <SafetyCenterPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/rewards"
+                element={
+                  <ProtectedRoute>
+                    <EnhancedGamificationPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/rewards/old"
+                element={
+                  <ProtectedRoute>
+                    <GamificationPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/communities"
+                element={
+                  <ProtectedRoute>
+                    <CommunitiesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/speed-dating"
+                element={
+                  <ProtectedRoute>
+                    <SpeedDatingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/referrals"
+                element={
+                  <ProtectedRoute>
+                    <ReferralPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subscription"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/premium"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/success"
+                element={
+                  <ProtectedRoute>
+                    <PaymentSuccessPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/cancel"
+                element={
+                  <ProtectedRoute>
+                    <PaymentCancelPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/coins"
+                element={
+                  <ProtectedRoute>
+                    <CoinShopPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/filters"
+                element={
+                  <ProtectedRoute>
+                    <AdvancedFiltersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/video-call/:matchId"
+                element={
+                  <ProtectedRoute>
+                    <VideoCallPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/edit"
+                element={
+                  <ProtectedRoute>
+                    <ProfileEditPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/verification"
+                element={
+                  <ProtectedRoute>
+                    <PhotoVerificationPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/privacy"
+                element={
+                  <ProtectedRoute>
+                    <PrivacySettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <NotificationSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/help"
+                element={
+                  <ProtectedRoute>
+                    <HelpSupportPage />
+                  </ProtectedRoute>
+                }
+              />
 
-        {/* Admin routes */}
-        <Route path="/admin" element={
-          <RequireAdmin><AdminDashboardPage /></RequireAdmin>
-        } />
-        <Route path="/admin/users" element={
-          <RequireAdmin><AdminUsersPage /></RequireAdmin>
-        } />
-        <Route path="/admin/verifications" element={
-          <RequireAdmin><AdminVerificationsPage /></RequireAdmin>
-        } />
-        <Route path="/admin/reports" element={
-          <RequireAdmin><AdminReportsPage /></RequireAdmin>
-        } />
-        <Route path="/admin/analytics" element={
-          <RequireAdmin><AdminAnalyticsPage /></RequireAdmin>
-        } />
-        <Route path="/admin/moderation" element={
-          <RequireAdmin><AdminModerationPage /></RequireAdmin>
-        } />
-        <Route path="/admin/settings" element={
-          <RequireAdmin><AdminSettingsPage /></RequireAdmin>
-        } />
+              {/* Admin routes */}
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdmin>
+                    <AdminDashboardPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <RequireAdmin>
+                    <AdminUsersPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/verifications"
+                element={
+                  <RequireAdmin>
+                    <AdminVerificationsPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <RequireAdmin>
+                    <AdminReportsPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <RequireAdmin>
+                    <AdminAnalyticsPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/moderation"
+                element={
+                  <RequireAdmin>
+                    <AdminModerationPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/settings"
+                element={
+                  <RequireAdmin>
+                    <AdminSettingsPage />
+                  </RequireAdmin>
+                }
+              />
 
-        {/* 404 Not Found */}
-        <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+              {/* 404 Not Found */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
           </AvatarProvider>
         </AuthContext.Provider>
       </FlamoralBackground>

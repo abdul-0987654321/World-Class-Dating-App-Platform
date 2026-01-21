@@ -52,10 +52,7 @@ export interface MatchScore {
 interface SemanticMatchScoringProps {
   currentUserProfile: UserProfile;
   matchProfile: UserProfile;
-  onCalculateMatch?: (
-    user1: UserProfile,
-    user2: UserProfile
-  ) => Promise<MatchScore>;
+  onCalculateMatch?: (user1: UserProfile, user2: UserProfile) => Promise<MatchScore>;
   showDetails?: boolean;
 }
 
@@ -67,9 +64,7 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
 }) => {
   const [matchScore, setMatchScore] = useState<MatchScore | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [expandedDimensions, setExpandedDimensions] = useState<Set<MatchDimension>>(
-    new Set()
-  );
+  const [expandedDimensions, setExpandedDimensions] = useState<Set<MatchDimension>>(new Set());
 
   useEffect(() => {
     calculateMatch();
@@ -105,10 +100,8 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
     const dimensions: DimensionScore[] = [];
 
     // Interests matching
-    const commonInterests =
-      user1.interests?.filter((i) => user2.interests?.includes(i)) || [];
-    const totalInterests =
-      new Set([...(user1.interests || []), ...(user2.interests || [])]).size;
+    const commonInterests = user1.interests?.filter((i) => user2.interests?.includes(i)) || [];
+    const totalInterests = new Set([...(user1.interests || []), ...(user2.interests || [])]).size;
     const interestsScore =
       totalInterests > 0 ? (commonInterests.length / totalInterests) * 100 : 50;
 
@@ -134,24 +127,15 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
     let lifestyleScore = 70;
     const lifestyleHighlights: string[] = [];
 
-    if (
-      user1.lifestyle?.smoking === user2.lifestyle?.smoking &&
-      user1.lifestyle?.smoking
-    ) {
+    if (user1.lifestyle?.smoking === user2.lifestyle?.smoking && user1.lifestyle?.smoking) {
       lifestyleScore += 10;
       lifestyleHighlights.push('Same smoking preferences');
     }
-    if (
-      user1.lifestyle?.drinking === user2.lifestyle?.drinking &&
-      user1.lifestyle?.drinking
-    ) {
+    if (user1.lifestyle?.drinking === user2.lifestyle?.drinking && user1.lifestyle?.drinking) {
       lifestyleScore += 10;
       lifestyleHighlights.push('Compatible drinking habits');
     }
-    if (
-      user1.lifestyle?.exercise === user2.lifestyle?.exercise &&
-      user1.lifestyle?.exercise
-    ) {
+    if (user1.lifestyle?.exercise === user2.lifestyle?.exercise && user1.lifestyle?.exercise) {
       lifestyleScore += 10;
       lifestyleHighlights.push('Similar activity levels');
     }
@@ -168,7 +152,7 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
     const bio1Length = user1.bio?.length || 0;
     const bio2Length = user2.bio?.length || 0;
     const commScore =
-      100 - Math.abs(bio1Length - bio2Length) / Math.max(bio1Length, bio2Length, 1) * 50;
+      100 - (Math.abs(bio1Length - bio2Length) / Math.max(bio1Length, bio2Length, 1)) * 50;
 
     dimensions.push({
       dimension: 'communication',
@@ -179,38 +163,30 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
     });
 
     // Goals matching
-    const goalsMatch =
-      user1.relationshipGoal === user2.relationshipGoal ? 90 : 65;
+    const goalsMatch = user1.relationshipGoal === user2.relationshipGoal ? 90 : 65;
     dimensions.push({
       dimension: 'goals',
       score: goalsMatch,
       weight: 0.1,
-      reasoning: user1.relationshipGoal === user2.relationshipGoal
-        ? 'Aligned relationship goals'
-        : 'Different but compatible goals',
-      highlights: user1.relationshipGoal === user2.relationshipGoal
-        ? ['Same relationship goals']
-        : [],
+      reasoning:
+        user1.relationshipGoal === user2.relationshipGoal
+          ? 'Aligned relationship goals'
+          : 'Different but compatible goals',
+      highlights:
+        user1.relationshipGoal === user2.relationshipGoal ? ['Same relationship goals'] : [],
     });
 
     // Calculate weighted overall score
-    const overall = dimensions.reduce(
-      (sum, dim) => sum + dim.score * dim.weight,
-      0
-    );
+    const overall = dimensions.reduce((sum, dim) => sum + dim.score * dim.weight, 0);
 
     const strengths: string[] = [];
     const potentialChallenges: string[] = [];
 
     dimensions.forEach((dim) => {
       if (dim.score >= 75) {
-        strengths.push(
-          `Strong ${dim.dimension} compatibility (${Math.round(dim.score)}%)`
-        );
+        strengths.push(`Strong ${dim.dimension} compatibility (${Math.round(dim.score)}%)`);
       } else if (dim.score < 60) {
-        potentialChallenges.push(
-          `Different ${dim.dimension} preferences may require discussion`
-        );
+        potentialChallenges.push(`Different ${dim.dimension} preferences may require discussion`);
       }
     });
 
@@ -218,18 +194,16 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
       overall >= 80
         ? 'excellent'
         : overall >= 70
-        ? 'great'
-        : overall >= 60
-        ? 'good'
-        : overall >= 50
-        ? 'moderate'
-        : 'low';
+          ? 'great'
+          : overall >= 60
+            ? 'good'
+            : overall >= 50
+              ? 'moderate'
+              : 'low';
 
     const recommendations: string[] = [];
     if (commonInterests.length > 0) {
-      recommendations.push(
-        `Start conversations about ${commonInterests[0]}`
-      );
+      recommendations.push(`Start conversations about ${commonInterests[0]}`);
     }
     if (overall >= 70) {
       recommendations.push('High compatibility - great match potential!');
@@ -266,9 +240,7 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
     return '#F44336';
   };
 
-  const getCompatibilityColor = (
-    level: MatchScore['compatibilityLevel']
-  ): string => {
+  const getCompatibilityColor = (level: MatchScore['compatibilityLevel']): string => {
     const colors = {
       excellent: '#4CAF50',
       great: '#8BC34A',
@@ -279,9 +251,7 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
     return colors[level];
   };
 
-  const getCompatibilityEmoji = (
-    level: MatchScore['compatibilityLevel']
-  ): string => {
+  const getCompatibilityEmoji = (level: MatchScore['compatibilityLevel']): string => {
     const emojis = {
       excellent: '🎉',
       great: '💚',
@@ -308,9 +278,7 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E91E63" />
           <Text style={styles.loadingTitle}>Calculating Compatibility</Text>
-          <Text style={styles.loadingText}>
-            Analyzing your profiles using AI...
-          </Text>
+          <Text style={styles.loadingText}>Analyzing your profiles using AI...</Text>
         </View>
       </View>
     );
@@ -345,12 +313,10 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
             {getCompatibilityEmoji(matchScore.compatibilityLevel)}
           </Text>
           <Text style={styles.compatibilityText}>
-            {matchScore.compatibilityLevel === 'excellent' &&
-              'Highly Compatible!'}
+            {matchScore.compatibilityLevel === 'excellent' && 'Highly Compatible!'}
             {matchScore.compatibilityLevel === 'great' && 'Great Match!'}
             {matchScore.compatibilityLevel === 'good' && 'Good Compatibility'}
-            {matchScore.compatibilityLevel === 'moderate' &&
-              'Moderate Compatibility'}
+            {matchScore.compatibilityLevel === 'moderate' && 'Moderate Compatibility'}
             {matchScore.compatibilityLevel === 'low' && 'Low Compatibility'}
           </Text>
         </View>
@@ -371,9 +337,7 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
               >
                 <View style={styles.dimensionHeader}>
                   <View style={styles.dimensionLeft}>
-                    <Text style={styles.dimensionLabel}>
-                      {getDimensionLabel(dim.dimension)}
-                    </Text>
+                    <Text style={styles.dimensionLabel}>{getDimensionLabel(dim.dimension)}</Text>
                     <View style={styles.dimensionBar}>
                       <View
                         style={[
@@ -386,21 +350,14 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
                       />
                     </View>
                   </View>
-                  <Text
-                    style={[
-                      styles.dimensionScore,
-                      { color: getScoreColor(dim.score) },
-                    ]}
-                  >
+                  <Text style={[styles.dimensionScore, { color: getScoreColor(dim.score) }]}>
                     {Math.round(dim.score)}%
                   </Text>
                 </View>
 
                 {isExpanded && (
                   <View style={styles.dimensionDetails}>
-                    <Text style={styles.dimensionReasoning}>
-                      {dim.reasoning}
-                    </Text>
+                    <Text style={styles.dimensionReasoning}>{dim.reasoning}</Text>
                     {dim.highlights.length > 0 && (
                       <View style={styles.highlightsContainer}>
                         {dim.highlights.map((highlight, index) => (
@@ -467,9 +424,8 @@ export const SemanticMatchScoring: React.FC<SemanticMatchScoringProps> = ({
       <View style={styles.disclaimerCard}>
         <Text style={styles.disclaimerIcon}>ℹ️</Text>
         <Text style={styles.disclaimerText}>
-          Compatibility scores are calculated using AI and should be used as a
-          guide. Real compatibility develops through genuine connection and
-          communication.
+          Compatibility scores are calculated using AI and should be used as a guide. Real
+          compatibility develops through genuine connection and communication.
         </Text>
       </View>
     </ScrollView>

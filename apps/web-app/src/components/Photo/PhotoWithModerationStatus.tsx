@@ -80,12 +80,7 @@ const PhotoWithModerationStatus: React.FC<PhotoWithModerationStatusProps> = ({
       onClick={handleClick}
       $clickable={!!onClick || (isAdmin && showDetailsOnHover)}
     >
-      <PhotoImage
-        src={photo.url}
-        alt="User photo"
-        $blur={shouldBlurPhoto()}
-        $size={size}
-      />
+      <PhotoImage src={photo.url} alt="User photo" $blur={shouldBlurPhoto()} $size={size} />
 
       {/* Status Badge Overlay */}
       {showStatusBadge && (
@@ -237,10 +232,7 @@ const PhotoImage = styled.img<{ $blur: boolean; $size: string }>`
 
 const StatusBadgeOverlay = styled.div<{ $position: string }>`
   position: absolute;
-  ${(props) =>
-    props.$position === 'top-right'
-      ? 'top: 8px; right: 8px;'
-      : 'top: 8px; left: 8px;'}
+  ${(props) => (props.$position === 'top-right' ? 'top: 8px; right: 8px;' : 'top: 8px; left: 8px;')}
   z-index: 2;
 `;
 

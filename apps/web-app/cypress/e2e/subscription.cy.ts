@@ -43,8 +43,7 @@ describe('Subscription & Payments', () => {
     });
 
     it('should highlight recommended plan', () => {
-      cy.get('[data-testid="plan-premium"]')
-        .should('have.attr', 'data-recommended', 'true');
+      cy.get('[data-testid="plan-premium"]').should('have.attr', 'data-recommended', 'true');
 
       cy.get('[data-testid="recommended-badge"]').should('be.visible');
     });
@@ -87,10 +86,15 @@ describe('Subscription & Payments', () => {
     it('should show error for invalid promo code', () => {
       cy.visit('/checkout?plan=premium&duration=monthly');
 
-      cy.interceptAPI('POST', '**/api/v1/payments/validate-promo', {
-        statusCode: 400,
-        body: { error: 'Invalid promo code' },
-      }, 'invalidPromo');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/payments/validate-promo',
+        {
+          statusCode: 400,
+          body: { error: 'Invalid promo code' },
+        },
+        'invalidPromo'
+      );
 
       cy.get('[data-testid="promo-code-input"]').type('INVALID');
       cy.get('[data-testid="apply-promo"]').click();
@@ -112,10 +116,15 @@ describe('Subscription & Payments', () => {
     });
 
     it('should process successful payment', () => {
-      cy.interceptAPI('POST', '**/api/v1/payments/subscribe', {
-        success: true,
-        subscriptionId: 'sub_123',
-      }, 'subscribe');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/payments/subscribe',
+        {
+          success: true,
+          subscriptionId: 'sub_123',
+        },
+        'subscribe'
+      );
 
       // Stripe test card
       cy.get('[data-testid="card-element"]').within(() => {
@@ -132,10 +141,15 @@ describe('Subscription & Payments', () => {
     });
 
     it('should handle payment failure', () => {
-      cy.interceptAPI('POST', '**/api/v1/payments/subscribe', {
-        statusCode: 400,
-        body: { error: 'Payment declined' },
-      }, 'failedPayment');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/payments/subscribe',
+        {
+          statusCode: 400,
+          body: { error: 'Payment declined' },
+        },
+        'failedPayment'
+      );
 
       cy.get('[data-testid="card-element"]').within(() => {
         cy.get('input[name="cardnumber"]').type('4000000000000002'); // Declined card
@@ -284,17 +298,21 @@ describe('Subscription & Payments', () => {
     });
 
     it('should show invoice details', () => {
-      cy.get('[data-testid="invoice-item"]').first().within(() => {
-        cy.get('[data-testid="invoice-date"]').should('be.visible');
-        cy.get('[data-testid="invoice-amount"]').should('be.visible');
-        cy.get('[data-testid="invoice-status"]').should('be.visible');
-      });
+      cy.get('[data-testid="invoice-item"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="invoice-date"]').should('be.visible');
+          cy.get('[data-testid="invoice-amount"]').should('be.visible');
+          cy.get('[data-testid="invoice-status"]').should('be.visible');
+        });
     });
 
     it('should download invoice', () => {
-      cy.get('[data-testid="invoice-item"]').first().within(() => {
-        cy.get('[data-testid="download-invoice"]').click();
-      });
+      cy.get('[data-testid="invoice-item"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="download-invoice"]').click();
+        });
 
       // Verify download initiated
       cy.get('[data-testid="download-started-toast"]').should('be.visible');

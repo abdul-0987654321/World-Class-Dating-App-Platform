@@ -9,8 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Check for browser support
 const SpeechRecognition =
-  (window as any).SpeechRecognition ||
-  (window as any).webkitSpeechRecognition;
+  (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 export interface VoiceCommand {
   phrases: string[];
@@ -201,7 +200,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
       category: 'accessibility',
     },
     {
-      phrases: ['read page', 'read aloud', 'what\'s on screen'],
+      phrases: ['read page', 'read aloud', "what's on screen"],
       action: () => readPageContent(),
       description: 'Read page content aloud',
       category: 'accessibility',
@@ -240,7 +239,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
   // Initialize speech recognition
   useEffect(() => {
     if (!SpeechRecognition) {
-      setState(s => ({ ...s, error: 'Speech recognition not supported in this browser' }));
+      setState((s) => ({ ...s, error: 'Speech recognition not supported in this browser' }));
       return;
     }
 
@@ -250,13 +249,13 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     recognition.lang = opts.language;
 
     recognition.onstart = () => {
-      setState(s => ({ ...s, isListening: true, error: null }));
+      setState((s) => ({ ...s, isListening: true, error: null }));
       opts.onStart?.();
       announce('Voice control active. Say "help" for available commands.');
     };
 
     recognition.onend = () => {
-      setState(s => ({ ...s, isListening: false }));
+      setState((s) => ({ ...s, isListening: false }));
       opts.onEnd?.();
       // Auto-restart if still enabled
       if (state.isEnabled && recognitionRef.current) {
@@ -270,7 +269,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
 
     recognition.onerror = (event: any) => {
       const errorMessage = getErrorMessage(event.error);
-      setState(s => ({ ...s, error: errorMessage }));
+      setState((s) => ({ ...s, error: errorMessage }));
       opts.onError?.(errorMessage);
     };
 
@@ -279,7 +278,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
       const transcript = result[0].transcript.toLowerCase().trim();
       const confidence = result[0].confidence;
 
-      setState(s => ({ ...s, transcript, confidence }));
+      setState((s) => ({ ...s, transcript, confidence }));
 
       if (result.isFinal) {
         processCommand(transcript, confidence);
@@ -296,28 +295,31 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
   }, [opts.language, opts.continuous, opts.interimResults]);
 
   // Process voice command
-  const processCommand = useCallback((transcript: string, confidence: number) => {
-    const commands = commandsRef.current;
+  const processCommand = useCallback(
+    (transcript: string, confidence: number) => {
+      const commands = commandsRef.current;
 
-    for (const command of commands) {
-      for (const phrase of command.phrases) {
-        if (transcript.includes(phrase.toLowerCase())) {
-          setState(s => ({ ...s, lastCommand: phrase }));
-          opts.onCommand?.(phrase, confidence);
+      for (const command of commands) {
+        for (const phrase of command.phrases) {
+          if (transcript.includes(phrase.toLowerCase())) {
+            setState((s) => ({ ...s, lastCommand: phrase }));
+            opts.onCommand?.(phrase, confidence);
 
-          // Announce and execute
-          announce(`Executing: ${command.description}`);
-          command.action();
-          return;
+            // Announce and execute
+            announce(`Executing: ${command.description}`);
+            command.action();
+            return;
+          }
         }
       }
-    }
 
-    // No command matched
-    if (confidence > 0.7) {
-      announce(`Command not recognized: ${transcript}. Say "help" for available commands.`);
-    }
-  }, [opts.onCommand]);
+      // No command matched
+      if (confidence > 0.7) {
+        announce(`Command not recognized: ${transcript}. Say "help" for available commands.`);
+      }
+    },
+    [opts.onCommand]
+  );
 
   // Start listening
   const startListening = useCallback(() => {
@@ -325,9 +327,9 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
 
     try {
       recognitionRef.current.start();
-      setState(s => ({ ...s, isEnabled: true, error: null }));
+      setState((s) => ({ ...s, isEnabled: true, error: null }));
     } catch (error: any) {
-      setState(s => ({ ...s, error: error.message }));
+      setState((s) => ({ ...s, error: error.message }));
     }
   }, []);
 
@@ -336,7 +338,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     if (!recognitionRef.current) return;
 
     recognitionRef.current.stop();
-    setState(s => ({ ...s, isEnabled: false, isListening: false }));
+    setState((s) => ({ ...s, isEnabled: false, isListening: false }));
     announce('Voice control disabled.');
   }, []);
 
@@ -357,7 +359,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
   // Unregister command
   const unregisterCommand = useCallback((phrase: string) => {
     commandsRef.current = commandsRef.current.filter(
-      cmd => !cmd.phrases.includes(phrase.toLowerCase())
+      (cmd) => !cmd.phrases.includes(phrase.toLowerCase())
     );
   }, []);
 
@@ -383,8 +385,8 @@ function getErrorMessage(error: string): string {
     'no-speech': 'No speech detected. Please try again.',
     'audio-capture': 'Microphone not available. Please check permissions.',
     'not-allowed': 'Microphone access denied. Please enable in browser settings.',
-    'network': 'Network error. Please check your connection.',
-    'aborted': 'Speech recognition aborted.',
+    network: 'Network error. Please check your connection.',
+    aborted: 'Speech recognition aborted.',
     'language-not-supported': 'Language not supported.',
   };
   return messages[error] || `Speech recognition error: ${error}`;
@@ -420,13 +422,14 @@ function readPageContent() {
   const headings = mainContent.querySelectorAll('h1, h2, h3');
   const content: string[] = [];
 
-  headings.forEach(h => {
+  headings.forEach((h) => {
     content.push(h.textContent || '');
   });
 
-  const message = content.length > 0
-    ? `Page content: ${content.join('. ')}`
-    : 'No main content found on this page.';
+  const message =
+    content.length > 0
+      ? `Page content: ${content.join('. ')}`
+      : 'No main content found on this page.';
 
   announce(message);
 }

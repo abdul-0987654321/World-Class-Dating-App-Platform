@@ -325,7 +325,11 @@ const ModerationStatsPage: React.FC = () => {
                   <td>{formatTime(moderator.averageReviewTime)}</td>
                   <td>
                     <PerformanceBadge $time={moderator.averageReviewTime}>
-                      {moderator.averageReviewTime < 60 ? 'Excellent' : moderator.averageReviewTime < 120 ? 'Good' : 'Average'}
+                      {moderator.averageReviewTime < 60
+                        ? 'Excellent'
+                        : moderator.averageReviewTime < 120
+                          ? 'Good'
+                          : 'Average'}
                     </PerformanceBadge>
                   </td>
                 </tr>

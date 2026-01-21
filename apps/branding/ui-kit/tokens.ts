@@ -16,11 +16,11 @@
 export const colors = {
   // Primary Colors — Master Prompt Specification (Electric Pink Theme)
   primary: {
-    electricPink: '#ff2d75',      // Primary brand color
+    electricPink: '#ff2d75', // Primary brand color
     electricPinkDark: '#d91a5c',
     electricPinkLight: '#ff5a94',
-    midnightBlue: '#1a1a2e',      // Primary background
-    emeraldGreen: '#00d9a5',      // Success/accent
+    midnightBlue: '#1a1a2e', // Primary background
+    emeraldGreen: '#00d9a5', // Success/accent
   },
 
   // Secondary Colors
@@ -33,7 +33,7 @@ export const colors = {
 
   // Semantic Colors
   semantic: {
-    success: '#00d9a5',   // Emerald Green
+    success: '#00d9a5', // Emerald Green
     warning: '#F59E0B',
     error: '#EF4444',
     info: '#3B82F6',
@@ -68,9 +68,9 @@ export const colors = {
   },
 
   dark: {
-    background: '#1a1a2e',        // Midnight Blue
+    background: '#1a1a2e', // Midnight Blue
     surface: '#232342',
-    surfaceElevated: '#2d2d44',   // Deep Charcoal
+    surfaceElevated: '#2d2d44', // Deep Charcoal
     textPrimary: '#FFFFFF',
     textSecondary: '#B5B8C5',
     textTertiary: '#8A8D9F',

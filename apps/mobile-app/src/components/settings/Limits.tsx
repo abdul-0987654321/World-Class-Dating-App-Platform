@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '../common/Button';
 
 export interface DailyLimits {
@@ -116,9 +110,7 @@ export const Limits: React.FC<LimitsProps> = ({
 
         <View style={styles.limitStats}>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: progressColor }]}>
-              {remaining}
-            </Text>
+            <Text style={[styles.statValue, { color: progressColor }]}>{remaining}</Text>
             <Text style={styles.statLabel}>Remaining</Text>
           </View>
           <View style={styles.statDivider} />
@@ -145,9 +137,7 @@ export const Limits: React.FC<LimitsProps> = ({
         {remaining === 0 && (
           <View style={styles.depleted}>
             <Text style={styles.depletedIcon}>⏳</Text>
-            <Text style={styles.depletedText}>
-              Limit reached. Resets in {timeUntilReset}
-            </Text>
+            <Text style={styles.depletedText}>Limit reached. Resets in {timeUntilReset}</Text>
           </View>
         )}
       </View>
@@ -156,10 +146,7 @@ export const Limits: React.FC<LimitsProps> = ({
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Daily Limits</Text>
@@ -190,8 +177,8 @@ export const Limits: React.FC<LimitsProps> = ({
               <Text style={styles.unlimitedIcon}>∞</Text>
               <Text style={styles.unlimitedTitle}>Unlimited Everything!</Text>
               <Text style={styles.unlimitedDescription}>
-                As a {subscriptionTier === 'premium' ? 'Premium' : 'Premium+'} member,
-                you have unlimited likes, super likes, rewinds, and more.
+                As a {subscriptionTier === 'premium' ? 'Premium' : 'Premium+'} member, you have
+                unlimited likes, super likes, rewinds, and more.
               </Text>
             </View>
           ) : (
@@ -238,8 +225,8 @@ export const Limits: React.FC<LimitsProps> = ({
               <Text style={styles.upgradeIcon}>💎</Text>
               <Text style={styles.upgradeTitle}>Want Unlimited?</Text>
               <Text style={styles.upgradeDescription}>
-                Upgrade to Premium and get unlimited likes, super likes, rewinds, and
-                1 free boost every month!
+                Upgrade to Premium and get unlimited likes, super likes, rewinds, and 1 free boost
+                every month!
               </Text>
 
               <View style={styles.upgradeFeatures}>
@@ -249,9 +236,7 @@ export const Limits: React.FC<LimitsProps> = ({
                 </View>
                 <View style={styles.upgradeFeature}>
                   <Text style={styles.upgradeFeatureIcon}>✓</Text>
-                  <Text style={styles.upgradeFeatureText}>
-                    5 super likes per day
-                  </Text>
+                  <Text style={styles.upgradeFeatureText}>5 super likes per day</Text>
                 </View>
                 <View style={styles.upgradeFeature}>
                   <Text style={styles.upgradeFeatureIcon}>✓</Text>

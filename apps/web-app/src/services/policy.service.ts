@@ -78,7 +78,12 @@ class PolicyService {
   /**
    * Get a policy from cache or fetch from backend
    */
-  private getCacheKey(region: string, policyType: string, language: string, version?: string): string {
+  private getCacheKey(
+    region: string,
+    policyType: string,
+    language: string,
+    version?: string
+  ): string {
     return `${region}:${policyType}:${language}:${version || 'latest'}`;
   }
 

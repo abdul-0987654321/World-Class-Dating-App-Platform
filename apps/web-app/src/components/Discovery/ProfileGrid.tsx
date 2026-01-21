@@ -34,7 +34,7 @@ const fadeIn = keyframes`
 
 const GridContainer = styled.div<{ columns: number }>`
   display: grid;
-  grid-template-columns: repeat(${props => props.columns}, 1fr);
+  grid-template-columns: repeat(${(props) => props.columns}, 1fr);
   gap: 16px;
   padding: 16px;
 
@@ -130,7 +130,7 @@ const VerifiedBadge = styled.span`
   justify-content: center;
   width: 18px;
   height: 18px;
-  background: #4ECDC4;
+  background: #4ecdc4;
   border-radius: 50%;
 
   svg {
@@ -157,7 +157,7 @@ const CompatibilityBadge = styled.div`
   position: absolute;
   top: 8px;
   right: 8px;
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
   color: white;
   padding: 4px 8px;
   border-radius: 12px;
@@ -179,7 +179,7 @@ const OnlineBadge = styled.div`
   left: 8px;
   width: 10px;
   height: 10px;
-  background: #4ECDC4;
+  background: #4ecdc4;
   border-radius: 50%;
   border: 2px solid white;
 `;
@@ -274,8 +274,13 @@ const LoadingCard = styled.div`
   animation: pulse 1.5s ease-in-out infinite;
 
   @keyframes pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 `;
 
@@ -344,44 +349,43 @@ export const ProfileGrid: React.FC<ProfileGridProps> = ({
   const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
-  const handleAction = useCallback(async (
-    userId: string,
-    action: 'like' | 'pass' | 'superlike',
-    e: React.MouseEvent
-  ) => {
-    e.stopPropagation();
+  const handleAction = useCallback(
+    async (userId: string, action: 'like' | 'pass' | 'superlike', e: React.MouseEvent) => {
+      e.stopPropagation();
 
-    if (actionLoadingIds.has(userId)) return;
+      if (actionLoadingIds.has(userId)) return;
 
-    setActionLoadingIds(prev => new Set(prev).add(userId));
+      setActionLoadingIds((prev) => new Set(prev).add(userId));
 
-    try {
-      switch (action) {
-        case 'like':
-          await onLike(userId);
-          break;
-        case 'pass':
-          await onPass(userId);
-          break;
-        case 'superlike':
-          await onSuperLike(userId);
-          break;
+      try {
+        switch (action) {
+          case 'like':
+            await onLike(userId);
+            break;
+          case 'pass':
+            await onPass(userId);
+            break;
+          case 'superlike':
+            await onSuperLike(userId);
+            break;
+        }
+
+        // Hide the card after action
+        setHiddenIds((prev) => new Set(prev).add(userId));
+      } catch (error) {
+        console.error(`${action} failed:`, error);
+      } finally {
+        setActionLoadingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
       }
+    },
+    [onLike, onPass, onSuperLike, actionLoadingIds]
+  );
 
-      // Hide the card after action
-      setHiddenIds(prev => new Set(prev).add(userId));
-    } catch (error) {
-      console.error(`${action} failed:`, error);
-    } finally {
-      setActionLoadingIds(prev => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }
-  }, [onLike, onPass, onSuperLike, actionLoadingIds]);
-
-  const visibleProfiles = profiles.filter(p => !hiddenIds.has(p.user_id));
+  const visibleProfiles = profiles.filter((p) => !hiddenIds.has(p.user_id));
 
   if (!loading && visibleProfiles.length === 0) {
     return (
@@ -398,10 +402,7 @@ export const ProfileGrid: React.FC<ProfileGridProps> = ({
   return (
     <GridContainer columns={columns}>
       {visibleProfiles.map((profile) => (
-        <ProfileCard
-          key={profile.user_id}
-          onClick={() => onProfileClick(profile)}
-        >
+        <ProfileCard key={profile.user_id} onClick={() => onProfileClick(profile)}>
           <PhotoContainer>
             <ProfilePhoto
               src={profile.photos[0]?.url || '/assets/images/default-profile.svg'}

@@ -35,10 +35,7 @@ export const ShieldHeart: React.FC<IconProps> = ({
           <stop offset="100%" stopColor="#D62839" />
         </linearGradient>
       </defs>
-      <path
-        d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z"
-        fill={fill}
-      />
+      <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" fill={fill} />
       <path
         d="M12 17l-0.9-0.8C8.8 14.2 7 12.6 7 10.7c0-1.5 1.2-2.7 2.7-2.7 0.8 0 1.7 0.4 2.3 1 0.6-0.6 1.4-1 2.3-1 1.5 0 2.7 1.2 2.7 2.7 0 1.9-1.8 3.5-4.1 5.5L12 17z"
         fill="#FFF6EE"

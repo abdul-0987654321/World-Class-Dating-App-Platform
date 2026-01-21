@@ -4,14 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { OnboardingStackParamList, OnboardingProfileData } from './OnboardingNavigator';
@@ -98,7 +91,17 @@ const LIFESTYLE_CATEGORIES: LifestyleCategory[] = [
 ];
 
 const LifestyleScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { name, birthday, gender, interestedIn, photos, location, interests, prompts, relationshipGoal } = route.params;
+  const {
+    name,
+    birthday,
+    gender,
+    interestedIn,
+    photos,
+    location,
+    interests,
+    prompts,
+    relationshipGoal,
+  } = route.params;
 
   const [lifestyle, setLifestyle] = useState<Lifestyle>({
     smoking: '',
@@ -114,7 +117,7 @@ const LifestyleScreen: React.FC<Props> = ({ navigation, route }) => {
     setLifestyle({ ...lifestyle, [category]: optionId });
 
     // Auto-expand next category
-    const currentIndex = LIFESTYLE_CATEGORIES.findIndex(c => c.id === category);
+    const currentIndex = LIFESTYLE_CATEGORIES.findIndex((c) => c.id === category);
     if (currentIndex < LIFESTYLE_CATEGORIES.length - 1) {
       setExpandedCategory(LIFESTYLE_CATEGORIES[currentIndex + 1].id);
     } else {
@@ -122,7 +125,7 @@ const LifestyleScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const completedCount = Object.values(lifestyle).filter(v => v !== '').length;
+  const completedCount = Object.values(lifestyle).filter((v) => v !== '').length;
   const isComplete = completedCount >= 3; // Require at least 3
 
   const handleContinue = () => {
@@ -152,10 +155,7 @@ const LifestyleScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>10 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
@@ -174,7 +174,7 @@ const LifestyleScreen: React.FC<Props> = ({ navigation, route }) => {
           {LIFESTYLE_CATEGORIES.map((category) => {
             const isExpanded = expandedCategory === category.id;
             const selectedOption = lifestyle[category.id];
-            const selectedLabel = category.options.find(o => o.id === selectedOption)?.label;
+            const selectedLabel = category.options.find((o) => o.id === selectedOption)?.label;
 
             return (
               <View key={category.id} style={styles.categoryContainer}>
@@ -223,10 +223,7 @@ const LifestyleScreen: React.FC<Props> = ({ navigation, route }) => {
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={handleContinue}
-          >
+          <TouchableOpacity style={styles.skipButton} onPress={handleContinue}>
             <Text style={styles.skipButtonText}>Skip for now</Text>
           </TouchableOpacity>
           <TouchableOpacity

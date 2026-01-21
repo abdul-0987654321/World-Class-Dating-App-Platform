@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Modal,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
 import { Button } from '../common/Button';
 
 export interface BlockReason {
@@ -66,17 +58,12 @@ export const BlockUser: React.FC<BlockUserProps> = ({
               Alert.alert(
                 'User Blocked',
                 `${userName} has been blocked. ${
-                  alsoReport
-                    ? 'We will review your report.'
-                    : 'You will no longer see each other.'
+                  alsoReport ? 'We will review your report.' : 'You will no longer see each other.'
                 }`
               );
               onClose();
             } catch (error: any) {
-              Alert.alert(
-                'Error',
-                error.message || 'Failed to block user. Please try again.'
-              );
+              Alert.alert('Error', error.message || 'Failed to block user. Please try again.');
               console.error('Block user error:', error);
             } finally {
               setIsLoading(false);
@@ -119,12 +106,7 @@ export const BlockUser: React.FC<BlockUserProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -152,9 +134,7 @@ export const BlockUser: React.FC<BlockUserProps> = ({
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Why are you blocking this person?</Text>
-            <Text style={styles.sectionSubtitle}>
-              Optional - This helps us keep Flamoral safe
-            </Text>
+            <Text style={styles.sectionSubtitle}>Optional - This helps us keep Flamoral safe</Text>
 
             <View style={styles.reasonsList}>
               {BLOCK_REASONS.map((reason) => renderReason(reason))}
@@ -170,9 +150,7 @@ export const BlockUser: React.FC<BlockUserProps> = ({
                 {alsoReport && <Text style={styles.checkboxCheck}>✓</Text>}
               </View>
               <View style={styles.reportToggleContent}>
-                <Text style={styles.reportToggleTitle}>
-                  Also report this user
-                </Text>
+                <Text style={styles.reportToggleTitle}>Also report this user</Text>
                 <Text style={styles.reportToggleDescription}>
                   Our team will review this account for violations
                 </Text>
@@ -204,20 +182,13 @@ export const BlockUser: React.FC<BlockUserProps> = ({
             )}
             <View style={styles.infoItem}>
               <Text style={styles.infoBullet}>•</Text>
-              <Text style={styles.infoText}>
-                You can unblock them later in Settings
-              </Text>
+              <Text style={styles.infoText}>You can unblock them later in Settings</Text>
             </View>
           </View>
 
           {onReport && (
-            <TouchableOpacity
-              style={styles.reportButton}
-              onPress={handleReportInstead}
-            >
-              <Text style={styles.reportButtonText}>
-                Report instead of blocking
-              </Text>
+            <TouchableOpacity style={styles.reportButton} onPress={handleReportInstead}>
+              <Text style={styles.reportButtonText}>Report instead of blocking</Text>
             </TouchableOpacity>
           )}
         </ScrollView>

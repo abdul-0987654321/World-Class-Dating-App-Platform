@@ -57,12 +57,7 @@ export const ActiveBoostList: React.FC<ActiveBoostListProps> = ({
       <h2>Active Boosts</h2>
       <div className="boosts-grid">
         {boosts.map((boost) => (
-          <ActiveBoostCard
-            key={boost.id}
-            boost={boost}
-            onCancel={onCancel}
-            loading={loading}
-          />
+          <ActiveBoostCard key={boost.id} boost={boost} onCancel={onCancel} loading={loading} />
         ))}
       </div>
 
@@ -100,11 +95,7 @@ interface ActiveBoostCardProps {
   loading?: boolean;
 }
 
-const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({
-  boost,
-  onCancel,
-  loading = false,
-}) => {
+const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({ boost, onCancel, loading = false }) => {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
   const endTime = boost.endTime || boost.expiresAt;
@@ -174,11 +165,7 @@ const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({
       </div>
 
       {onCancel && isActive && (
-        <button
-          className="cancel-button"
-          onClick={() => onCancel(boost.id)}
-          disabled={loading}
-        >
+        <button className="cancel-button" onClick={() => onCancel(boost.id)} disabled={loading}>
           {loading ? 'Canceling...' : 'Cancel Boost'}
         </button>
       )}

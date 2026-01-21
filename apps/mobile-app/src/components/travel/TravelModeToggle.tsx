@@ -15,10 +15,7 @@ interface TravelModeToggleProps {
   onToggle?: (enabled: boolean) => void;
 }
 
-export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({
-  userId,
-  onToggle,
-}) => {
+export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({ userId, onToggle }) => {
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isTraveling, setIsTraveling] = useState(false);
@@ -89,18 +86,12 @@ export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Icon
-            name="airplane"
-            size={24}
-            color={enabled ? '#FF6B6B' : '#999'}
-          />
+          <Icon name="airplane" size={24} color={enabled ? '#FF6B6B' : '#999'} />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>Travel Mode</Text>
           <Text style={styles.subtitle}>
-            {isTraveling
-              ? 'Currently traveling'
-              : 'Find matches in different locations'}
+            {isTraveling ? 'Currently traveling' : 'Find matches in different locations'}
           </Text>
         </View>
         <Switch

@@ -5,7 +5,17 @@
 
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FiStar, FiClock, FiZap, FiUserPlus, FiActivity, FiHeart, FiChevronRight, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import {
+  FiStar,
+  FiClock,
+  FiZap,
+  FiUserPlus,
+  FiActivity,
+  FiHeart,
+  FiChevronRight,
+  FiRefreshCw,
+  FiAlertCircle,
+} from 'react-icons/fi';
 import { CuratedPick } from '../../services/curated-picks.service';
 
 export interface CuratedPicksProps {
@@ -62,7 +72,7 @@ const Title = styled.h2`
   gap: 8px;
 
   svg {
-    color: #FFD700;
+    color: #ffd700;
   }
 `;
 
@@ -80,7 +90,7 @@ const ExpiryBadge = styled.div`
   background: rgba(255, 107, 107, 0.2);
   border-radius: 20px;
   font-size: 12px;
-  color: #FF6B6B;
+  color: #ff6b6b;
 
   svg {
     width: 14px;
@@ -184,12 +194,18 @@ const CategoryBadge = styled.div<{ category: string }>`
     height: 14px;
     color: ${({ category }) => {
       switch (category) {
-        case 'top_pick': return '#FFD700';
-        case 'high_compatibility': return '#FF6B6B';
-        case 'new_user': return '#4ECDC4';
-        case 'recently_active': return '#95E1D3';
-        case 'mutual_interest': return '#A78BFA';
-        default: return 'white';
+        case 'top_pick':
+          return '#FFD700';
+        case 'high_compatibility':
+          return '#FF6B6B';
+        case 'new_user':
+          return '#4ECDC4';
+        case 'recently_active':
+          return '#95E1D3';
+        case 'mutual_interest':
+          return '#A78BFA';
+        default:
+          return 'white';
       }
     }};
   }
@@ -243,7 +259,7 @@ const ReasonTag = styled.span`
   svg {
     width: 10px;
     height: 10px;
-    color: #FF6B6B;
+    color: #ff6b6b;
   }
 `;
 
@@ -260,7 +276,7 @@ const LikeButton = styled.button`
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
   border: none;
   border-radius: 50%;
   color: white;
@@ -312,7 +328,12 @@ const LoadingCard = styled.div`
     width: 100px;
     height: 120px;
     border-radius: 12px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
     background-size: 200% 100%;
     animation: ${shimmer} 1.5s infinite;
   }
@@ -326,13 +347,24 @@ const LoadingCard = styled.div`
     .line {
       height: 16px;
       border-radius: 4px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
       background-size: 200% 100%;
       animation: ${shimmer} 1.5s infinite;
 
-      &.short { width: 60%; }
-      &.medium { width: 80%; }
-      &.long { width: 100%; }
+      &.short {
+        width: 60%;
+      }
+      &.medium {
+        width: 80%;
+      }
+      &.long {
+        width: 100%;
+      }
     }
   }
 `;
@@ -368,7 +400,7 @@ const ErrorState = styled.div`
   background: rgba(255, 107, 107, 0.15);
   border: 1px solid rgba(255, 107, 107, 0.3);
   border-radius: 12px;
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 14px;
 
   svg {
@@ -386,7 +418,7 @@ const ErrorState = styled.div`
     background: rgba(255, 107, 107, 0.2);
     border: 1px solid rgba(255, 107, 107, 0.3);
     border-radius: 8px;
-    color: #FF6B6B;
+    color: #ff6b6b;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
@@ -402,7 +434,7 @@ const CompatibilityScore = styled.div`
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
   border-radius: 12px;
   font-size: 11px;
   font-weight: 600;
@@ -416,7 +448,7 @@ const VerifiedBadge = styled.span`
   justify-content: center;
   width: 16px;
   height: 16px;
-  background: #4ECDC4;
+  background: #4ecdc4;
   border-radius: 50%;
   margin-left: 4px;
 
@@ -432,23 +464,35 @@ const VerifiedBadge = styled.span`
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
-    case 'top_pick': return <FiStar />;
-    case 'high_compatibility': return <FiZap />;
-    case 'new_user': return <FiUserPlus />;
-    case 'recently_active': return <FiActivity />;
-    case 'mutual_interest': return <FiHeart />;
-    default: return <FiStar />;
+    case 'top_pick':
+      return <FiStar />;
+    case 'high_compatibility':
+      return <FiZap />;
+    case 'new_user':
+      return <FiUserPlus />;
+    case 'recently_active':
+      return <FiActivity />;
+    case 'mutual_interest':
+      return <FiHeart />;
+    default:
+      return <FiStar />;
   }
 };
 
 const getCategoryLabel = (category: string) => {
   switch (category) {
-    case 'top_pick': return 'Top Pick';
-    case 'high_compatibility': return 'High Match';
-    case 'new_user': return 'New Member';
-    case 'recently_active': return 'Active Now';
-    case 'mutual_interest': return 'Common Interests';
-    default: return 'Pick';
+    case 'top_pick':
+      return 'Top Pick';
+    case 'high_compatibility':
+      return 'High Match';
+    case 'new_user':
+      return 'New Member';
+    case 'recently_active':
+      return 'Active Now';
+    case 'mutual_interest':
+      return 'Common Interests';
+    default:
+      return 'Pick';
   }
 };
 
@@ -482,13 +526,13 @@ export const CuratedPicks: React.FC<CuratedPicksProps> = ({
     e.stopPropagation();
     if (likeLoading.has(userId)) return;
 
-    setLikeLoading(prev => new Set(prev).add(userId));
+    setLikeLoading((prev) => new Set(prev).add(userId));
     try {
       await onLike(userId, pickId);
     } catch (error) {
       console.error('Failed to like:', error);
     } finally {
-      setLikeLoading(prev => {
+      setLikeLoading((prev) => {
         const next = new Set(prev);
         next.delete(userId);
         return next;
@@ -539,9 +583,7 @@ export const CuratedPicks: React.FC<CuratedPicksProps> = ({
         <ErrorState>
           <FiAlertCircle />
           <span className="message">{error}</span>
-          {onRefresh && (
-            <button onClick={handleRefresh}>Retry</button>
-          )}
+          {onRefresh && <button onClick={handleRefresh}>Retry</button>}
         </ErrorState>
       )}
 
@@ -581,7 +623,9 @@ export const CuratedPicks: React.FC<CuratedPicksProps> = ({
             >
               <PickPhoto>
                 <img
-                  src={pick.profile.photos[0] || 'https://via.placeholder.com/100x120?text=No+Photo'}
+                  src={
+                    pick.profile.photos[0] || 'https://via.placeholder.com/100x120?text=No+Photo'
+                  }
                   alt={pick.profile.displayName}
                   loading="lazy"
                 />
@@ -602,9 +646,7 @@ export const CuratedPicks: React.FC<CuratedPicksProps> = ({
                     </CompatibilityScore>
                   )}
                 </PickName>
-                {pick.profile.city && (
-                  <PickLocation>{pick.profile.city}</PickLocation>
-                )}
+                {pick.profile.city && <PickLocation>{pick.profile.city}</PickLocation>}
                 <ReasonsList>
                   {pick.reasons.slice(0, 3).map((reason, i) => (
                     <ReasonTag key={i}>

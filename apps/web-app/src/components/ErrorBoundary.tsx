@@ -115,9 +115,7 @@ class ErrorBoundary extends Component<Props, State> {
                   color: '#ff6b6b',
                 }}
               >
-                <summary style={{ cursor: 'pointer', color: '#9ca3af' }}>
-                  Error Details
-                </summary>
+                <summary style={{ cursor: 'pointer', color: '#9ca3af' }}>Error Details</summary>
                 <pre style={{ marginTop: '0.5rem', overflow: 'auto' }}>
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}

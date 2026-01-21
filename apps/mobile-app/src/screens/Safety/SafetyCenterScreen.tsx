@@ -64,9 +64,7 @@ export const SafetyCenterScreen: React.FC = () => {
       <View style={styles.header}>
         <Icon name="shield-check" size={48} color="#FF4458" />
         <Text style={styles.headerTitle}>Safety Center</Text>
-        <Text style={styles.headerSubtitle}>
-          Your safety and security are our top priorities
-        </Text>
+        <Text style={styles.headerSubtitle}>Your safety and security are our top priorities</Text>
       </View>
 
       {/* Verification Status */}
@@ -149,9 +147,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Biometric Login</Text>
-            <Text style={styles.cardDescription}>
-              Use Face ID or fingerprint to log in
-            </Text>
+            <Text style={styles.cardDescription}>Use Face ID or fingerprint to log in</Text>
           </View>
           <Icon name="chevron-right" size={24} color="#999" />
         </TouchableOpacity>
@@ -162,9 +158,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Login Notifications</Text>
-            <Text style={styles.cardDescription}>
-              Get notified of new login attempts
-            </Text>
+            <Text style={styles.cardDescription}>Get notified of new login attempts</Text>
           </View>
           <Switch
             value={securitySettings?.loginNotifications || false}
@@ -187,9 +181,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Blocked Users</Text>
-            <Text style={styles.cardDescription}>
-              Manage your blocked users list
-            </Text>
+            <Text style={styles.cardDescription}>Manage your blocked users list</Text>
           </View>
           <Icon name="chevron-right" size={24} color="#999" />
         </TouchableOpacity>
@@ -200,9 +192,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Incognito Mode</Text>
-            <Text style={styles.cardDescription}>
-              Browse profiles without being seen
-            </Text>
+            <Text style={styles.cardDescription}>Browse profiles without being seen</Text>
           </View>
           <Switch
             value={securitySettings?.incognitoMode || false}
@@ -217,9 +207,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Hide Last Active</Text>
-            <Text style={styles.cardDescription}>
-              Don't show when you were last active
-            </Text>
+            <Text style={styles.cardDescription}>Don't show when you were last active</Text>
           </View>
           <Switch
             value={securitySettings?.hideLastActive || false}
@@ -242,9 +230,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Safety Tips</Text>
-            <Text style={styles.cardDescription}>
-              Learn how to stay safe while dating
-            </Text>
+            <Text style={styles.cardDescription}>Learn how to stay safe while dating</Text>
           </View>
           <Icon name="chevron-right" size={24} color="#999" />
         </TouchableOpacity>
@@ -258,9 +244,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Emergency Contacts</Text>
-            <Text style={styles.cardDescription}>
-              Set up trusted contacts for emergencies
-            </Text>
+            <Text style={styles.cardDescription}>Set up trusted contacts for emergencies</Text>
           </View>
           <Icon name="chevron-right" size={24} color="#999" />
         </TouchableOpacity>
@@ -274,9 +258,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Crisis Resources</Text>
-            <Text style={styles.cardDescription}>
-              Find help and support services
-            </Text>
+            <Text style={styles.cardDescription}>Find help and support services</Text>
           </View>
           <Icon name="chevron-right" size={24} color="#999" />
         </TouchableOpacity>
@@ -293,9 +275,7 @@ export const SafetyCenterScreen: React.FC = () => {
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Community Guidelines</Text>
-            <Text style={styles.cardDescription}>
-              Read our community standards
-            </Text>
+            <Text style={styles.cardDescription}>Read our community standards</Text>
           </View>
           <Icon name="chevron-right" size={24} color="#999" />
         </TouchableOpacity>
@@ -304,9 +284,7 @@ export const SafetyCenterScreen: React.FC = () => {
       {/* Support */}
       <View style={styles.supportSection}>
         <Icon name="shield-alert" size={32} color="#FF4458" />
-        <Text style={styles.supportText}>
-          Need immediate help? Contact our safety team 24/7
-        </Text>
+        <Text style={styles.supportText}>Need immediate help? Contact our safety team 24/7</Text>
         <TouchableOpacity
           style={styles.supportButton}
           onPress={() => Alert.alert('Safety Team', 'safety@flamoral.com')}

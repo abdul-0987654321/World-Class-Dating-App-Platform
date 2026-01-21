@@ -111,8 +111,8 @@ const MOCK_MATCHES = [
   },
 ];
 
-type NewMatch = typeof MOCK_NEW_MATCHES[0];
-type Match = typeof MOCK_MATCHES[0];
+type NewMatch = (typeof MOCK_NEW_MATCHES)[0];
+type Match = (typeof MOCK_MATCHES)[0];
 
 const MatchesScreen = () => {
   const dispatch = useDispatch();
@@ -189,15 +189,14 @@ const MatchesScreen = () => {
   );
 
   const renderMatch = ({ item }: { item: Match }) => (
-    <TouchableOpacity
-      style={styles.matchCard}
-      onPress={() => handleMatchPress(item)}
-    >
+    <TouchableOpacity style={styles.matchCard} onPress={() => handleMatchPress(item)}>
       <Image source={{ uri: item.photo }} style={styles.matchImage} />
       <View style={styles.matchInfo}>
         <View style={styles.matchHeader}>
           <View style={styles.nameRow}>
-            <Text style={styles.matchName}>{item.name}, {item.age}</Text>
+            <Text style={styles.matchName}>
+              {item.name}, {item.age}
+            </Text>
             {item.verified && (
               <View style={styles.verifiedBadge}>
                 <Text style={styles.verifiedIcon}>✓</Text>
@@ -252,26 +251,17 @@ const MatchesScreen = () => {
         {/* Filter Tabs */}
         <View style={styles.filterTabs}>
           <TouchableOpacity
-            style={[
-              styles.filterTab,
-              filterBy === 'recent' && styles.filterTabActive,
-            ]}
+            style={[styles.filterTab, filterBy === 'recent' && styles.filterTabActive]}
             onPress={() => setFilterBy('recent')}
           >
             <Text
-              style={[
-                styles.filterTabText,
-                filterBy === 'recent' && styles.filterTabTextActive,
-              ]}
+              style={[styles.filterTabText, filterBy === 'recent' && styles.filterTabTextActive]}
             >
               Most Recent
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.filterTab,
-              filterBy === 'compatibility' && styles.filterTabActive,
-            ]}
+            style={[styles.filterTab, filterBy === 'compatibility' && styles.filterTabActive]}
             onPress={() => setFilterBy('compatibility')}
           >
             <Text
@@ -288,15 +278,11 @@ const MatchesScreen = () => {
         {/* Matches List */}
         <View style={styles.matchesSection}>
           {sortedMatches.length > 0 ? (
-            sortedMatches.map((match) => (
-              <View key={match.id}>{renderMatch({ item: match })}</View>
-            ))
+            sortedMatches.map((match) => <View key={match.id}>{renderMatch({ item: match })}</View>)
           ) : (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyTitle}>No matches yet</Text>
-              <Text style={styles.emptySubtitle}>
-                Keep swiping to find your perfect match!
-              </Text>
+              <Text style={styles.emptySubtitle}>Keep swiping to find your perfect match!</Text>
             </View>
           )}
         </View>
@@ -313,17 +299,11 @@ const MatchesScreen = () => {
           <View style={styles.modalContent}>
             {selectedMatch && (
               <>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => setSelectedMatch(null)}
-                >
+                <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedMatch(null)}>
                   <Text style={styles.closeButtonText}>×</Text>
                 </TouchableOpacity>
 
-                <Image
-                  source={{ uri: selectedMatch.photo }}
-                  style={styles.modalImage}
-                />
+                <Image source={{ uri: selectedMatch.photo }} style={styles.modalImage} />
 
                 <View style={styles.modalInfo}>
                   <View style={styles.modalNameRow}>
@@ -347,9 +327,7 @@ const MatchesScreen = () => {
                         ]}
                       />
                     </View>
-                    <Text style={styles.compatibilityPercent}>
-                      {selectedMatch.compatibility}%
-                    </Text>
+                    <Text style={styles.compatibilityPercent}>{selectedMatch.compatibility}%</Text>
                   </View>
 
                   <Text style={styles.modalBio}>{selectedMatch.bio}</Text>

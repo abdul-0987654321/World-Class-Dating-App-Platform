@@ -27,10 +27,11 @@ const matchingSlice = createSlice({
       state.discoveryProfiles = action.payload;
     },
     removeDiscoveryProfile: (state, action: PayloadAction<string>) => {
-      state.discoveryProfiles = state.discoveryProfiles.filter(p => p.id !== action.payload);
+      state.discoveryProfiles = state.discoveryProfiles.filter((p) => p.id !== action.payload);
     },
   },
 });
 
-export const { setMatches, addMatch, setDiscoveryProfiles, removeDiscoveryProfile } = matchingSlice.actions;
+export const { setMatches, addMatch, setDiscoveryProfiles, removeDiscoveryProfile } =
+  matchingSlice.actions;
 export default matchingSlice.reducer;

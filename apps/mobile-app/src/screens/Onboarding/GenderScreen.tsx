@@ -4,14 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { OnboardingStackParamList } from './OnboardingNavigator';
@@ -60,18 +53,13 @@ const GenderScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>3 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>What's your gender?</Text>
-          <Text style={styles.subtitle}>
-            This helps us show you to the right people
-          </Text>
+          <Text style={styles.subtitle}>This helps us show you to the right people</Text>
 
           <View style={styles.optionsContainer}>
             {GENDER_OPTIONS.map((option) => (
@@ -91,9 +79,7 @@ const GenderScreen: React.FC<Props> = ({ navigation, route }) => {
                 >
                   {option.label}
                 </Text>
-                {selectedGender === option.id && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
+                {selectedGender === option.id && <Text style={styles.checkmark}>✓</Text>}
               </TouchableOpacity>
             ))}
           </View>
@@ -104,9 +90,7 @@ const GenderScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <View style={styles.toggleTextContainer}>
               <Text style={styles.toggleLabel}>Show on my profile</Text>
-              <Text style={styles.toggleDescription}>
-                Your gender will be visible to others
-              </Text>
+              <Text style={styles.toggleDescription}>Your gender will be visible to others</Text>
             </View>
             <View style={[styles.toggle, showOnProfile && styles.toggleActive]}>
               <View style={[styles.toggleKnob, showOnProfile && styles.toggleKnobActive]} />

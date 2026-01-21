@@ -14,11 +14,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import {
-  RtcLocalView,
-  RtcRemoteView,
-  VideoRenderMode,
-} from 'react-native-agora';
+import { RtcLocalView, RtcRemoteView, VideoRenderMode } from 'react-native-agora';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useVideoCall } from '../../hooks/useVideoCall';
@@ -58,9 +54,7 @@ const AgoraVideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
     appId: initialAppId,
   } = route.params;
 
-  const [callState, setCallState] = useState<CallState>(
-    isIncoming ? 'ringing' : 'idle'
-  );
+  const [callState, setCallState] = useState<CallState>(isIncoming ? 'ringing' : 'idle');
   const [callId, setCallId] = useState<string | undefined>(initialCallId);
   const [channelName, setChannelName] = useState<string | undefined>(initialChannel);
   const [token, setToken] = useState<string | undefined>(initialToken);
@@ -408,9 +402,7 @@ const AgoraVideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.avatarText}>{userName[0]?.toUpperCase()}</Text>
           </View>
           <Text style={styles.userName}>{userName}</Text>
-          <Text style={styles.statusText}>
-            {isIncoming ? 'Incoming call...' : 'Ringing...'}
-          </Text>
+          <Text style={styles.statusText}>{isIncoming ? 'Incoming call...' : 'Ringing...'}</Text>
 
           {isIncoming ? (
             <View style={styles.incomingActions}>
@@ -444,9 +436,7 @@ const AgoraVideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
           ) : (
             <View style={styles.remoteVideoPlaceholder}>
               <View style={styles.avatarLarge}>
-                <Text style={styles.avatarTextLarge}>
-                  {userName[0]?.toUpperCase()}
-                </Text>
+                <Text style={styles.avatarTextLarge}>{userName[0]?.toUpperCase()}</Text>
               </View>
             </View>
           )}

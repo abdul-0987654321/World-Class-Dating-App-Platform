@@ -79,8 +79,7 @@ Cypress.Commands.add('sendMessage', (conversationId, message) => {
   cy.get('[data-testid="message-input"]').type(message);
   cy.get('[data-testid="send-button"]').click();
 
-  cy.get('[data-testid="message-list"]')
-    .should('contain', message);
+  cy.get('[data-testid="message-list"]').should('contain', message);
 });
 
 // Wait for WebSocket connection

@@ -172,10 +172,7 @@ export class EncryptionService {
    * Note: React Native crypto support is limited
    * This is a simplified implementation - use react-native-crypto for production
    */
-  async encryptMessage(
-    plaintext: string,
-    sessionKey: string
-  ): Promise<EncryptedMessage> {
+  async encryptMessage(plaintext: string, sessionKey: string): Promise<EncryptedMessage> {
     try {
       // Generate IV (12 bytes for GCM)
       const ivBytes = await Crypto.getRandomBytesAsync(12);
@@ -216,10 +213,7 @@ export class EncryptionService {
   /**
    * Decrypt message
    */
-  async decryptMessage(
-    encryptedMessage: EncryptedMessage,
-    sessionKey: string
-  ): Promise<string> {
+  async decryptMessage(encryptedMessage: EncryptedMessage, sessionKey: string): Promise<string> {
     try {
       // Verify auth tag
       const expectedAuthTag = await Crypto.digestStringAsync(

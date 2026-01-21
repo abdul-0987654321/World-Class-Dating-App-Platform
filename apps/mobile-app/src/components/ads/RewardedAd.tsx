@@ -86,25 +86,28 @@ export function useRewardedAd(): UseRewardedAdReturn {
     }
   }, [isLoading, isLoaded, updateStatus]);
 
-  const show = useCallback(async (rewardId: string): Promise<RewardEarned | null> => {
-    try {
-      setIsLoading(true);
-      const reward = await AdService.showRewardedAd(rewardId);
+  const show = useCallback(
+    async (rewardId: string): Promise<RewardEarned | null> => {
+      try {
+        setIsLoading(true);
+        const reward = await AdService.showRewardedAd(rewardId);
 
-      if (reward) {
-        // Claim the reward on backend
-        await AdService.claimReward(rewardId, reward.transactionId);
+        if (reward) {
+          // Claim the reward on backend
+          await AdService.claimReward(rewardId, reward.transactionId);
+        }
+
+        await updateStatus();
+        return reward;
+      } catch (err) {
+        setError(err as Error);
+        return null;
+      } finally {
+        setIsLoading(false);
       }
-
-      await updateStatus();
-      return reward;
-    } catch (err) {
-      setError(err as Error);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [updateStatus]);
+    },
+    [updateStatus]
+  );
 
   return {
     isLoaded,
@@ -134,14 +137,17 @@ export const WatchForCoinsButton: React.FC<WatchForCoinsButtonProps> = ({
   const [cooldownText, setCooldownText] = useState<string | null>(null);
 
   // Find coins reward
-  const coinsReward = availableRewards.find(r => r.config.type === 'coins');
+  const coinsReward = availableRewards.find((r) => r.config.type === 'coins');
   const isAvailable = coinsReward?.available ?? false;
 
   // Update cooldown text
   useEffect(() => {
     if (coinsReward && !coinsReward.available && coinsReward.nextAvailableAt) {
       const updateCooldown = () => {
-        const remaining = Math.max(0, Math.floor((coinsReward.nextAvailableAt! - Date.now()) / 1000));
+        const remaining = Math.max(
+          0,
+          Math.floor((coinsReward.nextAvailableAt! - Date.now()) / 1000)
+        );
         if (remaining > 0) {
           const minutes = Math.floor(remaining / 60);
           const seconds = remaining % 60;
@@ -179,11 +185,7 @@ export const WatchForCoinsButton: React.FC<WatchForCoinsButtonProps> = ({
     const reward = await show('coins');
     if (reward) {
       onRewardEarned?.(reward);
-      Alert.alert(
-        'Reward Earned!',
-        `You received ${reward.amount} coins!`,
-        [{ text: 'Awesome!' }]
-      );
+      Alert.alert('Reward Earned!', `You received ${reward.amount} coins!`, [{ text: 'Awesome!' }]);
     } else {
       onError?.(new Error('Failed to earn reward'));
     }
@@ -191,11 +193,7 @@ export const WatchForCoinsButton: React.FC<WatchForCoinsButtonProps> = ({
 
   return (
     <TouchableOpacity
-      style={[
-        styles.watchButton,
-        !isAvailable && styles.watchButtonDisabled,
-        style,
-      ]}
+      style={[styles.watchButton, !isAvailable && styles.watchButtonDisabled, style]}
       onPress={handlePress}
       disabled={isLoading}
     >
@@ -285,9 +283,7 @@ export const RewardSelectionModal: React.FC<RewardSelectionModalProps> = ({
           <ActivityIndicator size="small" color="#E91E63" />
         ) : (
           <View style={[styles.watchBadge, !canWatch && styles.watchBadgeDisabled]}>
-            <Text style={styles.watchBadgeText}>
-              {canWatch ? 'Watch' : 'Wait'}
-            </Text>
+            <Text style={styles.watchBadgeText}>{canWatch ? 'Watch' : 'Wait'}</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -295,12 +291,7 @@ export const RewardSelectionModal: React.FC<RewardSelectionModalProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -310,9 +301,7 @@ export const RewardSelectionModal: React.FC<RewardSelectionModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.modalSubtitle}>
-            Watch a short video to earn rewards
-          </Text>
+          <Text style={styles.modalSubtitle}>Watch a short video to earn rewards</Text>
 
           <FlatList
             data={availableRewards}
@@ -339,10 +328,7 @@ interface RewardCelebrationProps {
   onComplete: () => void;
 }
 
-export const RewardCelebration: React.FC<RewardCelebrationProps> = ({
-  reward,
-  onComplete,
-}) => {
+export const RewardCelebration: React.FC<RewardCelebrationProps> = ({ reward, onComplete }) => {
   const scaleAnim = React.useRef(new Animated.Value(0)).current;
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -376,7 +362,7 @@ export const RewardCelebration: React.FC<RewardCelebrationProps> = ({
 
   if (!reward) return null;
 
-  const rewardConfig = DEFAULT_REWARDS.find(r => r.type === reward.type);
+  const rewardConfig = DEFAULT_REWARDS.find((r) => r.type === reward.type);
 
   return (
     <Animated.View
@@ -396,9 +382,7 @@ export const RewardCelebration: React.FC<RewardCelebrationProps> = ({
           },
         ]}
       >
-        <Text style={styles.celebrationIcon}>
-          {REWARD_ICONS[rewardConfig?.icon || 'coin']}
-        </Text>
+        <Text style={styles.celebrationIcon}>{REWARD_ICONS[rewardConfig?.icon || 'coin']}</Text>
         <Text style={styles.celebrationTitle}>Reward Earned!</Text>
         <Text style={styles.celebrationAmount}>
           +{reward.amount} {rewardConfig?.displayName || reward.type}
@@ -424,7 +408,7 @@ export const QuickRewardButton: React.FC<QuickRewardButtonProps> = ({
   const [earnedReward, setEarnedReward] = useState<RewardEarned | null>(null);
   const { availableRewards } = useRewardedAd();
 
-  const hasAvailableRewards = availableRewards.some(r => r.available);
+  const hasAvailableRewards = availableRewards.some((r) => r.available);
 
   const handleRewardEarned = (reward: RewardEarned) => {
     setEarnedReward(reward);
@@ -452,10 +436,7 @@ export const QuickRewardButton: React.FC<QuickRewardButtonProps> = ({
         onRewardSelected={handleRewardEarned}
       />
 
-      <RewardCelebration
-        reward={earnedReward}
-        onComplete={() => setEarnedReward(null)}
-      />
+      <RewardCelebration reward={earnedReward} onComplete={() => setEarnedReward(null)} />
     </>
   );
 };

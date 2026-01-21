@@ -7,7 +7,7 @@
 export const theme = {
   colors: {
     // Primary Brand Colors — Master Prompt Specification
-    primary: '#EC4899',      // Electric Pink
+    primary: '#EC4899', // Electric Pink
     primaryLight: '#F472B6',
     primaryDark: '#BE185D',
     primaryHover: '#F472B6',
@@ -17,11 +17,11 @@ export const theme = {
     gradientHover: 'linear-gradient(135deg, #BE185D 0%, #EC4899 50%, #F472B6 100%)',
 
     // Dark Theme Surfaces — Midnight Blue base
-    white: '#2d2d44',        // Deep Charcoal (replaces white)
+    white: '#2d2d44', // Deep Charcoal (replaces white)
     black: '#000000',
-    background: '#1a1a2e',   // Midnight Blue - Darkest background
+    background: '#1a1a2e', // Midnight Blue - Darkest background
     backgroundSecondary: '#232342', // Card backgrounds
-    backgroundTertiary: '#2d2d44',  // Deep Charcoal - Elevated surfaces
+    backgroundTertiary: '#2d2d44', // Deep Charcoal - Elevated surfaces
     surface: '#232342',
     surfaceElevated: '#2d2d44',
     surfaceOverlay: 'rgba(26, 26, 46, 0.7)',
@@ -40,7 +40,7 @@ export const theme = {
     borderStrong: 'rgba(255, 255, 255, 0.2)',
 
     // Status Colors — Master Prompt Specification
-    success: '#22C55E',      // Emerald Green
+    success: '#22C55E', // Emerald Green
     successLight: 'rgba(0, 217, 165, 0.1)',
     warning: '#F59E0B',
     warningLight: 'rgba(245, 158, 11, 0.1)',
@@ -50,13 +50,13 @@ export const theme = {
     infoLight: 'rgba(59, 130, 246, 0.1)',
 
     // Accent Colors — Master Prompt Specification
-    pink: '#EC4899',         // Electric Pink
+    pink: '#EC4899', // Electric Pink
     coral: '#F472B6',
     softPink: '#3B82F6',
     purple: '#9333EA',
     blue: '#3B82F6',
     cyan: '#06B6D4',
-    green: '#22C55E',        // Emerald Green
+    green: '#22C55E', // Emerald Green
     gold: '#D9A657',
 
     // Coin/Premium Colors

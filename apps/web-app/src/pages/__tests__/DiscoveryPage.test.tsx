@@ -251,13 +251,15 @@ describe('DiscoveryPage', () => {
   describe('Photo Navigation', () => {
     it('renders photo navigation dots for profiles with multiple photos', async () => {
       mockGetRecommendations.mockResolvedValue({
-        profiles: [{
-          ...mockProfiles[0],
-          photos: [
-            { url: 'https://example.com/photo1.jpg', is_primary: true },
-            { url: 'https://example.com/photo2.jpg', is_primary: false },
-          ],
-        }],
+        profiles: [
+          {
+            ...mockProfiles[0],
+            photos: [
+              { url: 'https://example.com/photo1.jpg', is_primary: true },
+              { url: 'https://example.com/photo2.jpg', is_primary: false },
+            ],
+          },
+        ],
       });
 
       renderWithProviders(<DiscoveryPage />);

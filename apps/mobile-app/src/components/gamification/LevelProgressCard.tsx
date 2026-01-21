@@ -64,9 +64,7 @@ export const LevelProgressCard: React.FC<Props> = ({
           <Text style={styles.levelText}>Level {currentLevel}</Text>
           <Text style={styles.tierText}>{getLevelTier(currentLevel)} Tier</Text>
         </View>
-        {onPress && (
-          <Ionicons name="chevron-forward" size={24} color="#999" />
-        )}
+        {onPress && <Ionicons name="chevron-forward" size={24} color="#999" />}
       </View>
 
       <View style={styles.xpSection}>
@@ -78,9 +76,7 @@ export const LevelProgressCard: React.FC<Props> = ({
         </View>
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBar}>
-            <View
-              style={[styles.progressBarFill, { width: `${levelProgressPercentage}%` }]}
-            />
+            <View style={[styles.progressBarFill, { width: `${levelProgressPercentage}%` }]} />
           </View>
           <Text style={styles.progressPercentage}>{Math.round(levelProgressPercentage)}%</Text>
         </View>

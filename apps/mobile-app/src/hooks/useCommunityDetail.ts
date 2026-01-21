@@ -81,8 +81,14 @@ interface UseCommunityDetailReturn extends CommunityDetailState {
 const DEFAULT_POSTS: CommunityPost[] = [
   {
     id: '1',
-    author: { id: '1', name: 'Sarah', photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg', isVerified: true },
-    content: 'Just booked my trip to Bali! Anyone been there recently? Looking for recommendations!',
+    author: {
+      id: '1',
+      name: 'Sarah',
+      photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg',
+      isVerified: true,
+    },
+    content:
+      'Just booked my trip to Bali! Anyone been there recently? Looking for recommendations!',
     likes: 45,
     comments: 12,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
@@ -99,7 +105,12 @@ const DEFAULT_POSTS: CommunityPost[] = [
   },
   {
     id: '3',
-    author: { id: '3', name: 'Emma', photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg', isVerified: true },
+    author: {
+      id: '3',
+      name: 'Emma',
+      photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg',
+      isVerified: true,
+    },
     content: 'Morning hike at sunrise. Best way to start the weekend! Who wants to join next time?',
     imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400',
     likes: 67,
@@ -110,17 +121,67 @@ const DEFAULT_POSTS: CommunityPost[] = [
 ];
 
 const DEFAULT_MEMBERS: CommunityMember[] = [
-  { id: '1', name: 'Sarah Johnson', photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg', role: 'admin', joinedAt: '2024-01-15T00:00:00Z', isOnline: true },
-  { id: '2', name: 'Mike Chen', photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg', role: 'moderator', joinedAt: '2024-01-20T00:00:00Z', isOnline: true },
-  { id: '3', name: 'Emma Wilson', photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg', role: 'member', joinedAt: '2024-02-01T00:00:00Z', isOnline: false },
-  { id: '4', name: 'James Brown', photoUrl: 'https://randomuser.me/api/portraits/men/2.jpg', role: 'member', joinedAt: '2024-02-15T00:00:00Z', isOnline: false },
-  { id: '5', name: 'Olivia Davis', photoUrl: 'https://randomuser.me/api/portraits/women/3.jpg', role: 'member', joinedAt: '2024-03-01T00:00:00Z', isOnline: true },
+  {
+    id: '1',
+    name: 'Sarah Johnson',
+    photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg',
+    role: 'admin',
+    joinedAt: '2024-01-15T00:00:00Z',
+    isOnline: true,
+  },
+  {
+    id: '2',
+    name: 'Mike Chen',
+    photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+    role: 'moderator',
+    joinedAt: '2024-01-20T00:00:00Z',
+    isOnline: true,
+  },
+  {
+    id: '3',
+    name: 'Emma Wilson',
+    photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg',
+    role: 'member',
+    joinedAt: '2024-02-01T00:00:00Z',
+    isOnline: false,
+  },
+  {
+    id: '4',
+    name: 'James Brown',
+    photoUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
+    role: 'member',
+    joinedAt: '2024-02-15T00:00:00Z',
+    isOnline: false,
+  },
+  {
+    id: '5',
+    name: 'Olivia Davis',
+    photoUrl: 'https://randomuser.me/api/portraits/women/3.jpg',
+    role: 'member',
+    joinedAt: '2024-03-01T00:00:00Z',
+    isOnline: true,
+  },
 ];
 
 const DEFAULT_RULES: CommunityRule[] = [
-  { id: '1', title: 'Be Respectful', description: 'Treat all members with respect. No harassment or bullying.', order: 1 },
-  { id: '2', title: 'Stay On Topic', description: 'Keep posts relevant to the community theme.', order: 2 },
-  { id: '3', title: 'No Spam', description: 'Avoid promotional content or repetitive posts.', order: 3 },
+  {
+    id: '1',
+    title: 'Be Respectful',
+    description: 'Treat all members with respect. No harassment or bullying.',
+    order: 1,
+  },
+  {
+    id: '2',
+    title: 'Stay On Topic',
+    description: 'Keep posts relevant to the community theme.',
+    order: 2,
+  },
+  {
+    id: '3',
+    title: 'No Spam',
+    description: 'Avoid promotional content or repetitive posts.',
+    order: 3,
+  },
 ];
 
 export function useCommunityDetail(communityId?: string): UseCommunityDetailReturn {
@@ -190,206 +251,220 @@ export function useCommunityDetail(communityId?: string): UseCommunityDetailRetu
     }
   }, []);
 
-  const fetchPosts = useCallback(async (reset = false) => {
-    const currentPage = reset ? 1 : state.postsPage;
+  const fetchPosts = useCallback(
+    async (reset = false) => {
+      const currentPage = reset ? 1 : state.postsPage;
 
-    if (!state.community) return;
-    if (!reset && state.postsLoading) return;
+      if (!state.community) return;
+      if (!reset && state.postsLoading) return;
 
-    setState((prev) => ({
-      ...prev,
-      postsLoading: true,
-      postsPage: currentPage,
-    }));
+      setState((prev) => ({
+        ...prev,
+        postsLoading: true,
+        postsPage: currentPage,
+      }));
 
-    try {
-      const response = await httpClient.get<{
-        posts: CommunityPost[];
-        hasMore: boolean;
-      }>(`/api/communities/${state.community.id}/posts?page=${currentPage}&limit=20`);
+      try {
+        const response = await httpClient.get<{
+          posts: CommunityPost[];
+          hasMore: boolean;
+        }>(`/api/communities/${state.community.id}/posts?page=${currentPage}&limit=20`);
 
-      if (response.success && response.data) {
-        setState((prev) => ({
-          ...prev,
-          posts: reset ? response.data!.posts : [...prev.posts, ...response.data!.posts],
-          hasMorePosts: response.data!.hasMore,
-          postsLoading: false,
-          postsPage: currentPage + 1,
-        }));
-      } else {
+        if (response.success && response.data) {
+          setState((prev) => ({
+            ...prev,
+            posts: reset ? response.data!.posts : [...prev.posts, ...response.data!.posts],
+            hasMorePosts: response.data!.hasMore,
+            postsLoading: false,
+            postsPage: currentPage + 1,
+          }));
+        } else {
+          setState((prev) => ({
+            ...prev,
+            posts: DEFAULT_POSTS,
+            hasMorePosts: false,
+            postsLoading: false,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error);
         setState((prev) => ({
           ...prev,
           posts: DEFAULT_POSTS,
-          hasMorePosts: false,
           postsLoading: false,
+          hasMorePosts: false,
         }));
       }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
+    },
+    [state.community, state.postsPage, state.postsLoading]
+  );
+
+  const fetchMembers = useCallback(
+    async (reset = false) => {
+      const currentPage = reset ? 1 : state.membersPage;
+
+      if (!state.community) return;
+      if (!reset && state.membersLoading) return;
+
       setState((prev) => ({
         ...prev,
-        posts: DEFAULT_POSTS,
-        postsLoading: false,
-        hasMorePosts: false,
+        membersLoading: true,
+        membersPage: currentPage,
       }));
-    }
-  }, [state.community, state.postsPage, state.postsLoading]);
 
-  const fetchMembers = useCallback(async (reset = false) => {
-    const currentPage = reset ? 1 : state.membersPage;
+      try {
+        const response = await httpClient.get<{
+          members: CommunityMember[];
+          hasMore: boolean;
+        }>(`/api/communities/${state.community.id}/members?page=${currentPage}&limit=20`);
 
-    if (!state.community) return;
-    if (!reset && state.membersLoading) return;
-
-    setState((prev) => ({
-      ...prev,
-      membersLoading: true,
-      membersPage: currentPage,
-    }));
-
-    try {
-      const response = await httpClient.get<{
-        members: CommunityMember[];
-        hasMore: boolean;
-      }>(`/api/communities/${state.community.id}/members?page=${currentPage}&limit=20`);
-
-      if (response.success && response.data) {
-        setState((prev) => ({
-          ...prev,
-          members: reset ? response.data!.members : [...prev.members, ...response.data!.members],
-          hasMoreMembers: response.data!.hasMore,
-          membersLoading: false,
-          membersPage: currentPage + 1,
-        }));
-      } else {
+        if (response.success && response.data) {
+          setState((prev) => ({
+            ...prev,
+            members: reset ? response.data!.members : [...prev.members, ...response.data!.members],
+            hasMoreMembers: response.data!.hasMore,
+            membersLoading: false,
+            membersPage: currentPage + 1,
+          }));
+        } else {
+          setState((prev) => ({
+            ...prev,
+            members: DEFAULT_MEMBERS,
+            hasMoreMembers: false,
+            membersLoading: false,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching members:', error);
         setState((prev) => ({
           ...prev,
           members: DEFAULT_MEMBERS,
-          hasMoreMembers: false,
           membersLoading: false,
+          hasMoreMembers: false,
         }));
       }
-    } catch (error) {
-      console.error('Error fetching members:', error);
-      setState((prev) => ({
-        ...prev,
-        members: DEFAULT_MEMBERS,
-        membersLoading: false,
-        hasMoreMembers: false,
-      }));
-    }
-  }, [state.community, state.membersPage, state.membersLoading]);
+    },
+    [state.community, state.membersPage, state.membersLoading]
+  );
 
-  const createPost = useCallback(async (content: string, imageUrl?: string): Promise<boolean> => {
-    if (!state.community) return false;
+  const createPost = useCallback(
+    async (content: string, imageUrl?: string): Promise<boolean> => {
+      if (!state.community) return false;
 
-    try {
-      const response = await httpClient.post(`/api/communities/${state.community.id}/posts`, {
-        content,
-        imageUrl,
-      });
+      try {
+        const response = await httpClient.post(`/api/communities/${state.community.id}/posts`, {
+          content,
+          imageUrl,
+        });
 
-      if (response.success && response.data) {
+        if (response.success && response.data) {
+          setState((prev) => ({
+            ...prev,
+            posts: [response.data as CommunityPost, ...prev.posts],
+          }));
+          return true;
+        }
+
+        // Optimistic update for demo
+        const newPost: CommunityPost = {
+          id: Date.now().toString(),
+          author: { id: 'me', name: 'You', photoUrl: '' },
+          content,
+          imageUrl,
+          likes: 0,
+          comments: 0,
+          createdAt: new Date().toISOString(),
+          isLiked: false,
+        };
         setState((prev) => ({
           ...prev,
-          posts: [response.data as CommunityPost, ...prev.posts],
+          posts: [newPost, ...prev.posts],
+        }));
+        return true;
+      } catch (error) {
+        console.error('Error creating post:', error);
+        return false;
+      }
+    },
+    [state.community]
+  );
+
+  const deletePost = useCallback(
+    async (postId: string): Promise<boolean> => {
+      if (!state.community) return false;
+
+      try {
+        await httpClient.delete(`/api/communities/${state.community.id}/posts/${postId}`);
+        setState((prev) => ({
+          ...prev,
+          posts: prev.posts.filter((p) => p.id !== postId),
+        }));
+        return true;
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        // Optimistic update
+        setState((prev) => ({
+          ...prev,
+          posts: prev.posts.filter((p) => p.id !== postId),
         }));
         return true;
       }
+    },
+    [state.community]
+  );
 
-      // Optimistic update for demo
-      const newPost: CommunityPost = {
-        id: Date.now().toString(),
-        author: { id: 'me', name: 'You', photoUrl: '' },
-        content,
-        imageUrl,
-        likes: 0,
-        comments: 0,
-        createdAt: new Date().toISOString(),
-        isLiked: false,
-      };
-      setState((prev) => ({
-        ...prev,
-        posts: [newPost, ...prev.posts],
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error creating post:', error);
-      return false;
-    }
-  }, [state.community]);
+  const likePost = useCallback(
+    async (postId: string): Promise<boolean> => {
+      if (!state.community) return false;
 
-  const deletePost = useCallback(async (postId: string): Promise<boolean> => {
-    if (!state.community) return false;
+      try {
+        await httpClient.post(`/api/communities/${state.community.id}/posts/${postId}/like`);
+        setState((prev) => ({
+          ...prev,
+          posts: prev.posts.map((p) =>
+            p.id === postId
+              ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
+              : p
+          ),
+        }));
+        return true;
+      } catch (error) {
+        // Optimistic update
+        setState((prev) => ({
+          ...prev,
+          posts: prev.posts.map((p) =>
+            p.id === postId
+              ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
+              : p
+          ),
+        }));
+        return true;
+      }
+    },
+    [state.community]
+  );
 
-    try {
-      await httpClient.delete(`/api/communities/${state.community.id}/posts/${postId}`);
-      setState((prev) => ({
-        ...prev,
-        posts: prev.posts.filter((p) => p.id !== postId),
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      // Optimistic update
-      setState((prev) => ({
-        ...prev,
-        posts: prev.posts.filter((p) => p.id !== postId),
-      }));
-      return true;
-    }
-  }, [state.community]);
+  const pinPost = useCallback(
+    async (postId: string): Promise<boolean> => {
+      if (!state.community || state.userRole !== 'admin') return false;
 
-  const likePost = useCallback(async (postId: string): Promise<boolean> => {
-    if (!state.community) return false;
-
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/posts/${postId}/like`);
-      setState((prev) => ({
-        ...prev,
-        posts: prev.posts.map((p) =>
-          p.id === postId
-            ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
-            : p
-        ),
-      }));
-      return true;
-    } catch (error) {
-      // Optimistic update
-      setState((prev) => ({
-        ...prev,
-        posts: prev.posts.map((p) =>
-          p.id === postId
-            ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
-            : p
-        ),
-      }));
-      return true;
-    }
-  }, [state.community]);
-
-  const pinPost = useCallback(async (postId: string): Promise<boolean> => {
-    if (!state.community || state.userRole !== 'admin') return false;
-
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/posts/${postId}/pin`);
-      setState((prev) => ({
-        ...prev,
-        posts: prev.posts.map((p) =>
-          p.id === postId ? { ...p, isPinned: !p.isPinned } : p
-        ),
-      }));
-      return true;
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        posts: prev.posts.map((p) =>
-          p.id === postId ? { ...p, isPinned: !p.isPinned } : p
-        ),
-      }));
-      return true;
-    }
-  }, [state.community, state.userRole]);
+      try {
+        await httpClient.post(`/api/communities/${state.community.id}/posts/${postId}/pin`);
+        setState((prev) => ({
+          ...prev,
+          posts: prev.posts.map((p) => (p.id === postId ? { ...p, isPinned: !p.isPinned } : p)),
+        }));
+        return true;
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          posts: prev.posts.map((p) => (p.id === postId ? { ...p, isPinned: !p.isPinned } : p)),
+        }));
+        return true;
+      }
+    },
+    [state.community, state.userRole]
+  );
 
   const joinCommunity = useCallback(async (): Promise<boolean> => {
     if (!state.community) return false;
@@ -425,7 +500,11 @@ export function useCommunityDetail(communityId?: string): UseCommunityDetailRetu
       setState((prev) => ({
         ...prev,
         community: prev.community
-          ? { ...prev.community, isJoined: false, memberCount: Math.max(0, prev.community.memberCount - 1) }
+          ? {
+              ...prev.community,
+              isJoined: false,
+              memberCount: Math.max(0, prev.community.memberCount - 1),
+            }
           : null,
         userRole: null,
       }));
@@ -435,7 +514,11 @@ export function useCommunityDetail(communityId?: string): UseCommunityDetailRetu
       setState((prev) => ({
         ...prev,
         community: prev.community
-          ? { ...prev.community, isJoined: false, memberCount: Math.max(0, prev.community.memberCount - 1) }
+          ? {
+              ...prev.community,
+              isJoined: false,
+              memberCount: Math.max(0, prev.community.memberCount - 1),
+            }
           : null,
         userRole: null,
       }));
@@ -443,24 +526,27 @@ export function useCommunityDetail(communityId?: string): UseCommunityDetailRetu
     }
   }, [state.community]);
 
-  const updateCommunity = useCallback(async (updates: Partial<Community>): Promise<boolean> => {
-    if (!state.community || state.userRole !== 'admin') return false;
+  const updateCommunity = useCallback(
+    async (updates: Partial<Community>): Promise<boolean> => {
+      if (!state.community || state.userRole !== 'admin') return false;
 
-    try {
-      const response = await httpClient.patch(`/api/communities/${state.community.id}`, updates);
-      if (response.success) {
-        setState((prev) => ({
-          ...prev,
-          community: prev.community ? { ...prev.community, ...updates } : null,
-        }));
-        return true;
+      try {
+        const response = await httpClient.patch(`/api/communities/${state.community.id}`, updates);
+        if (response.success) {
+          setState((prev) => ({
+            ...prev,
+            community: prev.community ? { ...prev.community, ...updates } : null,
+          }));
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('Error updating community:', error);
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error('Error updating community:', error);
-      return false;
-    }
-  }, [state.community, state.userRole]);
+    },
+    [state.community, state.userRole]
+  );
 
   const deleteCommunity = useCallback(async (): Promise<boolean> => {
     if (!state.community || state.userRole !== 'admin') return false;
@@ -474,139 +560,159 @@ export function useCommunityDetail(communityId?: string): UseCommunityDetailRetu
     }
   }, [state.community, state.userRole]);
 
-  const kickMember = useCallback(async (memberId: string): Promise<boolean> => {
-    if (!state.community || !['admin', 'moderator'].includes(state.userRole || '')) return false;
+  const kickMember = useCallback(
+    async (memberId: string): Promise<boolean> => {
+      if (!state.community || !['admin', 'moderator'].includes(state.userRole || '')) return false;
 
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/kick`);
-      setState((prev) => ({
-        ...prev,
-        members: prev.members.filter((m) => m.id !== memberId),
-        community: prev.community
-          ? { ...prev.community, memberCount: Math.max(0, prev.community.memberCount - 1) }
-          : null,
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error kicking member:', error);
-      return false;
-    }
-  }, [state.community, state.userRole]);
-
-  const promoteMember = useCallback(async (memberId: string, role: 'moderator' | 'admin'): Promise<boolean> => {
-    if (!state.community || state.userRole !== 'admin') return false;
-
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/promote`, { role });
-      setState((prev) => ({
-        ...prev,
-        members: prev.members.map((m) =>
-          m.id === memberId ? { ...m, role } : m
-        ),
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error promoting member:', error);
-      return false;
-    }
-  }, [state.community, state.userRole]);
-
-  const demoteMember = useCallback(async (memberId: string): Promise<boolean> => {
-    if (!state.community || state.userRole !== 'admin') return false;
-
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/demote`);
-      setState((prev) => ({
-        ...prev,
-        members: prev.members.map((m) =>
-          m.id === memberId ? { ...m, role: 'member' } : m
-        ),
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error demoting member:', error);
-      return false;
-    }
-  }, [state.community, state.userRole]);
-
-  const addRule = useCallback(async (title: string, description: string): Promise<boolean> => {
-    if (!state.community || state.userRole !== 'admin') return false;
-
-    try {
-      const response = await httpClient.post(`/api/communities/${state.community.id}/rules`, {
-        title,
-        description,
-      });
-
-      if (response.success && response.data) {
+      try {
+        await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/kick`);
         setState((prev) => ({
           ...prev,
-          rules: [...prev.rules, response.data as CommunityRule],
+          members: prev.members.filter((m) => m.id !== memberId),
+          community: prev.community
+            ? { ...prev.community, memberCount: Math.max(0, prev.community.memberCount - 1) }
+            : null,
         }));
         return true;
+      } catch (error) {
+        console.error('Error kicking member:', error);
+        return false;
       }
+    },
+    [state.community, state.userRole]
+  );
 
-      // Optimistic update
-      const newRule: CommunityRule = {
-        id: Date.now().toString(),
-        title,
-        description,
-        order: state.rules.length + 1,
-      };
-      setState((prev) => ({
-        ...prev,
-        rules: [...prev.rules, newRule],
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error adding rule:', error);
-      return false;
-    }
-  }, [state.community, state.userRole, state.rules]);
+  const promoteMember = useCallback(
+    async (memberId: string, role: 'moderator' | 'admin'): Promise<boolean> => {
+      if (!state.community || state.userRole !== 'admin') return false;
 
-  const removeRule = useCallback(async (ruleId: string): Promise<boolean> => {
-    if (!state.community || state.userRole !== 'admin') return false;
+      try {
+        await httpClient.post(
+          `/api/communities/${state.community.id}/members/${memberId}/promote`,
+          { role }
+        );
+        setState((prev) => ({
+          ...prev,
+          members: prev.members.map((m) => (m.id === memberId ? { ...m, role } : m)),
+        }));
+        return true;
+      } catch (error) {
+        console.error('Error promoting member:', error);
+        return false;
+      }
+    },
+    [state.community, state.userRole]
+  );
 
-    try {
-      await httpClient.delete(`/api/communities/${state.community.id}/rules/${ruleId}`);
-      setState((prev) => ({
-        ...prev,
-        rules: prev.rules.filter((r) => r.id !== ruleId),
-      }));
-      return true;
-    } catch (error) {
-      console.error('Error removing rule:', error);
-      return false;
-    }
-  }, [state.community, state.userRole]);
+  const demoteMember = useCallback(
+    async (memberId: string): Promise<boolean> => {
+      if (!state.community || state.userRole !== 'admin') return false;
 
-  const reportPost = useCallback(async (postId: string, reason: string): Promise<boolean> => {
-    if (!state.community) return false;
+      try {
+        await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/demote`);
+        setState((prev) => ({
+          ...prev,
+          members: prev.members.map((m) => (m.id === memberId ? { ...m, role: 'member' } : m)),
+        }));
+        return true;
+      } catch (error) {
+        console.error('Error demoting member:', error);
+        return false;
+      }
+    },
+    [state.community, state.userRole]
+  );
 
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/posts/${postId}/report`, {
-        reason,
-      });
-      return true;
-    } catch (error) {
-      console.error('Error reporting post:', error);
-      return false;
-    }
-  }, [state.community]);
+  const addRule = useCallback(
+    async (title: string, description: string): Promise<boolean> => {
+      if (!state.community || state.userRole !== 'admin') return false;
 
-  const reportMember = useCallback(async (memberId: string, reason: string): Promise<boolean> => {
-    if (!state.community) return false;
+      try {
+        const response = await httpClient.post(`/api/communities/${state.community.id}/rules`, {
+          title,
+          description,
+        });
 
-    try {
-      await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/report`, {
-        reason,
-      });
-      return true;
-    } catch (error) {
-      console.error('Error reporting member:', error);
-      return false;
-    }
-  }, [state.community]);
+        if (response.success && response.data) {
+          setState((prev) => ({
+            ...prev,
+            rules: [...prev.rules, response.data as CommunityRule],
+          }));
+          return true;
+        }
+
+        // Optimistic update
+        const newRule: CommunityRule = {
+          id: Date.now().toString(),
+          title,
+          description,
+          order: state.rules.length + 1,
+        };
+        setState((prev) => ({
+          ...prev,
+          rules: [...prev.rules, newRule],
+        }));
+        return true;
+      } catch (error) {
+        console.error('Error adding rule:', error);
+        return false;
+      }
+    },
+    [state.community, state.userRole, state.rules]
+  );
+
+  const removeRule = useCallback(
+    async (ruleId: string): Promise<boolean> => {
+      if (!state.community || state.userRole !== 'admin') return false;
+
+      try {
+        await httpClient.delete(`/api/communities/${state.community.id}/rules/${ruleId}`);
+        setState((prev) => ({
+          ...prev,
+          rules: prev.rules.filter((r) => r.id !== ruleId),
+        }));
+        return true;
+      } catch (error) {
+        console.error('Error removing rule:', error);
+        return false;
+      }
+    },
+    [state.community, state.userRole]
+  );
+
+  const reportPost = useCallback(
+    async (postId: string, reason: string): Promise<boolean> => {
+      if (!state.community) return false;
+
+      try {
+        await httpClient.post(`/api/communities/${state.community.id}/posts/${postId}/report`, {
+          reason,
+        });
+        return true;
+      } catch (error) {
+        console.error('Error reporting post:', error);
+        return false;
+      }
+    },
+    [state.community]
+  );
+
+  const reportMember = useCallback(
+    async (memberId: string, reason: string): Promise<boolean> => {
+      if (!state.community) return false;
+
+      try {
+        await httpClient.post(`/api/communities/${state.community.id}/members/${memberId}/report`, {
+          reason,
+        });
+        return true;
+      } catch (error) {
+        console.error('Error reporting member:', error);
+        return false;
+      }
+    },
+    [state.community]
+  );
 
   // Initial fetch when communityId is provided
   useEffect(() => {

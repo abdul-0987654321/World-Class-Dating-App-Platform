@@ -237,27 +237,23 @@ const EnhancedDiscoveryScreen = () => {
   }, [undoStack]);
 
   const activateBoost = useCallback(async () => {
-    Alert.alert(
-      'Activate Boost',
-      'Get 10x more profile views for 30 minutes!',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Activate',
-          onPress: async () => {
-            try {
-              // await api.post('/boosts/activate');
-              setHasActiveBoost(true);
-              setBoostExpiresAt(new Date(Date.now() + 30 * 60000));
-              Alert.alert('Boost Activated!', 'Your profile is now being shown 10x more!');
-            } catch (error: any) {
-              console.error('Failed to activate boost:', error);
-              Alert.alert('Error', error.message || 'Failed to activate boost');
-            }
-          },
+    Alert.alert('Activate Boost', 'Get 10x more profile views for 30 minutes!', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Activate',
+        onPress: async () => {
+          try {
+            // await api.post('/boosts/activate');
+            setHasActiveBoost(true);
+            setBoostExpiresAt(new Date(Date.now() + 30 * 60000));
+            Alert.alert('Boost Activated!', 'Your profile is now being shown 10x more!');
+          } catch (error: any) {
+            console.error('Failed to activate boost:', error);
+            Alert.alert('Error', error.message || 'Failed to activate boost');
+          }
         },
-      ]
-    );
+      },
+    ]);
   }, []);
 
   const animateTransition = () => {
@@ -393,7 +389,11 @@ const EnhancedDiscoveryScreen = () => {
       <View style={styles.actionsContainer}>
         {/* Undo Button */}
         <TouchableOpacity
-          style={[styles.actionButton, styles.undoButton, undoStack.length === 0 && styles.disabledButton]}
+          style={[
+            styles.actionButton,
+            styles.undoButton,
+            undoStack.length === 0 && styles.disabledButton,
+          ]}
           onPress={handleUndo}
           disabled={undoStack.length === 0}
         >
@@ -413,10 +413,7 @@ const EnhancedDiscoveryScreen = () => {
           style={[styles.actionButton, styles.superLikeButton]}
           onPress={handleSuperLike}
         >
-          <LinearGradient
-            colors={['#4C9EFF', '#00D4FF']}
-            style={styles.superLikeGradient}
-          >
+          <LinearGradient colors={['#4C9EFF', '#00D4FF']} style={styles.superLikeGradient}>
             <Icon name="star" size={28} color="#FFF" />
           </LinearGradient>
           {superLikeQuota.remaining > 0 && (
@@ -459,10 +456,7 @@ const EnhancedDiscoveryScreen = () => {
               <Icon name="close" size={24} color="#666" />
             </TouchableOpacity>
 
-            <LinearGradient
-              colors={['#4C9EFF', '#00D4FF']}
-              style={styles.modalHeader}
-            >
+            <LinearGradient colors={['#4C9EFF', '#00D4FF']} style={styles.modalHeader}>
               <Icon name="star" size={40} color="#FFF" />
               <Text style={styles.modalTitle}>Super Like {currentProfile.name}</Text>
             </LinearGradient>
@@ -481,21 +475,11 @@ const EnhancedDiscoveryScreen = () => {
               onChangeText={setSuperLikeMessage}
             />
 
-            <Text style={styles.characterCount}>
-              {superLikeMessage.length}/500
-            </Text>
+            <Text style={styles.characterCount}>{superLikeMessage.length}/500</Text>
 
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={confirmSuperLike}
-            >
-              <LinearGradient
-                colors={['#4C9EFF', '#00D4FF']}
-                style={styles.confirmButtonGradient}
-              >
-                <Text style={styles.confirmButtonText}>
-                  Send Super Like
-                </Text>
+            <TouchableOpacity style={styles.confirmButton} onPress={confirmSuperLike}>
+              <LinearGradient colors={['#4C9EFF', '#00D4FF']} style={styles.confirmButtonGradient}>
+                <Text style={styles.confirmButtonText}>Send Super Like</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -552,7 +536,9 @@ const EnhancedDiscoveryScreen = () => {
 
           <ScrollView style={styles.filtersContent}>
             <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Age Range: {filters.minAge} - {filters.maxAge}</Text>
+              <Text style={styles.filterLabel}>
+                Age Range: {filters.minAge} - {filters.maxAge}
+              </Text>
               {/* Add Range Sliders */}
             </View>
 

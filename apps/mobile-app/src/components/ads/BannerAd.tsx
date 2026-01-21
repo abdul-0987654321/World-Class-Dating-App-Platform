@@ -4,13 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  StyleSheet,
-  Platform,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
+import { View, StyleSheet, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { BannerAd as GoogleBannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { BannerAdProps, BannerPlacement, DEFAULT_AD_CONFIG } from '../../services/ads/types';
 import AdManager from '../../services/ads/AdManager';
@@ -19,11 +13,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Map our banner sizes to Google's banner sizes
 const BANNER_SIZE_MAP: Record<string, BannerAdSize> = {
-  banner: BannerAdSize.BANNER,              // 320x50
-  largeBanner: BannerAdSize.LARGE_BANNER,   // 320x100
+  banner: BannerAdSize.BANNER, // 320x50
+  largeBanner: BannerAdSize.LARGE_BANNER, // 320x100
   mediumRectangle: BannerAdSize.MEDIUM_RECTANGLE, // 300x250
-  fullBanner: BannerAdSize.FULL_BANNER,     // 468x60
-  leaderboard: BannerAdSize.LEADERBOARD,    // 728x90
+  fullBanner: BannerAdSize.FULL_BANNER, // 468x60
+  leaderboard: BannerAdSize.LEADERBOARD, // 728x90
   smartBanner: BannerAdSize.ANCHORED_ADAPTIVE_BANNER, // Adaptive
 };
 
@@ -38,11 +32,14 @@ const BANNER_HEIGHTS: Record<string, number> = {
 };
 
 // Placement-specific configurations
-const PLACEMENT_CONFIG: Record<BannerPlacement, {
-  size: BannerAdSize;
-  containerStyle: object;
-  preferredHeight: number;
-}> = {
+const PLACEMENT_CONFIG: Record<
+  BannerPlacement,
+  {
+    size: BannerAdSize;
+    containerStyle: object;
+    preferredHeight: number;
+  }
+> = {
   discovery_bottom: {
     size: BannerAdSize.ANCHORED_ADAPTIVE_BANNER,
     containerStyle: {
@@ -137,21 +134,24 @@ export const BannerAdComponent: React.FC<BannerAdProps> = ({
     onAdLoaded?.();
   }, [placement, onAdLoaded]);
 
-  const handleAdFailed = useCallback((error: Error) => {
-    setIsLoading(false);
-    setHasError(true);
+  const handleAdFailed = useCallback(
+    (error: Error) => {
+      setIsLoading(false);
+      setHasError(true);
 
-    AdManager.trackEvent({
-      eventType: 'failed',
-      adType: 'banner',
-      network: 'admob',
-      placement,
-      timestamp: Date.now(),
-      metadata: { error: error.message },
-    });
+      AdManager.trackEvent({
+        eventType: 'failed',
+        adType: 'banner',
+        network: 'admob',
+        placement,
+        timestamp: Date.now(),
+        metadata: { error: error.message },
+      });
 
-    onAdFailed?.(error);
-  }, [placement, onAdFailed]);
+      onAdFailed?.(error);
+    },
+    [placement, onAdFailed]
+  );
 
   const handleAdClicked = useCallback(() => {
     AdManager.trackEvent({
@@ -179,8 +179,8 @@ export const BannerAdComponent: React.FC<BannerAdProps> = ({
   const adUnitId = DEFAULT_AD_CONFIG.testMode
     ? TestIds.BANNER
     : Platform.OS === 'ios'
-    ? DEFAULT_AD_CONFIG.unitIds.ios.banner
-    : DEFAULT_AD_CONFIG.unitIds.android.banner;
+      ? DEFAULT_AD_CONFIG.unitIds.ios.banner
+      : DEFAULT_AD_CONFIG.unitIds.android.banner;
 
   return (
     <View
@@ -220,10 +220,7 @@ export const InlineBannerAd: React.FC<{
 }> = ({ placement = 'matches_list', style }) => {
   return (
     <View style={[styles.inlineContainer, style]}>
-      <BannerAdComponent
-        placement={placement}
-        size="largeBanner"
-      />
+      <BannerAdComponent placement={placement} size="largeBanner" />
     </View>
   );
 };
@@ -232,12 +229,7 @@ export const InlineBannerAd: React.FC<{
 export const BottomBannerAd: React.FC<{
   placement?: BannerPlacement;
 }> = ({ placement = 'discovery_bottom' }) => {
-  return (
-    <BannerAdComponent
-      placement={placement}
-      size="smartBanner"
-    />
-  );
+  return <BannerAdComponent placement={placement} size="smartBanner" />;
 };
 
 const styles = StyleSheet.create({

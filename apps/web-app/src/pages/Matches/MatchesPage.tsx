@@ -48,30 +48,34 @@ export const MatchesPage: React.FC = () => {
         matchingService.getLikes(),
       ]);
       // Transform to local format
-      setMatches(matchesData.matches.map((m: ServiceMatch) => ({
-        id: m.id,
-        matchedUser: {
-          id: m.matchedUser.id,
-          name: m.matchedUser.name,
-          photoUrl: m.matchedUser.photoUrl,
-          isOnline: m.matchedUser.isOnline,
-        },
-        matchedAt: m.matchedAt,
-        lastMessage: m.lastMessage?.content || null,
-        lastMessageAt: m.lastMessageAt || null,
-        hasUnread: m.hasUnread,
-      })));
-      setLikes(likesData.likes.map((l: ServiceLike) => ({
-        id: l.id,
-        fromUser: {
-          blurredPhotoUrl: l.user.photoUrl,
-          name: l.isBlurred ? null : l.user.name,
-          age: l.isBlurred ? null : l.user.age || null,
-        },
-        isSuperLike: l.isSuperLike,
-        isRevealed: !l.isBlurred,
-        likedAt: l.likedAt,
-      })));
+      setMatches(
+        matchesData.matches.map((m: ServiceMatch) => ({
+          id: m.id,
+          matchedUser: {
+            id: m.matchedUser.id,
+            name: m.matchedUser.name,
+            photoUrl: m.matchedUser.photoUrl,
+            isOnline: m.matchedUser.isOnline,
+          },
+          matchedAt: m.matchedAt,
+          lastMessage: m.lastMessage?.content || null,
+          lastMessageAt: m.lastMessageAt || null,
+          hasUnread: m.hasUnread,
+        }))
+      );
+      setLikes(
+        likesData.likes.map((l: ServiceLike) => ({
+          id: l.id,
+          fromUser: {
+            blurredPhotoUrl: l.user.photoUrl,
+            name: l.isBlurred ? null : l.user.name,
+            age: l.isBlurred ? null : l.user.age || null,
+          },
+          isSuperLike: l.isSuperLike,
+          isRevealed: !l.isBlurred,
+          likedAt: l.likedAt,
+        }))
+      );
     } catch (err) {
       console.error('Failed to load data:', err);
     } finally {
@@ -140,28 +144,34 @@ export const MatchesPage: React.FC = () => {
               <div>
                 <h2 className="text-lg font-semibold text-fm-text-primary mb-3">New Matches</h2>
                 <div className="flex gap-4 overflow-x-auto pb-4">
-                  {matches.filter(m => !m.lastMessage).length === 0 ? (
-                    <p className="text-fm-text-secondary text-sm">No new matches yet. Keep swiping!</p>
+                  {matches.filter((m) => !m.lastMessage).length === 0 ? (
+                    <p className="text-fm-text-secondary text-sm">
+                      No new matches yet. Keep swiping!
+                    </p>
                   ) : (
-                    matches.filter(m => !m.lastMessage).map((match) => (
-                      <button
-                        key={match.id}
-                        onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
-                        className="flex-shrink-0 text-center group"
-                      >
-                        <div className="relative">
-                          <img
-                            src={match.matchedUser.photoUrl}
-                            alt={match.matchedUser.name}
-                            className="w-20 h-20 rounded-full object-cover border-2 border-fm-pink group-hover:border-fm-blue transition"
-                          />
-                          {match.matchedUser.isOnline && (
-                            <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-fm-background rounded-full" />
-                          )}
-                        </div>
-                        <p className="text-sm font-medium text-fm-text-primary mt-2">{match.matchedUser.name}</p>
-                      </button>
-                    ))
+                    matches
+                      .filter((m) => !m.lastMessage)
+                      .map((match) => (
+                        <button
+                          key={match.id}
+                          onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
+                          className="flex-shrink-0 text-center group"
+                        >
+                          <div className="relative">
+                            <img
+                              src={match.matchedUser.photoUrl}
+                              alt={match.matchedUser.name}
+                              className="w-20 h-20 rounded-full object-cover border-2 border-fm-pink group-hover:border-fm-blue transition"
+                            />
+                            {match.matchedUser.isOnline && (
+                              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-fm-background rounded-full" />
+                            )}
+                          </div>
+                          <p className="text-sm font-medium text-fm-text-primary mt-2">
+                            {match.matchedUser.name}
+                          </p>
+                        </button>
+                      ))
                   )}
                 </div>
               </div>
@@ -170,41 +180,51 @@ export const MatchesPage: React.FC = () => {
               <div>
                 <h2 className="text-lg font-semibold text-fm-text-primary mb-3">Messages</h2>
                 <div className="bg-fm-surface/60 backdrop-blur-sm rounded-xl border border-white/10 divide-y divide-white/10">
-                  {matches.filter(m => m.lastMessage).length === 0 ? (
-                    <p className="text-fm-text-secondary text-sm p-4">No messages yet. Start a conversation!</p>
+                  {matches.filter((m) => m.lastMessage).length === 0 ? (
+                    <p className="text-fm-text-secondary text-sm p-4">
+                      No messages yet. Start a conversation!
+                    </p>
                   ) : (
-                    matches.filter(m => m.lastMessage).map((match) => (
-                      <button
-                        key={match.id}
-                        onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
-                        className="w-full p-4 flex items-center gap-4 hover:bg-white/5 transition text-left"
-                      >
-                        <div className="relative">
-                          <img
-                            src={match.matchedUser.photoUrl}
-                            alt={match.matchedUser.name}
-                            className="w-14 h-14 rounded-full object-cover"
-                          />
-                          {match.matchedUser.isOnline && (
-                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-fm-surface rounded-full" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold text-fm-text-primary">{match.matchedUser.name}</p>
-                            {match.lastMessageAt && (
-                              <span className="text-xs text-fm-text-muted">{formatTime(match.lastMessageAt)}</span>
+                    matches
+                      .filter((m) => m.lastMessage)
+                      .map((match) => (
+                        <button
+                          key={match.id}
+                          onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
+                          className="w-full p-4 flex items-center gap-4 hover:bg-white/5 transition text-left"
+                        >
+                          <div className="relative">
+                            <img
+                              src={match.matchedUser.photoUrl}
+                              alt={match.matchedUser.name}
+                              className="w-14 h-14 rounded-full object-cover"
+                            />
+                            {match.matchedUser.isOnline && (
+                              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-fm-surface rounded-full" />
                             )}
                           </div>
-                          <p className={`text-sm truncate ${match.hasUnread ? 'text-fm-text-primary font-medium' : 'text-fm-text-secondary'}`}>
-                            {match.lastMessage}
-                          </p>
-                        </div>
-                        {match.hasUnread && (
-                          <span className="w-3 h-3 bg-fm-pink rounded-full flex-shrink-0" />
-                        )}
-                      </button>
-                    ))
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="font-semibold text-fm-text-primary">
+                                {match.matchedUser.name}
+                              </p>
+                              {match.lastMessageAt && (
+                                <span className="text-xs text-fm-text-muted">
+                                  {formatTime(match.lastMessageAt)}
+                                </span>
+                              )}
+                            </div>
+                            <p
+                              className={`text-sm truncate ${match.hasUnread ? 'text-fm-text-primary font-medium' : 'text-fm-text-secondary'}`}
+                            >
+                              {match.lastMessage}
+                            </p>
+                          </div>
+                          {match.hasUnread && (
+                            <span className="w-3 h-3 bg-fm-pink rounded-full flex-shrink-0" />
+                          )}
+                        </button>
+                      ))
                   )}
                 </div>
               </div>
@@ -216,7 +236,9 @@ export const MatchesPage: React.FC = () => {
             <div className="bg-fm-surface/60 backdrop-blur-sm rounded-xl border border-white/10 p-6">
               <div className="text-center mb-6">
                 <div className="text-4xl mb-2">💖</div>
-                <h2 className="text-xl font-bold text-fm-text-primary">{likes.length} people like you!</h2>
+                <h2 className="text-xl font-bold text-fm-text-primary">
+                  {likes.length} people like you!
+                </h2>
                 <p className="text-fm-text-secondary text-sm mt-1">
                   Upgrade to Premium to see who likes you
                 </p>

@@ -22,27 +22,37 @@ export const TermsOfService: React.FC = () => {
         <Section>
           <SectionTitle>1. Acceptance of Terms</SectionTitle>
           <Paragraph>
-            Welcome to Flamoral! By accessing or using our dating platform, mobile application, or any related services (collectively, the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Service.
+            Welcome to Flamoral! By accessing or using our dating platform, mobile application, or
+            any related services (collectively, the "Service"), you agree to be bound by these Terms
+            of Service ("Terms"). If you do not agree to these Terms, please do not use the Service.
           </Paragraph>
           <Paragraph>
-            These Terms constitute a legally binding agreement between you and Flamoral, Inc. ("Flamoral," "we," "us," or "our"). We reserve the right to update or modify these Terms at any time without prior notice. Your continued use of the Service after any such changes constitutes your acceptance of the new Terms.
+            These Terms constitute a legally binding agreement between you and Flamoral, Inc.
+            ("Flamoral," "we," "us," or "our"). We reserve the right to update or modify these Terms
+            at any time without prior notice. Your continued use of the Service after any such
+            changes constitutes your acceptance of the new Terms.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>2. Eligibility</SectionTitle>
           <Paragraph>
-            You must be at least 18 years old to create an account and use Flamoral. By creating an account, you represent and warrant that:
+            You must be at least 18 years old to create an account and use Flamoral. By creating an
+            account, you represent and warrant that:
           </Paragraph>
           <List>
             <ListItem>You are at least 18 years of age</ListItem>
             <ListItem>You are legally permitted to use the Service in your jurisdiction</ListItem>
             <ListItem>You have not been previously banned or suspended from the Service</ListItem>
             <ListItem>You are not a convicted sex offender</ListItem>
-            <ListItem>You will comply with these Terms and all applicable local, state, national, and international laws and regulations</ListItem>
+            <ListItem>
+              You will comply with these Terms and all applicable local, state, national, and
+              international laws and regulations
+            </ListItem>
           </List>
           <Paragraph>
-            We reserve the right to request proof of age at any time. Failure to provide such proof may result in account suspension or termination.
+            We reserve the right to request proof of age at any time. Failure to provide such proof
+            may result in account suspension or termination.
           </Paragraph>
         </Section>
 
@@ -50,12 +60,15 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>3. Account Registration and Security</SectionTitle>
           <SubsectionTitle>3.1 Account Creation</SubsectionTitle>
           <Paragraph>
-            To use Flamoral, you must register for an account. You agree to provide accurate, current, and complete information during registration and to update your information to keep it accurate and current.
+            To use Flamoral, you must register for an account. You agree to provide accurate,
+            current, and complete information during registration and to update your information to
+            keep it accurate and current.
           </Paragraph>
 
           <SubsectionTitle>3.2 Account Security</SubsectionTitle>
           <Paragraph>
-            You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to:
+            You are responsible for maintaining the confidentiality of your account credentials and
+            for all activities that occur under your account. You agree to:
           </Paragraph>
           <List>
             <ListItem>Use a strong, unique password</ListItem>
@@ -64,19 +77,22 @@ export const TermsOfService: React.FC = () => {
             <ListItem>Log out of your account at the end of each session</ListItem>
           </List>
           <Paragraph>
-            Flamoral will not be liable for any loss or damage arising from your failure to maintain account security.
+            Flamoral will not be liable for any loss or damage arising from your failure to maintain
+            account security.
           </Paragraph>
 
           <SubsectionTitle>3.3 One Account Per Person</SubsectionTitle>
           <Paragraph>
-            You may maintain only one account at a time. Creating multiple accounts may result in termination of all accounts.
+            You may maintain only one account at a time. Creating multiple accounts may result in
+            termination of all accounts.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>4. User Conduct and Prohibited Activities</SectionTitle>
           <Paragraph>
-            You agree to use the Service in a respectful and lawful manner. The following conduct is strictly prohibited:
+            You agree to use the Service in a respectful and lawful manner. The following conduct is
+            strictly prohibited:
           </Paragraph>
 
           <SubsectionTitle>4.1 Prohibited Content</SubsectionTitle>
@@ -99,11 +115,14 @@ export const TermsOfService: React.FC = () => {
             <ListItem>Attempting to access another user's account</ListItem>
             <ListItem>Interfering with or disrupting the Service</ListItem>
             <ListItem>Using automated tools (bots, scrapers, etc.) to access the Service</ListItem>
-            <ListItem>Reverse engineering, decompiling, or disassembling any part of the Service</ListItem>
+            <ListItem>
+              Reverse engineering, decompiling, or disassembling any part of the Service
+            </ListItem>
           </List>
 
           <Paragraph>
-            Violation of these terms may result in immediate account suspension or termination, and we reserve the right to report illegal activity to law enforcement authorities.
+            Violation of these terms may result in immediate account suspension or termination, and
+            we reserve the right to report illegal activity to law enforcement authorities.
           </Paragraph>
         </Section>
 
@@ -111,17 +130,27 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>5. Content Ownership and License</SectionTitle>
           <SubsectionTitle>5.1 Your Content</SubsectionTitle>
           <Paragraph>
-            You retain ownership of all content you post on Flamoral, including photos, text, and other materials ("User Content"). However, by posting User Content, you grant Flamoral a worldwide, non-exclusive, royalty-free, sublicensable, and transferable license to use, reproduce, distribute, prepare derivative works of, display, and perform your User Content in connection with the Service.
+            You retain ownership of all content you post on Flamoral, including photos, text, and
+            other materials ("User Content"). However, by posting User Content, you grant Flamoral a
+            worldwide, non-exclusive, royalty-free, sublicensable, and transferable license to use,
+            reproduce, distribute, prepare derivative works of, display, and perform your User
+            Content in connection with the Service.
           </Paragraph>
 
           <SubsectionTitle>5.2 Content Moderation</SubsectionTitle>
           <Paragraph>
-            We reserve the right to review, monitor, and remove any User Content at our sole discretion. We use automated systems and human moderators to enforce our Community Guidelines. Content that violates our policies will be removed, and repeat offenders may be banned.
+            We reserve the right to review, monitor, and remove any User Content at our sole
+            discretion. We use automated systems and human moderators to enforce our Community
+            Guidelines. Content that violates our policies will be removed, and repeat offenders may
+            be banned.
           </Paragraph>
 
           <SubsectionTitle>5.3 Our Content</SubsectionTitle>
           <Paragraph>
-            The Service and all materials therein, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, and software, are the property of Flamoral or its licensors and are protected by copyright, trademark, and other intellectual property laws.
+            The Service and all materials therein, including but not limited to text, graphics,
+            logos, icons, images, audio clips, digital downloads, and software, are the property of
+            Flamoral or its licensors and are protected by copyright, trademark, and other
+            intellectual property laws.
           </Paragraph>
         </Section>
 
@@ -129,39 +158,52 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>6. Subscriptions and Payments</SectionTitle>
           <SubsectionTitle>6.1 Subscription Plans</SubsectionTitle>
           <Paragraph>
-            Flamoral offers various subscription plans (Basic, Mid, Ultra) that provide access to premium features. Subscription fees are billed in advance on a recurring monthly basis.
+            Flamoral offers various subscription plans (Basic, Mid, Ultra) that provide access to
+            premium features. Subscription fees are billed in advance on a recurring monthly basis.
           </Paragraph>
 
           <SubsectionTitle>6.2 Pricing and Payment</SubsectionTitle>
           <Paragraph>
-            Subscription prices are subject to change with 30 days notice. By purchasing a subscription, you authorize us to charge your payment method on file for the subscription fee and any applicable taxes.
+            Subscription prices are subject to change with 30 days notice. By purchasing a
+            subscription, you authorize us to charge your payment method on file for the
+            subscription fee and any applicable taxes.
           </Paragraph>
 
           <SubsectionTitle>6.3 Auto-Renewal</SubsectionTitle>
           <Paragraph>
-            Your subscription will automatically renew at the end of each billing period unless you cancel before the renewal date. You can cancel your subscription at any time through your account settings.
+            Your subscription will automatically renew at the end of each billing period unless you
+            cancel before the renewal date. You can cancel your subscription at any time through
+            your account settings.
           </Paragraph>
 
           <SubsectionTitle>6.4 Cancellation and Refunds</SubsectionTitle>
           <Paragraph>
-            You may cancel your subscription at any time. Cancellations take effect at the end of the current billing period. We do not provide refunds for partial subscription periods, except as required by law or at our sole discretion.
+            You may cancel your subscription at any time. Cancellations take effect at the end of
+            the current billing period. We do not provide refunds for partial subscription periods,
+            except as required by law or at our sole discretion.
           </Paragraph>
 
           <SubsectionTitle>6.5 Virtual Currency (Coins)</SubsectionTitle>
           <Paragraph>
-            Flamoral offers virtual currency ("Coins") that can be purchased and used within the Service. Coins have no monetary value outside the Service, cannot be exchanged for cash, and are non-refundable except as required by law.
+            Flamoral offers virtual currency ("Coins") that can be purchased and used within the
+            Service. Coins have no monetary value outside the Service, cannot be exchanged for cash,
+            and are non-refundable except as required by law.
           </Paragraph>
 
           <SubsectionTitle>6.6 Boosts and Power-Ups</SubsectionTitle>
           <Paragraph>
-            Certain features, such as Profile Boosts, can be purchased for one-time use. These purchases are non-refundable and non-transferable.
+            Certain features, such as Profile Boosts, can be purchased for one-time use. These
+            purchases are non-refundable and non-transferable.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>7. Privacy and Data Protection</SectionTitle>
           <Paragraph>
-            Your privacy is important to us. Our collection and use of personal information is described in our Privacy Policy, which is incorporated into these Terms by reference. By using the Service, you consent to our collection, use, and sharing of your information as described in the Privacy Policy.
+            Your privacy is important to us. Our collection and use of personal information is
+            described in our Privacy Policy, which is incorporated into these Terms by reference. By
+            using the Service, you consent to our collection, use, and sharing of your information
+            as described in the Privacy Policy.
           </Paragraph>
         </Section>
 
@@ -169,12 +211,14 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>8. Safety and Verification</SectionTitle>
           <SubsectionTitle>8.1 Background Checks</SubsectionTitle>
           <Paragraph>
-            Flamoral does not conduct criminal background checks on users. We are not responsible for the conduct of any user, whether on or off the Service.
+            Flamoral does not conduct criminal background checks on users. We are not responsible
+            for the conduct of any user, whether on or off the Service.
           </Paragraph>
 
           <SubsectionTitle>8.2 Photo Verification</SubsectionTitle>
           <Paragraph>
-            We may offer optional photo verification to help ensure users are who they claim to be. However, verification does not guarantee the authenticity or character of any user.
+            We may offer optional photo verification to help ensure users are who they claim to be.
+            However, verification does not guarantee the authenticity or character of any user.
           </Paragraph>
 
           <SubsectionTitle>8.3 Safety Tips</SubsectionTitle>
@@ -190,16 +234,18 @@ export const TermsOfService: React.FC = () => {
         <Section>
           <SectionTitle>9. Disclaimer of Warranties</SectionTitle>
           <Paragraph>
-            THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+            THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND,
+            EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF
+            MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
           </Paragraph>
-          <Paragraph>
-            FLAMORAL DOES NOT WARRANT THAT:
-          </Paragraph>
+          <Paragraph>FLAMORAL DOES NOT WARRANT THAT:</Paragraph>
           <List>
             <ListItem>The Service will be uninterrupted, secure, or error-free</ListItem>
             <ListItem>Defects will be corrected</ListItem>
             <ListItem>The Service is free of viruses or harmful components</ListItem>
-            <ListItem>The results obtained from using the Service will be accurate or reliable</ListItem>
+            <ListItem>
+              The results obtained from using the Service will be accurate or reliable
+            </ListItem>
             <ListItem>Any matches or connections you make will result in a relationship</ListItem>
           </List>
         </Section>
@@ -207,25 +253,43 @@ export const TermsOfService: React.FC = () => {
         <Section>
           <SectionTitle>10. Limitation of Liability</SectionTitle>
           <Paragraph>
-            TO THE MAXIMUM EXTENT PERMITTED BY LAW, FLAMORAL SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:
+            TO THE MAXIMUM EXTENT PERMITTED BY LAW, FLAMORAL SHALL NOT BE LIABLE FOR ANY INDIRECT,
+            INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR
+            REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL,
+            OR OTHER INTANGIBLE LOSSES, RESULTING FROM:
           </Paragraph>
           <List>
             <ListItem>Your use or inability to use the Service</ListItem>
-            <ListItem>Any unauthorized access to or use of our servers and/or any personal information stored therein</ListItem>
-            <ListItem>Any interruption or cessation of transmission to or from the Service</ListItem>
-            <ListItem>Any bugs, viruses, or malicious code transmitted through the Service</ListItem>
-            <ListItem>Any errors or omissions in any content or loss or damage incurred as a result of your use of any content posted, emailed, transmitted, or otherwise made available through the Service</ListItem>
+            <ListItem>
+              Any unauthorized access to or use of our servers and/or any personal information
+              stored therein
+            </ListItem>
+            <ListItem>
+              Any interruption or cessation of transmission to or from the Service
+            </ListItem>
+            <ListItem>
+              Any bugs, viruses, or malicious code transmitted through the Service
+            </ListItem>
+            <ListItem>
+              Any errors or omissions in any content or loss or damage incurred as a result of your
+              use of any content posted, emailed, transmitted, or otherwise made available through
+              the Service
+            </ListItem>
             <ListItem>The conduct or content of any user or third party on the Service</ListItem>
           </List>
           <Paragraph>
-            IN NO EVENT SHALL FLAMORAL'S TOTAL LIABILITY TO YOU FOR ALL CLAIMS RELATED TO THE SERVICE EXCEED THE AMOUNT YOU PAID TO FLAMORAL IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR $100, WHICHEVER IS GREATER.
+            IN NO EVENT SHALL FLAMORAL'S TOTAL LIABILITY TO YOU FOR ALL CLAIMS RELATED TO THE
+            SERVICE EXCEED THE AMOUNT YOU PAID TO FLAMORAL IN THE TWELVE (12) MONTHS PRECEDING THE
+            CLAIM, OR $100, WHICHEVER IS GREATER.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>11. Indemnification</SectionTitle>
           <Paragraph>
-            You agree to indemnify, defend, and hold harmless Flamoral, its officers, directors, employees, agents, licensors, and suppliers from and against all losses, expenses, damages, and costs, including reasonable attorneys' fees, resulting from:
+            You agree to indemnify, defend, and hold harmless Flamoral, its officers, directors,
+            employees, agents, licensors, and suppliers from and against all losses, expenses,
+            damages, and costs, including reasonable attorneys' fees, resulting from:
           </Paragraph>
           <List>
             <ListItem>Your violation of these Terms</ListItem>
@@ -239,12 +303,14 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>12. Termination</SectionTitle>
           <SubsectionTitle>12.1 Termination by You</SubsectionTitle>
           <Paragraph>
-            You may terminate your account at any time by going to your account settings and deleting your account.
+            You may terminate your account at any time by going to your account settings and
+            deleting your account.
           </Paragraph>
 
           <SubsectionTitle>12.2 Termination by Us</SubsectionTitle>
           <Paragraph>
-            We may terminate or suspend your account immediately, without prior notice or liability, for any reason, including but not limited to:
+            We may terminate or suspend your account immediately, without prior notice or liability,
+            for any reason, including but not limited to:
           </Paragraph>
           <List>
             <ListItem>Violation of these Terms</ListItem>
@@ -256,7 +322,10 @@ export const TermsOfService: React.FC = () => {
 
           <SubsectionTitle>12.3 Effect of Termination</SubsectionTitle>
           <Paragraph>
-            Upon termination, your right to use the Service will immediately cease. All provisions of these Terms that by their nature should survive termination shall survive, including but not limited to ownership provisions, warranty disclaimers, indemnity, and limitations of liability.
+            Upon termination, your right to use the Service will immediately cease. All provisions
+            of these Terms that by their nature should survive termination shall survive, including
+            but not limited to ownership provisions, warranty disclaimers, indemnity, and
+            limitations of liability.
           </Paragraph>
         </Section>
 
@@ -264,20 +333,28 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>13. Dispute Resolution</SectionTitle>
           <SubsectionTitle>13.1 Governing Law</SubsectionTitle>
           <Paragraph>
-            These Terms shall be governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law provisions.
+            These Terms shall be governed by and construed in accordance with the laws of the State
+            of Delaware, United States, without regard to its conflict of law provisions.
           </Paragraph>
 
           <SubsectionTitle>13.2 Arbitration</SubsectionTitle>
           <Paragraph>
-            Any dispute, claim, or controversy arising out of or relating to these Terms or the breach, termination, enforcement, interpretation, or validity thereof, including the determination of the scope or applicability of this agreement to arbitrate, shall be determined by arbitration in Delaware, before one arbitrator.
+            Any dispute, claim, or controversy arising out of or relating to these Terms or the
+            breach, termination, enforcement, interpretation, or validity thereof, including the
+            determination of the scope or applicability of this agreement to arbitrate, shall be
+            determined by arbitration in Delaware, before one arbitrator.
           </Paragraph>
           <Paragraph>
-            The arbitration shall be administered by the American Arbitration Association (AAA) in accordance with its Consumer Arbitration Rules. Judgment on the award may be entered in any court having jurisdiction.
+            The arbitration shall be administered by the American Arbitration Association (AAA) in
+            accordance with its Consumer Arbitration Rules. Judgment on the award may be entered in
+            any court having jurisdiction.
           </Paragraph>
 
           <SubsectionTitle>13.3 Class Action Waiver</SubsectionTitle>
           <Paragraph>
-            YOU AND FLAMORAL AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.
+            YOU AND FLAMORAL AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS
+            INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR
+            REPRESENTATIVE PROCEEDING.
           </Paragraph>
         </Section>
 
@@ -285,40 +362,47 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>14. Miscellaneous</SectionTitle>
           <SubsectionTitle>14.1 Entire Agreement</SubsectionTitle>
           <Paragraph>
-            These Terms, together with the Privacy Policy and Community Guidelines, constitute the entire agreement between you and Flamoral regarding the Service.
+            These Terms, together with the Privacy Policy and Community Guidelines, constitute the
+            entire agreement between you and Flamoral regarding the Service.
           </Paragraph>
 
           <SubsectionTitle>14.2 Severability</SubsectionTitle>
           <Paragraph>
-            If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions shall remain in full force and effect.
+            If any provision of these Terms is found to be invalid or unenforceable, the remaining
+            provisions shall remain in full force and effect.
           </Paragraph>
 
           <SubsectionTitle>14.3 Waiver</SubsectionTitle>
           <Paragraph>
-            No waiver of any term of these Terms shall be deemed a further or continuing waiver of such term or any other term.
+            No waiver of any term of these Terms shall be deemed a further or continuing waiver of
+            such term or any other term.
           </Paragraph>
 
           <SubsectionTitle>14.4 Assignment</SubsectionTitle>
           <Paragraph>
-            You may not assign or transfer these Terms, by operation of law or otherwise, without our prior written consent. We may assign these Terms without restriction.
+            You may not assign or transfer these Terms, by operation of law or otherwise, without
+            our prior written consent. We may assign these Terms without restriction.
           </Paragraph>
 
           <SubsectionTitle>14.5 Force Majeure</SubsectionTitle>
           <Paragraph>
-            Flamoral shall not be liable for any delay or failure to perform resulting from causes outside its reasonable control, including but not limited to acts of God, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, strikes, or shortages of transportation facilities, fuel, energy, labor, or materials.
+            Flamoral shall not be liable for any delay or failure to perform resulting from causes
+            outside its reasonable control, including but not limited to acts of God, war,
+            terrorism, riots, embargoes, acts of civil or military authorities, fire, floods,
+            accidents, strikes, or shortages of transportation facilities, fuel, energy, labor, or
+            materials.
           </Paragraph>
 
           <SubsectionTitle>14.6 Export Controls</SubsectionTitle>
           <Paragraph>
-            The Service may be subject to U.S. export control laws. You agree to comply with all applicable export and import laws and regulations.
+            The Service may be subject to U.S. export control laws. You agree to comply with all
+            applicable export and import laws and regulations.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>15. Contact Information</SectionTitle>
-          <Paragraph>
-            If you have any questions about these Terms, please contact us at:
-          </Paragraph>
+          <Paragraph>If you have any questions about these Terms, please contact us at:</Paragraph>
           <ContactInfo>
             <div>Flamoral, Inc.</div>
             <div>Email: legal@flamoral.com</div>
@@ -329,7 +413,8 @@ export const TermsOfService: React.FC = () => {
 
         <Section>
           <Paragraph style={{ marginTop: '2rem', fontWeight: 500 }}>
-            BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ THESE TERMS OF SERVICE AND AGREE TO BE BOUND BY THEM.
+            BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ THESE TERMS OF SERVICE AND
+            AGREE TO BE BOUND BY THEM.
           </Paragraph>
         </Section>
       </Content>
@@ -390,7 +475,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #EC4899 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -447,7 +532,7 @@ const ContactInfo = styled.div`
   background: rgba(59, 130, 246, 0.1);
   padding: 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #3b82f6;
   margin-top: 1rem;
 
   div {

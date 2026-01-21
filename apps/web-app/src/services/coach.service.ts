@@ -120,7 +120,9 @@ class CoachService {
   /**
    * Generate response suggestions for ongoing conversations
    */
-  async generateResponseSuggestions(request: ResponseSuggestionRequest): Promise<ResponseSuggestionResponse> {
+  async generateResponseSuggestions(
+    request: ResponseSuggestionRequest
+  ): Promise<ResponseSuggestionResponse> {
     if (this.isMock) {
       return this.mockResponseSuggestions(request);
     }
@@ -246,7 +248,10 @@ class CoachService {
     // Generate contextual suggestions based on the last message
     let suggestions: string[];
 
-    if (lastMessage.toLowerCase().includes('how are you') || lastMessage.toLowerCase().includes("how's it going")) {
+    if (
+      lastMessage.toLowerCase().includes('how are you') ||
+      lastMessage.toLowerCase().includes("how's it going")
+    ) {
       suggestions = [
         `I'm doing great, thanks for asking! Actually got some exciting news today. How about you?`,
         `Pretty good! Been looking forward to hearing from you. What's keeping you busy lately?`,
@@ -285,7 +290,8 @@ class CoachService {
       tips.push({
         category: 'bio' as const,
         priority: 'high' as const,
-        suggestion: 'Add more personality to your bio. Share a unique story, what makes you laugh, or what you\'re passionate about.',
+        suggestion:
+          "Add more personality to your bio. Share a unique story, what makes you laugh, or what you're passionate about.",
         currentIssue: 'Your bio is too short to showcase your personality.',
       });
     } else {
@@ -296,7 +302,8 @@ class CoachService {
       tips.push({
         category: 'photos' as const,
         priority: 'high' as const,
-        suggestion: 'Add more photos! Profiles with 4+ photos get significantly more matches. Include variety: a clear face shot, full body, doing an activity you enjoy.',
+        suggestion:
+          'Add more photos! Profiles with 4+ photos get significantly more matches. Include variety: a clear face shot, full body, doing an activity you enjoy.',
         currentIssue: 'Not enough photos to give a complete picture of who you are.',
       });
     } else {
@@ -307,7 +314,8 @@ class CoachService {
       tips.push({
         category: 'interests' as const,
         priority: 'medium' as const,
-        suggestion: 'Add more interests to help the algorithm find better matches and give people conversation starters.',
+        suggestion:
+          'Add more interests to help the algorithm find better matches and give people conversation starters.',
       });
     } else {
       score += 5;
@@ -317,7 +325,8 @@ class CoachService {
       tips.push({
         category: 'prompts' as const,
         priority: 'medium' as const,
-        suggestion: 'Answer at least 2-3 prompts. They\'re great conversation starters and help people get to know you beyond your photos.',
+        suggestion:
+          "Answer at least 2-3 prompts. They're great conversation starters and help people get to know you beyond your photos.",
       });
     } else {
       score += 5;
@@ -345,13 +354,17 @@ class CoachService {
         estimatedCost: isFirstDate ? '$15-25' : '$80-150',
         duration: isFirstDate ? '1-2 hours' : '2-3 hours',
         tips: isFirstDate
-          ? ['Pick a cafe near a nice walking area', 'Have a backup plan in case of bad weather', 'Keep it to 1-2 hours for a first date']
+          ? [
+              'Pick a cafe near a nice walking area',
+              'Have a backup plan in case of bad weather',
+              'Keep it to 1-2 hours for a first date',
+            ]
           : ['Make a reservation in advance', 'Request a table with a view', 'Dress to impress'],
       },
       {
         title: interests.includes('art') ? 'Museum & Art Gallery' : 'Food Market Adventure',
         description: interests.includes('art')
-          ? 'Explore art together and discover what each of you is drawn to. It\'s a great way to learn about each other\'s perspectives.'
+          ? "Explore art together and discover what each of you is drawn to. It's a great way to learn about each other's perspectives."
           : 'Wander through a local food market, try samples together, and maybe pick up ingredients for a future cooking date.',
         category: 'Activity',
         estimatedCost: budget === 'low' ? '$20-30' : '$40-60',
@@ -364,7 +377,8 @@ class CoachService {
       },
       {
         title: 'Cooking Class Together',
-        description: 'Learn something new together while creating (and eating!) something delicious. Perfect for building connection through teamwork.',
+        description:
+          'Learn something new together while creating (and eating!) something delicious. Perfect for building connection through teamwork.',
         category: 'Interactive',
         estimatedCost: budget === 'high' ? '$100-150' : '$60-80',
         duration: '2-3 hours',

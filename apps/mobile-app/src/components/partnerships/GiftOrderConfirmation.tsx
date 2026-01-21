@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Share,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Share } from 'react-native';
 
 interface GiftOrder {
   id: string;
@@ -148,12 +140,7 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
           </TouchableOpacity>
         )}
 
-        <View
-          style={[
-            styles.statusIconContainer,
-            { backgroundColor: statusConfig.color + '20' },
-          ]}
-        >
+        <View style={[styles.statusIconContainer, { backgroundColor: statusConfig.color + '20' }]}>
           <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
             {statusConfig.icon}
           </Text>
@@ -166,48 +153,23 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
       {order.status !== 'cancelled' && (
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${(progressStep / 4) * 100}%` },
-              ]}
-            />
+            <View style={[styles.progressFill, { width: `${(progressStep / 4) * 100}%` }]} />
           </View>
           <View style={styles.progressLabels}>
             <View style={styles.progressLabelContainer}>
-              <View
-                style={[
-                  styles.progressDot,
-                  progressStep >= 1 && styles.progressDotActive,
-                ]}
-              />
+              <View style={[styles.progressDot, progressStep >= 1 && styles.progressDotActive]} />
               <Text style={styles.progressLabel}>Ordered</Text>
             </View>
             <View style={styles.progressLabelContainer}>
-              <View
-                style={[
-                  styles.progressDot,
-                  progressStep >= 2 && styles.progressDotActive,
-                ]}
-              />
+              <View style={[styles.progressDot, progressStep >= 2 && styles.progressDotActive]} />
               <Text style={styles.progressLabel}>Prepared</Text>
             </View>
             <View style={styles.progressLabelContainer}>
-              <View
-                style={[
-                  styles.progressDot,
-                  progressStep >= 3 && styles.progressDotActive,
-                ]}
-              />
+              <View style={[styles.progressDot, progressStep >= 3 && styles.progressDotActive]} />
               <Text style={styles.progressLabel}>Shipped</Text>
             </View>
             <View style={styles.progressLabelContainer}>
-              <View
-                style={[
-                  styles.progressDot,
-                  progressStep >= 4 && styles.progressDotActive,
-                ]}
-              />
+              <View style={[styles.progressDot, progressStep >= 4 && styles.progressDotActive]} />
               <Text style={styles.progressLabel}>Delivered</Text>
             </View>
           </View>
@@ -216,11 +178,7 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
 
       <View style={styles.productCard}>
         {order.imageUrl && (
-          <Image
-            source={{ uri: order.imageUrl }}
-            style={styles.productImage}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: order.imageUrl }} style={styles.productImage} resizeMode="cover" />
         )}
         <View style={styles.productInfo}>
           <Text style={styles.productName}>{order.productName}</Text>
@@ -234,9 +192,7 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
 
       <View style={styles.confirmationCard}>
         <Text style={styles.confirmationLabel}>Order Number</Text>
-        <Text style={styles.confirmationNumber}>
-          {order.confirmationNumber}
-        </Text>
+        <Text style={styles.confirmationNumber}>{order.confirmationNumber}</Text>
       </View>
 
       <View style={styles.detailsCard}>
@@ -285,9 +241,7 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
 
       <View style={styles.totalCard}>
         <Text style={styles.totalLabel}>Total Paid</Text>
-        <Text style={styles.totalValue}>
-          {formatPrice(order.totalAmount, order.currency)}
-        </Text>
+        <Text style={styles.totalValue}>{formatPrice(order.totalAmount, order.currency)}</Text>
       </View>
 
       <View style={styles.actionsContainer}>
@@ -309,10 +263,7 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
           </TouchableOpacity>
 
           {onContactSupport && (
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={onContactSupport}
-            >
+            <TouchableOpacity style={styles.secondaryButton} onPress={onContactSupport}>
               <Text style={styles.secondaryButtonText}>Contact Support</Text>
             </TouchableOpacity>
           )}
@@ -328,8 +279,8 @@ export const GiftOrderConfirmation: React.FC<GiftOrderConfirmationProps> = ({
       <View style={styles.noteCard}>
         <Text style={styles.noteIcon}>H</Text>
         <Text style={styles.noteText}>
-          We'll send you updates via email and push notifications as your gift
-          makes its way to {order.recipientName}.
+          We'll send you updates via email and push notifications as your gift makes its way to{' '}
+          {order.recipientName}.
         </Text>
       </View>
     </ScrollView>

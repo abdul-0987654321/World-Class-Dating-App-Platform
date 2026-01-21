@@ -110,11 +110,9 @@ class MobilePaymentService {
       }
     );
 
-    this.purchaseErrorSubscription = RNIap.purchaseErrorListener(
-      (error: RNIap.PurchaseError) => {
-        console.error('Purchase error:', error);
-      }
-    );
+    this.purchaseErrorSubscription = RNIap.purchaseErrorListener((error: RNIap.PurchaseError) => {
+      console.error('Purchase error:', error);
+    });
   }
 
   /**
@@ -136,7 +134,10 @@ class MobilePaymentService {
             developerPayload: purchase.developerPayloadAndroid,
           });
         }
-        await RNIap.finishTransaction({ purchase, isConsumable: this.isConsumable(purchase.productId) });
+        await RNIap.finishTransaction({
+          purchase,
+          isConsumable: this.isConsumable(purchase.productId),
+        });
       }
     } catch (error) {
       console.error('Failed to handle purchase:', error);
@@ -363,9 +364,10 @@ class MobilePaymentService {
         const latestPurchase = purchases[purchases.length - 1];
         await api.post('/payments/iap/restore', {
           provider: Platform.OS === 'ios' ? 'apple_iap' : 'google_play',
-          receipt: Platform.OS === 'ios'
-            ? latestPurchase.transactionReceipt
-            : latestPurchase.purchaseToken,
+          receipt:
+            Platform.OS === 'ios'
+              ? latestPurchase.transactionReceipt
+              : latestPurchase.purchaseToken,
           packageName: Platform.OS === 'android' ? 'com.flamoral.app' : undefined,
         });
       }

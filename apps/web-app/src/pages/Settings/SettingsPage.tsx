@@ -66,7 +66,9 @@ export const SettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'notifications' | 'privacy' | 'discovery' | 'account'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'privacy' | 'discovery' | 'account'>(
+    'notifications'
+  );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -83,7 +85,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch('/api/users/settings', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -94,12 +96,12 @@ export const SettingsPage: React.FC = () => {
 
       // Load account info
       const userRes = await fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (userRes.ok) {
         const userData = await userRes.json();
         if (userData.data) {
-          setSettings(prev => ({
+          setSettings((prev) => ({
             ...prev,
             account: {
               ...prev.account,
@@ -125,7 +127,7 @@ export const SettingsPage: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(settings),
       });
@@ -137,7 +139,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   const handleToggle = (category: keyof Settings, key: string, value: boolean) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       [category]: {
         ...(prev[category] as object),
@@ -158,7 +160,7 @@ export const SettingsPage: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
@@ -183,7 +185,7 @@ export const SettingsPage: React.FC = () => {
       const token = authTokenService.getToken();
       await fetch('/api/users/account', {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       localStorage.clear();
       navigate('/login');
@@ -197,11 +199,11 @@ export const SettingsPage: React.FC = () => {
     navigate('/login');
   };
 
-  const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }> = ({
-    checked,
-    onChange,
-    disabled = false,
-  }) => (
+  const ToggleSwitch: React.FC<{
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+    disabled?: boolean;
+  }> = ({ checked, onChange, disabled = false }) => (
     <button
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
@@ -234,7 +236,7 @@ export const SettingsPage: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {(['notifications', 'privacy', 'discovery', 'account'] as const).map(tab => (
+          {(['notifications', 'privacy', 'discovery', 'account'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -362,7 +364,9 @@ export const SettingsPage: React.FC = () => {
               <div>
                 <p className="font-medium text-gray-800 flex items-center gap-2">
                   Incognito Mode
-                  <span className="bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">Premium</span>
+                  <span className="bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">
+                    Premium
+                  </span>
                 </p>
                 <p className="text-sm text-gray-500">Browse profiles without being seen</p>
               </div>
@@ -412,7 +416,9 @@ export const SettingsPage: React.FC = () => {
                 <div>
                   <p className="font-medium text-gray-800 flex items-center gap-2">
                     Global Mode
-                    <span className="bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">Premium</span>
+                    <span className="bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">
+                      Premium
+                    </span>
                   </p>
                   <p className="text-sm text-gray-500">Match with people worldwide</p>
                 </div>
@@ -429,8 +435,18 @@ export const SettingsPage: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  <svg
+                    className="w-5 h-5 text-pink-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                    />
                   </svg>
                 </div>
                 <div className="text-left">
@@ -438,8 +454,18 @@ export const SettingsPage: React.FC = () => {
                   <p className="text-sm text-gray-500">Customize your discovery preferences</p>
                 </div>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -475,8 +501,18 @@ export const SettingsPage: React.FC = () => {
                 className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition text-left"
               >
                 <span className="font-medium text-gray-800">Change Password</span>
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
               <button
@@ -484,8 +520,18 @@ export const SettingsPage: React.FC = () => {
                 className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition text-left"
               >
                 <span className="font-medium text-gray-800">Download My Data</span>
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -524,11 +570,15 @@ export const SettingsPage: React.FC = () => {
             <h3 className="text-xl font-bold text-gray-800 mb-4">Change Password</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Current Password
+                </label>
                 <input
                   type="password"
                   value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
@@ -537,16 +587,22 @@ export const SettingsPage: React.FC = () => {
                 <input
                   type="password"
                   value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordData({ ...passwordData, newPassword: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm New Password
+                </label>
                 <input
                   type="password"
                   value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
@@ -575,13 +631,24 @@ export const SettingsPage: React.FC = () => {
           <div className="bg-white rounded-2xl w-full max-w-md p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-8 h-8 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Account?</h3>
               <p className="text-gray-500 mb-6">
-                This action cannot be undone. All your data, matches, and conversations will be permanently deleted.
+                This action cannot be undone. All your data, matches, and conversations will be
+                permanently deleted.
               </p>
             </div>
             <div className="flex gap-3">

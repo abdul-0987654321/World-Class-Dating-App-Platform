@@ -70,9 +70,7 @@ export const lazyWithRetry = <T extends React.ComponentType<any>>(
             return;
           }
 
-          console.warn(
-            `Failed to load component, retrying... (${retriesLeft} attempts left)`
-          );
+          console.warn(`Failed to load component, retrying... (${retriesLeft} attempts left)`);
 
           setTimeout(() => {
             attemptImport(retriesLeft - 1);
@@ -139,11 +137,7 @@ export const getOptimizedImageUri = (
 /**
  * List optimization helpers
  */
-export const getItemLayout = (
-  data: any,
-  index: number,
-  itemHeight: number
-) => ({
+export const getItemLayout = (data: any, index: number, itemHeight: number) => ({
   length: itemHeight,
   offset: itemHeight * index,
   index,

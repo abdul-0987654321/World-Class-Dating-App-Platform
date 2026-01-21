@@ -55,27 +55,35 @@ const USER_MESSAGES: Record<string, string> = {
   [BillingErrorCode.PAYMENT_REQUIRED]: 'Payment is required to continue.',
   [BillingErrorCode.SUBSCRIPTION_EXPIRED]: 'Your subscription has expired.',
   [BillingErrorCode.PAYMENT_FAILED]: 'Payment could not be processed. Please try again.',
-  [BillingErrorCode.CARD_DECLINED]: 'Your card was declined. Please try a different payment method.',
-  [BillingErrorCode.INSUFFICIENT_FUNDS]: 'Insufficient funds. Please try a different payment method.',
-  [BillingErrorCode.INVALID_PAYMENT_METHOD]: 'Invalid payment method. Please update your payment information.',
+  [BillingErrorCode.CARD_DECLINED]:
+    'Your card was declined. Please try a different payment method.',
+  [BillingErrorCode.INSUFFICIENT_FUNDS]:
+    'Insufficient funds. Please try a different payment method.',
+  [BillingErrorCode.INVALID_PAYMENT_METHOD]:
+    'Invalid payment method. Please update your payment information.',
   [BillingErrorCode.UPGRADE_REQUIRED]: 'Please upgrade your subscription to access this feature.',
   [BillingErrorCode.INSUFFICIENT_COINS]: 'You need more coins to perform this action.',
 
   // Rate limit errors
   [RateLimitErrorCode.TOO_MANY_REQUESTS]: 'Too many requests. Please wait a moment and try again.',
-  [RateLimitErrorCode.DAILY_LIKES_EXCEEDED]: 'You have reached your daily like limit. Upgrade for unlimited likes!',
+  [RateLimitErrorCode.DAILY_LIKES_EXCEEDED]:
+    'You have reached your daily like limit. Upgrade for unlimited likes!',
   [RateLimitErrorCode.DAILY_SUPER_LIKES_EXCEEDED]: 'You have used all your Super Likes for today.',
   [RateLimitErrorCode.DAILY_BOOSTS_EXCEEDED]: 'You have used all your Boosts for today.',
-  [RateLimitErrorCode.MESSAGE_RATE_LIMIT]: 'Please slow down. You are sending messages too quickly.',
+  [RateLimitErrorCode.MESSAGE_RATE_LIMIT]:
+    'Please slow down. You are sending messages too quickly.',
   [RateLimitErrorCode.LOGIN_ATTEMPTS_EXCEEDED]: 'Too many login attempts. Please try again later.',
   [RateLimitErrorCode.API_LIMIT_EXCEEDED]: 'Please slow down and try again in a moment.',
 
   // Server errors
   [ServerErrorCode.INTERNAL_ERROR]: 'Something went wrong. Please try again later.',
-  [ServerErrorCode.SERVICE_UNAVAILABLE]: 'Service is temporarily unavailable. Please try again later.',
+  [ServerErrorCode.SERVICE_UNAVAILABLE]:
+    'Service is temporarily unavailable. Please try again later.',
   [ServerErrorCode.DATABASE_ERROR]: 'Something went wrong. Please try again later.',
-  [ServerErrorCode.EXTERNAL_SERVICE_ERROR]: 'A service is temporarily unavailable. Please try again.',
-  [ServerErrorCode.MAINTENANCE_MODE]: 'We are currently performing maintenance. Please check back soon.',
+  [ServerErrorCode.EXTERNAL_SERVICE_ERROR]:
+    'A service is temporarily unavailable. Please try again.',
+  [ServerErrorCode.MAINTENANCE_MODE]:
+    'We are currently performing maintenance. Please check back soon.',
   [ServerErrorCode.TIMEOUT]: 'The request timed out. Please try again.',
 
   // Network errors
@@ -263,8 +271,10 @@ export function handleErrorByStatus(error: ProcessedError): void {
     case 403:
       // Show permission denied message
       // Check if it's a premium feature
-      if (errorCode === PermissionErrorCode.PREMIUM_REQUIRED ||
-          errorCode === BillingErrorCode.UPGRADE_REQUIRED) {
+      if (
+        errorCode === PermissionErrorCode.PREMIUM_REQUIRED ||
+        errorCode === BillingErrorCode.UPGRADE_REQUIRED
+      ) {
         if (globalConfig.onBillingRequired) {
           globalConfig.onBillingRequired();
         } else {

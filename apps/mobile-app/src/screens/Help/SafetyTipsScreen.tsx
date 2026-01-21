@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -56,7 +49,7 @@ const safetyTips: SafetyTip[] = [
     icon: 'car',
     title: 'Arrange Your Own Transportation',
     description:
-      'Drive yourself or use your own ride-sharing service to and from the date. Never accept rides from someone you just met, and don\'t share your exact address.',
+      "Drive yourself or use your own ride-sharing service to and from the date. Never accept rides from someone you just met, and don't share your exact address.",
     color: '#5856D6',
   },
   {
@@ -64,7 +57,7 @@ const safetyTips: SafetyTip[] = [
     icon: 'person-add',
     title: 'Tell Friends and Family',
     description:
-      'Let a trusted friend or family member know where you\'re going, who you\'re meeting, and when you expect to be back. Share your live location if possible.',
+      "Let a trusted friend or family member know where you're going, who you're meeting, and when you expect to be back. Share your live location if possible.",
     color: '#AF52DE',
   },
   {
@@ -72,7 +65,7 @@ const safetyTips: SafetyTip[] = [
     icon: 'medical',
     title: 'Stay Sober and Alert',
     description:
-      'Keep your drinks in sight and don\'t accept drinks from strangers. Stay sober enough to make good decisions and trust your instincts if something feels off.',
+      "Keep your drinks in sight and don't accept drinks from strangers. Stay sober enough to make good decisions and trust your instincts if something feels off.",
     color: '#FF2D55',
   },
   {
@@ -88,7 +81,7 @@ const safetyTips: SafetyTip[] = [
     icon: 'checkmark-circle',
     title: 'Trust Your Instincts',
     description:
-      'If something feels wrong, it probably is. Don\'t hesitate to leave a situation that makes you uncomfortable. Your safety is always the top priority.',
+      "If something feels wrong, it probably is. Don't hesitate to leave a situation that makes you uncomfortable. Your safety is always the top priority.",
     color: '#34C759',
   },
   {
@@ -152,8 +145,8 @@ const SafetyTipsScreen: React.FC = () => {
           <Icon name="shield-checkmark" size={60} color="#FF6B6B" />
           <Text style={styles.heroTitle}>Your Safety Matters</Text>
           <Text style={styles.heroSubtitle}>
-            Dating should be fun and safe. Follow these tips to protect yourself
-            and have a great experience.
+            Dating should be fun and safe. Follow these tips to protect yourself and have a great
+            experience.
           </Text>
         </View>
 
@@ -162,9 +155,7 @@ const SafetyTipsScreen: React.FC = () => {
             <Icon name="warning" size={24} color="#FF3B30" />
             <View style={styles.emergencyText}>
               <Text style={styles.emergencyTitle}>In an Emergency?</Text>
-              <Text style={styles.emergencySubtitle}>
-                Call emergency services immediately
-              </Text>
+              <Text style={styles.emergencySubtitle}>Call emergency services immediately</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -196,9 +187,7 @@ const SafetyTipsScreen: React.FC = () => {
             <Icon name="link" size={24} color="#FF6B6B" />
             <View style={styles.resourceText}>
               <Text style={styles.resourceTitle}>RAINN</Text>
-              <Text style={styles.resourceSubtitle}>
-                National Sexual Assault Hotline
-              </Text>
+              <Text style={styles.resourceSubtitle}>National Sexual Assault Hotline</Text>
             </View>
             <Icon name="open-outline" size={20} color="#8E8E93" />
           </TouchableOpacity>
@@ -212,9 +201,7 @@ const SafetyTipsScreen: React.FC = () => {
             <Icon name="link" size={24} color="#FF6B6B" />
             <View style={styles.resourceText}>
               <Text style={styles.resourceTitle}>National Domestic Violence Hotline</Text>
-              <Text style={styles.resourceSubtitle}>
-                24/7 support and resources
-              </Text>
+              <Text style={styles.resourceSubtitle}>24/7 support and resources</Text>
             </View>
             <Icon name="open-outline" size={20} color="#8E8E93" />
           </TouchableOpacity>
@@ -228,9 +215,7 @@ const SafetyTipsScreen: React.FC = () => {
             <Icon name="link" size={24} color="#FF6B6B" />
             <View style={styles.resourceText}>
               <Text style={styles.resourceTitle}>NCADV</Text>
-              <Text style={styles.resourceSubtitle}>
-                Coalition Against Domestic Violence
-              </Text>
+              <Text style={styles.resourceSubtitle}>Coalition Against Domestic Violence</Text>
             </View>
             <Icon name="open-outline" size={20} color="#8E8E93" />
           </TouchableOpacity>
@@ -239,8 +224,8 @@ const SafetyTipsScreen: React.FC = () => {
         <View style={styles.reportSection}>
           <Text style={styles.reportTitle}>See Something Concerning?</Text>
           <Text style={styles.reportSubtitle}>
-            Report any suspicious behavior, harassment, or safety concerns to our
-            trust and safety team.
+            Report any suspicious behavior, harassment, or safety concerns to our trust and safety
+            team.
           </Text>
           <TouchableOpacity
             style={styles.reportButton}
@@ -256,10 +241,9 @@ const SafetyTipsScreen: React.FC = () => {
         <View style={styles.commitmentSection}>
           <Text style={styles.commitmentTitle}>Our Commitment to You</Text>
           <Text style={styles.commitmentText}>
-            At Flamoral, your safety is our top priority. We use advanced AI to
-            detect and prevent inappropriate behavior, verify user identities, and
-            provide 24/7 support. We're committed to creating a safe, respectful
-            community for everyone.
+            At Flamoral, your safety is our top priority. We use advanced AI to detect and prevent
+            inappropriate behavior, verify user identities, and provide 24/7 support. We're
+            committed to creating a safe, respectful community for everyone.
           </Text>
         </View>
       </ScrollView>

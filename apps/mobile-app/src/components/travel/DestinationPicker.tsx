@@ -22,6 +22,7 @@ interface City {
   longitude: number;
   timezone: string;
   display_name: string;
+  traveler_count?: number;
 }
 
 interface DestinationPickerProps {
@@ -85,14 +86,11 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
       setActiveTab('search');
 
       // This would typically call a geocoding API like Google Places or Mapbox
-      const response = await fetch(
-        `/api/geocoding/search?query=${encodeURIComponent(query)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${await getAuthToken()}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/geocoding/search?query=${encodeURIComponent(query)}`, {
+        headers: {
+          Authorization: `Bearer ${await getAuthToken()}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -117,10 +115,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
   };
 
   const renderDestinationItem = ({ item }: { item: City }) => (
-    <TouchableOpacity
-      style={styles.destinationItem}
-      onPress={() => handleSelectDestination(item)}
-    >
+    <TouchableOpacity style={styles.destinationItem} onPress={() => handleSelectDestination(item)}>
       <View style={styles.destinationIcon}>
         <Icon name="map-marker" size={24} color="#FF6B6B" />
       </View>
@@ -130,9 +125,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
           {item.country} {item.airport_code ? `(${item.airport_code})` : ''}
         </Text>
         {item.traveler_count !== undefined && (
-          <Text style={styles.travelerCount}>
-            {item.traveler_count} travelers
-          </Text>
+          <Text style={styles.travelerCount}>{item.traveler_count} travelers</Text>
         )}
       </View>
       <Icon name="chevron-right" size={24} color="#ccc" />
@@ -191,9 +184,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
               <View style={styles.emptyContainer}>
                 <Icon name="airplane-off" size={48} color="#ccc" />
                 <Text style={styles.emptyText}>
-                  {activeTab === 'search'
-                    ? 'No cities found'
-                    : 'No popular destinations available'}
+                  {activeTab === 'search' ? 'No cities found' : 'No popular destinations available'}
                 </Text>
               </View>
             }

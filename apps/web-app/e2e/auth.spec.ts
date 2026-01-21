@@ -82,7 +82,9 @@ test.describe('Login Flow', () => {
     await expect(passwordInput).toHaveAttribute('type', 'password');
 
     // Click toggle button (eye icon)
-    await page.click('[aria-label*="show password" i], button:has(svg):near(input[type="password"])');
+    await page.click(
+      '[aria-label*="show password" i], button:has(svg):near(input[type="password"])'
+    );
 
     // Password should now be visible
     await expect(passwordInput).toHaveAttribute('type', 'text');

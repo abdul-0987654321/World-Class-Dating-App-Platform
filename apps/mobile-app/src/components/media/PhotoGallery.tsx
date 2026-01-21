@@ -114,11 +114,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   const renderPhoto = (photo: Photo, index: number) => {
     return (
       <View key={photo.id} style={styles.photoContainer}>
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleDoubleTap}
-          {...panResponder.panHandlers}
-        >
+        <TouchableOpacity activeOpacity={1} onPress={handleDoubleTap} {...panResponder.panHandlers}>
           <Animated.Image
             source={{ uri: photo.url }}
             style={[
@@ -177,10 +173,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
           {photos.map((photo, index) => (
             <View
               key={photo.id}
-              style={[
-                styles.indicator,
-                index === currentIndex && styles.indicatorActive,
-              ]}
+              style={[styles.indicator, index === currentIndex && styles.indicatorActive]}
             />
           ))}
         </View>

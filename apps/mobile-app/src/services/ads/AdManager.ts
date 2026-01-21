@@ -390,9 +390,9 @@ class AdManagerClass implements IAdManager {
       const storedEvents = await AsyncStorage.getItem(AD_EVENTS_STORAGE_KEY);
       const events: AdEvent[] = storedEvents ? JSON.parse(storedEvents) : [];
 
-      const impressions = events.filter(e => e.eventType === 'impression').length;
-      const clicks = events.filter(e => e.eventType === 'click').length;
-      const rewardsEarned = events.filter(e => e.eventType === 'reward_earned').length;
+      const impressions = events.filter((e) => e.eventType === 'impression').length;
+      const clicks = events.filter((e) => e.eventType === 'click').length;
+      const rewardsEarned = events.filter((e) => e.eventType === 'reward_earned').length;
 
       return {
         impressions,

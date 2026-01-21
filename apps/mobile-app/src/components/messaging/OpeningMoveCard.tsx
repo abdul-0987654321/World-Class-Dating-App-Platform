@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
 export interface OpeningMove {
   id: string;
@@ -67,11 +61,7 @@ export const OpeningMoveCard: React.FC<OpeningMoveCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[
-        styles.card,
-        selectable && styles.selectableCard,
-        selected && styles.selectedCard,
-      ]}
+      style={[styles.card, selectable && styles.selectableCard, selected && styles.selectedCard]}
       onPress={handlePress}
       disabled={!selectable}
       activeOpacity={selectable ? 0.7 : 1}
@@ -87,19 +77,14 @@ export const OpeningMoveCard: React.FC<OpeningMoveCardProps> = ({
             <Text style={styles.typeIcon}>✍️</Text>
           )}
           <Text style={styles.typeLabel}>
-            {move.type === 'image' ? 'Image' :
-             move.type === 'system' ? 'Template' : 'Custom'}
+            {move.type === 'image' ? 'Image' : move.type === 'system' ? 'Template' : 'Custom'}
           </Text>
         </View>
 
         {/* Content */}
         {move.type === 'image' && move.image_url ? (
           <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: move.image_url }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: move.image_url }} style={styles.image} resizeMode="cover" />
           </View>
         ) : (
           <Text style={styles.contentText}>{getDisplayContent()}</Text>
@@ -108,9 +93,7 @@ export const OpeningMoveCard: React.FC<OpeningMoveCardProps> = ({
         {/* Template Category Badge */}
         {move.type === 'system' && move.template && (
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryBadgeText}>
-              {move.template.category.replace('_', ' ')}
-            </Text>
+            <Text style={styles.categoryBadgeText}>{move.template.category.replace('_', ' ')}</Text>
           </View>
         )}
       </View>
@@ -119,10 +102,7 @@ export const OpeningMoveCard: React.FC<OpeningMoveCardProps> = ({
       {editable && (
         <View style={styles.actions}>
           {onEdit && (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => onEdit(move)}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => onEdit(move)}>
               <Text style={styles.actionIcon}>✏️</Text>
             </TouchableOpacity>
           )}

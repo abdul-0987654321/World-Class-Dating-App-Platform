@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { MatchExpirationTimer } from './MatchExpirationTimer';
 
 interface Match {
@@ -37,22 +31,18 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   isPremium = false,
   onExtend,
 }) => {
-  const canExtend = match.expiresAt &&
-                    !match.expired &&
-                    !match.firstMessageSent &&
-                    !match.extended &&
-                    isPremium;
+  const canExtend =
+    match.expiresAt && !match.expired && !match.firstMessageSent && !match.extended && isPremium;
 
   return (
-    <TouchableOpacity
-      style={[styles.card, match.expired && styles.expiredCard]}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={[styles.card, match.expired && styles.expiredCard]} onPress={onPress}>
       <Image source={{ uri: match.photo }} style={styles.image} />
       <View style={styles.info}>
         <View style={styles.header}>
           <View style={styles.nameRow}>
-            <Text style={styles.name}>{match.name}, {match.age}</Text>
+            <Text style={styles.name}>
+              {match.name}, {match.age}
+            </Text>
             {match.verified && (
               <View style={styles.verifiedBadge}>
                 <Text style={styles.verifiedIcon}>✓</Text>
@@ -91,9 +81,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             />
           )}
 
-          {match.lastActive && (
-            <Text style={styles.lastActive}>{match.lastActive}</Text>
-          )}
+          {match.lastActive && <Text style={styles.lastActive}>{match.lastActive}</Text>}
         </View>
 
         {canExtend && onExtend && (
@@ -110,9 +98,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
         {match.expired && isPremium && (
           <View style={styles.expiredBanner}>
-            <Text style={styles.expiredBannerText}>
-              Tap to Rematch (Premium)
-            </Text>
+            <Text style={styles.expiredBannerText}>Tap to Rematch (Premium)</Text>
           </View>
         )}
       </View>

@@ -4,19 +4,15 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { OnboardingStackParamList } from './OnboardingNavigator';
 
-type RelationshipGoalsScreenNavigationProp = StackNavigationProp<OnboardingStackParamList, 'RelationshipGoals'>;
+type RelationshipGoalsScreenNavigationProp = StackNavigationProp<
+  OnboardingStackParamList,
+  'RelationshipGoals'
+>;
 type RelationshipGoalsScreenRouteProp = RouteProp<OnboardingStackParamList, 'RelationshipGoals'>;
 
 interface Props {
@@ -65,7 +61,8 @@ const RELATIONSHIP_GOALS: GoalOption[] = [
 ];
 
 const RelationshipGoalsScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { name, birthday, gender, interestedIn, photos, location, interests, prompts } = route.params;
+  const { name, birthday, gender, interestedIn, photos, location, interests, prompts } =
+    route.params;
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
 
   const handleContinue = () => {
@@ -94,10 +91,7 @@ const RelationshipGoalsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>9 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
@@ -111,10 +105,7 @@ const RelationshipGoalsScreen: React.FC<Props> = ({ navigation, route }) => {
             {RELATIONSHIP_GOALS.map((goal) => (
               <TouchableOpacity
                 key={goal.id}
-                style={[
-                  styles.optionCard,
-                  selectedGoal === goal.id && styles.optionCardSelected,
-                ]}
+                style={[styles.optionCard, selectedGoal === goal.id && styles.optionCardSelected]}
                 onPress={() => setSelectedGoal(goal.id)}
               >
                 <View style={styles.optionContent}>
@@ -128,9 +119,7 @@ const RelationshipGoalsScreen: React.FC<Props> = ({ navigation, route }) => {
                     >
                       {goal.label}
                     </Text>
-                    <Text style={styles.optionDescription}>
-                      {goal.description}
-                    </Text>
+                    <Text style={styles.optionDescription}>{goal.description}</Text>
                   </View>
                 </View>
                 {selectedGoal === goal.id && (
@@ -142,9 +131,7 @@ const RelationshipGoalsScreen: React.FC<Props> = ({ navigation, route }) => {
             ))}
           </View>
 
-          <Text style={styles.hint}>
-            You can change this later in your profile settings
-          </Text>
+          <Text style={styles.hint}>You can change this later in your profile settings</Text>
         </ScrollView>
 
         <View style={styles.footer}>

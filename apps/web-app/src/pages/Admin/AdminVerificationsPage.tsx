@@ -31,7 +31,7 @@ export const AdminVerificationsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/verifications?status=${filter}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -96,11 +96,11 @@ export const AdminVerificationsPage: React.FC = () => {
       const token = authTokenService.getToken();
       await fetch(`/api/admin/verifications/${requestId}/approve`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       // Update local state
-      setRequests(prev => prev.filter(r => r.id !== requestId));
+      setRequests((prev) => prev.filter((r) => r.id !== requestId));
       setSelectedRequest(null);
     } catch (err) {
       console.error('Failed to approve verification:', err);
@@ -113,14 +113,14 @@ export const AdminVerificationsPage: React.FC = () => {
       await fetch(`/api/admin/verifications/${requestId}/reject`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ reason }),
       });
 
       // Update local state
-      setRequests(prev => prev.filter(r => r.id !== requestId));
+      setRequests((prev) => prev.filter((r) => r.id !== requestId));
       setSelectedRequest(null);
       setRejectionReason('');
     } catch (err) {
@@ -154,7 +154,7 @@ export const AdminVerificationsPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-gray-800">Photo Verifications</h1>
             <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
-              {requests.filter(r => r.status === 'pending').length} pending
+              {requests.filter((r) => r.status === 'pending').length} pending
             </span>
           </div>
         </div>
@@ -246,7 +246,10 @@ export const AdminVerificationsPage: React.FC = () => {
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                      {request.userName.split(' ').map(n => n[0]).join('')}
+                      {request.userName
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')}
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-800">{request.userName}</h3>
@@ -254,12 +257,18 @@ export const AdminVerificationsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Submitted {formatTime(request.submittedAt)}</span>
-                    <span className={`px-2 py-1 rounded-full ${
-                      request.status === 'pending' ? 'bg-orange-100 text-orange-600' :
-                      request.status === 'approved' ? 'bg-green-100 text-green-600' :
-                      'bg-red-100 text-red-600'
-                    }`}>
+                    <span className="text-gray-500">
+                      Submitted {formatTime(request.submittedAt)}
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-full ${
+                        request.status === 'pending'
+                          ? 'bg-orange-100 text-orange-600'
+                          : request.status === 'approved'
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-red-100 text-red-600'
+                      }`}
+                    >
                       {request.status}
                     </span>
                   </div>
@@ -277,7 +286,10 @@ export const AdminVerificationsPage: React.FC = () => {
             <div className="p-6 border-b flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                  {selectedRequest.userName.split(' ').map(n => n[0]).join('')}
+                  {selectedRequest.userName
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">{selectedRequest.userName}</h3>
@@ -289,7 +301,12 @@ export const AdminVerificationsPage: React.FC = () => {
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -313,7 +330,11 @@ export const AdminVerificationsPage: React.FC = () => {
                         currentPhotoIndex === index ? 'border-pink-500' : 'border-transparent'
                       }`}
                     >
-                      <img src={photo} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                      <img
+                        src={photo}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
                     </button>
                   ))}
                 </div>
@@ -350,19 +371,31 @@ export const AdminVerificationsPage: React.FC = () => {
                 <h4 className="font-semibold text-gray-800 mb-3">Verification Checklist</h4>
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500" />
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500"
+                    />
                     <span>Face clearly visible in all photos</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500" />
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500"
+                    />
                     <span>Poses match the required poses</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500" />
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500"
+                    />
                     <span>Photos appear unedited/authentic</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500" />
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded text-pink-500 focus:ring-pink-500"
+                    />
                     <span>Person matches profile photo</span>
                   </label>
                 </div>
@@ -370,7 +403,9 @@ export const AdminVerificationsPage: React.FC = () => {
 
               {/* Rejection Reason */}
               <div className="mb-6">
-                <h4 className="font-semibold text-gray-800 mb-3">Rejection Reason (if rejecting)</h4>
+                <h4 className="font-semibold text-gray-800 mb-3">
+                  Rejection Reason (if rejecting)
+                </h4>
                 <select
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
@@ -378,7 +413,9 @@ export const AdminVerificationsPage: React.FC = () => {
                 >
                   <option value="">Select a reason...</option>
                   {REJECTION_REASONS.map((reason) => (
-                    <option key={reason} value={reason}>{reason}</option>
+                    <option key={reason} value={reason}>
+                      {reason}
+                    </option>
                   ))}
                 </select>
                 {rejectionReason === 'Other (please specify)' && (

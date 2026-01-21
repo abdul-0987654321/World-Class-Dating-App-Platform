@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 
 interface Restaurant {
   id: string;
@@ -36,11 +29,7 @@ interface RestaurantCardProps {
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
 
-export const RestaurantCard: React.FC<RestaurantCardProps> = ({
-  restaurant,
-  onPress,
-  onBook,
-}) => {
+export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onPress, onBook }) => {
   const getPriceLabel = (range: number): string => {
     return '$'.repeat(range);
   };
@@ -96,13 +85,9 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
           {restaurant.rating && (
             <View style={styles.ratingContainer}>
               <Text style={styles.starIcon}>*</Text>
-              <Text style={styles.ratingText}>
-                {restaurant.rating.toFixed(1)}
-              </Text>
+              <Text style={styles.ratingText}>{restaurant.rating.toFixed(1)}</Text>
               {restaurant.reviewCount && (
-                <Text style={styles.reviewCount}>
-                  ({restaurant.reviewCount})
-                </Text>
+                <Text style={styles.reviewCount}>({restaurant.reviewCount})</Text>
               )}
             </View>
           )}
@@ -112,17 +97,12 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </Text>
 
           {restaurant.distance && (
-            <Text style={styles.distance}>
-              {formatDistance(restaurant.distance)}
-            </Text>
+            <Text style={styles.distance}>{formatDistance(restaurant.distance)}</Text>
           )}
         </View>
 
         {onBook && (
-          <TouchableOpacity
-            style={styles.bookButton}
-            onPress={() => onBook(restaurant)}
-          >
+          <TouchableOpacity style={styles.bookButton} onPress={() => onBook(restaurant)}>
             <Text style={styles.bookButtonText}>Book a Table</Text>
           </TouchableOpacity>
         )}

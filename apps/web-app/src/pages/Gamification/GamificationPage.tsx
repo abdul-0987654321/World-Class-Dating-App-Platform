@@ -40,7 +40,9 @@ interface WalletBalance {
 
 export const GamificationPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'quests' | 'rewards'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'quests' | 'rewards'>(
+    'overview'
+  );
   const [streak, setStreak] = useState<Streak | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
@@ -56,7 +58,7 @@ export const GamificationPage: React.FC = () => {
   const loadData = async () => {
     try {
       const token = authTokenService.getToken();
-      const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
       const [streakRes, achievementsRes, questsRes, balanceRes] = await Promise.all([
         fetch('/api/gamification/streak', { headers }),
@@ -67,9 +69,21 @@ export const GamificationPage: React.FC = () => {
 
       if (streakRes.ok) {
         const data = await streakRes.json();
-        setStreak(data.data || { currentStreak: 5, longestStreak: 12, lastCheckIn: new Date().toISOString(), nextRewardAt: 7 });
+        setStreak(
+          data.data || {
+            currentStreak: 5,
+            longestStreak: 12,
+            lastCheckIn: new Date().toISOString(),
+            nextRewardAt: 7,
+          }
+        );
       } else {
-        setStreak({ currentStreak: 5, longestStreak: 12, lastCheckIn: new Date().toISOString(), nextRewardAt: 7 });
+        setStreak({
+          currentStreak: 5,
+          longestStreak: 12,
+          lastCheckIn: new Date().toISOString(),
+          nextRewardAt: 7,
+        });
       }
 
       if (achievementsRes.ok) {
@@ -94,7 +108,12 @@ export const GamificationPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to load gamification data:', err);
-      setStreak({ currentStreak: 5, longestStreak: 12, lastCheckIn: new Date().toISOString(), nextRewardAt: 7 });
+      setStreak({
+        currentStreak: 5,
+        longestStreak: 12,
+        lastCheckIn: new Date().toISOString(),
+        nextRewardAt: 7,
+      });
       setAchievements(getDefaultAchievements());
       setQuests(getDefaultQuests());
       setWallet({ coins: 250, gems: 15 });
@@ -104,20 +123,119 @@ export const GamificationPage: React.FC = () => {
   };
 
   const getDefaultAchievements = (): Achievement[] => [
-    { id: '1', name: 'First Match', description: 'Get your first match', icon: '💕', progress: 1, maxProgress: 1, unlocked: true, reward: { coins: 50 } },
-    { id: '2', name: 'Conversation Starter', description: 'Send 10 messages', icon: '💬', progress: 7, maxProgress: 10, unlocked: false, reward: { coins: 100 } },
-    { id: '3', name: 'Social Butterfly', description: 'Match with 25 people', icon: '🦋', progress: 12, maxProgress: 25, unlocked: false, reward: { coins: 200, gems: 5 } },
-    { id: '4', name: 'Profile Pro', description: 'Complete your profile 100%', icon: '⭐', progress: 85, maxProgress: 100, unlocked: false, reward: { coins: 150 } },
-    { id: '5', name: 'Week Warrior', description: 'Login 7 days in a row', icon: '🔥', progress: 5, maxProgress: 7, unlocked: false, reward: { gems: 10 } },
-    { id: '6', name: 'Super Liker', description: 'Use 50 super likes', icon: '💎', progress: 23, maxProgress: 50, unlocked: false, reward: { gems: 20 } },
+    {
+      id: '1',
+      name: 'First Match',
+      description: 'Get your first match',
+      icon: '💕',
+      progress: 1,
+      maxProgress: 1,
+      unlocked: true,
+      reward: { coins: 50 },
+    },
+    {
+      id: '2',
+      name: 'Conversation Starter',
+      description: 'Send 10 messages',
+      icon: '💬',
+      progress: 7,
+      maxProgress: 10,
+      unlocked: false,
+      reward: { coins: 100 },
+    },
+    {
+      id: '3',
+      name: 'Social Butterfly',
+      description: 'Match with 25 people',
+      icon: '🦋',
+      progress: 12,
+      maxProgress: 25,
+      unlocked: false,
+      reward: { coins: 200, gems: 5 },
+    },
+    {
+      id: '4',
+      name: 'Profile Pro',
+      description: 'Complete your profile 100%',
+      icon: '⭐',
+      progress: 85,
+      maxProgress: 100,
+      unlocked: false,
+      reward: { coins: 150 },
+    },
+    {
+      id: '5',
+      name: 'Week Warrior',
+      description: 'Login 7 days in a row',
+      icon: '🔥',
+      progress: 5,
+      maxProgress: 7,
+      unlocked: false,
+      reward: { gems: 10 },
+    },
+    {
+      id: '6',
+      name: 'Super Liker',
+      description: 'Use 50 super likes',
+      icon: '💎',
+      progress: 23,
+      maxProgress: 50,
+      unlocked: false,
+      reward: { gems: 20 },
+    },
   ];
 
   const getDefaultQuests = (): Quest[] => [
-    { id: '1', title: 'Daily Swiper', description: 'Swipe on 20 profiles today', type: 'daily', progress: 12, maxProgress: 20, reward: { coins: 25 }, expiresAt: new Date(Date.now() + 8 * 3600000).toISOString() },
-    { id: '2', title: 'Chat Champion', description: 'Send 5 messages today', type: 'daily', progress: 3, maxProgress: 5, reward: { coins: 15 }, expiresAt: new Date(Date.now() + 8 * 3600000).toISOString() },
-    { id: '3', title: 'Profile Viewer', description: 'View 10 full profiles', type: 'daily', progress: 10, maxProgress: 10, reward: { coins: 20 }, expiresAt: new Date(Date.now() + 8 * 3600000).toISOString() },
-    { id: '4', title: 'Weekly Matcher', description: 'Get 5 new matches this week', type: 'weekly', progress: 2, maxProgress: 5, reward: { gems: 5 }, expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString() },
-    { id: '5', title: 'Photo Updater', description: 'Update your photos this week', type: 'weekly', progress: 0, maxProgress: 1, reward: { coins: 50 }, expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString() },
+    {
+      id: '1',
+      title: 'Daily Swiper',
+      description: 'Swipe on 20 profiles today',
+      type: 'daily',
+      progress: 12,
+      maxProgress: 20,
+      reward: { coins: 25 },
+      expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+    },
+    {
+      id: '2',
+      title: 'Chat Champion',
+      description: 'Send 5 messages today',
+      type: 'daily',
+      progress: 3,
+      maxProgress: 5,
+      reward: { coins: 15 },
+      expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+    },
+    {
+      id: '3',
+      title: 'Profile Viewer',
+      description: 'View 10 full profiles',
+      type: 'daily',
+      progress: 10,
+      maxProgress: 10,
+      reward: { coins: 20 },
+      expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+    },
+    {
+      id: '4',
+      title: 'Weekly Matcher',
+      description: 'Get 5 new matches this week',
+      type: 'weekly',
+      progress: 2,
+      maxProgress: 5,
+      reward: { gems: 5 },
+      expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString(),
+    },
+    {
+      id: '5',
+      title: 'Photo Updater',
+      description: 'Update your photos this week',
+      type: 'weekly',
+      progress: 0,
+      maxProgress: 1,
+      reward: { coins: 50 },
+      expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString(),
+    },
   ];
 
   const handleSpin = async () => {
@@ -126,7 +244,7 @@ export const GamificationPage: React.FC = () => {
       const token = authTokenService.getToken();
       const res = await fetch('/api/gamification/spin', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       });
       if (res.ok) {
         const data = await res.json();
@@ -146,7 +264,7 @@ export const GamificationPage: React.FC = () => {
       const token = authTokenService.getToken();
       const res = await fetch('/api/gamification/daily-reward', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       });
       if (res.ok) {
         const data = await res.json();
@@ -160,8 +278,14 @@ export const GamificationPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-page)' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--accent-pink)' }}></div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--bg-page)' }}
+      >
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+          style={{ borderColor: 'var(--accent-pink)' }}
+        ></div>
       </div>
     );
   }
@@ -172,7 +296,10 @@ export const GamificationPage: React.FC = () => {
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* Wallet Banner - Uses coin/gem colors from design tokens */}
-        <div className="rounded-2xl p-6 mb-6" style={{ background: 'linear-gradient(135deg, var(--coin-primary) 0%, #C77A45 100%)' }}>
+        <div
+          className="rounded-2xl p-6 mb-6"
+          style={{ background: 'linear-gradient(135deg, var(--coin-primary) 0%, #C77A45 100%)' }}
+        >
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-2 text-white">Your Wallet</h2>
@@ -208,17 +335,29 @@ export const GamificationPage: React.FC = () => {
           <div className="rounded-2xl p-6 mb-6" style={{ background: 'var(--surface-card)' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)' }}>
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)',
+                  }}
+                >
                   <span className="text-3xl">🔥</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{streak.currentStreak} Day Streak!</h3>
+                  <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {streak.currentStreak} Day Streak!
+                  </h3>
                   <p style={{ color: 'var(--text-muted)' }}>Best: {streak.longestStreak} days</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Next milestone reward at</p>
-                <p className="text-xl font-bold" style={{ color: 'var(--coin-primary)' }}>{streak.nextRewardAt} days</p>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Next milestone reward at
+                </p>
+                <p className="text-xl font-bold" style={{ color: 'var(--coin-primary)' }}>
+                  {streak.nextRewardAt} days
+                </p>
               </div>
             </div>
             <div className="mt-4 rounded-full h-3" style={{ background: 'rgba(255,255,255,0.1)' }}>
@@ -226,7 +365,7 @@ export const GamificationPage: React.FC = () => {
                 className="h-3 rounded-full transition-all"
                 style={{
                   width: `${(streak.currentStreak / streak.nextRewardAt) * 100}%`,
-                  background: 'var(--progress-gradient)'
+                  background: 'var(--progress-gradient)',
                 }}
               />
             </div>
@@ -242,7 +381,7 @@ export const GamificationPage: React.FC = () => {
               className="flex-1 py-3 rounded-lg font-medium capitalize transition"
               style={{
                 background: activeTab === tab ? 'var(--accent-gradient)' : 'transparent',
-                color: activeTab === tab ? 'white' : 'var(--text-secondary)'
+                color: activeTab === tab ? 'white' : 'var(--text-secondary)',
               }}
             >
               {tab}
@@ -255,33 +394,57 @@ export const GamificationPage: React.FC = () => {
           <div className="space-y-6">
             {/* Daily Quests Preview */}
             <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)' }}>
-              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Today's Quests</h3>
+              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Today's Quests
+              </h3>
               <div className="space-y-3">
-                {quests.filter(q => q.type === 'daily').slice(0, 3).map((quest) => (
-                  <div key={quest.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div className="flex-1">
-                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{quest.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 rounded-full h-2" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                {quests
+                  .filter((q) => q.type === 'daily')
+                  .slice(0, 3)
+                  .map((quest) => (
+                    <div
+                      key={quest.id}
+                      className="flex items-center justify-between p-3 rounded-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                          {quest.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
                           <div
-                            className="h-2 rounded-full"
-                            style={{ width: `${(quest.progress / quest.maxProgress) * 100}%`, background: 'var(--accent-pink)' }}
-                          />
+                            className="flex-1 rounded-full h-2"
+                            style={{ background: 'rgba(255,255,255,0.1)' }}
+                          >
+                            <div
+                              className="h-2 rounded-full"
+                              style={{
+                                width: `${(quest.progress / quest.maxProgress) * 100}%`,
+                                background: 'var(--accent-pink)',
+                              }}
+                            />
+                          </div>
+                          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                            {quest.progress}/{quest.maxProgress}
+                          </span>
                         </div>
-                        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{quest.progress}/{quest.maxProgress}</span>
+                      </div>
+                      <div className="ml-4 text-right">
+                        <span className="font-medium" style={{ color: 'var(--coin-primary)' }}>
+                          +{quest.reward.coins || quest.reward.gems}{' '}
+                          {quest.reward.coins ? '🪙' : '💎'}
+                        </span>
                       </div>
                     </div>
-                    <div className="ml-4 text-right">
-                      <span className="font-medium" style={{ color: 'var(--coin-primary)' }}>+{quest.reward.coins || quest.reward.gems} {quest.reward.coins ? '🪙' : '💎'}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
 
             {/* Recent Achievements */}
             <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)' }}>
-              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Recent Achievements</h3>
+              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Recent Achievements
+              </h3>
               <div className="grid grid-cols-3 gap-4">
                 {achievements.slice(0, 3).map((achievement) => (
                   <div
@@ -291,16 +454,26 @@ export const GamificationPage: React.FC = () => {
                       background: achievement.unlocked
                         ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%)'
                         : 'rgba(255,255,255,0.05)',
-                      border: achievement.unlocked ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-subtle)'
+                      border: achievement.unlocked
+                        ? '1px solid rgba(245, 158, 11, 0.4)'
+                        : '1px solid var(--border-subtle)',
                     }}
                   >
                     <span className="text-4xl">{achievement.icon}</span>
-                    <p className="font-medium mt-2" style={{ color: 'var(--text-primary)' }}>{achievement.name}</p>
+                    <p className="font-medium mt-2" style={{ color: 'var(--text-primary)' }}>
+                      {achievement.name}
+                    </p>
                     {!achievement.unlocked && (
-                      <div className="mt-2 rounded-full h-2" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                      <div
+                        className="mt-2 rounded-full h-2"
+                        style={{ background: 'rgba(255,255,255,0.1)' }}
+                      >
                         <div
                           className="h-2 rounded-full"
-                          style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%`, background: 'var(--accent-pink)' }}
+                          style={{
+                            width: `${(achievement.progress / achievement.maxProgress) * 100}%`,
+                            background: 'var(--accent-pink)',
+                          }}
                         />
                       </div>
                     )}
@@ -313,7 +486,9 @@ export const GamificationPage: React.FC = () => {
 
         {activeTab === 'achievements' && (
           <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)' }}>
-            <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>All Achievements</h3>
+            <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              All Achievements
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               {achievements.map((achievement) => (
                 <div
@@ -323,33 +498,59 @@ export const GamificationPage: React.FC = () => {
                     background: achievement.unlocked
                       ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%)'
                       : 'rgba(255,255,255,0.05)',
-                    border: achievement.unlocked ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-subtle)'
+                    border: achievement.unlocked
+                      ? '1px solid rgba(245, 158, 11, 0.4)'
+                      : '1px solid var(--border-subtle)',
                   }}
                 >
                   <div className="flex items-start gap-4">
                     <span className="text-4xl">{achievement.icon}</span>
                     <div className="flex-1">
-                      <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>{achievement.name}</h4>
-                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{achievement.description}</p>
+                      <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                        {achievement.name}
+                      </h4>
+                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                        {achievement.description}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
-                        {achievement.reward.coins && <span className="text-sm" style={{ color: 'var(--coin-primary)' }}>+{achievement.reward.coins} 🪙</span>}
-                        {achievement.reward.gems && <span className="text-sm" style={{ color: 'var(--gem-primary)' }}>+{achievement.reward.gems} 💎</span>}
+                        {achievement.reward.coins && (
+                          <span className="text-sm" style={{ color: 'var(--coin-primary)' }}>
+                            +{achievement.reward.coins} 🪙
+                          </span>
+                        )}
+                        {achievement.reward.gems && (
+                          <span className="text-sm" style={{ color: 'var(--gem-primary)' }}>
+                            +{achievement.reward.gems} 💎
+                          </span>
+                        )}
                       </div>
                       {!achievement.unlocked && (
                         <div className="mt-2">
-                          <div className="rounded-full h-2" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                          <div
+                            className="rounded-full h-2"
+                            style={{ background: 'rgba(255,255,255,0.1)' }}
+                          >
                             <div
                               className="h-2 rounded-full"
-                              style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%`, background: 'var(--accent-pink)' }}
+                              style={{
+                                width: `${(achievement.progress / achievement.maxProgress) * 100}%`,
+                                background: 'var(--accent-pink)',
+                              }}
                             />
                           </div>
-                          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{achievement.progress}/{achievement.maxProgress}</p>
+                          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                            {achievement.progress}/{achievement.maxProgress}
+                          </p>
                         </div>
                       )}
                       {achievement.unlocked && (
                         <p className="text-green-400 text-sm mt-2 flex items-center gap-1">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           Unlocked
                         </p>
@@ -365,73 +566,125 @@ export const GamificationPage: React.FC = () => {
         {activeTab === 'quests' && (
           <div className="space-y-6">
             <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)' }}>
-              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Daily Quests</h3>
+              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Daily Quests
+              </h3>
               <div className="space-y-3">
-                {quests.filter(q => q.type === 'daily').map((quest) => (
-                  <div
-                    key={quest.id}
-                    className="p-4 rounded-xl"
-                    style={{
-                      background: quest.progress >= quest.maxProgress ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255,255,255,0.05)',
-                      border: quest.progress >= quest.maxProgress ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid var(--border-subtle)'
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>{quest.title}</h4>
-                      <span className="font-medium" style={{ color: 'var(--coin-primary)' }}>+{quest.reward.coins || quest.reward.gems} {quest.reward.coins ? '🪙' : '💎'}</span>
-                    </div>
-                    <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>{quest.description}</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 rounded-full h-2" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                        <div
-                          className="h-2 rounded-full"
-                          style={{
-                            width: `${Math.min((quest.progress / quest.maxProgress) * 100, 100)}%`,
-                            background: quest.progress >= quest.maxProgress ? '#22c55e' : 'var(--accent-pink)'
-                          }}
-                        />
+                {quests
+                  .filter((q) => q.type === 'daily')
+                  .map((quest) => (
+                    <div
+                      key={quest.id}
+                      className="p-4 rounded-xl"
+                      style={{
+                        background:
+                          quest.progress >= quest.maxProgress
+                            ? 'rgba(34, 197, 94, 0.1)'
+                            : 'rgba(255,255,255,0.05)',
+                        border:
+                          quest.progress >= quest.maxProgress
+                            ? '1px solid rgba(34, 197, 94, 0.3)'
+                            : '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                          {quest.title}
+                        </h4>
+                        <span className="font-medium" style={{ color: 'var(--coin-primary)' }}>
+                          +{quest.reward.coins || quest.reward.gems}{' '}
+                          {quest.reward.coins ? '🪙' : '💎'}
+                        </span>
                       </div>
-                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{quest.progress}/{quest.maxProgress}</span>
-                      {quest.progress >= quest.maxProgress && (
-                        <button className="px-3 py-1 bg-green-500 text-white text-sm rounded-full">Claim</button>
-                      )}
+                      <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+                        {quest.description}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex-1 rounded-full h-2"
+                          style={{ background: 'rgba(255,255,255,0.1)' }}
+                        >
+                          <div
+                            className="h-2 rounded-full"
+                            style={{
+                              width: `${Math.min((quest.progress / quest.maxProgress) * 100, 100)}%`,
+                              background:
+                                quest.progress >= quest.maxProgress
+                                  ? '#22c55e'
+                                  : 'var(--accent-pink)',
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                          {quest.progress}/{quest.maxProgress}
+                        </span>
+                        {quest.progress >= quest.maxProgress && (
+                          <button className="px-3 py-1 bg-green-500 text-white text-sm rounded-full">
+                            Claim
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
 
             <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)' }}>
-              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Weekly Quests</h3>
+              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Weekly Quests
+              </h3>
               <div className="space-y-3">
-                {quests.filter(q => q.type === 'weekly').map((quest) => (
-                  <div
-                    key={quest.id}
-                    className="p-4 rounded-xl"
-                    style={{
-                      background: quest.progress >= quest.maxProgress ? 'rgba(34, 197, 94, 0.1)' : 'rgba(123, 97, 255, 0.1)',
-                      border: quest.progress >= quest.maxProgress ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(123, 97, 255, 0.3)'
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>{quest.title}</h4>
-                      <span className="font-medium" style={{ color: 'var(--gem-primary)' }}>+{quest.reward.gems || quest.reward.coins} {quest.reward.gems ? '💎' : '🪙'}</span>
-                    </div>
-                    <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>{quest.description}</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 rounded-full h-2" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                        <div
-                          className="h-2 rounded-full"
-                          style={{
-                            width: `${Math.min((quest.progress / quest.maxProgress) * 100, 100)}%`,
-                            background: quest.progress >= quest.maxProgress ? '#22c55e' : 'var(--accent-purple)'
-                          }}
-                        />
+                {quests
+                  .filter((q) => q.type === 'weekly')
+                  .map((quest) => (
+                    <div
+                      key={quest.id}
+                      className="p-4 rounded-xl"
+                      style={{
+                        background:
+                          quest.progress >= quest.maxProgress
+                            ? 'rgba(34, 197, 94, 0.1)'
+                            : 'rgba(123, 97, 255, 0.1)',
+                        border:
+                          quest.progress >= quest.maxProgress
+                            ? '1px solid rgba(34, 197, 94, 0.3)'
+                            : '1px solid rgba(123, 97, 255, 0.3)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                          {quest.title}
+                        </h4>
+                        <span className="font-medium" style={{ color: 'var(--gem-primary)' }}>
+                          +{quest.reward.gems || quest.reward.coins}{' '}
+                          {quest.reward.gems ? '💎' : '🪙'}
+                        </span>
                       </div>
-                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{quest.progress}/{quest.maxProgress}</span>
+                      <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+                        {quest.description}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex-1 rounded-full h-2"
+                          style={{ background: 'rgba(255,255,255,0.1)' }}
+                        >
+                          <div
+                            className="h-2 rounded-full"
+                            style={{
+                              width: `${Math.min((quest.progress / quest.maxProgress) * 100, 100)}%`,
+                              background:
+                                quest.progress >= quest.maxProgress
+                                  ? '#22c55e'
+                                  : 'var(--accent-purple)',
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                          {quest.progress}/{quest.maxProgress}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
@@ -440,13 +693,22 @@ export const GamificationPage: React.FC = () => {
         {activeTab === 'rewards' && (
           <div className="space-y-6">
             {/* Spin Wheel */}
-            <div className="rounded-2xl p-8 text-white text-center" style={{ background: 'var(--accent-gradient)' }}>
+            <div
+              className="rounded-2xl p-8 text-white text-center"
+              style={{ background: 'var(--accent-gradient)' }}
+            >
               <h3 className="text-2xl font-bold mb-4">Daily Spin Wheel</h3>
-              <div className={`w-48 h-48 mx-auto rounded-full flex items-center justify-center mb-6 ${spinning ? 'animate-spin' : ''}`} style={{ background: 'var(--surface-card)' }}>
+              <div
+                className={`w-48 h-48 mx-auto rounded-full flex items-center justify-center mb-6 ${spinning ? 'animate-spin' : ''}`}
+                style={{ background: 'var(--surface-card)' }}
+              >
                 <span className="text-6xl">🎡</span>
               </div>
               {spinResult && !spinning && (
-                <p className="text-xl mb-4">{spinResult.message || `You won ${spinResult.reward?.amount} ${spinResult.reward?.type}!`}</p>
+                <p className="text-xl mb-4">
+                  {spinResult.message ||
+                    `You won ${spinResult.reward?.amount} ${spinResult.reward?.type}!`}
+                </p>
               )}
               <button
                 onClick={handleSpin}
@@ -460,7 +722,9 @@ export const GamificationPage: React.FC = () => {
 
             {/* Reward Shop */}
             <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)' }}>
-              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Reward Shop</h3>
+              <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Reward Shop
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { name: 'Super Like', price: 50, currency: 'coins', icon: '⭐' },
@@ -473,12 +737,25 @@ export const GamificationPage: React.FC = () => {
                   <div
                     key={idx}
                     className="p-4 rounded-xl transition hover:scale-105"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)' }}
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
                   >
                     <div className="text-center">
                       <span className="text-4xl">{item.icon}</span>
-                      <h4 className="font-bold mt-2" style={{ color: 'var(--text-primary)' }}>{item.name}</h4>
-                      <p className="text-sm mt-1" style={{ color: item.currency === 'coins' ? 'var(--coin-primary)' : 'var(--gem-primary)' }}>
+                      <h4 className="font-bold mt-2" style={{ color: 'var(--text-primary)' }}>
+                        {item.name}
+                      </h4>
+                      <p
+                        className="text-sm mt-1"
+                        style={{
+                          color:
+                            item.currency === 'coins'
+                              ? 'var(--coin-primary)'
+                              : 'var(--gem-primary)',
+                        }}
+                      >
                         {item.price} {item.currency === 'coins' ? '🪙' : '💎'}
                       </p>
                       <button

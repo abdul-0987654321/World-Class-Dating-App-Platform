@@ -31,18 +31,19 @@ const faqs: FAQ[] = [
     category: 'Matching',
     question: 'How do matches work?',
     answer:
-      'When you like someone and they like you back, it\'s a match! You\'ll both be notified and can start chatting.',
+      "When you like someone and they like you back, it's a match! You'll both be notified and can start chatting.",
   },
   {
     category: 'Matching',
     question: 'What is a Super Like?',
     answer:
-      'A Super Like lets someone know you\'re really interested. They\'ll see your profile highlighted and know you Super Liked them.',
+      "A Super Like lets someone know you're really interested. They'll see your profile highlighted and know you Super Liked them.",
   },
   {
     category: 'Matching',
     question: 'Can I undo a swipe?',
-    answer: 'Premium members can use the Rewind feature to undo their last swipe. Free users cannot undo swipes.',
+    answer:
+      'Premium members can use the Rewind feature to undo their last swipe. Free users cannot undo swipes.',
   },
   {
     category: 'Subscription',
@@ -54,7 +55,7 @@ const faqs: FAQ[] = [
     category: 'Subscription',
     question: 'How do I cancel my subscription?',
     answer:
-      'Go to Settings > Account > Manage Subscription. You can cancel anytime, and you\'ll retain access until the end of your billing period.',
+      "Go to Settings > Account > Manage Subscription. You can cancel anytime, and you'll retain access until the end of your billing period.",
   },
   {
     category: 'Safety',
@@ -97,7 +98,12 @@ export const HelpSupportPage: React.FC = () => {
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Profile
         </button>
@@ -137,7 +143,12 @@ export const HelpSupportPage: React.FC = () => {
             className="bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md transition"
           >
             <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <svg className="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-pink-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -153,14 +164,24 @@ export const HelpSupportPage: React.FC = () => {
             className="bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md transition"
           >
             <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-purple-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
                 />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             </div>
             <p className="font-medium text-gray-800 text-sm">Settings</p>
@@ -181,7 +202,12 @@ export const HelpSupportPage: React.FC = () => {
             className="bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md transition"
           >
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -201,7 +227,9 @@ export const HelpSupportPage: React.FC = () => {
               key={category}
               onClick={() => setActiveCategory(category)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
-                activeCategory === category ? 'bg-pink-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                activeCategory === category
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
               {category}
@@ -211,7 +239,9 @@ export const HelpSupportPage: React.FC = () => {
 
         {/* FAQs */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 p-4 border-b">Frequently Asked Questions</h2>
+          <h2 className="text-lg font-semibold text-gray-800 p-4 border-b">
+            Frequently Asked Questions
+          </h2>
           <div className="divide-y">
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, idx) => (
@@ -221,7 +251,9 @@ export const HelpSupportPage: React.FC = () => {
                     className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition"
                   >
                     <div className="flex-1">
-                      <span className="text-xs text-pink-500 font-medium mb-1 block">{faq.category}</span>
+                      <span className="text-xs text-pink-500 font-medium mb-1 block">
+                        {faq.category}
+                      </span>
                       <span className="font-medium text-gray-800">{faq.question}</span>
                     </div>
                     <svg
@@ -230,7 +262,12 @@ export const HelpSupportPage: React.FC = () => {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
                   {expandedFaq === idx && (

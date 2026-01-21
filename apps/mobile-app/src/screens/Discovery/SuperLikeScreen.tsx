@@ -45,9 +45,7 @@ const SuperLikeScreen: React.FC = () => {
       const availableProducts = await InAppPurchaseService.getConsumableProducts();
 
       // Filter for super like products
-      const superLikeProducts = availableProducts.filter(p =>
-        p.productId.includes('superlikes')
-      );
+      const superLikeProducts = availableProducts.filter((p) => p.productId.includes('superlikes'));
       setProducts(superLikeProducts);
 
       // Get current balance
@@ -61,7 +59,7 @@ const SuperLikeScreen: React.FC = () => {
 
   const loadBalance = async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/api/users/balance`);
+      const response = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/balance`);
       setCurrentBalance(response.data.superLikes || 0);
     } catch (error) {
       console.error('Failed to load balance:', error);
@@ -75,11 +73,9 @@ const SuperLikeScreen: React.FC = () => {
       const result = await InAppPurchaseService.purchaseProduct(productId);
 
       if (result.success) {
-        Alert.alert(
-          'Purchase Successful',
-          'Super Likes have been added to your account!',
-          [{ text: 'OK', onPress: () => loadBalance() }]
-        );
+        Alert.alert('Purchase Successful', 'Super Likes have been added to your account!', [
+          { text: 'OK', onPress: () => loadBalance() },
+        ]);
       } else if (result.error && !result.error.includes('cancelled')) {
         Alert.alert('Purchase Failed', result.error);
       }
@@ -96,19 +92,25 @@ const SuperLikeScreen: React.FC = () => {
       {
         sku: CONSUMABLE_SKUS.SUPER_LIKES_5,
         count: 5,
-        price: products.find(p => p.productId === CONSUMABLE_SKUS.SUPER_LIKES_5)?.localizedPrice || '$4.99',
+        price:
+          products.find((p) => p.productId === CONSUMABLE_SKUS.SUPER_LIKES_5)?.localizedPrice ||
+          '$4.99',
       },
       {
         sku: CONSUMABLE_SKUS.SUPER_LIKES_25,
         count: 25,
-        price: products.find(p => p.productId === CONSUMABLE_SKUS.SUPER_LIKES_25)?.localizedPrice || '$19.99',
+        price:
+          products.find((p) => p.productId === CONSUMABLE_SKUS.SUPER_LIKES_25)?.localizedPrice ||
+          '$19.99',
         popular: true,
         savings: 'Save 20%',
       },
       {
         sku: CONSUMABLE_SKUS.SUPER_LIKES_60,
         count: 60,
-        price: products.find(p => p.productId === CONSUMABLE_SKUS.SUPER_LIKES_60)?.localizedPrice || '$39.99',
+        price:
+          products.find((p) => p.productId === CONSUMABLE_SKUS.SUPER_LIKES_60)?.localizedPrice ||
+          '$39.99',
         savings: 'Save 33%',
       },
     ];
@@ -127,10 +129,7 @@ const SuperLikeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
           <Icon name="close" size={28} color="#1A1A1A" />
         </TouchableOpacity>
       </View>
@@ -159,30 +158,22 @@ const SuperLikeScreen: React.FC = () => {
 
           <View style={styles.benefitRow}>
             <Icon name="check-circle" size={24} color="#00AEEF" />
-            <Text style={styles.benefitText}>
-              Shows up first in their queue
-            </Text>
+            <Text style={styles.benefitText}>Shows up first in their queue</Text>
           </View>
 
           <View style={styles.benefitRow}>
             <Icon name="check-circle" size={24} color="#00AEEF" />
-            <Text style={styles.benefitText}>
-              Sends a notification they've been Super Liked
-            </Text>
+            <Text style={styles.benefitText}>Sends a notification they've been Super Liked</Text>
           </View>
 
           <View style={styles.benefitRow}>
             <Icon name="check-circle" size={24} color="#00AEEF" />
-            <Text style={styles.benefitText}>
-              Highlighted with a blue star on your profile
-            </Text>
+            <Text style={styles.benefitText}>Highlighted with a blue star on your profile</Text>
           </View>
 
           <View style={styles.benefitRow}>
             <Icon name="check-circle" size={24} color="#00AEEF" />
-            <Text style={styles.benefitText}>
-              3x more likely to match
-            </Text>
+            <Text style={styles.benefitText}>3x more likely to match</Text>
           </View>
         </View>
 
@@ -192,10 +183,7 @@ const SuperLikeScreen: React.FC = () => {
           {getSuperLikePacks().map((pack) => (
             <TouchableOpacity
               key={pack.sku}
-              style={[
-                styles.packCard,
-                pack.popular && styles.packCardPopular,
-              ]}
+              style={[styles.packCard, pack.popular && styles.packCardPopular]}
               onPress={() => handlePurchase(pack.sku)}
               disabled={purchasing}
             >
@@ -210,9 +198,7 @@ const SuperLikeScreen: React.FC = () => {
                   <Icon name="star" size={32} color="#00AEEF" />
                   <View style={styles.packInfo}>
                     <Text style={styles.packCount}>{pack.count} Super Likes</Text>
-                    {pack.savings && (
-                      <Text style={styles.packSavings}>{pack.savings}</Text>
-                    )}
+                    {pack.savings && <Text style={styles.packSavings}>{pack.savings}</Text>}
                   </View>
                 </View>
 
@@ -228,9 +214,7 @@ const SuperLikeScreen: React.FC = () => {
         </View>
 
         <View style={styles.premiumCta}>
-          <Text style={styles.premiumCtaText}>
-            Get unlimited Super Likes with Flamoral Premium
-          </Text>
+          <Text style={styles.premiumCtaText}>Get unlimited Super Likes with Flamoral Premium</Text>
           <TouchableOpacity
             style={styles.premiumButton}
             onPress={() => navigation.navigate('Subscription' as never)}

@@ -103,7 +103,7 @@ class HttpClientWithPinning {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : '',
           'Content-Type': 'multipart/form-data',
           ...options?.headers,
         },

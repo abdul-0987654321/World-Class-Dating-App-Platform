@@ -288,9 +288,10 @@ class NotificationService {
         importance: AndroidImportance.HIGH,
       },
       ios: {
-        attachments: notification.ios?.imageUrl || data?.imageUrl
-          ? [{ url: notification.ios?.imageUrl || data?.imageUrl }]
-          : [],
+        attachments:
+          notification.ios?.imageUrl || data?.imageUrl
+            ? [{ url: notification.ios?.imageUrl || data?.imageUrl }]
+            : [],
         sound: 'default',
       },
       data,

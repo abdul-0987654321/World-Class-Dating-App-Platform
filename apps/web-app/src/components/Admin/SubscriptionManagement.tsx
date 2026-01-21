@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  FaCrown,
-  FaArrowUp,
-  FaArrowDown,
-  FaCheck,
-  FaTimes,
-  FaGem,
-} from 'react-icons/fa';
+import { FaCrown, FaArrowUp, FaArrowDown, FaCheck, FaTimes, FaGem } from 'react-icons/fa';
 import { useUpdateSubscription } from '../../hooks/useAdminUsers';
 import type { AdminUser } from '../../services/admin-user.service';
 
@@ -22,11 +15,7 @@ const SUBSCRIPTION_TIERS = [
     color: 'gray',
     gradient: 'from-gray-400 to-gray-500',
     icon: FaCrown,
-    features: [
-      'Basic matching',
-      'Limited swipes',
-      'See matches',
-    ],
+    features: ['Basic matching', 'Limited swipes', 'See matches'],
   },
   {
     tier: 'GOLD',
@@ -34,12 +23,7 @@ const SUBSCRIPTION_TIERS = [
     color: 'yellow',
     gradient: 'from-yellow-400 to-yellow-600',
     icon: FaCrown,
-    features: [
-      'Unlimited swipes',
-      'See who liked you',
-      'Monthly boost',
-      'No ads',
-    ],
+    features: ['Unlimited swipes', 'See who liked you', 'Monthly boost', 'No ads'],
   },
   {
     tier: 'PLATINUM',
@@ -47,12 +31,7 @@ const SUBSCRIPTION_TIERS = [
     color: 'blue',
     gradient: 'from-blue-400 to-blue-600',
     icon: FaGem,
-    features: [
-      'All Gold features',
-      'Priority likes',
-      'Message before matching',
-      'Incognito mode',
-    ],
+    features: ['All Gold features', 'Priority likes', 'Message before matching', 'Incognito mode'],
   },
   {
     tier: 'DIAMOND',
@@ -60,12 +39,7 @@ const SUBSCRIPTION_TIERS = [
     color: 'purple',
     gradient: 'from-purple-400 to-purple-600',
     icon: FaGem,
-    features: [
-      'All Platinum features',
-      'VIP badge',
-      'Unlimited boosts',
-      'Priority support',
-    ],
+    features: ['All Platinum features', 'VIP badge', 'Unlimited boosts', 'Priority support'],
   },
 ] as const;
 
@@ -74,15 +48,17 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
   onUpdate,
 }) => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<typeof SUBSCRIPTION_TIERS[number] | null>(null);
+  const [selectedTier, setSelectedTier] = useState<(typeof SUBSCRIPTION_TIERS)[number] | null>(
+    null
+  );
   const [duration, setDuration] = useState(1);
   const [reason, setReason] = useState('');
 
   const updateSubscriptionMutation = useUpdateSubscription();
 
-  const currentTierIndex = SUBSCRIPTION_TIERS.findIndex(t => t.tier === user.subscription);
+  const currentTierIndex = SUBSCRIPTION_TIERS.findIndex((t) => t.tier === user.subscription);
 
-  const handleTierClick = (tier: typeof SUBSCRIPTION_TIERS[number]) => {
+  const handleTierClick = (tier: (typeof SUBSCRIPTION_TIERS)[number]) => {
     if (tier.tier === user.subscription) return;
     setSelectedTier(tier);
     setShowModal(true);
@@ -110,14 +86,14 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
 
   const getActionType = () => {
     if (!selectedTier) return null;
-    const selectedIndex = SUBSCRIPTION_TIERS.findIndex(t => t.tier === selectedTier.tier);
+    const selectedIndex = SUBSCRIPTION_TIERS.findIndex((t) => t.tier === selectedTier.tier);
     if (selectedIndex > currentTierIndex) return 'upgrade';
     if (selectedIndex < currentTierIndex) return 'downgrade';
     return null;
   };
 
   const getTierBadgeClass = (tier: string) => {
-    const tier_obj = SUBSCRIPTION_TIERS.find(t => t.tier === tier);
+    const tier_obj = SUBSCRIPTION_TIERS.find((t) => t.tier === tier);
     if (!tier_obj) return 'bg-gray-100 text-gray-700';
     return `bg-${tier_obj.color}-100 text-${tier_obj.color}-700`;
   };
@@ -128,7 +104,9 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
         <h3 className="text-lg font-semibold text-gray-900">Subscription Management</h3>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Current:</span>
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getTierBadgeClass(user.subscription)}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${getTierBadgeClass(user.subscription)}`}
+          >
             {user.subscription}
           </span>
         </div>
@@ -138,7 +116,7 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
       <div className="p-4 bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg border-2 border-pink-200">
         <div className="flex items-center gap-3 mb-3">
           {React.createElement(SUBSCRIPTION_TIERS[currentTierIndex].icon, {
-            className: 'text-3xl text-yellow-500'
+            className: 'text-3xl text-yellow-500',
           })}
           <div>
             <h4 className="text-xl font-bold text-gray-900">
@@ -160,7 +138,7 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {SUBSCRIPTION_TIERS.map((tier) => {
             const isCurrent = tier.tier === user.subscription;
-            const tierIndex = SUBSCRIPTION_TIERS.findIndex(t => t.tier === tier.tier);
+            const tierIndex = SUBSCRIPTION_TIERS.findIndex((t) => t.tier === tier.tier);
             const isUpgrade = tierIndex > currentTierIndex;
             const isDowngrade = tierIndex < currentTierIndex;
 
@@ -198,7 +176,9 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
 
                 {/* Tier Header */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${tier.gradient} flex items-center justify-center text-white`}>
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${tier.gradient} flex items-center justify-center text-white`}
+                  >
                     {React.createElement(tier.icon, { className: 'text-xl' })}
                   </div>
                   <div>
@@ -252,7 +232,8 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                      {user.firstName[0]}{user.lastName[0]}
+                      {user.firstName[0]}
+                      {user.lastName[0]}
                     </div>
                   )}
                   <div>
@@ -268,13 +249,17 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
               <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getTierBadgeClass(user.subscription)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getTierBadgeClass(user.subscription)}`}
+                    >
                       {user.subscription}
                     </span>
                   </div>
                   <div className="text-2xl text-gray-400">→</div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getTierBadgeClass(selectedTier.tier)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getTierBadgeClass(selectedTier.tier)}`}
+                    >
                       {selectedTier.tier}
                     </span>
                   </div>
@@ -299,7 +284,10 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
                     <option value="12">12 months</option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
-                    New expiration: {new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                    New expiration:{' '}
+                    {new Date(
+                      Date.now() + duration * 30 * 24 * 60 * 60 * 1000
+                    ).toLocaleDateString()}
                   </p>
                 </div>
               )}
@@ -326,7 +314,8 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
               {getActionType() === 'downgrade' && (
                 <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
                   <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> Downgrading will immediately restrict the user's access to premium features.
+                    <strong>Note:</strong> Downgrading will immediately restrict the user's access
+                    to premium features.
                   </p>
                 </div>
               )}

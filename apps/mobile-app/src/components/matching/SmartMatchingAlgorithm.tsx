@@ -146,33 +146,42 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
 
   const buildLearningModel = (behaviorData: UserBehaviorData): LearningModel => {
     // Analyze swipe patterns
-    const likedProfiles = behaviorData.swipeHistory.filter(s => s.action === 'like' || s.action === 'super_like');
-    const passedProfiles = behaviorData.swipeHistory.filter(s => s.action === 'pass');
+    const likedProfiles = behaviorData.swipeHistory.filter(
+      (s) => s.action === 'like' || s.action === 'super_like'
+    );
+    const passedProfiles = behaviorData.swipeHistory.filter((s) => s.action === 'pass');
 
     // Calculate attribute preferences
     const preferredAttributes: Record<string, number> = {};
 
     // Age preference learning
     if (likedProfiles.length > 0) {
-      const avgLikedAge = likedProfiles.reduce((sum, s) => sum + s.profileAttributes.age, 0) / likedProfiles.length;
+      const avgLikedAge =
+        likedProfiles.reduce((sum, s) => sum + s.profileAttributes.age, 0) / likedProfiles.length;
       preferredAttributes['age'] = avgLikedAge;
     }
 
     // Distance preference learning
-    const avgLikedDistance = likedProfiles.length > 0
-      ? likedProfiles.reduce((sum, s) => sum + s.profileAttributes.distance, 0) / likedProfiles.length
-      : 15;
+    const avgLikedDistance =
+      likedProfiles.length > 0
+        ? likedProfiles.reduce((sum, s) => sum + s.profileAttributes.distance, 0) /
+          likedProfiles.length
+        : 15;
     preferredAttributes['distance'] = avgLikedDistance;
 
     // Photo quality importance
-    const photoQualityWeight = likedProfiles.length > 0
-      ? likedProfiles.reduce((sum, s) => sum + s.profileAttributes.photoQuality, 0) / likedProfiles.length
-      : 0.7;
+    const photoQualityWeight =
+      likedProfiles.length > 0
+        ? likedProfiles.reduce((sum, s) => sum + s.profileAttributes.photoQuality, 0) /
+          likedProfiles.length
+        : 0.7;
     preferredAttributes['photoQuality'] = photoQualityWeight;
 
     // Identify success factors from conversations
     const successFactors: SuccessFactor[] = [];
-    const successfulConversations = behaviorData.conversationMetrics.filter(c => c.ledToDate || c.qualityScore > 0.7);
+    const successfulConversations = behaviorData.conversationMetrics.filter(
+      (c) => c.ledToDate || c.qualityScore > 0.7
+    );
 
     if (successfulConversations.length > 0) {
       successFactors.push({
@@ -192,7 +201,9 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
     const avoidancePatterns: AvoidancePattern[] = [];
     if (passedProfiles.length > 10) {
       // Find common attributes in passed profiles
-      const avgPassedDistance = passedProfiles.reduce((sum, s) => sum + s.profileAttributes.distance, 0) / passedProfiles.length;
+      const avgPassedDistance =
+        passedProfiles.reduce((sum, s) => sum + s.profileAttributes.distance, 0) /
+        passedProfiles.length;
 
       if (avgPassedDistance > 30) {
         avoidancePatterns.push({
@@ -245,10 +256,7 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
     }
   };
 
-  const calculateIndividualMatchScore = (
-    profile: any,
-    model: LearningModel
-  ): MatchScore => {
+  const calculateIndividualMatchScore = (profile: any, model: LearningModel): MatchScore => {
     // 1. Behavioral Compatibility (40% weight)
     const behavioralScore = calculateBehavioralCompatibility(profile, model);
 
@@ -263,10 +271,7 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
 
     // Weighted overall score
     const overallScore =
-      behavioralScore * 0.4 +
-      attributeScore * 0.3 +
-      conversationScore * 0.2 +
-      successScore * 0.1;
+      behavioralScore * 0.4 + attributeScore * 0.3 + conversationScore * 0.2 + successScore * 0.1;
 
     const reasoning: string[] = [];
 
@@ -366,7 +371,10 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
     }
 
     // Active recently
-    if (profile.lastActive && new Date(profile.lastActive) > new Date(Date.now() - 24 * 60 * 60 * 1000)) {
+    if (
+      profile.lastActive &&
+      new Date(profile.lastActive) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+    ) {
       score += 5;
     }
 
@@ -437,9 +445,7 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
         </View>
       ) : (
         <View>
-          <Text style={styles.headerText}>
-            Match Scores ({matchScores.length} profiles)
-          </Text>
+          <Text style={styles.headerText}>Match Scores ({matchScores.length} profiles)</Text>
 
           {matchScores.map((score) => (
             <View key={score.profileId} style={styles.scoreCard}>
@@ -453,7 +459,9 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
 
                 <TouchableOpacity
                   style={styles.detailsButton}
-                  onPress={() => setShowDetails(showDetails === score.profileId ? null : score.profileId)}
+                  onPress={() =>
+                    setShowDetails(showDetails === score.profileId ? null : score.profileId)
+                  }
                 >
                   <Text style={styles.detailsButtonText}>
                     {showDetails === score.profileId ? 'Hide' : 'Show'} Details
@@ -467,17 +475,23 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
 
                   <View style={styles.breakdownRow}>
                     <Text style={styles.breakdownLabel}>Behavioral Compatibility:</Text>
-                    <Text style={styles.breakdownValue}>{score.breakdown.behavioralCompatibility}%</Text>
+                    <Text style={styles.breakdownValue}>
+                      {score.breakdown.behavioralCompatibility}%
+                    </Text>
                   </View>
 
                   <View style={styles.breakdownRow}>
                     <Text style={styles.breakdownLabel}>Attribute Similarity:</Text>
-                    <Text style={styles.breakdownValue}>{score.breakdown.attributeSimilarity}%</Text>
+                    <Text style={styles.breakdownValue}>
+                      {score.breakdown.attributeSimilarity}%
+                    </Text>
                   </View>
 
                   <View style={styles.breakdownRow}>
                     <Text style={styles.breakdownLabel}>Conversation Potential:</Text>
-                    <Text style={styles.breakdownValue}>{score.breakdown.conversationPotential}%</Text>
+                    <Text style={styles.breakdownValue}>
+                      {score.breakdown.conversationPotential}%
+                    </Text>
                   </View>
 
                   <View style={styles.breakdownRow}>
@@ -489,7 +503,9 @@ const SmartMatchingAlgorithm: React.FC<SmartMatchingAlgorithmProps> = ({
                     <View style={styles.reasoningContainer}>
                       <Text style={styles.reasoningTitle}>Why this match?</Text>
                       {score.reasoning.map((reason, index) => (
-                        <Text key={index} style={styles.reasoningText}>• {reason}</Text>
+                        <Text key={index} style={styles.reasoningText}>
+                          • {reason}
+                        </Text>
                       ))}
                     </View>
                   )}

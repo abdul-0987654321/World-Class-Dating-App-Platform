@@ -108,7 +108,8 @@ const DEFAULT_EVENTS: CommunityEvent[] = [
     id: '1',
     communityId: '1',
     title: 'Travel Meetup - NYC',
-    description: 'Meet fellow travelers in Central Park. Share stories, exchange tips, and maybe find your next travel buddy!',
+    description:
+      'Meet fellow travelers in Central Park. Share stories, exchange tips, and maybe find your next travel buddy!',
     imageUrl: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=400',
     date: '2025-12-01T14:00:00Z',
     time: '2:00 PM',
@@ -136,7 +137,8 @@ const DEFAULT_EVENTS: CommunityEvent[] = [
     id: '2',
     communityId: '2',
     title: 'Foodie Crawl - Brooklyn',
-    description: 'Explore the best eateries in Brooklyn! We will visit 5 amazing spots and sample local favorites.',
+    description:
+      'Explore the best eateries in Brooklyn! We will visit 5 amazing spots and sample local favorites.',
     imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
     date: '2025-12-05T18:00:00Z',
     time: '6:00 PM',
@@ -162,7 +164,8 @@ const DEFAULT_EVENTS: CommunityEvent[] = [
     id: '3',
     communityId: '8',
     title: 'Group Hike - Bear Mountain',
-    description: 'Weekend hiking adventure at Bear Mountain State Park. Moderate difficulty, stunning views!',
+    description:
+      'Weekend hiking adventure at Bear Mountain State Park. Moderate difficulty, stunning views!',
     imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400',
     date: '2025-12-08T08:00:00Z',
     time: '8:00 AM',
@@ -188,7 +191,8 @@ const DEFAULT_EVENTS: CommunityEvent[] = [
     id: '4',
     communityId: '4',
     title: 'Book Club Meeting',
-    description: 'Discussing "The Midnight Library" by Matt Haig. Join us for an engaging discussion!',
+    description:
+      'Discussing "The Midnight Library" by Matt Haig. Join us for an engaging discussion!',
     imageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400',
     date: '2025-12-10T19:00:00Z',
     time: '7:00 PM',
@@ -214,10 +218,34 @@ const DEFAULT_EVENTS: CommunityEvent[] = [
 ];
 
 const DEFAULT_ATTENDEES: EventAttendee[] = [
-  { id: '1', name: 'Sarah Johnson', photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg', rsvpStatus: 'going', rsvpDate: '2024-11-20T00:00:00Z' },
-  { id: '2', name: 'Mike Chen', photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg', rsvpStatus: 'going', rsvpDate: '2024-11-21T00:00:00Z' },
-  { id: '3', name: 'Emma Wilson', photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg', rsvpStatus: 'maybe', rsvpDate: '2024-11-22T00:00:00Z' },
-  { id: '4', name: 'James Brown', photoUrl: 'https://randomuser.me/api/portraits/men/2.jpg', rsvpStatus: 'going', rsvpDate: '2024-11-23T00:00:00Z' },
+  {
+    id: '1',
+    name: 'Sarah Johnson',
+    photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg',
+    rsvpStatus: 'going',
+    rsvpDate: '2024-11-20T00:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'Mike Chen',
+    photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+    rsvpStatus: 'going',
+    rsvpDate: '2024-11-21T00:00:00Z',
+  },
+  {
+    id: '3',
+    name: 'Emma Wilson',
+    photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg',
+    rsvpStatus: 'maybe',
+    rsvpDate: '2024-11-22T00:00:00Z',
+  },
+  {
+    id: '4',
+    name: 'James Brown',
+    photoUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
+    rsvpStatus: 'going',
+    rsvpDate: '2024-11-23T00:00:00Z',
+  },
 ];
 
 export function useCommunityEvents(communityId?: string): UseCommunityEventsReturn {
@@ -235,67 +263,70 @@ export function useCommunityEvents(communityId?: string): UseCommunityEventsRetu
     page: 1,
   });
 
-  const fetchEvents = useCallback(async (commId?: string, reset = false) => {
-    const currentPage = reset ? 1 : state.page;
-    const targetCommunityId = commId || communityId;
+  const fetchEvents = useCallback(
+    async (commId?: string, reset = false) => {
+      const currentPage = reset ? 1 : state.page;
+      const targetCommunityId = commId || communityId;
 
-    if (!reset && state.eventsLoading) return;
+      if (!reset && state.eventsLoading) return;
 
-    setState((prev) => ({
-      ...prev,
-      eventsLoading: true,
-      error: null,
-      page: currentPage,
-    }));
+      setState((prev) => ({
+        ...prev,
+        eventsLoading: true,
+        error: null,
+        page: currentPage,
+      }));
 
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '20',
-      });
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '20',
+        });
 
-      if (targetCommunityId) {
-        params.append('communityId', targetCommunityId);
-      }
+        if (targetCommunityId) {
+          params.append('communityId', targetCommunityId);
+        }
 
-      const response = await httpClient.get<{
-        events: CommunityEvent[];
-        hasMore: boolean;
-      }>(`/api/communities/events?${params.toString()}`);
+        const response = await httpClient.get<{
+          events: CommunityEvent[];
+          hasMore: boolean;
+        }>(`/api/communities/events?${params.toString()}`);
 
-      if (response.success && response.data) {
-        setState((prev) => ({
-          ...prev,
-          events: reset ? response.data!.events : [...prev.events, ...response.data!.events],
-          hasMore: response.data!.hasMore,
-          eventsLoading: false,
-          page: currentPage + 1,
-        }));
-      } else {
+        if (response.success && response.data) {
+          setState((prev) => ({
+            ...prev,
+            events: reset ? response.data!.events : [...prev.events, ...response.data!.events],
+            hasMore: response.data!.hasMore,
+            eventsLoading: false,
+            page: currentPage + 1,
+          }));
+        } else {
+          const filteredEvents = targetCommunityId
+            ? DEFAULT_EVENTS.filter((e) => e.communityId === targetCommunityId)
+            : DEFAULT_EVENTS;
+          setState((prev) => ({
+            ...prev,
+            events: filteredEvents,
+            hasMore: false,
+            eventsLoading: false,
+          }));
+        }
+      } catch (error: any) {
+        console.error('Error fetching events:', error);
         const filteredEvents = targetCommunityId
           ? DEFAULT_EVENTS.filter((e) => e.communityId === targetCommunityId)
           : DEFAULT_EVENTS;
         setState((prev) => ({
           ...prev,
           events: filteredEvents,
-          hasMore: false,
           eventsLoading: false,
+          error: error.message || 'Failed to fetch events',
+          hasMore: false,
         }));
       }
-    } catch (error: any) {
-      console.error('Error fetching events:', error);
-      const filteredEvents = targetCommunityId
-        ? DEFAULT_EVENTS.filter((e) => e.communityId === targetCommunityId)
-        : DEFAULT_EVENTS;
-      setState((prev) => ({
-        ...prev,
-        events: filteredEvents,
-        eventsLoading: false,
-        error: error.message || 'Failed to fetch events',
-        hasMore: false,
-      }));
-    }
-  }, [communityId, state.page, state.eventsLoading]);
+    },
+    [communityId, state.page, state.eventsLoading]
+  );
 
   const fetchUpcomingEvents = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true }));
@@ -468,35 +499,30 @@ export function useCommunityEvents(communityId?: string): UseCommunityEventsRetu
     }
   }, []);
 
-  const updateEvent = useCallback(async (
-    eventId: string,
-    updates: Partial<CreateEventInput>
-  ): Promise<boolean> => {
-    try {
-      const response = await httpClient.patch(
-        `/api/communities/events/${eventId}`,
-        updates
-      );
+  const updateEvent = useCallback(
+    async (eventId: string, updates: Partial<CreateEventInput>): Promise<boolean> => {
+      try {
+        const response = await httpClient.patch(`/api/communities/events/${eventId}`, updates);
 
-      if (response.success) {
-        setState((prev) => ({
-          ...prev,
-          events: prev.events.map((e) =>
-            e.id === eventId ? { ...e, ...updates } : e
-          ),
-          selectedEvent:
-            prev.selectedEvent?.id === eventId
-              ? { ...prev.selectedEvent, ...updates }
-              : prev.selectedEvent,
-        }));
-        return true;
+        if (response.success) {
+          setState((prev) => ({
+            ...prev,
+            events: prev.events.map((e) => (e.id === eventId ? { ...e, ...updates } : e)),
+            selectedEvent:
+              prev.selectedEvent?.id === eventId
+                ? { ...prev.selectedEvent, ...updates }
+                : prev.selectedEvent,
+          }));
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('Error updating event:', error);
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error('Error updating event:', error);
-      return false;
-    }
-  }, []);
+    },
+    []
+  );
 
   const deleteEvent = useCallback(async (eventId: string): Promise<boolean> => {
     try {
@@ -540,65 +566,70 @@ export function useCommunityEvents(communityId?: string): UseCommunityEventsRetu
     }
   }, []);
 
-  const rsvpEvent = useCallback(async (
-    eventId: string,
-    status: 'going' | 'maybe' | 'not_going'
-  ): Promise<boolean> => {
-    try {
-      await httpClient.post(`/api/communities/events/${eventId}/rsvp`, { status });
+  const rsvpEvent = useCallback(
+    async (eventId: string, status: 'going' | 'maybe' | 'not_going'): Promise<boolean> => {
+      try {
+        await httpClient.post(`/api/communities/events/${eventId}/rsvp`, { status });
 
-      const isAttending = status === 'going' || status === 'maybe';
-      const attendeeDelta = status === 'going' ? 1 : status === 'not_going' ? -1 : 0;
+        const isAttending = status === 'going' || status === 'maybe';
+        const attendeeDelta = status === 'going' ? 1 : status === 'not_going' ? -1 : 0;
 
-      setState((prev) => {
-        const updatedEvents = prev.events.map((e) => {
-          if (e.id !== eventId) return e;
-          const wasAttending = e.isAttending;
-          const newAttendees = wasAttending
-            ? e.attendees + attendeeDelta - 1
-            : e.attendees + attendeeDelta + (isAttending ? 1 : 0);
+        setState((prev) => {
+          const updatedEvents = prev.events.map((e) => {
+            if (e.id !== eventId) return e;
+            const wasAttending = e.isAttending;
+            const newAttendees = wasAttending
+              ? e.attendees + attendeeDelta - 1
+              : e.attendees + attendeeDelta + (isAttending ? 1 : 0);
+            return {
+              ...e,
+              isAttending,
+              attendees: Math.max(0, newAttendees),
+            };
+          });
+
           return {
-            ...e,
-            isAttending,
-            attendees: Math.max(0, newAttendees),
+            ...prev,
+            events: updatedEvents,
+            myEvents: isAttending
+              ? [
+                  ...prev.myEvents,
+                  ...updatedEvents.filter(
+                    (e) => e.id === eventId && !prev.myEvents.find((m) => m.id === eventId)
+                  ),
+                ]
+              : prev.myEvents.filter((e) => e.id !== eventId),
+            selectedEvent:
+              prev.selectedEvent?.id === eventId
+                ? {
+                    ...prev.selectedEvent,
+                    isAttending,
+                    attendees: Math.max(0, prev.selectedEvent.attendees + attendeeDelta),
+                  }
+                : prev.selectedEvent,
           };
         });
-
-        return {
+        return true;
+      } catch (error) {
+        // Optimistic update for demo
+        const isAttending = status === 'going' || status === 'maybe';
+        setState((prev) => ({
           ...prev,
-          events: updatedEvents,
-          myEvents: isAttending
-            ? [...prev.myEvents, ...updatedEvents.filter((e) => e.id === eventId && !prev.myEvents.find((m) => m.id === eventId))]
-            : prev.myEvents.filter((e) => e.id !== eventId),
-          selectedEvent:
-            prev.selectedEvent?.id === eventId
+          events: prev.events.map((e) =>
+            e.id === eventId
               ? {
-                  ...prev.selectedEvent,
+                  ...e,
                   isAttending,
-                  attendees: Math.max(0, prev.selectedEvent.attendees + attendeeDelta),
+                  attendees: isAttending ? e.attendees + 1 : Math.max(0, e.attendees - 1),
                 }
-              : prev.selectedEvent,
-        };
-      });
-      return true;
-    } catch (error) {
-      // Optimistic update for demo
-      const isAttending = status === 'going' || status === 'maybe';
-      setState((prev) => ({
-        ...prev,
-        events: prev.events.map((e) =>
-          e.id === eventId
-            ? {
-                ...e,
-                isAttending,
-                attendees: isAttending ? e.attendees + 1 : Math.max(0, e.attendees - 1),
-              }
-            : e
-        ),
-      }));
-      return true;
-    }
-  }, []);
+              : e
+          ),
+        }));
+        return true;
+      }
+    },
+    []
+  );
 
   const bookmarkEvent = useCallback(async (eventId: string): Promise<boolean> => {
     try {
@@ -644,15 +675,14 @@ export function useCommunityEvents(communityId?: string): UseCommunityEventsRetu
     }
   }, []);
 
-  const refreshEvents = useCallback(async (commId?: string) => {
-    setState((prev) => ({ ...prev, loading: true }));
-    await Promise.all([
-      fetchEvents(commId, true),
-      fetchUpcomingEvents(),
-      fetchMyEvents(),
-    ]);
-    setState((prev) => ({ ...prev, loading: false }));
-  }, [fetchEvents, fetchUpcomingEvents, fetchMyEvents]);
+  const refreshEvents = useCallback(
+    async (commId?: string) => {
+      setState((prev) => ({ ...prev, loading: true }));
+      await Promise.all([fetchEvents(commId, true), fetchUpcomingEvents(), fetchMyEvents()]);
+      setState((prev) => ({ ...prev, loading: false }));
+    },
+    [fetchEvents, fetchUpcomingEvents, fetchMyEvents]
+  );
 
   // Initial fetch
   useEffect(() => {

@@ -29,10 +29,7 @@ interface PhotoStatus {
   verifiedAt?: string;
 }
 
-const VerificationStatus: React.FC<VerificationStatusProps> = ({
-  userId,
-  onStartVerification,
-}) => {
+const VerificationStatus: React.FC<VerificationStatusProps> = ({ userId, onStartVerification }) => {
   const [stats, setStats] = useState<UserVerificationStats | null>(null);
   const [photos, setPhotos] = useState<PhotoStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,11 +144,7 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
           <FaShieldAlt size={24} />
           <span>Verification Status</span>
         </HeaderTitle>
-        <VerificationBadge
-          level={stats.verificationLevel}
-          showText={true}
-          size="medium"
-        />
+        <VerificationBadge level={stats.verificationLevel} showText={true} size="medium" />
       </Header>
 
       <StatsGrid>
@@ -191,7 +184,8 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
           <BannerContent>
             <BannerTitle>Get Verified</BannerTitle>
             <BannerText>
-              Verify your photos to increase trust and get more matches. Verified profiles get 3x more views!
+              Verify your photos to increase trust and get more matches. Verified profiles get 3x
+              more views!
             </BannerText>
           </BannerContent>
           {onStartVerification && (
@@ -211,7 +205,8 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
           <BannerContent>
             <BannerTitle>Upgrade to Verified</BannerTitle>
             <BannerText>
-              Add more verified photos with face matching to unlock the full verified badge and premium features.
+              Add more verified photos with face matching to unlock the full verified badge and
+              premium features.
             </BannerText>
           </BannerContent>
           {onStartVerification && (
@@ -231,7 +226,8 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
           <BannerContent>
             <BannerTitle>Some Photos Failed Verification</BannerTitle>
             <BannerText>
-              {stats.failed} photo{stats.failed > 1 ? 's' : ''} didn't meet our quality standards. Review and re-upload.
+              {stats.failed} photo{stats.failed > 1 ? 's' : ''} didn't meet our quality standards.
+              Review and re-upload.
             </BannerText>
           </BannerContent>
         </InfoBanner>
@@ -367,10 +363,7 @@ const StatCard = styled.div`
 const StatValue = styled.div<{ $warning?: boolean; $error?: boolean }>`
   font-size: 32px;
   font-weight: 700;
-  color: ${props =>
-    props.$error ? '#ef4444' :
-    props.$warning ? '#f59e0b' :
-    '#111827'};
+  color: ${(props) => (props.$error ? '#ef4444' : props.$warning ? '#f59e0b' : '#111827')};
   margin-bottom: 8px;
 `;
 
@@ -416,7 +409,7 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div<{ $percentage: number }>`
   height: 100%;
-  width: ${props => props.$percentage}%;
+  width: ${(props) => props.$percentage}%;
   background: linear-gradient(to right, #3b82f6, #10b981);
   transition: width 0.5s ease;
 `;
@@ -425,14 +418,10 @@ const InfoBanner = styled.div<{ $warning?: boolean; $error?: boolean }>`
   display: flex;
   align-items: center;
   gap: 16px;
-  background-color: ${props =>
-    props.$error ? '#fef2f2' :
-    props.$warning ? '#fffbeb' :
-    '#eff6ff'};
-  border: 1px solid ${props =>
-    props.$error ? '#fecaca' :
-    props.$warning ? '#fde68a' :
-    '#bfdbfe'};
+  background-color: ${(props) =>
+    props.$error ? '#fef2f2' : props.$warning ? '#fffbeb' : '#eff6ff'};
+  border: 1px solid
+    ${(props) => (props.$error ? '#fecaca' : props.$warning ? '#fde68a' : '#bfdbfe')};
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -546,12 +535,16 @@ const StatusBadge = styled.div<{ $status: string }>`
   font-size: 12px;
   font-weight: 600;
   align-self: flex-start;
-  color: ${props => {
+  color: ${(props) => {
     switch (props.$status) {
-      case 'verified': return '#10b981';
-      case 'failed': return '#ef4444';
-      case 'pending': return '#f59e0b';
-      default: return '#6b7280';
+      case 'verified':
+        return '#10b981';
+      case 'failed':
+        return '#ef4444';
+      case 'pending':
+        return '#f59e0b';
+      default:
+        return '#6b7280';
     }
   }};
 `;

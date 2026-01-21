@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
@@ -75,12 +68,7 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
     onChange: (event: any, date?: Date) => void,
     title: string
   ) => (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -110,16 +98,11 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
       <Text style={styles.label}>Travel Dates</Text>
 
       <View style={styles.dateContainer}>
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowStartPicker(true)}
-        >
+        <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartPicker(true)}>
           <Icon name="calendar-start" size={20} color="#FF6B6B" />
           <View style={styles.dateTextContainer}>
             <Text style={styles.dateLabel}>Check-in</Text>
-            <Text style={styles.dateValue}>
-              {format(startDate, 'MMM dd, yyyy')}
-            </Text>
+            <Text style={styles.dateValue}>{format(startDate, 'MMM dd, yyyy')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -127,16 +110,11 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
           <Icon name="arrow-right" size={24} color="#ccc" />
         </View>
 
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowEndPicker(true)}
-        >
+        <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndPicker(true)}>
           <Icon name="calendar-end" size={20} color="#FF6B6B" />
           <View style={styles.dateTextContainer}>
             <Text style={styles.dateLabel}>Check-out</Text>
-            <Text style={styles.dateValue}>
-              {format(endDate, 'MMM dd, yyyy')}
-            </Text>
+            <Text style={styles.dateValue}>{format(endDate, 'MMM dd, yyyy')}</Text>
           </View>
         </TouchableOpacity>
       </View>

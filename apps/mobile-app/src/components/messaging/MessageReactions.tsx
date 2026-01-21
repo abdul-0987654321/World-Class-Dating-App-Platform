@@ -4,15 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-  FlatList,
-  Pressable,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, FlatList, Pressable } from 'react-native';
 
 interface Reaction {
   emoji: string;
@@ -30,8 +22,26 @@ interface MessageReactionsProps {
 }
 
 const AVAILABLE_EMOJIS = [
-  '❤️', '😂', '😮', '😢', '😡', '👍', '👎', '🔥', '💯', '🎉',
-  '😍', '😘', '🤗', '🤔', '😎', '🥳', '😇', '🤩', '💪', '👏'
+  '❤️',
+  '😂',
+  '😮',
+  '😢',
+  '😡',
+  '👍',
+  '👎',
+  '🔥',
+  '💯',
+  '🎉',
+  '😍',
+  '😘',
+  '🤗',
+  '🤔',
+  '😎',
+  '🥳',
+  '😇',
+  '🤩',
+  '💪',
+  '👏',
 ];
 
 export const MessageReactions: React.FC<MessageReactionsProps> = ({
@@ -60,19 +70,13 @@ export const MessageReactions: React.FC<MessageReactionsProps> = ({
 
     return (
       <TouchableOpacity
-        style={[
-          styles.reactionBubble,
-          isUserReaction && styles.reactionBubbleActive,
-        ]}
+        style={[styles.reactionBubble, isUserReaction && styles.reactionBubbleActive]}
         onPress={() => handleEmojiPress(item.emoji)}
         activeOpacity={0.7}
       >
         <Text style={styles.reactionEmoji}>{item.emoji}</Text>
         {item.count > 1 && (
-          <Text style={[
-            styles.reactionCount,
-            isUserReaction && styles.reactionCountActive,
-          ]}>
+          <Text style={[styles.reactionCount, isUserReaction && styles.reactionCountActive]}>
             {item.count}
           </Text>
         )}
@@ -82,10 +86,7 @@ export const MessageReactions: React.FC<MessageReactionsProps> = ({
 
   const renderEmojiPicker = ({ item }: { item: string }) => (
     <TouchableOpacity
-      style={[
-        styles.emojiPickerItem,
-        userReaction === item && styles.emojiPickerItemActive,
-      ]}
+      style={[styles.emojiPickerItem, userReaction === item && styles.emojiPickerItemActive]}
       onPress={() => handleEmojiPress(item)}
       activeOpacity={0.7}
     >
@@ -125,10 +126,7 @@ export const MessageReactions: React.FC<MessageReactionsProps> = ({
         animationType="fade"
         onRequestClose={() => setPickerVisible(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setPickerVisible(false)}
-        >
+        <Pressable style={styles.modalOverlay} onPress={() => setPickerVisible(false)}>
           <View style={styles.emojiPicker}>
             <Text style={styles.emojiPickerTitle}>React with emoji</Text>
             <FlatList

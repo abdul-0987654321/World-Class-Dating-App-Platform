@@ -140,10 +140,7 @@ export const AchievementShowcase: React.FC<AchievementShowcaseProps> = ({
               {/* Badge/Icon */}
               <View style={styles.badgeContainer}>
                 {achievement.badgeImageUrl ? (
-                  <Image
-                    source={{ uri: achievement.badgeImageUrl }}
-                    style={styles.badgeImage}
-                  />
+                  <Image source={{ uri: achievement.badgeImageUrl }} style={styles.badgeImage} />
                 ) : (
                   <Icon name={achievement.iconName || 'award'} size={40} color="white" />
                 )}

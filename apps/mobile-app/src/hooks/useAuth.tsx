@@ -63,6 +63,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: any | null;
+  token: string | null;
   login: (credentials: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
@@ -76,7 +77,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const apiClient = createApiClient({
   getToken: async (): Promise<string | null> => {
     return await TokenStorage.getItem(ACCESS_TOKEN_KEY);
-  }
+  },
 });
 
 const authApi = new AuthApi(apiClient);
@@ -85,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUserState] = useState<any | null>(null);
+  const [token, setTokenState] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -92,8 +94,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAuth = async () => {
     try {
-      const token = await TokenStorage.getItem(ACCESS_TOKEN_KEY);
-      if (token) {
+      const storedToken = await TokenStorage.getItem(ACCESS_TOKEN_KEY);
+      if (storedToken) {
+        setTokenState(storedToken);
         const userData = await authApi.getCurrentUser();
         setUserState(userData);
         setIsAuthenticated(true);
@@ -111,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authApi.login(credentials);
       await TokenStorage.setItem(ACCESS_TOKEN_KEY, response.accessToken);
       await TokenStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      setTokenState(response.accessToken);
       setUserState(response.user);
       setIsAuthenticated(true);
     } catch (error) {
@@ -124,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authApi.register(data);
       await TokenStorage.setItem(ACCESS_TOKEN_KEY, response.accessToken);
       await TokenStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      setTokenState(response.accessToken);
       setUserState(response.user);
       setIsAuthenticated(true);
     } catch (error) {
@@ -139,6 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout error:', error);
     } finally {
       await TokenStorage.clear();
+      setTokenState(null);
       setUserState(null);
       setIsAuthenticated(false);
     }
@@ -148,6 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await apiClient.delete('/api/v1/auth/account');
       await TokenStorage.clear();
+      setTokenState(null);
       setUserState(null);
       setIsAuthenticated(false);
     } catch (error) {
@@ -166,21 +173,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setToken = async (accessToken: string, refreshToken: string) => {
     await TokenStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     await TokenStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    setTokenState(accessToken);
     setIsAuthenticated(true);
   };
 
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      isLoading,
-      user,
-      login,
-      register,
-      logout,
-      setUser,
-      setToken,
-      deleteAccount
-    }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isLoading,
+        user,
+        token,
+        login,
+        register,
+        logout,
+        setUser,
+        setToken,
+        deleteAccount,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

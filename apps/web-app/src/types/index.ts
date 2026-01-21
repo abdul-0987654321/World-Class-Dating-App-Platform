@@ -8,7 +8,7 @@
 
 // Gender enum - matches backend validation
 export const VALID_GENDERS = ['male', 'female', 'non-binary', 'other'] as const;
-export type Gender = typeof VALID_GENDERS[number];
+export type Gender = (typeof VALID_GENDERS)[number];
 
 // User Types
 export interface User {
@@ -135,7 +135,13 @@ export interface Like {
 export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
 
 // NOTE: Status uses US spelling 'canceled' (not 'cancelled') to match backend
-export type SubscriptionStatus = 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing' | 'grace_period';
+export type SubscriptionStatus =
+  | 'active'
+  | 'canceled'
+  | 'expired'
+  | 'past_due'
+  | 'trialing'
+  | 'grace_period';
 
 export interface Subscription {
   id: string;

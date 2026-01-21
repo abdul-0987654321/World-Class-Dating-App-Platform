@@ -23,36 +23,33 @@ const AccountSettingsScreen: React.FC = () => {
   };
 
   const handleChangePassword = () => {
-    Alert.alert(
-      'Change Password',
-      'A password reset link will be sent to your email.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Send Link', onPress: () => Alert.alert('Success', 'Password reset link sent to your email.') },
-      ]
-    );
+    Alert.alert('Change Password', 'A password reset link will be sent to your email.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Send Link',
+        onPress: () => Alert.alert('Success', 'Password reset link sent to your email.'),
+      },
+    ]);
   };
 
   const handleChangeEmail = () => {
-    Alert.alert(
-      'Change Email',
-      'A verification link will be sent to your new email address.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => Alert.alert('Success', 'Verification link sent to your new email.') },
-      ]
-    );
+    Alert.alert('Change Email', 'A verification link will be sent to your new email address.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Continue',
+        onPress: () => Alert.alert('Success', 'Verification link sent to your new email.'),
+      },
+    ]);
   };
 
   const handleChangePhone = () => {
-    Alert.alert(
-      'Change Phone',
-      'You will receive a verification code on your new phone number.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => Alert.alert('Success', 'Verification code sent to your new phone.') },
-      ]
-    );
+    Alert.alert('Change Phone', 'You will receive a verification code on your new phone number.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Continue',
+        onPress: () => Alert.alert('Success', 'Verification code sent to your new phone.'),
+      },
+    ]);
   };
 
   return (
@@ -121,9 +118,7 @@ const AccountSettingsScreen: React.FC = () => {
               <Text style={styles.editButtonText}>Change</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.helperText}>
-            Used for account verification and security
-          </Text>
+          <Text style={styles.helperText}>Used for account verification and security</Text>
         </View>
 
         <View style={styles.section}>
@@ -137,9 +132,7 @@ const AccountSettingsScreen: React.FC = () => {
             <Icon name="key-outline" size={24} color="#FF6B6B" />
             <View style={styles.actionText}>
               <Text style={styles.actionTitle}>Change Password</Text>
-              <Text style={styles.actionSubtitle}>
-                Last changed 30 days ago
-              </Text>
+              <Text style={styles.actionSubtitle}>Last changed 30 days ago</Text>
             </View>
             <Icon name="chevron-forward" size={20} color="#C7C7CC" />
           </TouchableOpacity>
@@ -229,9 +222,7 @@ const AccountSettingsScreen: React.FC = () => {
             <Icon name="download-outline" size={24} color="#FF6B6B" />
             <View style={styles.actionText}>
               <Text style={styles.actionTitle}>Download My Data</Text>
-              <Text style={styles.actionSubtitle}>
-                Get a copy of your information
-              </Text>
+              <Text style={styles.actionSubtitle}>Get a copy of your information</Text>
             </View>
             <Icon name="chevron-forward" size={20} color="#C7C7CC" />
           </TouchableOpacity>

@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = process.env.API_BASE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000/api' : (() => { throw new Error('API_BASE_URL environment variable is required in production'); })());
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.flamoral.com';
 
 export type UserMode = 'date' | 'friends' | 'network';
 
@@ -43,10 +43,7 @@ class ModeService {
    */
   async getUserModes(): Promise<ModesState> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/users/me/modes`,
-        this.getAuthHeaders()
-      );
+      const response = await axios.get(`${API_BASE_URL}/users/me/modes`, this.getAuthHeaders());
 
       return response.data.data;
     } catch (error: any) {
@@ -143,9 +140,7 @@ class ModeService {
       return response.data.data;
     } catch (error: any) {
       console.error('Update mode preferences error:', error.response?.data || error.message);
-      throw new Error(
-        error.response?.data?.message || 'Failed to update mode preferences'
-      );
+      throw new Error(error.response?.data?.message || 'Failed to update mode preferences');
     }
   }
 
@@ -173,10 +168,7 @@ class ModeService {
   /**
    * Get discovery feed for current mode
    */
-  async getDiscoveryFeed(
-    mode?: UserMode,
-    filters?: Record<string, any>
-  ): Promise<any[]> {
+  async getDiscoveryFeed(mode?: UserMode, filters?: Record<string, any>): Promise<any[]> {
     try {
       const params: any = {};
       if (mode) params.mode = mode;

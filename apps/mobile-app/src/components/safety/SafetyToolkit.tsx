@@ -73,7 +73,10 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
   const [showAddContactModal, setShowAddContactModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', phone: '', relationship: '' });
-  const [reportDetails, setReportDetails] = useState({ reason: 'inappropriate_photos' as ReportReason, details: '' });
+  const [reportDetails, setReportDetails] = useState({
+    reason: 'inappropriate_photos' as ReportReason,
+    details: '',
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const updateSetting = async <K extends keyof SafetySettings>(
@@ -133,19 +136,15 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
   };
 
   const handleCallEmergency = (contact: EmergencyContact) => {
-    Alert.alert(
-      'Call Emergency Contact',
-      `Call ${contact.name} at ${contact.phone}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Call',
-          onPress: () => {
-            Linking.openURL(`tel:${contact.phone}`);
-          },
+    Alert.alert('Call Emergency Contact', `Call ${contact.name} at ${contact.phone}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Call',
+        onPress: () => {
+          Linking.openURL(`tel:${contact.phone}`);
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleUnblockUser = (user: BlockedUser) => {
@@ -295,9 +294,7 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Safety Settings</Text>
-        <Text style={styles.sectionDescription}>
-          Control how your safety features work
-        </Text>
+        <Text style={styles.sectionDescription}>Control how your safety features work</Text>
       </View>
 
       <View style={styles.settingsCard}>
@@ -310,9 +307,7 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
           </View>
           <Switch
             value={safetySettings.shareLocationWithEmergencyContact}
-            onValueChange={(value) =>
-              updateSetting('shareLocationWithEmergencyContact', value)
-            }
+            onValueChange={(value) => updateSetting('shareLocationWithEmergencyContact', value)}
             trackColor={{ false: '#E0E0E0', true: '#FFC0CB' }}
             thumbColor={safetySettings.shareLocationWithEmergencyContact ? '#E91E63' : '#F5F5F5'}
           />
@@ -359,9 +354,7 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Blocked Users</Text>
-        <Text style={styles.sectionDescription}>
-          {blockedUsers.length} blocked
-        </Text>
+        <Text style={styles.sectionDescription}>{blockedUsers.length} blocked</Text>
       </View>
 
       {blockedUsers.length === 0 ? (
@@ -396,9 +389,7 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Safety Resources</Text>
-        <Text style={styles.sectionDescription}>
-          24/7 support hotlines and resources
-        </Text>
+        <Text style={styles.sectionDescription}>24/7 support hotlines and resources</Text>
       </View>
 
       <View style={styles.resourcesList}>
@@ -432,10 +423,7 @@ export const SafetyToolkit: React.FC<SafetyToolkitProps> = ({
             Call 911 or your local emergency services immediately
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.emergencyButton}
-          onPress={() => Linking.openURL('tel:911')}
-        >
+        <TouchableOpacity style={styles.emergencyButton} onPress={() => Linking.openURL('tel:911')}>
           <Text style={styles.emergencyButtonText}>Call 911</Text>
         </TouchableOpacity>
       </View>

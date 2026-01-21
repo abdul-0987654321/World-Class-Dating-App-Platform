@@ -66,7 +66,7 @@ class PrivacyService {
 
   async updateSettings(settings: Partial<PrivacySettings>): Promise<PrivacySettings> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         hideLastActive: false,
         hideDistance: false,
@@ -98,7 +98,7 @@ class PrivacyService {
 
   async toggleIncognito(enabled: boolean): Promise<{ success: boolean; expiresAt?: string }> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         success: true,
         expiresAt: enabled ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : undefined,

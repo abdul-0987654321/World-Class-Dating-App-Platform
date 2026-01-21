@@ -38,11 +38,14 @@ describe('Profile Management', () => {
       cy.get('[data-testid="add-photo-button"]').click();
 
       cy.fixture('test-photo.jpg', 'base64').then((fileContent) => {
-        cy.get('[data-testid="photo-upload-input"]').selectFile({
-          contents: Cypress.Buffer.from(fileContent, 'base64'),
-          fileName: 'test-photo.jpg',
-          mimeType: 'image/jpeg',
-        }, { force: true });
+        cy.get('[data-testid="photo-upload-input"]').selectFile(
+          {
+            contents: Cypress.Buffer.from(fileContent, 'base64'),
+            fileName: 'test-photo.jpg',
+            mimeType: 'image/jpeg',
+          },
+          { force: true }
+        );
       });
 
       cy.get('[data-testid="photo-preview"]').should('be.visible');
@@ -83,28 +86,33 @@ describe('Profile Management', () => {
 
       // Test oversized file
       cy.fixture('large-photo.jpg').then((fileContent) => {
-        cy.get('[data-testid="photo-upload-input"]').selectFile({
-          contents: fileContent,
-          fileName: 'large-photo.jpg',
-        }, { force: true });
+        cy.get('[data-testid="photo-upload-input"]').selectFile(
+          {
+            contents: fileContent,
+            fileName: 'large-photo.jpg',
+          },
+          { force: true }
+        );
       });
 
       cy.get('[data-testid="file-size-error"]').should('contain', 'too large');
     });
 
     it('should require at least 2 photos', () => {
-      cy.get('[data-testid="photo-item"]').its('length').then((count) => {
-        if (count > 2) {
-          for (let i = count; i > 2; i--) {
-            cy.get('[data-testid="photo-item"]').last().trigger('mouseover');
-            cy.get('[data-testid="delete-photo-button"]').last().click();
-            cy.get('[data-testid="confirm-delete"]').click();
+      cy.get('[data-testid="photo-item"]')
+        .its('length')
+        .then((count) => {
+          if (count > 2) {
+            for (let i = count; i > 2; i--) {
+              cy.get('[data-testid="photo-item"]').last().trigger('mouseover');
+              cy.get('[data-testid="delete-photo-button"]').last().click();
+              cy.get('[data-testid="confirm-delete"]').click();
+            }
           }
-        }
 
-        cy.get('[data-testid="photo-item"]').last().trigger('mouseover');
-        cy.get('[data-testid="delete-photo-button"]').should('be.disabled');
-      });
+          cy.get('[data-testid="photo-item"]').last().trigger('mouseover');
+          cy.get('[data-testid="delete-photo-button"]').should('be.disabled');
+        });
     });
   });
 
@@ -117,8 +125,7 @@ describe('Profile Management', () => {
 
       cy.get('[data-testid="save-bio-button"]').click();
 
-      cy.get('[data-testid="profile-bio"]')
-        .should('contain', 'Updated bio');
+      cy.get('[data-testid="profile-bio"]').should('contain', 'Updated bio');
     });
 
     it('should enforce bio character limit', () => {
@@ -174,9 +181,11 @@ describe('Profile Management', () => {
     it('should remove interests', () => {
       cy.get('[data-testid="edit-interests-button"]').click();
 
-      cy.get('[data-testid="interest-tag"]').first().within(() => {
-        cy.get('[data-testid="remove-interest"]').click();
-      });
+      cy.get('[data-testid="interest-tag"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="remove-interest"]').click();
+        });
 
       cy.get('[data-testid="save-interests"]').click();
     });
@@ -204,26 +213,27 @@ describe('Profile Management', () => {
 
       cy.get('[data-testid="save-prompt"]').click();
 
-      cy.get('[data-testid="prompts-section"]')
-        .should('contain', 'My thoughtful answer');
+      cy.get('[data-testid="prompts-section"]').should('contain', 'My thoughtful answer');
     });
 
     it('should edit existing prompt', () => {
-      cy.get('[data-testid="prompt-item"]').first().within(() => {
-        cy.get('[data-testid="edit-prompt"]').click();
-      });
+      cy.get('[data-testid="prompt-item"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="edit-prompt"]').click();
+        });
 
-      cy.get('[data-testid="prompt-answer"]')
-        .clear()
-        .type('Updated answer');
+      cy.get('[data-testid="prompt-answer"]').clear().type('Updated answer');
 
       cy.get('[data-testid="save-prompt"]').click();
     });
 
     it('should delete prompt', () => {
-      cy.get('[data-testid="prompt-item"]').first().within(() => {
-        cy.get('[data-testid="delete-prompt"]').click();
-      });
+      cy.get('[data-testid="prompt-item"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="delete-prompt"]').click();
+        });
 
       cy.get('[data-testid="confirm-delete"]').click();
       cy.get('[data-testid="delete-success-toast"]').should('be.visible');
@@ -247,13 +257,9 @@ describe('Profile Management', () => {
     });
 
     it('should update age preference', () => {
-      cy.get('[data-testid="age-min-slider"]')
-        .invoke('val', 25)
-        .trigger('change');
+      cy.get('[data-testid="age-min-slider"]').invoke('val', 25).trigger('change');
 
-      cy.get('[data-testid="age-max-slider"]')
-        .invoke('val', 35)
-        .trigger('change');
+      cy.get('[data-testid="age-max-slider"]').invoke('val', 35).trigger('change');
 
       cy.get('[data-testid="save-preferences"]').click();
 
@@ -261,9 +267,7 @@ describe('Profile Management', () => {
     });
 
     it('should update distance preference', () => {
-      cy.get('[data-testid="distance-slider"]')
-        .invoke('val', 25)
-        .trigger('change');
+      cy.get('[data-testid="distance-slider"]').invoke('val', 25).trigger('change');
 
       cy.get('[data-testid="distance-value"]').should('contain', '25');
       cy.get('[data-testid="save-preferences"]').click();
@@ -366,10 +370,13 @@ describe('Profile Management', () => {
       cy.get('[data-testid="verify-profile-button"]').click();
 
       cy.fixture('verification-photo.jpg').then((fileContent) => {
-        cy.get('[data-testid="verification-upload"]').selectFile({
-          contents: fileContent,
-          fileName: 'verification-photo.jpg',
-        }, { force: true });
+        cy.get('[data-testid="verification-upload"]').selectFile(
+          {
+            contents: fileContent,
+            fileName: 'verification-photo.jpg',
+          },
+          { force: true }
+        );
       });
 
       cy.get('[data-testid="submit-verification"]').click();
@@ -413,16 +420,24 @@ describe('Profile Management', () => {
     });
 
     it('should handle upload failures', () => {
-      cy.interceptAPI('POST', '**/api/v1/media/upload', {
-        statusCode: 500,
-      }, 'uploadFail');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/media/upload',
+        {
+          statusCode: 500,
+        },
+        'uploadFail'
+      );
 
       cy.get('[data-testid="add-photo-button"]').click();
       cy.fixture('test-photo.jpg').then((fileContent) => {
-        cy.get('[data-testid="photo-upload-input"]').selectFile({
-          contents: fileContent,
-          fileName: 'test-photo.jpg',
-        }, { force: true });
+        cy.get('[data-testid="photo-upload-input"]').selectFile(
+          {
+            contents: fileContent,
+            fileName: 'test-photo.jpg',
+          },
+          { force: true }
+        );
       });
 
       cy.get('[data-testid="save-photo"]').click();
@@ -432,9 +447,14 @@ describe('Profile Management', () => {
     });
 
     it('should handle save failures gracefully', () => {
-      cy.interceptAPI('PUT', '**/api/v1/users/profile', {
-        statusCode: 500,
-      }, 'saveFail');
+      cy.interceptAPI(
+        'PUT',
+        '**/api/v1/users/profile',
+        {
+          statusCode: 500,
+        },
+        'saveFail'
+      );
 
       cy.get('[data-testid="edit-bio-button"]').click();
       cy.get('[data-testid="bio-textarea"]').type('New bio');

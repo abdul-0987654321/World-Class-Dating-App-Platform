@@ -89,8 +89,16 @@ describe('Frontend Error Handler', () => {
         statusCode: 422,
         message: 'Validation failed',
         details: [
-          { field: 'email', code: 'invalid_email', constraints: { isEmail: 'Must be a valid email' } },
-          { field: 'password', code: 'too_short', constraints: { minLength: 'Must be at least 8 characters' } },
+          {
+            field: 'email',
+            code: 'invalid_email',
+            constraints: { isEmail: 'Must be a valid email' },
+          },
+          {
+            field: 'password',
+            code: 'too_short',
+            constraints: { minLength: 'Must be at least 8 characters' },
+          },
         ],
       };
 
@@ -655,9 +663,7 @@ describe('Frontend Error Handler', () => {
       const error: ApiErrorResponse = {
         statusCode: 422,
         message: 'Validation failed',
-        details: [
-          { field: 'email', code: 'required' },
-        ],
+        details: [{ field: 'email', code: 'required' }],
       };
 
       const result = processApiError(error);

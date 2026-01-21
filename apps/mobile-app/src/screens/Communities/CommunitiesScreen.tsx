@@ -58,44 +58,62 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
     bookmarkEvent,
   } = useCommunityEvents();
 
-  const handleSearch = useCallback(async (query: string) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      const results = await searchCommunities(query);
-      setSearchResults(results);
-    } else {
-      setSearchResults(null);
-    }
-  }, [searchCommunities]);
+  const handleSearch = useCallback(
+    async (query: string) => {
+      setSearchQuery(query);
+      if (query.trim()) {
+        const results = await searchCommunities(query);
+        setSearchResults(results);
+      } else {
+        setSearchResults(null);
+      }
+    },
+    [searchCommunities]
+  );
 
-  const handleCategorySelect = useCallback((categoryId: string | null) => {
-    setSelectedCategory(categoryId);
-    filterByCategory(categoryId);
-  }, [filterByCategory]);
+  const handleCategorySelect = useCallback(
+    (categoryId: string | null) => {
+      setSelectedCategory(categoryId);
+      filterByCategory(categoryId);
+    },
+    [filterByCategory]
+  );
 
-  const handleJoinToggle = useCallback(async (community: Community) => {
-    if (community.isJoined) {
-      await leaveCommunity(community.id);
-    } else {
-      await joinCommunity(community.id);
-    }
-  }, [joinCommunity, leaveCommunity]);
+  const handleJoinToggle = useCallback(
+    async (community: Community) => {
+      if (community.isJoined) {
+        await leaveCommunity(community.id);
+      } else {
+        await joinCommunity(community.id);
+      }
+    },
+    [joinCommunity, leaveCommunity]
+  );
 
-  const handleCommunityPress = useCallback((community: Community) => {
-    navigation.navigate('CommunityDetail', { communityId: community.id });
-  }, [navigation]);
+  const handleCommunityPress = useCallback(
+    (community: Community) => {
+      navigation.navigate('CommunityDetail', { communityId: community.id });
+    },
+    [navigation]
+  );
 
-  const handleEventPress = useCallback((event: CommunityEvent) => {
-    navigation.navigate('CommunityEvents', { eventId: event.id });
-  }, [navigation]);
+  const handleEventPress = useCallback(
+    (event: CommunityEvent) => {
+      navigation.navigate('CommunityEvents', { eventId: event.id });
+    },
+    [navigation]
+  );
 
   const handleCreateCommunity = useCallback(() => {
     navigation.navigate('CreateCommunity');
   }, [navigation]);
 
-  const handleRsvp = useCallback(async (eventId: string, currentStatus: boolean) => {
-    await rsvpEvent(eventId, currentStatus ? 'not_going' : 'going');
-  }, [rsvpEvent]);
+  const handleRsvp = useCallback(
+    async (eventId: string, currentStatus: boolean) => {
+      await rsvpEvent(eventId, currentStatus ? 'not_going' : 'going');
+    },
+    [rsvpEvent]
+  );
 
   const displayedCommunities = useMemo(() => {
     if (searchResults) return searchResults;
@@ -123,17 +141,10 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
 
   const renderCategoryChip = ({ item }: { item: CommunityCategory }) => (
     <TouchableOpacity
-      style={[
-        styles.categoryChip,
-        selectedCategory === item.id && styles.categoryChipSelected,
-      ]}
+      style={[styles.categoryChip, selectedCategory === item.id && styles.categoryChipSelected]}
       onPress={() => handleCategorySelect(selectedCategory === item.id ? null : item.id)}
     >
-      <Icon
-        name={item.icon}
-        size={16}
-        color={selectedCategory === item.id ? '#fff' : '#666'}
-      />
+      <Icon name={item.icon} size={16} color={selectedCategory === item.id ? '#fff' : '#666'} />
       <Text
         style={[
           styles.categoryChipText,
@@ -172,18 +183,10 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       </View>
       <TouchableOpacity
-        style={[
-          styles.joinButton,
-          item.isJoined && styles.joinedButton,
-        ]}
+        style={[styles.joinButton, item.isJoined && styles.joinedButton]}
         onPress={() => handleJoinToggle(item)}
       >
-        <Text
-          style={[
-            styles.joinButtonText,
-            item.isJoined && styles.joinedButtonText,
-          ]}
-        >
+        <Text style={[styles.joinButtonText, item.isJoined && styles.joinedButtonText]}>
           {item.isJoined ? 'Joined' : 'Join'}
         </Text>
       </TouchableOpacity>
@@ -217,9 +220,7 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
       onPress={() => handleEventPress(item)}
       activeOpacity={0.9}
     >
-      {item.imageUrl && (
-        <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
-      )}
+      {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />}
       <View style={styles.eventContent}>
         <View style={styles.eventHeader}>
           <View style={styles.eventDateBadge}>
@@ -249,24 +250,14 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
             </Text>
           </View>
           <View style={styles.priceInfo}>
-            <Text style={styles.priceText}>
-              {item.price === 0 ? 'Free' : `$${item.price}`}
-            </Text>
+            <Text style={styles.priceText}>{item.price === 0 ? 'Free' : `$${item.price}`}</Text>
           </View>
         </View>
         <TouchableOpacity
-          style={[
-            styles.rsvpButton,
-            item.isAttending && styles.rsvpButtonAttending,
-          ]}
+          style={[styles.rsvpButton, item.isAttending && styles.rsvpButtonAttending]}
           onPress={() => handleRsvp(item.id, item.isAttending)}
         >
-          <Text
-            style={[
-              styles.rsvpButtonText,
-              item.isAttending && styles.rsvpButtonTextAttending,
-            ]}
-          >
+          <Text style={[styles.rsvpButtonText, item.isAttending && styles.rsvpButtonTextAttending]}>
             {item.isAttending ? 'Cancel RSVP' : 'RSVP'}
           </Text>
         </TouchableOpacity>
@@ -283,25 +274,17 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={styles.categoriesContainer}
       >
         <TouchableOpacity
-          style={[
-            styles.categoryChip,
-            !selectedCategory && styles.categoryChipSelected,
-          ]}
+          style={[styles.categoryChip, !selectedCategory && styles.categoryChipSelected]}
           onPress={() => handleCategorySelect(null)}
         >
           <Text
-            style={[
-              styles.categoryChipText,
-              !selectedCategory && styles.categoryChipTextSelected,
-            ]}
+            style={[styles.categoryChipText, !selectedCategory && styles.categoryChipTextSelected]}
           >
             All
           </Text>
         </TouchableOpacity>
         {categories.map((category) => (
-          <View key={category.id}>
-            {renderCategoryChip({ item: category })}
-          </View>
+          <View key={category.id}>{renderCategoryChip({ item: category })}</View>
         ))}
       </ScrollView>
 
@@ -329,10 +312,7 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.emptySubtitle}>
                 Try a different search or create your own community
               </Text>
-              <TouchableOpacity
-                style={styles.createButton}
-                onPress={handleCreateCommunity}
-              >
+              <TouchableOpacity style={styles.createButton} onPress={handleCreateCommunity}>
                 <Text style={styles.createButtonText}>Create Community</Text>
               </TouchableOpacity>
             </View>
@@ -351,10 +331,7 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.emptySubtitle}>
             Explore and join communities to connect with like-minded people
           </Text>
-          <TouchableOpacity
-            style={styles.exploreButton}
-            onPress={() => setActiveTab('discover')}
-          >
+          <TouchableOpacity style={styles.exploreButton} onPress={() => setActiveTab('discover')}>
             <Text style={styles.exploreButtonText}>Explore Communities</Text>
           </TouchableOpacity>
         </View>
@@ -399,9 +376,7 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.emptyState}>
               <Icon name="calendar-outline" size={64} color="#ccc" />
               <Text style={styles.emptyTitle}>No upcoming events</Text>
-              <Text style={styles.emptySubtitle}>
-                Join communities to discover exciting events
-              </Text>
+              <Text style={styles.emptySubtitle}>Join communities to discover exciting events</Text>
             </View>
           )
         }
@@ -414,10 +389,7 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Communities</Text>
-        <TouchableOpacity
-          style={styles.createIconButton}
-          onPress={handleCreateCommunity}
-        >
+        <TouchableOpacity style={styles.createIconButton} onPress={handleCreateCommunity}>
           <Icon name="add-circle-outline" size={28} color="#FF6B6B" />
         </TouchableOpacity>
       </View>
@@ -447,12 +419,7 @@ const CommunitiesScreen: React.FC<Props> = ({ navigation }) => {
             style={[styles.tab, activeTab === tab && styles.tabActive]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.tabTextActive,
-              ]}
-            >
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
               {tab === 'joined'
                 ? `My Communities (${joinedCommunities.length})`
                 : tab.charAt(0).toUpperCase() + tab.slice(1)}

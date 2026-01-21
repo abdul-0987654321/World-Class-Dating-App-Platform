@@ -48,10 +48,7 @@ interface DatingCoachChatbotProps {
   };
 }
 
-const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
-  userId,
-  userContext,
-}) => {
+const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({ userId, userContext }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -59,11 +56,21 @@ const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
 
   const quickPrompts: QuickPrompt[] = [
     { id: '1', text: 'Help me improve my profile', category: 'profile_advice', icon: '📝' },
-    { id: '2', text: 'What should I say to break the ice?', category: 'conversation_help', icon: '💬' },
+    {
+      id: '2',
+      text: 'What should I say to break the ice?',
+      category: 'conversation_help',
+      icon: '💬',
+    },
     { id: '3', text: 'Plan a great first date', category: 'date_planning', icon: '🎯' },
-    { id: '4', text: 'When should I ask them out?', category: 'relationship_questions', icon: '❤️' },
+    {
+      id: '4',
+      text: 'When should I ask them out?',
+      category: 'relationship_questions',
+      icon: '❤️',
+    },
     { id: '5', text: 'How do I handle rejection?', category: 'confidence_building', icon: '💪' },
-    { id: '6', text: 'They\'re not responding', category: 'communication_skills', icon: '📱' },
+    { id: '6', text: "They're not responding", category: 'communication_skills', icon: '📱' },
   ];
 
   useEffect(() => {
@@ -90,7 +97,7 @@ const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setIsTyping(true);
 
@@ -113,7 +120,7 @@ const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
       suggestions: response.suggestions,
     };
 
-    setMessages(prev => [...prev, coachMessage]);
+    setMessages((prev) => [...prev, coachMessage]);
 
     // Scroll to bottom again
     setTimeout(() => {
@@ -166,7 +173,7 @@ const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
       case 'relationship_questions':
         content = generateRelationshipAdvice(userMessage);
         suggestions = [
-          'How do I know if they\'re interested?',
+          "How do I know if they're interested?",
           'What are green flags to look for?',
           'When is it too soon to be exclusive?',
         ];
@@ -200,8 +207,9 @@ const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
         break;
 
       default:
-        content = 'I\'m here to help with any dating or relationship questions you have. Could you tell me more about what\'s on your mind?';
-        suggestions = quickPrompts.slice(0, 3).map(p => p.text);
+        content =
+          "I'm here to help with any dating or relationship questions you have. Could you tell me more about what's on your mind?";
+        suggestions = quickPrompts.slice(0, 3).map((p) => p.text);
     }
 
     return { content, category: detectedCategory, suggestions };
@@ -216,16 +224,28 @@ const DatingCoachChatbot: React.FC<DatingCoachChatbotProps> = ({
     if (lower.includes('conversation') || lower.includes('message') || lower.includes('say')) {
       return 'conversation_help';
     }
-    if (lower.includes('date') && (lower.includes('plan') || lower.includes('where') || lower.includes('idea'))) {
+    if (
+      lower.includes('date') &&
+      (lower.includes('plan') || lower.includes('where') || lower.includes('idea'))
+    ) {
       return 'date_planning';
     }
-    if (lower.includes('relationship') || lower.includes('exclusive') || lower.includes('serious')) {
+    if (
+      lower.includes('relationship') ||
+      lower.includes('exclusive') ||
+      lower.includes('serious')
+    ) {
       return 'relationship_questions';
     }
     if (lower.includes('breakup') || lower.includes('broke up') || lower.includes('ex')) {
       return 'breakup_support';
     }
-    if (lower.includes('confidence') || lower.includes('nervous') || lower.includes('anxious') || lower.includes('scared')) {
+    if (
+      lower.includes('confidence') ||
+      lower.includes('nervous') ||
+      lower.includes('anxious') ||
+      lower.includes('scared')
+    ) {
       return 'confidence_building';
     }
     if (lower.includes('communicate') || lower.includes('express') || lower.includes('tell them')) {

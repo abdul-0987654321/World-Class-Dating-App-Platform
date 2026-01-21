@@ -195,9 +195,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ visible, onClose, onRewardC
                       <Text style={styles.rewardDescription}>{reward.description}</Text>
                     </View>
 
-                    {isCompleted && (
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                    )}
+                    {isCompleted && <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />}
                     {isLocked && <Ionicons name="lock-closed" size={24} color="#999" />}
                   </View>
                 </View>

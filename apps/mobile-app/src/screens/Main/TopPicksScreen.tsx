@@ -64,11 +64,24 @@ const TopPicksScreen = ({ navigation }: any) => {
       // Mock data
       const mockPicks: TopPick[] = Array.from({ length: 10 }, (_, i) => ({
         userId: `user-${i}`,
-        name: ['Emma', 'Sophia', 'Olivia', 'Ava', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn'][i],
+        name: [
+          'Emma',
+          'Sophia',
+          'Olivia',
+          'Ava',
+          'Isabella',
+          'Mia',
+          'Charlotte',
+          'Amelia',
+          'Harper',
+          'Evelyn',
+        ][i],
         age: 25 + i,
         photos: [`https://i.pravatar.cc/400?img=${10 + i}`],
         bio: 'Adventure seeker and coffee enthusiast. Looking for meaningful connections.',
-        occupation: ['Marketing Manager', 'Software Engineer', 'Designer', 'Teacher', 'Doctor'][i % 5],
+        occupation: ['Marketing Manager', 'Software Engineer', 'Designer', 'Teacher', 'Doctor'][
+          i % 5
+        ],
         compatibilityScore: 85 + (i % 15),
         distance: 2 + i,
         verified: i % 2 === 0,
@@ -76,9 +89,13 @@ const TopPicksScreen = ({ navigation }: any) => {
         insights: [
           'Exceptional compatibility match',
           `You share ${2 + i} interests`,
-          'Recently active'
+          'Recently active',
         ],
-        topPickReason: ['Exceptional compatibility match', 'High-quality complete profile', 'Perfect match for your preferences'][i % 3],
+        topPickReason: [
+          'Exceptional compatibility match',
+          'High-quality complete profile',
+          'Perfect match for your preferences',
+        ][i % 3],
         suggestedOpener: `I noticed you're into ${['travel', 'coffee', 'hiking'][i % 3]}! What got you interested in that?`,
         rank: i + 1,
       }));
@@ -107,7 +124,7 @@ const TopPicksScreen = ({ navigation }: any) => {
     try {
       // await api.post('/swipes', { targetUserId: pick.userId, action: 'like' });
       // Remove from list
-      setTopPicks(picks => picks.filter(p => p.userId !== pick.userId));
+      setTopPicks((picks) => picks.filter((p) => p.userId !== pick.userId));
     } catch {
       // Silently handle like errors
     }
@@ -143,10 +160,7 @@ const TopPicksScreen = ({ navigation }: any) => {
         </TouchableOpacity>
 
         <View style={styles.headerTitleContainer}>
-          <LinearGradient
-            colors={['#FFD700', '#FFA500']}
-            style={styles.crownBadge}
-          >
+          <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.crownBadge}>
             <Icon name="crown" size={20} color="#FFF" />
           </LinearGradient>
           <Text style={styles.headerTitle}>Top Picks</Text>
@@ -170,9 +184,7 @@ const TopPicksScreen = ({ navigation }: any) => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {topPicks.map((pick, index) => (
           <TouchableOpacity
@@ -181,11 +193,7 @@ const TopPicksScreen = ({ navigation }: any) => {
             onPress={() => handleCardPress(pick)}
             activeOpacity={0.9}
           >
-            <Image
-              source={{ uri: pick.photos[0] }}
-              style={styles.cardImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: pick.photos[0] }} style={styles.cardImage} resizeMode="cover" />
 
             <LinearGradient
               colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
@@ -199,10 +207,7 @@ const TopPicksScreen = ({ navigation }: any) => {
 
             {/* Compatibility Score */}
             <View style={styles.scoreBadge}>
-              <LinearGradient
-                colors={['#4CAF50', '#81C784']}
-                style={styles.scoreGradient}
-              >
+              <LinearGradient colors={['#4CAF50', '#81C784']} style={styles.scoreGradient}>
                 <Icon name="heart-pulse" size={16} color="#FFF" />
                 <Text style={styles.scoreText}>{pick.compatibilityScore}%</Text>
               </LinearGradient>
@@ -219,7 +224,9 @@ const TopPicksScreen = ({ navigation }: any) => {
             <View style={styles.cardInfo}>
               <View style={styles.cardHeader}>
                 <View>
-                  <Text style={styles.cardName}>{pick.name}, {pick.age}</Text>
+                  <Text style={styles.cardName}>
+                    {pick.name}, {pick.age}
+                  </Text>
                   <Text style={styles.cardOccupation}>{pick.occupation}</Text>
                   <View style={styles.distanceContainer}>
                     <Icon name="map-marker" size={14} color="#FFF" />
@@ -266,7 +273,9 @@ const TopPicksScreen = ({ navigation }: any) => {
               <View style={styles.cardActions}>
                 <TouchableOpacity
                   style={styles.passButton}
-                  onPress={() => setTopPicks(picks => picks.filter(p => p.userId !== pick.userId))}
+                  onPress={() =>
+                    setTopPicks((picks) => picks.filter((p) => p.userId !== pick.userId))
+                  }
                 >
                   <Icon name="close" size={24} color="#FF6B6B" />
                 </TouchableOpacity>
@@ -275,18 +284,12 @@ const TopPicksScreen = ({ navigation }: any) => {
                   style={styles.superLikeButton}
                   onPress={() => handleSuperLike(pick)}
                 >
-                  <LinearGradient
-                    colors={['#4C9EFF', '#00D4FF']}
-                    style={styles.superLikeGradient}
-                  >
+                  <LinearGradient colors={['#4C9EFF', '#00D4FF']} style={styles.superLikeGradient}>
                     <Icon name="star" size={20} color="#FFF" />
                   </LinearGradient>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.likeButton}
-                  onPress={() => handleLike(pick)}
-                >
+                <TouchableOpacity style={styles.likeButton} onPress={() => handleLike(pick)}>
                   <Icon name="heart" size={24} color="#4CAF50" />
                 </TouchableOpacity>
               </View>
@@ -299,9 +302,7 @@ const TopPicksScreen = ({ navigation }: any) => {
           <View style={styles.emptyState}>
             <Icon name="crown-outline" size={80} color="#CCC" />
             <Text style={styles.emptyTitle}>All caught up!</Text>
-            <Text style={styles.emptySubtitle}>
-              Check back tomorrow for new Top Picks
-            </Text>
+            <Text style={styles.emptySubtitle}>Check back tomorrow for new Top Picks</Text>
           </View>
         )}
       </ScrollView>

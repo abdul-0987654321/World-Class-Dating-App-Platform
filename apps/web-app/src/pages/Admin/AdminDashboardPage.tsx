@@ -43,7 +43,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/dashboard?range=${timeRange}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -70,11 +70,36 @@ export const AdminDashboardPage: React.FC = () => {
           },
         });
         setActivities([
-          { id: '1', type: 'signup', description: 'New user registered: alex_demo', timestamp: new Date().toISOString() },
-          { id: '2', type: 'subscription', description: 'Premium subscription: Gold Plan', timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
-          { id: '3', type: 'report', description: 'User report submitted: Inappropriate content', timestamp: new Date(Date.now() - 15 * 60000).toISOString() },
-          { id: '4', type: 'match', description: 'New match created between users', timestamp: new Date(Date.now() - 30 * 60000).toISOString() },
-          { id: '5', type: 'verification', description: 'Photo verification submitted', timestamp: new Date(Date.now() - 45 * 60000).toISOString() },
+          {
+            id: '1',
+            type: 'signup',
+            description: 'New user registered: alex_demo',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            id: '2',
+            type: 'subscription',
+            description: 'Premium subscription: Gold Plan',
+            timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+          },
+          {
+            id: '3',
+            type: 'report',
+            description: 'User report submitted: Inappropriate content',
+            timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
+          },
+          {
+            id: '4',
+            type: 'match',
+            description: 'New match created between users',
+            timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
+          },
+          {
+            id: '5',
+            type: 'verification',
+            description: 'Photo verification submitted',
+            timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+          },
         ]);
       }
     } catch (err) {
@@ -96,11 +121,16 @@ export const AdminDashboardPage: React.FC = () => {
 
   const getActivityIcon = (type: RecentActivity['type']) => {
     switch (type) {
-      case 'signup': return { icon: '👤', color: 'bg-blue-100 text-blue-600' };
-      case 'match': return { icon: '💕', color: 'bg-pink-100 text-pink-600' };
-      case 'report': return { icon: '⚠️', color: 'bg-red-100 text-red-600' };
-      case 'subscription': return { icon: '💎', color: 'bg-purple-100 text-purple-600' };
-      case 'verification': return { icon: '✓', color: 'bg-green-100 text-green-600' };
+      case 'signup':
+        return { icon: '👤', color: 'bg-blue-100 text-blue-600' };
+      case 'match':
+        return { icon: '💕', color: 'bg-pink-100 text-pink-600' };
+      case 'report':
+        return { icon: '⚠️', color: 'bg-red-100 text-red-600' };
+      case 'subscription':
+        return { icon: '💎', color: 'bg-purple-100 text-purple-600' };
+      case 'verification':
+        return { icon: '✓', color: 'bg-green-100 text-green-600' };
     }
   };
 
@@ -190,7 +220,9 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-gray-500 text-sm">Total Users</span>
               <span className="text-2xl">👥</span>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{formatNumber(stats?.totalUsers || 0)}</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {formatNumber(stats?.totalUsers || 0)}
+            </div>
             <div className="text-sm text-green-600 mt-1">+{stats?.newUsersToday || 0} today</div>
           </div>
 
@@ -199,8 +231,12 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-gray-500 text-sm">Active Users</span>
               <span className="text-2xl">🟢</span>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{formatNumber(stats?.activeUsers || 0)}</div>
-            <div className="text-sm text-gray-500 mt-1">{((stats?.activeUsers || 0) / (stats?.totalUsers || 1) * 100).toFixed(1)}% of total</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {formatNumber(stats?.activeUsers || 0)}
+            </div>
+            <div className="text-sm text-gray-500 mt-1">
+              {(((stats?.activeUsers || 0) / (stats?.totalUsers || 1)) * 100).toFixed(1)}% of total
+            </div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -208,8 +244,13 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-gray-500 text-sm">Premium Users</span>
               <span className="text-2xl">💎</span>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{formatNumber(stats?.premiumUsers || 0)}</div>
-            <div className="text-sm text-purple-600 mt-1">{((stats?.premiumUsers || 0) / (stats?.totalUsers || 1) * 100).toFixed(1)}% conversion</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {formatNumber(stats?.premiumUsers || 0)}
+            </div>
+            <div className="text-sm text-purple-600 mt-1">
+              {(((stats?.premiumUsers || 0) / (stats?.totalUsers || 1)) * 100).toFixed(1)}%
+              conversion
+            </div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -217,8 +258,12 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-gray-500 text-sm">Today's Revenue</span>
               <span className="text-2xl">💰</span>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{formatCurrency(stats?.revenue.today || 0)}</div>
-            <div className="text-sm text-gray-500 mt-1">MTD: {formatCurrency(stats?.revenue.month || 0)}</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {formatCurrency(stats?.revenue.today || 0)}
+            </div>
+            <div className="text-sm text-gray-500 mt-1">
+              MTD: {formatCurrency(stats?.revenue.month || 0)}
+            </div>
           </div>
         </div>
 
@@ -229,8 +274,12 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-gray-500 text-sm">Total Matches</span>
               <span className="text-2xl">💕</span>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{formatNumber(stats?.totalMatches || 0)}</div>
-            <div className="text-sm text-pink-600 mt-1">+{formatNumber(stats?.matchesToday || 0)} today</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {formatNumber(stats?.totalMatches || 0)}
+            </div>
+            <div className="text-sm text-pink-600 mt-1">
+              +{formatNumber(stats?.matchesToday || 0)} today
+            </div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -238,20 +287,32 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-gray-500 text-sm">Total Messages</span>
               <span className="text-2xl">💬</span>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{formatNumber(stats?.totalMessages || 0)}</div>
-            <div className="text-sm text-blue-600 mt-1">+{formatNumber(stats?.messagesToday || 0)} today</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {formatNumber(stats?.totalMessages || 0)}
+            </div>
+            <div className="text-sm text-blue-600 mt-1">
+              +{formatNumber(stats?.messagesToday || 0)} today
+            </div>
           </div>
 
-          <Link to="/admin/verifications" className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
+          <Link
+            to="/admin/verifications"
+            className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer"
+          >
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-500 text-sm">Pending Verifications</span>
               <span className="text-2xl">📸</span>
             </div>
-            <div className="text-3xl font-bold text-orange-500">{stats?.pendingVerifications || 0}</div>
+            <div className="text-3xl font-bold text-orange-500">
+              {stats?.pendingVerifications || 0}
+            </div>
             <div className="text-sm text-orange-600 mt-1">Requires attention</div>
           </Link>
 
-          <Link to="/admin/reports" className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
+          <Link
+            to="/admin/reports"
+            className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer"
+          >
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-500 text-sm">Pending Reports</span>
               <span className="text-2xl">⚠️</span>
@@ -272,7 +333,9 @@ export const AdminDashboardPage: React.FC = () => {
                 const { icon, color } = getActivityIcon(activity.type);
                 return (
                   <div key={activity.id} className="p-4 flex items-center gap-4 hover:bg-gray-50">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${color}`}>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${color}`}
+                    >
                       <span>{icon}</span>
                     </div>
                     <div className="flex-1">
@@ -361,15 +424,21 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-4 mt-4">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Today</p>
-              <p className="text-xl font-bold text-gray-800">{formatCurrency(stats?.revenue.today || 0)}</p>
+              <p className="text-xl font-bold text-gray-800">
+                {formatCurrency(stats?.revenue.today || 0)}
+              </p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">This Month</p>
-              <p className="text-xl font-bold text-gray-800">{formatCurrency(stats?.revenue.month || 0)}</p>
+              <p className="text-xl font-bold text-gray-800">
+                {formatCurrency(stats?.revenue.month || 0)}
+              </p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">All Time</p>
-              <p className="text-xl font-bold text-gray-800">{formatCurrency(stats?.revenue.total || 0)}</p>
+              <p className="text-xl font-bold text-gray-800">
+                {formatCurrency(stats?.revenue.total || 0)}
+              </p>
             </div>
           </div>
         </div>

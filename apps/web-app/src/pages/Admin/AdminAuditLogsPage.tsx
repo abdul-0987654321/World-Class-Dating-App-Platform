@@ -46,7 +46,7 @@ export const AdminAuditLogsPage: React.FC = () => {
       params.append('page', filters.page.toString());
 
       const res = await fetch(`/api/admin/audit-logs?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -129,7 +129,7 @@ export const AdminAuditLogsPage: React.FC = () => {
     // Export logs to CSV
     const csv = [
       ['Timestamp', 'Admin', 'Action', 'Resource', 'Resource ID', 'IP Address'].join(','),
-      ...logs.map(log =>
+      ...logs.map((log) =>
         [
           log.timestamp,
           log.adminEmail,
@@ -151,7 +151,8 @@ export const AdminAuditLogsPage: React.FC = () => {
 
   const getActionColor = (action: string) => {
     if (action.includes('delete') || action.includes('ban')) return 'text-red-600 bg-red-50';
-    if (action.includes('create') || action.includes('approve')) return 'text-green-600 bg-green-50';
+    if (action.includes('create') || action.includes('approve'))
+      return 'text-green-600 bg-green-50';
     if (action.includes('update') || action.includes('edit')) return 'text-blue-600 bg-blue-50';
     return 'text-gray-600 bg-gray-50';
   };
@@ -167,7 +168,10 @@ export const AdminAuditLogsPage: React.FC = () => {
   };
 
   const formatAction = (action: string) => {
-    return action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return action
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
@@ -311,7 +315,9 @@ export const AdminAuditLogsPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getActionColor(log.action)}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${getActionColor(log.action)}`}
+                        >
                           {formatAction(log.action)}
                         </span>
                       </td>
@@ -319,7 +325,9 @@ export const AdminAuditLogsPage: React.FC = () => {
                         <div className="text-sm">
                           <p className="font-medium text-gray-800 capitalize">{log.resource}</p>
                           {log.resourceId && (
-                            <p className="text-gray-500 font-mono text-xs">{log.resourceId.substring(0, 8)}...</p>
+                            <p className="text-gray-500 font-mono text-xs">
+                              {log.resourceId.substring(0, 8)}...
+                            </p>
                           )}
                         </div>
                       </td>
@@ -336,7 +344,9 @@ export const AdminAuditLogsPage: React.FC = () => {
 
             {/* Pagination */}
             <div className="mt-6 flex items-center justify-between">
-              <p className="text-gray-500">Page {filters.page} of {totalPages}</p>
+              <p className="text-gray-500">
+                Page {filters.page} of {totalPages}
+              </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilters({ ...filters, page: Math.max(1, filters.page - 1) })}
@@ -346,7 +356,9 @@ export const AdminAuditLogsPage: React.FC = () => {
                   Previous
                 </button>
                 <button
-                  onClick={() => setFilters({ ...filters, page: Math.min(totalPages, filters.page + 1) })}
+                  onClick={() =>
+                    setFilters({ ...filters, page: Math.min(totalPages, filters.page + 1) })
+                  }
                   disabled={filters.page === totalPages}
                   className="px-4 py-2 border rounded-lg disabled:opacity-50"
                 >
@@ -364,9 +376,17 @@ export const AdminAuditLogsPage: React.FC = () => {
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-800">Audit Log Details</h3>
-              <button onClick={() => setSelectedLog(null)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setSelectedLog(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -391,7 +411,9 @@ export const AdminAuditLogsPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Resource ID</p>
-                  <p className="font-medium text-gray-800 font-mono text-sm">{selectedLog.resourceId || 'N/A'}</p>
+                  <p className="font-medium text-gray-800 font-mono text-sm">
+                    {selectedLog.resourceId || 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">IP Address</p>

@@ -100,24 +100,15 @@ export const OrderHistoryList: React.FC<OrderHistoryListProps> = ({
     }).format(amount / 100);
   };
 
-  const filteredOrders = filter === 'all'
-    ? orders
-    : orders.filter((order) => order.orderType === filter);
+  const filteredOrders =
+    filter === 'all' ? orders : orders.filter((order) => order.orderType === filter);
 
   const renderFilterButton = (type: OrderType | 'all', label: string) => (
     <TouchableOpacity
-      style={[
-        styles.filterButton,
-        filter === type && styles.filterButtonActive,
-      ]}
+      style={[styles.filterButton, filter === type && styles.filterButtonActive]}
       onPress={() => setFilter(type)}
     >
-      <Text
-        style={[
-          styles.filterButtonText,
-          filter === type && styles.filterButtonTextActive,
-        ]}
-      >
+      <Text style={[styles.filterButtonText, filter === type && styles.filterButtonTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -131,14 +122,9 @@ export const OrderHistoryList: React.FC<OrderHistoryListProps> = ({
     >
       <View style={styles.orderHeader}>
         <View
-          style={[
-            styles.orderTypeIcon,
-            { backgroundColor: getStatusColor(item.status) + '20' },
-          ]}
+          style={[styles.orderTypeIcon, { backgroundColor: getStatusColor(item.status) + '20' }]}
         >
-          <Text
-            style={[styles.orderTypeIconText, { color: getStatusColor(item.status) }]}
-          >
+          <Text style={[styles.orderTypeIconText, { color: getStatusColor(item.status) }]}>
             {getOrderIcon(item.orderType)}
           </Text>
         </View>
@@ -154,11 +140,7 @@ export const OrderHistoryList: React.FC<OrderHistoryListProps> = ({
         </View>
 
         {item.imageUrl && (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.orderImage}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: item.imageUrl }} style={styles.orderImage} resizeMode="cover" />
         )}
       </View>
 
@@ -166,33 +148,22 @@ export const OrderHistoryList: React.FC<OrderHistoryListProps> = ({
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Status</Text>
           <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(item.status) + '20' },
-            ]}
+            style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}
           >
-            <Text
-              style={[styles.statusText, { color: getStatusColor(item.status) }]}
-            >
+            <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
               {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
             </Text>
           </View>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>
-            {item.scheduledDate ? 'Scheduled' : 'Ordered'}
-          </Text>
-          <Text style={styles.detailValue}>
-            {formatDate(item.scheduledDate || item.createdAt)}
-          </Text>
+          <Text style={styles.detailLabel}>{item.scheduledDate ? 'Scheduled' : 'Ordered'}</Text>
+          <Text style={styles.detailValue}>{formatDate(item.scheduledDate || item.createdAt)}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Total</Text>
-          <Text style={styles.priceValue}>
-            {formatPrice(item.totalAmount, item.currency)}
-          </Text>
+          <Text style={styles.priceValue}>{formatPrice(item.totalAmount, item.currency)}</Text>
         </View>
       </View>
 

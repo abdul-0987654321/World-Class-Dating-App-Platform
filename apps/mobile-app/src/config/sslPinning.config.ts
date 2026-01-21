@@ -85,7 +85,7 @@ export const SSL_PINNING_OPTIONS = {
  * Get pin configuration for a specific hostname
  */
 export function getPinConfigForHostname(hostname: string): SSLPinConfig | undefined {
-  return SSL_PIN_CONFIG.find(config => {
+  return SSL_PIN_CONFIG.find((config) => {
     if (config.includeSubdomains) {
       return hostname.endsWith(config.hostname);
     }
@@ -126,7 +126,7 @@ export function isPinningExempt(hostname: string): boolean {
     return true;
   }
 
-  return PINNING_EXEMPT_DOMAINS.some(domain =>
-    hostname === domain || hostname.endsWith(`.${domain}`)
+  return PINNING_EXEMPT_DOMAINS.some(
+    (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
   );
 }

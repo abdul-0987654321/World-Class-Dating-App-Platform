@@ -12,13 +12,9 @@ import {
 } from 'react-native';
 import { SwipeCard } from '../../components/discovery/SwipeCard';
 import { discoveryService } from '../../services/api/discovery.service';
-import {
-  DiscoveryProfile,
-  DiscoveryFilters,
-} from '../../types/discovery.types';
+import { DiscoveryProfile, DiscoveryFilters } from '../../types/discovery.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 
 interface MatchModalData {
   id: string;
@@ -49,7 +45,7 @@ const DiscoveryScreen = () => {
     try {
       await discoveryService.swipeLeft(profile.id);
     } catch (err) {
-      console.error("Failed to record pass:", err);
+      console.error('Failed to record pass:', err);
     }
   }, []);
 
@@ -67,7 +63,7 @@ const DiscoveryScreen = () => {
         setShowMatch(true);
       }
     } catch (err) {
-      console.error("Failed to record like:", err);
+      console.error('Failed to record like:', err);
     }
   }, []);
 
@@ -85,7 +81,7 @@ const DiscoveryScreen = () => {
         setShowMatch(true);
       }
     } catch (err) {
-      Alert.alert("Super Like Failed", "Unable to send super like. Please try again.");
+      Alert.alert('Super Like Failed', 'Unable to send super like. Please try again.');
     }
   }, []);
 
@@ -96,35 +92,91 @@ const DiscoveryScreen = () => {
       if (response.success && response.data?.success) {
         setCurrentIndex((prev) => prev - 1);
       } else {
-        Alert.alert("Rewind Unavailable", "You cannot rewind at this time.");
+        Alert.alert('Rewind Unavailable', 'You cannot rewind at this time.');
       }
     } catch (err) {
-      Alert.alert("Rewind Failed", "Unable to rewind. Please try again.");
+      Alert.alert('Rewind Failed', 'Unable to rewind. Please try again.');
     }
   }, [currentIndex]);
 
   const handleBoost = useCallback(async () => {
-    Alert.alert(
-      'Boost Your Profile',
-      'Get up to 10x more profile views for 30 minutes!',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Boost Now',
-          onPress: async () => {
-            try {
-              await discoveryService.activateBoost();
-              Alert.alert('Success', 'Your profile is now boosted for 30 minutes!');
-            } catch (err) {
-              Alert.alert('Error', 'Failed to activate boost. Please try again.');
-            }
+    Alert.alert('Boost Your Profile', 'Get up to 10x more profile views for 30 minutes!', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Boost Now',
+        onPress: async () => {
+          try {
+            await discoveryService.activateBoost();
+            Alert.alert('Success', 'Your profile is now boosted for 30 minutes!');
+          } catch (err) {
+            Alert.alert('Error', 'Failed to activate boost. Please try again.');
           }
         },
-      ]
-    );
+      },
+    ]);
   }, []);
 
-const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {    if (!isInitialLoad && (isLoadingMore || !hasMore)) return;    if (isInitialLoad) {      setIsLoading(true);      setError(null);    } else {      setIsLoadingMore(true);    }    try {      const response = await discoveryService.getProfiles(filters, isInitialLoad ? undefined : nextCursor, 20);      if (response.success && response.data) {        const newProfiles = response.data.profiles;        if (isInitialLoad) {          setProfiles(newProfiles);          setCurrentIndex(0);        } else {          setProfiles((prev) => [...prev, ...newProfiles]);        }        setNextCursor(response.data.nextCursor);        setHasMore(response.data.hasMore);      } else {        setError(response.error?.message || 'Failed to load profiles');        if (isInitialLoad) setProfiles([]);      }    } catch (err) {      setError(err instanceof Error ? err.message : 'An unexpected error occurred');      if (isInitialLoad) setProfiles([]);    } finally {      setIsLoading(false);      setIsLoadingMore(false);    }  }, [filters, nextCursor, hasMore, isLoadingMore]);  const handleRefresh = useCallback(() => {    setNextCursor(undefined);    setHasMore(true);    setError(null);    fetchProfiles(true);  }, [fetchProfiles]);  const applyFilters = useCallback(() => {    setShowFilters(false);    setNextCursor(undefined);    setHasMore(true);    setError(null);    fetchProfiles(true);  }, [fetchProfiles]);  useEffect(() => {    fetchProfiles(true);  }, []);  useEffect(() => {    const remainingProfiles = profiles.length - currentIndex;    if (remainingProfiles <= 3 && !isLoading && !isLoadingMore && hasMore && !error) {      fetchProfiles(false);    }  }, [currentIndex, profiles.length, isLoading, isLoadingMore, hasMore, error, fetchProfiles]);
+  const fetchProfiles = useCallback(
+    async (isInitialLoad: boolean = false) => {
+      if (!isInitialLoad && (isLoadingMore || !hasMore)) return;
+      if (isInitialLoad) {
+        setIsLoading(true);
+        setError(null);
+      } else {
+        setIsLoadingMore(true);
+      }
+      try {
+        const response = await discoveryService.getProfiles(
+          filters,
+          isInitialLoad ? undefined : nextCursor,
+          20
+        );
+        if (response.success && response.data) {
+          const newProfiles = response.data.profiles;
+          if (isInitialLoad) {
+            setProfiles(newProfiles);
+            setCurrentIndex(0);
+          } else {
+            setProfiles((prev) => [...prev, ...newProfiles]);
+          }
+          setNextCursor(response.data.nextCursor);
+          setHasMore(response.data.hasMore);
+        } else {
+          setError(response.error?.message || 'Failed to load profiles');
+          if (isInitialLoad) setProfiles([]);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        if (isInitialLoad) setProfiles([]);
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [filters, nextCursor, hasMore, isLoadingMore]
+  );
+  const handleRefresh = useCallback(() => {
+    setNextCursor(undefined);
+    setHasMore(true);
+    setError(null);
+    fetchProfiles(true);
+  }, [fetchProfiles]);
+  const applyFilters = useCallback(() => {
+    setShowFilters(false);
+    setNextCursor(undefined);
+    setHasMore(true);
+    setError(null);
+    fetchProfiles(true);
+  }, [fetchProfiles]);
+  useEffect(() => {
+    fetchProfiles(true);
+  }, []);
+  useEffect(() => {
+    const remainingProfiles = profiles.length - currentIndex;
+    if (remainingProfiles <= 3 && !isLoading && !isLoadingMore && hasMore && !error) {
+      fetchProfiles(false);
+    }
+  }, [currentIndex, profiles.length, isLoading, isLoadingMore, hasMore, error, fetchProfiles]);
 
   const currentProfile = profiles[currentIndex];
 
@@ -132,10 +184,7 @@ const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {   
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => setShowFilters(true)}
-        >
+        <TouchableOpacity style={styles.headerButton} onPress={() => setShowFilters(true)}>
           <Text style={styles.headerButtonText}>Filters</Text>
         </TouchableOpacity>
 
@@ -157,12 +206,21 @@ const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {   
           <>
             {/* Show next card behind - non-interactive preview */}
             {profiles[currentIndex + 1] && (
-              <View style={[styles.cardBehind, { transform: [{ scale: 0.95 }] }]} pointerEvents="none">
+              <View
+                style={[styles.cardBehind, { transform: [{ scale: 0.95 }] }]}
+                pointerEvents="none"
+              >
                 <SwipeCard
                   profile={profiles[currentIndex + 1]}
-                  onSwipeLeft={() => { /* Background card - non-interactive */ }}
-                  onSwipeRight={() => { /* Background card - non-interactive */ }}
-                  onSwipeUp={() => { /* Background card - non-interactive */ }}
+                  onSwipeLeft={() => {
+                    /* Background card - non-interactive */
+                  }}
+                  onSwipeRight={() => {
+                    /* Background card - non-interactive */
+                  }}
+                  onSwipeUp={() => {
+                    /* Background card - non-interactive */
+                  }}
                 />
               </View>
             )}
@@ -179,13 +237,8 @@ const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {   
         ) : (
           <View style={styles.noProfilesContainer}>
             <Text style={styles.noProfilesTitle}>No more profiles</Text>
-            <Text style={styles.noProfilesSubtitle}>
-              Check back later for more matches!
-            </Text>
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={handleRefresh}
-            >
+            <Text style={styles.noProfilesSubtitle}>Check back later for more matches!</Text>
+            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
               <Text style={styles.refreshButtonText}>Refresh</Text>
             </TouchableOpacity>
           </View>
@@ -287,10 +340,7 @@ const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {   
             <View style={styles.filterOption}>
               <Text style={styles.filterLabel}>Verified Only</Text>
               <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  filters.verifiedOnly && styles.toggleButtonActive,
-                ]}
+                style={[styles.toggleButton, filters.verifiedOnly && styles.toggleButtonActive]}
                 onPress={() =>
                   setFilters((prev) => ({
                     ...prev,
@@ -298,12 +348,7 @@ const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {   
                   }))
                 }
               >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    filters.verifiedOnly && styles.toggleTextActive,
-                  ]}
-                >
+                <Text style={[styles.toggleText, filters.verifiedOnly && styles.toggleTextActive]}>
                   {filters.verifiedOnly ? 'ON' : 'OFF'}
                 </Text>
               </TouchableOpacity>

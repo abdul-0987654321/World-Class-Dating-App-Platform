@@ -74,39 +74,32 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
   };
 
   const handleCancelDestination = async (destinationId: string) => {
-    Alert.alert(
-      'Cancel Trip',
-      'Are you sure you want to cancel this trip?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes, Cancel',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await fetch(
-                `/api/travel-mode/destinations/${destinationId}`,
-                {
-                  method: 'DELETE',
-                  headers: {
-                    Authorization: `Bearer ${await getAuthToken()}`,
-                  },
-                }
-              );
+    Alert.alert('Cancel Trip', 'Are you sure you want to cancel this trip?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes, Cancel',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const response = await fetch(`/api/travel-mode/destinations/${destinationId}`, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${await getAuthToken()}`,
+              },
+            });
 
-              if (response.ok) {
-                fetchDestinations();
-              } else {
-                Alert.alert('Error', 'Failed to cancel trip');
-              }
-            } catch (error) {
-              console.error('Failed to cancel destination:', error);
+            if (response.ok) {
+              fetchDestinations();
+            } else {
               Alert.alert('Error', 'Failed to cancel trip');
             }
-          },
+          } catch (error) {
+            console.error('Failed to cancel destination:', error);
+            Alert.alert('Error', 'Failed to cancel trip');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getAuthToken = async (): Promise<string> => {
@@ -151,19 +144,12 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
 
     return (
       <TouchableOpacity
-        style={[
-          styles.destinationCard,
-          item.is_active && styles.activeDestinationCard,
-        ]}
+        style={[styles.destinationCard, item.is_active && styles.activeDestinationCard]}
         onPress={() => onEditDestination(item)}
       >
         <View style={styles.destinationHeader}>
           <View style={styles.destinationTitleContainer}>
-            <Icon
-              name={getStatusIcon(item.status)}
-              size={24}
-              color={getStatusColor(item.status)}
-            />
+            <Icon name={getStatusIcon(item.status)} size={24} color={getStatusColor(item.status)} />
             <View style={styles.destinationTitleText}>
               <Text style={styles.destinationCity}>
                 {item.city}
@@ -182,16 +168,12 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
         <View style={styles.destinationDates}>
           <View style={styles.dateItem}>
             <Icon name="calendar-start" size={16} color="#666" />
-            <Text style={styles.dateText}>
-              {format(startDate, 'MMM dd, yyyy')}
-            </Text>
+            <Text style={styles.dateText}>{format(startDate, 'MMM dd, yyyy')}</Text>
           </View>
           <Icon name="arrow-right" size={16} color="#ccc" />
           <View style={styles.dateItem}>
             <Icon name="calendar-end" size={16} color="#666" />
-            <Text style={styles.dateText}>
-              {format(endDate, 'MMM dd, yyyy')}
-            </Text>
+            <Text style={styles.dateText}>{format(endDate, 'MMM dd, yyyy')}</Text>
           </View>
         </View>
 
@@ -204,18 +186,14 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
           {item.days_until_arrival !== undefined && item.days_until_arrival > 0 && (
             <View style={styles.infoItem}>
               <Icon name="airplane-clock" size={16} color="#666" />
-              <Text style={styles.infoText}>
-                Arrives in {item.days_until_arrival} days
-              </Text>
+              <Text style={styles.infoText}>Arrives in {item.days_until_arrival} days</Text>
             </View>
           )}
 
           {item.days_remaining !== undefined && item.days_remaining > 0 && (
             <View style={styles.infoItem}>
               <Icon name="timer-sand" size={16} color="#666" />
-              <Text style={styles.infoText}>
-                {item.days_remaining} days remaining
-              </Text>
+              <Text style={styles.infoText}>{item.days_remaining} days remaining</Text>
             </View>
           )}
         </View>
@@ -260,8 +238,7 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
       <Icon name="airplane-off" size={64} color="#ccc" />
       <Text style={styles.emptyTitle}>No Travel Plans Yet</Text>
       <Text style={styles.emptyText}>
-        Add your first destination to start matching with people in different
-        cities
+        Add your first destination to start matching with people in different cities
       </Text>
       <TouchableOpacity style={styles.addButton} onPress={onAddDestination}>
         <Icon name="plus" size={24} color="#fff" />

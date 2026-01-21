@@ -143,7 +143,7 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
   };
 
   const toggleCamera = () => {
-    setCameraType(prev => prev === 'front' ? 'back' : 'front');
+    setCameraType((prev) => (prev === 'front' ? 'back' : 'front'));
   };
 
   const formatTime = (seconds: number): string => {
@@ -157,7 +157,11 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
       return (
         <View style={styles.permissionContainer}>
           <Text style={styles.permissionText}>Camera permission is required</Text>
-          <Button title="Grant Permission" onPress={checkPermissions} style={styles.permissionButton} />
+          <Button
+            title="Grant Permission"
+            onPress={checkPermissions}
+            style={styles.permissionButton}
+          />
         </View>
       );
     }
@@ -270,11 +274,7 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
                 variant="outline"
                 style={styles.controlButton}
               />
-              <Button
-                title="Use Video"
-                onPress={handleUseVideo}
-                style={styles.controlButton}
-              />
+              <Button title="Use Video" onPress={handleUseVideo} style={styles.controlButton} />
             </View>
           )}
         </View>

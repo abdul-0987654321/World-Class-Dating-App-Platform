@@ -124,22 +124,18 @@ const VideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
   }, [navigation]);
 
   const handleEndCall = useCallback(() => {
-    Alert.alert(
-      'End Call',
-      'Are you sure you want to end this call?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'End Call',
-          style: 'destructive',
-          onPress: () => {
-            setCallState('ended');
-            // In production: End call via VideoCallClient
-            setTimeout(() => navigation.goBack(), 1000);
-          },
+    Alert.alert('End Call', 'Are you sure you want to end this call?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'End Call',
+        style: 'destructive',
+        onPress: () => {
+          setCallState('ended');
+          // In production: End call via VideoCallClient
+          setTimeout(() => navigation.goBack(), 1000);
         },
-      ]
-    );
+      },
+    ]);
   }, [navigation]);
 
   const handleStartCall = useCallback(async () => {
@@ -209,18 +205,12 @@ const VideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
   const renderRingingState = () => (
     <View style={styles.centerContainer}>
       <Animated.View
-        style={[
-          styles.avatarLarge,
-          styles.avatarRinging,
-          { transform: [{ scale: pulseAnim }] },
-        ]}
+        style={[styles.avatarLarge, styles.avatarRinging, { transform: [{ scale: pulseAnim }] }]}
       >
         <Text style={styles.avatarText}>{userName[0]?.toUpperCase()}</Text>
       </Animated.View>
       <Text style={styles.userName}>{userName}</Text>
-      <Text style={styles.statusText}>
-        {isIncoming ? 'Incoming call...' : 'Calling...'}
-      </Text>
+      <Text style={styles.statusText}>{isIncoming ? 'Incoming call...' : 'Calling...'}</Text>
 
       {isIncoming ? (
         <View style={styles.incomingActions}>
@@ -266,19 +256,11 @@ const VideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 
   const renderConnectedState = () => (
-    <TouchableOpacity
-      style={styles.connectedContainer}
-      activeOpacity={1}
-      onPress={toggleControls}
-    >
+    <TouchableOpacity style={styles.connectedContainer} activeOpacity={1} onPress={toggleControls}>
       {/* Remote Video (Full Screen) */}
       <View style={styles.remoteVideoContainer}>
         {remoteStream ? (
-          <RTCView
-            streamURL={remoteStream.toURL()}
-            style={styles.remoteVideo}
-            objectFit="cover"
-          />
+          <RTCView streamURL={remoteStream.toURL()} style={styles.remoteVideo} objectFit="cover" />
         ) : (
           <View style={styles.remoteVideoPlaceholder}>
             <View style={styles.avatarXLarge}>
@@ -307,10 +289,7 @@ const VideoCallScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Top Info Bar */}
       {showControls && (
         <SafeAreaView style={styles.topBar}>
-          <TouchableOpacity
-            style={styles.minimizeButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.minimizeButton} onPress={() => navigation.goBack()}>
             <Text style={styles.minimizeIcon}>↓</Text>
           </TouchableOpacity>
 

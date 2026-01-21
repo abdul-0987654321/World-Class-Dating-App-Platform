@@ -53,7 +53,7 @@ const ProfileScreen: React.FC = () => {
       const response = await fetch('https://api.flamoral.com/api/v1/profiles/me', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         signal: controller.signal,
@@ -98,29 +98,25 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error) {
-              console.error('Logout error:', error);
-              await TokenStorage.clear();
-            }
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Auth' as never }],
-            });
-          },
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error('Logout error:', error);
+            await TokenStorage.clear();
+          }
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Auth' as never }],
+          });
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // Loading state
@@ -142,11 +138,7 @@ const ProfileScreen: React.FC = () => {
         <ScrollView
           contentContainerStyle={styles.errorContainer}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor="#FF6B6B"
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF6B6B" />
           }
         >
           <Icon name="alert-circle-outline" size={64} color="#FF6B6B" />
@@ -169,11 +161,7 @@ const ProfileScreen: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#FF6B6B"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF6B6B" />
         }
       >
         {/* Header */}
@@ -213,7 +201,8 @@ const ProfileScreen: React.FC = () => {
           {/* Name and Age */}
           <View style={styles.nameContainer}>
             <Text style={styles.name}>
-              {displayName}{displayAge}
+              {displayName}
+              {displayAge}
             </Text>
             {profile?.location && (
               <View style={styles.locationRow}>

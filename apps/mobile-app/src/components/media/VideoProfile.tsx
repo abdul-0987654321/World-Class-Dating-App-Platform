@@ -114,22 +114,18 @@ export const VideoProfile: React.FC<VideoProfileProps> = ({
   };
 
   const handleDeleteVideo = () => {
-    Alert.alert(
-      'Delete Video Profile',
-      'Are you sure you want to delete your video profile?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            if (onDelete) {
-              onDelete();
-            }
-          },
+    Alert.alert('Delete Video Profile', 'Are you sure you want to delete your video profile?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          if (onDelete) {
+            onDelete();
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const formatTime = (seconds: number): string => {
@@ -179,8 +175,7 @@ export const VideoProfile: React.FC<VideoProfileProps> = ({
         </View>
         <Text style={styles.noVideoTitle}>Add a Video Profile</Text>
         <Text style={styles.noVideoDescription}>
-          Stand out with a 15-30 second video. Show your personality and get more
-          matches!
+          Stand out with a 15-30 second video. Show your personality and get more matches!
         </Text>
 
         <View style={styles.benefits}>
@@ -219,9 +214,7 @@ export const VideoProfile: React.FC<VideoProfileProps> = ({
         <View style={styles.recordingContainer}>
           {/* Camera view would go here - react-native-camera */}
           <View style={styles.cameraView}>
-            <Text style={styles.cameraPlaceholder}>
-              Camera View (react-native-camera)
-            </Text>
+            <Text style={styles.cameraPlaceholder}>Camera View (react-native-camera)</Text>
           </View>
 
           {/* Recording controls overlay */}
@@ -237,10 +230,7 @@ export const VideoProfile: React.FC<VideoProfileProps> = ({
 
             <View style={styles.recordingControls}>
               {recordingState === 'recording' ? (
-                <TouchableOpacity
-                  style={styles.stopButton}
-                  onPress={stopRecording}
-                >
+                <TouchableOpacity style={styles.stopButton} onPress={stopRecording}>
                   <View style={styles.stopButtonInner} />
                 </TouchableOpacity>
               ) : recordingState === 'recorded' ? (

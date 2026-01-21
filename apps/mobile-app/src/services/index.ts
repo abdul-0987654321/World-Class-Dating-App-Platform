@@ -9,9 +9,10 @@ export { httpClient, default as HttpClient } from './api/httpClient';
 export type { ApiResponse, RequestOptions } from './api/httpClient';
 
 // API Services
-export { DiscoveryService, discoveryService } from './api/discovery.service';
-export { MatchService, matchService } from './api/match.service';
-export { MessagingService } from './api/MessagingService';
+export { discoveryService } from './api/discovery.service';
+export { default as DiscoveryService } from './api/discovery.service';
+export { matchService } from './api/match.service';
+export { messagingService } from './api/MessagingService';
 export { encryptionKeysAPI } from './api/encryptionKeysAPI';
 
 // AI Services
@@ -27,14 +28,14 @@ export * from './offline';
 export * from './realtime';
 
 // Notification Services
-export { NotificationService } from './notifications/NotificationService';
+export { notificationService } from './notifications/NotificationService';
 export { DeepLinkHandler } from './notifications/DeepLinkHandler';
 
 // Payment Services
-export { PaymentService } from './payments/PaymentService';
+export { paymentService } from './payments/PaymentService';
 
 // Video Call Services
-export { videoCallService, VideoCallService } from './videoCallService';
+export { default as videoCallService } from './videoCallService';
 
 // Mode Service
 export { modeService } from './mode.service';

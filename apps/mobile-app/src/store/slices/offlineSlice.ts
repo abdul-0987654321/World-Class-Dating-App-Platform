@@ -51,45 +51,42 @@ const CACHE_KEYS = {
 const CACHE_DURATION = 60 * 60 * 1000;
 
 // Async thunks
-export const loadCachedData = createAsyncThunk(
-  'offline/loadCachedData',
-  async () => {
-    try {
-      const [profilesStr, actionsStr, lastSyncStr] = await Promise.all([
-        AsyncStorage.getItem(CACHE_KEYS.PROFILES),
-        AsyncStorage.getItem(CACHE_KEYS.PENDING_ACTIONS),
-        AsyncStorage.getItem(CACHE_KEYS.LAST_SYNC),
-      ]);
+export const loadCachedData = createAsyncThunk('offline/loadCachedData', async () => {
+  try {
+    const [profilesStr, actionsStr, lastSyncStr] = await Promise.all([
+      AsyncStorage.getItem(CACHE_KEYS.PROFILES),
+      AsyncStorage.getItem(CACHE_KEYS.PENDING_ACTIONS),
+      AsyncStorage.getItem(CACHE_KEYS.LAST_SYNC),
+    ]);
 
-      const profiles = profilesStr ? JSON.parse(profilesStr) : {};
-      const actions = actionsStr ? JSON.parse(actionsStr) : [];
-      const lastSync = lastSyncStr ? parseInt(lastSyncStr, 10) : null;
+    const profiles = profilesStr ? JSON.parse(profilesStr) : {};
+    const actions = actionsStr ? JSON.parse(actionsStr) : [];
+    const lastSync = lastSyncStr ? parseInt(lastSyncStr, 10) : null;
 
-      // Clean expired profiles
-      const now = Date.now();
-      const validProfiles: Record<string, CachedProfile> = {};
+    // Clean expired profiles
+    const now = Date.now();
+    const validProfiles: Record<string, CachedProfile> = {};
 
-      Object.entries(profiles).forEach(([id, profile]: [string, any]) => {
-        if (profile.expiresAt > now) {
-          validProfiles[id] = profile;
-        }
-      });
+    Object.entries(profiles).forEach(([id, profile]: [string, any]) => {
+      if (profile.expiresAt > now) {
+        validProfiles[id] = profile;
+      }
+    });
 
-      return {
-        profiles: validProfiles,
-        actions,
-        lastSync,
-      };
-    } catch (error) {
-      console.error('Failed to load cached data:', error);
-      return {
-        profiles: {},
-        actions: [],
-        lastSync: null,
-      };
-    }
+    return {
+      profiles: validProfiles,
+      actions,
+      lastSync,
+    };
+  } catch (error) {
+    console.error('Failed to load cached data:', error);
+    return {
+      profiles: {},
+      actions: [],
+      lastSync: null,
+    };
   }
-);
+});
 
 export const cacheProfile = createAsyncThunk(
   'offline/cacheProfile',
@@ -117,10 +114,7 @@ export const cacheProfile = createAsyncThunk(
 
 export const queueAction = createAsyncThunk(
   'offline/queueAction',
-  async (
-    { type, data }: { type: PendingAction['type']; data: any },
-    { getState }
-  ) => {
+  async ({ type, data }: { type: PendingAction['type']; data: any }, { getState }) => {
     const state = getState() as { offline: OfflineState };
 
     const action: PendingAction = {
@@ -158,19 +152,30 @@ export const syncPendingActions = createAsyncThunk(
         // Send action to server based on type
         switch (action.type) {
           case 'like':
-            await axios.post(`${process.env.API_URL}/api/swipes/like`, action.data);
+            await axios.post(
+              `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/swipes/like`,
+              action.data
+            );
             break;
           case 'pass':
-            await axios.post(`${process.env.API_URL}/api/swipes/pass`, action.data);
+            await axios.post(
+              `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/swipes/pass`,
+              action.data
+            );
             break;
           case 'super_like':
-            await axios.post(`${process.env.API_URL}/api/swipes/super-like`, action.data);
+            await axios.post(
+              `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/swipes/super-like`,
+              action.data
+            );
             break;
           case 'message':
-            await axios.post(`${process.env.API_URL}/api/messages`, action.data);
+            await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/messages`, action.data);
             break;
           case 'unmatch':
-            await axios.delete(`${process.env.API_URL}/api/matches/${action.data.matchId}`);
+            await axios.delete(
+              `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/matches/${action.data.matchId}`
+            );
             break;
         }
 
@@ -201,15 +206,12 @@ export const syncPendingActions = createAsyncThunk(
   }
 );
 
-export const clearCache = createAsyncThunk(
-  'offline/clearCache',
-  async () => {
-    await Promise.all([
-      AsyncStorage.removeItem(CACHE_KEYS.PROFILES),
-      AsyncStorage.removeItem(CACHE_KEYS.PENDING_ACTIONS),
-    ]);
-  }
-);
+export const clearCache = createAsyncThunk('offline/clearCache', async () => {
+  await Promise.all([
+    AsyncStorage.removeItem(CACHE_KEYS.PROFILES),
+    AsyncStorage.removeItem(CACHE_KEYS.PENDING_ACTIONS),
+  ]);
+});
 
 const offlineSlice = createSlice({
   name: 'offline',
@@ -224,9 +226,7 @@ const offlineSlice = createSlice({
       }
     },
     removePendingAction: (state, action: PayloadAction<string>) => {
-      state.pendingActions = state.pendingActions.filter(
-        a => a.id !== action.payload
-      );
+      state.pendingActions = state.pendingActions.filter((a) => a.id !== action.payload);
     },
     clearSyncError: (state) => {
       state.syncError = null;
@@ -280,10 +280,6 @@ const offlineSlice = createSlice({
   },
 });
 
-export const {
-  setOnlineStatus,
-  removePendingAction,
-  clearSyncError,
-} = offlineSlice.actions;
+export const { setOnlineStatus, removePendingAction, clearSyncError } = offlineSlice.actions;
 
 export default offlineSlice.reducer;

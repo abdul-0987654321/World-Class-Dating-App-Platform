@@ -53,13 +53,13 @@ export const ChatScreen: React.FC = () => {
 
   // Redux state
   const conversation = useSelector((state: RootState) =>
-    state.messaging.conversations.find(c => c.id === conversationId)
+    state.messaging.conversations.find((c) => c.id === conversationId)
   );
-  const messages = useSelector((state: RootState) =>
-    state.messaging.messages[conversationId] || []
+  const messages = useSelector(
+    (state: RootState) => state.messaging.messages[conversationId] || []
   );
-  const typingStatuses = useSelector((state: RootState) =>
-    state.messaging.typingStatuses[conversationId] || []
+  const typingStatuses = useSelector(
+    (state: RootState) => state.messaging.typingStatuses[conversationId] || []
   );
   const currentUserId = useSelector((state: RootState) => state.auth.user?.id);
   const isConnected = useSelector((state: RootState) => state.messaging.isConnected);
@@ -76,12 +76,10 @@ export const ChatScreen: React.FC = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Get other user info
-  const otherUser = conversation?.participants.find(p => p.id !== currentUserId);
+  const otherUser = conversation?.participants.find((p) => p.id !== currentUserId);
 
   // Check if other user is typing
-  const isOtherUserTyping = typingStatuses.some(
-    t => t.userId !== currentUserId && t.isTyping
-  );
+  const isOtherUserTyping = typingStatuses.some((t) => t.userId !== currentUserId && t.isTyping);
 
   useEffect(() => {
     // Set current conversation
@@ -113,43 +111,51 @@ export const ChatScreen: React.FC = () => {
 
     const unsubscribeMessageDelivered = webSocketService.on('message:delivered', (data: any) => {
       if (data.conversationId === conversationId) {
-        dispatch(updateMessageStatus({
-          conversationId,
-          messageId: data.messageId,
-          status: 'delivered',
-        }));
+        dispatch(
+          updateMessageStatus({
+            conversationId,
+            messageId: data.messageId,
+            status: 'delivered',
+          })
+        );
       }
     });
 
     const unsubscribeMessageRead = webSocketService.on('message:read', (data: any) => {
       if (data.conversationId === conversationId) {
         data.messageIds.forEach((messageId: string) => {
-          dispatch(updateMessageStatus({
-            conversationId,
-            messageId,
-            status: 'read',
-          }));
+          dispatch(
+            updateMessageStatus({
+              conversationId,
+              messageId,
+              status: 'read',
+            })
+          );
         });
       }
     });
 
     const unsubscribeTypingStart = webSocketService.on('typing:start', (data: any) => {
       if (data.conversationId === conversationId && data.userId !== currentUserId) {
-        dispatch(setTypingStatus({
-          conversationId,
-          userId: data.userId,
-          isTyping: true,
-        }));
+        dispatch(
+          setTypingStatus({
+            conversationId,
+            userId: data.userId,
+            isTyping: true,
+          })
+        );
       }
     });
 
     const unsubscribeTypingStop = webSocketService.on('typing:stop', (data: any) => {
       if (data.conversationId === conversationId) {
-        dispatch(setTypingStatus({
-          conversationId,
-          userId: data.userId,
-          isTyping: false,
-        }));
+        dispatch(
+          setTypingStatus({
+            conversationId,
+            userId: data.userId,
+            isTyping: false,
+          })
+        );
       }
     });
 
@@ -166,26 +172,29 @@ export const ChatScreen: React.FC = () => {
   }, [conversationId, currentUserId, dispatch]);
 
   // Handle input text change
-  const handleInputChange = useCallback((text: string) => {
-    setInputText(text);
+  const handleInputChange = useCallback(
+    (text: string) => {
+      setInputText(text);
 
-    // Send typing indicator
-    if (!isTyping && text.length > 0) {
-      setIsTyping(true);
-      webSocketService.sendTyping(conversationId, true);
-    }
+      // Send typing indicator
+      if (!isTyping && text.length > 0) {
+        setIsTyping(true);
+        webSocketService.sendTyping(conversationId, true);
+      }
 
-    // Clear previous timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
+      // Clear previous timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
 
-    // Stop typing after 2 seconds of inactivity
-    typingTimeoutRef.current = setTimeout(() => {
-      setIsTyping(false);
-      webSocketService.sendTyping(conversationId, false);
-    }, 2000);
-  }, [conversationId, isTyping]);
+      // Stop typing after 2 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        setIsTyping(false);
+        webSocketService.sendTyping(conversationId, false);
+      }, 2000);
+    },
+    [conversationId, isTyping]
+  );
 
   // Send text message
   const handleSendMessage = useCallback(async () => {
@@ -219,13 +228,14 @@ export const ChatScreen: React.FC = () => {
       setIsSending(true);
 
       // Also send via API for persistence
-      await dispatch(sendMessage({
-        conversationId,
-        content: messageContent,
-        type: 'text',
-        tempId,
-      })).unwrap();
-
+      await dispatch(
+        sendMessage({
+          conversationId,
+          content: messageContent,
+          type: 'text',
+          tempId,
+        })
+      ).unwrap();
     } catch (error) {
       console.error('Failed to send message:', error);
       Alert.alert('Error', 'Failed to send message. Please try again.');
@@ -235,31 +245,37 @@ export const ChatScreen: React.FC = () => {
   }, [inputText, isSending, conversationId, currentUserId, dispatch]);
 
   // Send image message
-  const handleSendImage = useCallback(async (image: { uri: string; type: string; name: string }) => {
-    try {
-      setIsSending(true);
-      await dispatch(sendImageMessage({ conversationId, file: image })).unwrap();
-      Alert.alert('Success', 'Image sent successfully');
-    } catch (error) {
-      console.error('Failed to send image:', error);
-      Alert.alert('Error', 'Failed to send image. Please try again.');
-    } finally {
-      setIsSending(false);
-    }
-  }, [conversationId, dispatch]);
+  const handleSendImage = useCallback(
+    async (image: { uri: string; type: string; name: string }) => {
+      try {
+        setIsSending(true);
+        await dispatch(sendImageMessage({ conversationId, file: image })).unwrap();
+        Alert.alert('Success', 'Image sent successfully');
+      } catch (error) {
+        console.error('Failed to send image:', error);
+        Alert.alert('Error', 'Failed to send image. Please try again.');
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [conversationId, dispatch]
+  );
 
   // Send GIF message
-  const handleSendGif = useCallback(async (gifUrl: string) => {
-    try {
-      setIsSending(true);
-      await dispatch(sendGifMessage({ conversationId, gifUrl })).unwrap();
-    } catch (error) {
-      console.error('Failed to send GIF:', error);
-      Alert.alert('Error', 'Failed to send GIF. Please try again.');
-    } finally {
-      setIsSending(false);
-    }
-  }, [conversationId, dispatch]);
+  const handleSendGif = useCallback(
+    async (gifUrl: string) => {
+      try {
+        setIsSending(true);
+        await dispatch(sendGifMessage({ conversationId, gifUrl })).unwrap();
+      } catch (error) {
+        console.error('Failed to send GIF:', error);
+        Alert.alert('Error', 'Failed to send GIF. Please try again.');
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [conversationId, dispatch]
+  );
 
   // Handle attachment button press
   const handleAttachmentPress = useCallback(() => {
@@ -318,7 +334,11 @@ export const ChatScreen: React.FC = () => {
             <View>
               <Text style={styles.headerName}>{otherUser.name}</Text>
               <Text style={styles.headerStatus}>
-                {otherUser.isOnline ? 'Online' : otherUser.lastSeen ? `Active ${otherUser.lastSeen}` : 'Offline'}
+                {otherUser.isOnline
+                  ? 'Online'
+                  : otherUser.lastSeen
+                    ? `Active ${otherUser.lastSeen}`
+                    : 'Offline'}
               </Text>
             </View>
           </TouchableOpacity>
@@ -331,9 +351,7 @@ export const ChatScreen: React.FC = () => {
         {/* Connection status banner */}
         {!isConnected && (
           <View style={styles.connectionBanner}>
-            <Text style={styles.connectionBannerText}>
-              Connecting to chat server...
-            </Text>
+            <Text style={styles.connectionBannerText}>Connecting to chat server...</Text>
           </View>
         )}
 

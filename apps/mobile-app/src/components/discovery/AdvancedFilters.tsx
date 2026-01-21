@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { Button } from '../common/Button';
 
 export interface DiscoveryFilters {
@@ -97,17 +90,11 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 }) => {
   const [filters, setFilters] = useState<DiscoveryFilters>(initialFilters);
 
-  const updateFilter = <K extends keyof DiscoveryFilters>(
-    key: K,
-    value: DiscoveryFilters[K]
-  ) => {
+  const updateFilter = <K extends keyof DiscoveryFilters>(key: K, value: DiscoveryFilters[K]) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const toggleArrayItem = <K extends keyof DiscoveryFilters>(
-    key: K,
-    item: string
-  ) => {
+  const toggleArrayItem = <K extends keyof DiscoveryFilters>(key: K, item: string) => {
     const currentArray = filters[key] as string[];
     const newArray = currentArray.includes(item)
       ? currentArray.filter((i) => i !== item)
@@ -238,18 +225,10 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             return (
               <TouchableOpacity
                 key={option}
-                style={[
-                  styles.optionChip,
-                  isSelected && styles.optionChipSelected,
-                ]}
+                style={[styles.optionChip, isSelected && styles.optionChipSelected]}
                 onPress={() => onToggle(option)}
               >
-                <Text
-                  style={[
-                    styles.optionChipText,
-                    isSelected && styles.optionChipTextSelected,
-                  ]}
-                >
+                <Text style={[styles.optionChipText, isSelected && styles.optionChipTextSelected]}>
                   {option}
                 </Text>
               </TouchableOpacity>
@@ -347,11 +326,8 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         {/* Relationship Goals */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Relationship Goals</Text>
-          {renderMultiSelect(
-            'Looking for',
-            RELATIONSHIP_GOALS,
-            filters.relationshipGoals,
-            (item) => toggleArrayItem('relationshipGoals', item)
+          {renderMultiSelect('Looking for', RELATIONSHIP_GOALS, filters.relationshipGoals, (item) =>
+            toggleArrayItem('relationshipGoals', item)
           )}
         </View>
 
@@ -361,11 +337,8 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
           <View style={styles.lifestyleGroup}>
             <Text style={styles.lifestyleLabel}>Smoking</Text>
-            {renderMultiSelect(
-              '',
-              LIFESTYLE_OPTIONS.smoking,
-              filters.smokingPreferences,
-              (item) => toggleArrayItem('smokingPreferences', item)
+            {renderMultiSelect('', LIFESTYLE_OPTIONS.smoking, filters.smokingPreferences, (item) =>
+              toggleArrayItem('smokingPreferences', item)
             )}
           </View>
 
@@ -404,26 +377,19 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         {/* Sexual Orientation */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sexual Orientation</Text>
-          {renderMultiSelect(
-            'Show me',
-            SEXUAL_ORIENTATIONS,
-            filters.sexualOrientations,
-            (item) => toggleArrayItem('sexualOrientations', item)
+          {renderMultiSelect('Show me', SEXUAL_ORIENTATIONS, filters.sexualOrientations, (item) =>
+            toggleArrayItem('sexualOrientations', item)
           )}
         </View>
 
         {/* Additional Preferences */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Additional Preferences</Text>
-          {renderToggle(
-            'Verified Profiles Only',
-            filters.verifiedOnly,
-            () => updateFilter('verifiedOnly', !filters.verifiedOnly)
+          {renderToggle('Verified Profiles Only', filters.verifiedOnly, () =>
+            updateFilter('verifiedOnly', !filters.verifiedOnly)
           )}
-          {renderToggle(
-            'Recently Active',
-            filters.showRecentlyActive,
-            () => updateFilter('showRecentlyActive', !filters.showRecentlyActive)
+          {renderToggle('Recently Active', filters.showRecentlyActive, () =>
+            updateFilter('showRecentlyActive', !filters.showRecentlyActive)
           )}
         </View>
 

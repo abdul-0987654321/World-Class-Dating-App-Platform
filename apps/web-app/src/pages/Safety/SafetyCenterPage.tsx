@@ -73,7 +73,7 @@ export const SafetyCenterPage: React.FC = () => {
 
   const getDefaultSafetyTips = (): SafetyTip[] => [
     { tip: 'Video chat before meeting in person', category: 'before', priority: 'high' },
-    { tip: 'Tell a friend where you\'re going', category: 'before', priority: 'high' },
+    { tip: "Tell a friend where you're going", category: 'before', priority: 'high' },
     { tip: 'Meet in a public place', category: 'during', priority: 'high' },
     { tip: 'Trust your instincts', category: 'during', priority: 'medium' },
     { tip: 'Check in with friends after the date', category: 'after', priority: 'medium' },
@@ -149,12 +149,20 @@ export const SafetyCenterPage: React.FC = () => {
       ]);
 
       // Use results or fallbacks
-      setVerificationStatus(results[0].status === 'fulfilled' ? results[0].value : getDefaultVerificationStatus());
-      setSecuritySettings(results[1].status === 'fulfilled' ? results[1].value : getDefaultSecuritySettings());
-      setPrivacySettings(results[2].status === 'fulfilled' ? results[2].value : getDefaultPrivacySettings());
+      setVerificationStatus(
+        results[0].status === 'fulfilled' ? results[0].value : getDefaultVerificationStatus()
+      );
+      setSecuritySettings(
+        results[1].status === 'fulfilled' ? results[1].value : getDefaultSecuritySettings()
+      );
+      setPrivacySettings(
+        results[2].status === 'fulfilled' ? results[2].value : getDefaultPrivacySettings()
+      );
       setEmergencyContacts(results[3].status === 'fulfilled' ? results[3].value : []);
       setSafetyTips(results[4].status === 'fulfilled' ? results[4].value : getDefaultSafetyTips());
-      setCrisisResources(results[5].status === 'fulfilled' ? results[5].value : getDefaultCrisisResources());
+      setCrisisResources(
+        results[5].status === 'fulfilled' ? results[5].value : getDefaultCrisisResources()
+      );
     } catch (err) {
       console.error('Failed to load safety data:', err);
       // Set all defaults on complete failure
@@ -209,7 +217,7 @@ export const SafetyCenterPage: React.FC = () => {
     try {
       setSaving(true);
       await safetyService.removeEmergencyContact(contactId);
-      setEmergencyContacts(emergencyContacts.filter(c => c.id !== contactId));
+      setEmergencyContacts(emergencyContacts.filter((c) => c.id !== contactId));
     } catch (err) {
       console.error('Failed to remove emergency contact:', err);
     } finally {
@@ -235,7 +243,12 @@ export const SafetyCenterPage: React.FC = () => {
       label: 'Verification',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
         </svg>
       ),
     },
@@ -244,7 +257,12 @@ export const SafetyCenterPage: React.FC = () => {
       label: 'Security',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
         </svg>
       ),
     },
@@ -253,8 +271,18 @@ export const SafetyCenterPage: React.FC = () => {
       label: 'Privacy',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
         </svg>
       ),
     },
@@ -263,7 +291,12 @@ export const SafetyCenterPage: React.FC = () => {
       label: 'Emergency',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
+          />
         </svg>
       ),
     },
@@ -272,7 +305,12 @@ export const SafetyCenterPage: React.FC = () => {
       label: 'Resources',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -298,16 +336,28 @@ export const SafetyCenterPage: React.FC = () => {
               Flamoral
             </h1>
             <nav className="flex items-center gap-6">
-              <button onClick={() => navigate('/discover')} className="text-fm-text-secondary hover:text-fm-pink transition">
+              <button
+                onClick={() => navigate('/discover')}
+                className="text-fm-text-secondary hover:text-fm-pink transition"
+              >
                 Discover
               </button>
-              <button onClick={() => navigate('/matches')} className="text-fm-text-secondary hover:text-fm-pink transition">
+              <button
+                onClick={() => navigate('/matches')}
+                className="text-fm-text-secondary hover:text-fm-pink transition"
+              >
                 Matches
               </button>
-              <button onClick={() => navigate('/messages')} className="text-fm-text-secondary hover:text-fm-pink transition">
+              <button
+                onClick={() => navigate('/messages')}
+                className="text-fm-text-secondary hover:text-fm-pink transition"
+              >
                 Messages
               </button>
-              <button onClick={() => navigate('/profile')} className="text-fm-text-secondary hover:text-fm-pink transition">
+              <button
+                onClick={() => navigate('/profile')}
+                className="text-fm-text-secondary hover:text-fm-pink transition"
+              >
                 Profile
               </button>
               <button onClick={() => navigate('/safety')} className="text-fm-pink font-medium">
@@ -338,7 +388,12 @@ export const SafetyCenterPage: React.FC = () => {
               className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
               </svg>
               SOS
             </button>
@@ -347,12 +402,14 @@ export const SafetyCenterPage: React.FC = () => {
           {/* Tab Navigation */}
           <div className="bg-fm-surface/60 backdrop-blur-sm rounded-xl mb-6 overflow-hidden border border-white/10">
             <div className="flex border-b border-white/10">
-              {tabs.map(tab => (
+              {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 transition ${
-                    activeTab === tab.id ? 'border-b-2 border-fm-pink bg-fm-pink/10 text-fm-pink' : 'text-fm-text-secondary hover:text-fm-text-primary hover:bg-white/5'
+                    activeTab === tab.id
+                      ? 'border-b-2 border-fm-pink bg-fm-pink/10 text-fm-pink'
+                      : 'text-fm-text-secondary hover:text-fm-text-primary hover:bg-white/5'
                   }`}
                 >
                   {tab.icon}
@@ -363,9 +420,7 @@ export const SafetyCenterPage: React.FC = () => {
 
             {/* Tab Content */}
             <div className="p-6">
-              {activeTab === 'verification' && (
-                <VerificationTab status={verificationStatus} />
-              )}
+              {activeTab === 'verification' && <VerificationTab status={verificationStatus} />}
               {activeTab === 'security' && (
                 <SecurityTab
                   settings={securitySettings}
@@ -429,8 +484,12 @@ const VerificationTab: React.FC<{ status: VerificationStatus | null }> = ({ stat
           {status.verificationScore}%
         </div>
         <h3 className="text-lg font-semibold text-fm-text-primary">Verification Score</h3>
-        <span className={`inline-block mt-2 px-4 py-1 rounded-full text-sm font-medium ${levelColors[status.overallVerificationLevel]}`}>
-          {status.overallVerificationLevel.charAt(0).toUpperCase() + status.overallVerificationLevel.slice(1)} Level
+        <span
+          className={`inline-block mt-2 px-4 py-1 rounded-full text-sm font-medium ${levelColors[status.overallVerificationLevel]}`}
+        >
+          {status.overallVerificationLevel.charAt(0).toUpperCase() +
+            status.overallVerificationLevel.slice(1)}{' '}
+          Level
         </span>
       </div>
 
@@ -450,7 +509,11 @@ const VerificationTab: React.FC<{ status: VerificationStatus | null }> = ({ stat
             {item.verified ? (
               <span className="flex items-center gap-1 text-green-400 font-medium">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 Verified
               </span>
@@ -519,7 +582,9 @@ const SecurityTab: React.FC<{
     <div className="space-y-6">
       {/* Two-Factor Authentication */}
       <div className="border-b border-white/10 pb-6">
-        <h3 className="text-lg font-semibold text-fm-text-primary mb-4">Two-Factor Authentication</h3>
+        <h3 className="text-lg font-semibold text-fm-text-primary mb-4">
+          Two-Factor Authentication
+        </h3>
         <Toggle
           enabled={settings.two_factor_enabled}
           onChange={(value) => onUpdate({ two_factor_enabled: value })}
@@ -564,9 +629,14 @@ const SecurityTab: React.FC<{
         {settings.trusted_devices.length > 0 ? (
           <ul className="space-y-2">
             {settings.trusted_devices.map((device, idx) => (
-              <li key={idx} className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10">
+              <li
+                key={idx}
+                className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10"
+              >
                 <span className="text-fm-text-secondary">{device}</span>
-                <button className="text-red-400 hover:text-red-300 text-sm transition">Remove</button>
+                <button className="text-red-400 hover:text-red-300 text-sm transition">
+                  Remove
+                </button>
               </li>
             ))}
           </ul>
@@ -619,7 +689,7 @@ const PrivacyTab: React.FC<{
       <div className="border-b border-white/10 pb-6">
         <h3 className="text-lg font-semibold text-fm-text-primary mb-4">Profile Visibility</h3>
         <div className="space-y-2">
-          {(['public', 'matches_only', 'hidden'] as const).map(visibility => (
+          {(['public', 'matches_only', 'hidden'] as const).map((visibility) => (
             <label
               key={visibility}
               className={`flex items-center p-3 rounded-lg border cursor-pointer transition ${
@@ -746,7 +816,9 @@ const EmergencyTab: React.FC<{
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-fm-text-primary">Emergency Contacts</h3>
-          <p className="text-sm text-fm-text-secondary">People who will be notified in case of emergency</p>
+          <p className="text-sm text-fm-text-secondary">
+            People who will be notified in case of emergency
+          </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -761,7 +833,10 @@ const EmergencyTab: React.FC<{
 
       {/* Add Contact Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white/5 rounded-lg p-4 space-y-4 border border-white/10">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/5 rounded-lg p-4 space-y-4 border border-white/10"
+        >
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-fm-text-secondary mb-1">Name</label>
@@ -793,18 +868,30 @@ const EmergencyTab: React.FC<{
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-fm-text-secondary mb-1">Relationship</label>
+              <label className="block text-sm font-medium text-fm-text-secondary mb-1">
+                Relationship
+              </label>
               <select
                 required
                 value={newContact.relationship}
                 onChange={(e) => setNewContact({ ...newContact, relationship: e.target.value })}
                 className="w-full p-2 bg-white/10 border border-white/10 rounded-lg focus:ring-2 focus:ring-fm-pink focus:outline-none text-fm-text-primary"
               >
-                <option value="" className="bg-fm-surface">Select...</option>
-                <option value="family" className="bg-fm-surface">Family</option>
-                <option value="friend" className="bg-fm-surface">Friend</option>
-                <option value="partner" className="bg-fm-surface">Partner</option>
-                <option value="other" className="bg-fm-surface">Other</option>
+                <option value="" className="bg-fm-surface">
+                  Select...
+                </option>
+                <option value="family" className="bg-fm-surface">
+                  Family
+                </option>
+                <option value="friend" className="bg-fm-surface">
+                  Friend
+                </option>
+                <option value="partner" className="bg-fm-surface">
+                  Partner
+                </option>
+                <option value="other" className="bg-fm-surface">
+                  Other
+                </option>
               </select>
             </div>
           </div>
@@ -854,14 +941,18 @@ const EmergencyTab: React.FC<{
             <div
               key={contact.id}
               className={`flex items-center justify-between p-4 rounded-lg border ${
-                contact.is_primary ? 'border-fm-pink/50 bg-fm-pink/10' : 'border-white/10 bg-white/5'
+                contact.is_primary
+                  ? 'border-fm-pink/50 bg-fm-pink/10'
+                  : 'border-white/10 bg-white/5'
               }`}
             >
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-fm-text-primary">{contact.name}</p>
                   {contact.is_primary && (
-                    <span className="bg-fm-pink text-white text-xs px-2 py-0.5 rounded-full">Primary</span>
+                    <span className="bg-fm-pink text-white text-xs px-2 py-0.5 rounded-full">
+                      Primary
+                    </span>
                   )}
                 </div>
                 <p className="text-sm text-fm-text-secondary">{contact.phone}</p>
@@ -873,7 +964,12 @@ const EmergencyTab: React.FC<{
                 className="text-red-400 hover:text-red-300 disabled:opacity-50 transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -881,11 +977,23 @@ const EmergencyTab: React.FC<{
         </div>
       ) : (
         <div className="text-center py-8">
-          <svg className="w-16 h-16 mx-auto text-fm-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <svg
+            className="w-16 h-16 mx-auto text-fm-text-muted mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
           </svg>
           <p className="text-fm-text-muted">No emergency contacts added yet.</p>
-          <p className="text-sm text-fm-text-muted">Add someone you trust to be notified in emergencies.</p>
+          <p className="text-sm text-fm-text-muted">
+            Add someone you trust to be notified in emergencies.
+          </p>
         </div>
       )}
     </div>
@@ -898,9 +1006,9 @@ const ResourcesTab: React.FC<{
   resources: CrisisResource[];
 }> = ({ tips, resources }) => {
   const tipsByCategory = {
-    before: tips.filter(t => t.category === 'before'),
-    during: tips.filter(t => t.category === 'during'),
-    after: tips.filter(t => t.category === 'after'),
+    before: tips.filter((t) => t.category === 'before'),
+    during: tips.filter((t) => t.category === 'during'),
+    after: tips.filter((t) => t.category === 'after'),
   };
 
   return (
@@ -912,15 +1020,23 @@ const ResourcesTab: React.FC<{
         {/* Before Meeting */}
         <div className="mb-6">
           <h4 className="font-medium text-fm-text-secondary mb-3 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-fm-blue/20 text-fm-blue flex items-center justify-center text-sm">1</span>
+            <span className="w-6 h-6 rounded-full bg-fm-blue/20 text-fm-blue flex items-center justify-center text-sm">
+              1
+            </span>
             Before Meeting
           </h4>
           <ul className="space-y-2 pl-8">
             {tipsByCategory.before.map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <span className={`w-2 h-2 rounded-full mt-2 ${
-                  tip.priority === 'high' ? 'bg-red-500' : tip.priority === 'medium' ? 'bg-yellow-500' : 'bg-fm-text-muted'
-                }`} />
+                <span
+                  className={`w-2 h-2 rounded-full mt-2 ${
+                    tip.priority === 'high'
+                      ? 'bg-red-500'
+                      : tip.priority === 'medium'
+                        ? 'bg-yellow-500'
+                        : 'bg-fm-text-muted'
+                  }`}
+                />
                 <span className="text-fm-text-secondary">{tip.tip}</span>
               </li>
             ))}
@@ -930,15 +1046,23 @@ const ResourcesTab: React.FC<{
         {/* During Meeting */}
         <div className="mb-6">
           <h4 className="font-medium text-fm-text-secondary mb-3 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-sm">2</span>
+            <span className="w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-sm">
+              2
+            </span>
             During the Date
           </h4>
           <ul className="space-y-2 pl-8">
             {tipsByCategory.during.map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <span className={`w-2 h-2 rounded-full mt-2 ${
-                  tip.priority === 'high' ? 'bg-red-500' : tip.priority === 'medium' ? 'bg-yellow-500' : 'bg-fm-text-muted'
-                }`} />
+                <span
+                  className={`w-2 h-2 rounded-full mt-2 ${
+                    tip.priority === 'high'
+                      ? 'bg-red-500'
+                      : tip.priority === 'medium'
+                        ? 'bg-yellow-500'
+                        : 'bg-fm-text-muted'
+                  }`}
+                />
                 <span className="text-fm-text-secondary">{tip.tip}</span>
               </li>
             ))}
@@ -948,15 +1072,23 @@ const ResourcesTab: React.FC<{
         {/* After Meeting */}
         <div>
           <h4 className="font-medium text-fm-text-secondary mb-3 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm">3</span>
+            <span className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm">
+              3
+            </span>
             After the Date
           </h4>
           <ul className="space-y-2 pl-8">
             {tipsByCategory.after.map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <span className={`w-2 h-2 rounded-full mt-2 ${
-                  tip.priority === 'high' ? 'bg-red-500' : tip.priority === 'medium' ? 'bg-yellow-500' : 'bg-fm-text-muted'
-                }`} />
+                <span
+                  className={`w-2 h-2 rounded-full mt-2 ${
+                    tip.priority === 'high'
+                      ? 'bg-red-500'
+                      : tip.priority === 'medium'
+                        ? 'bg-yellow-500'
+                        : 'bg-fm-text-muted'
+                  }`}
+                />
                 <span className="text-fm-text-secondary">{tip.tip}</span>
               </li>
             ))}
@@ -978,7 +1110,10 @@ const ResourcesTab: React.FC<{
             const telLink = resource.contact.replace(/[^\d+]/g, '');
 
             return (
-              <div key={idx} className="bg-white/5 rounded-lg p-4 border border-white/10 hover:border-fm-pink/50 transition">
+              <div
+                key={idx}
+                className="bg-white/5 rounded-lg p-4 border border-white/10 hover:border-fm-pink/50 transition"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h4 className="font-medium text-fm-text-primary text-lg">{resource.name}</h4>
@@ -986,7 +1121,11 @@ const ResourcesTab: React.FC<{
                     {resource.hours && (
                       <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         Available {resource.hours}
                       </p>
@@ -998,8 +1137,18 @@ const ResourcesTab: React.FC<{
                         href={`tel:${telLink}`}
                         className="bg-fm-pink hover:opacity-90 text-white px-4 py-2.5 rounded-lg transition flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                          />
                         </svg>
                         Call {resource.contact}
                       </a>
@@ -1008,8 +1157,18 @@ const ResourcesTab: React.FC<{
                         href={`sms:741741&body=HOME`}
                         className="bg-fm-blue hover:opacity-90 text-white px-4 py-2.5 rounded-lg transition flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                          />
                         </svg>
                         {resource.contact}
                       </a>
@@ -1022,8 +1181,18 @@ const ResourcesTab: React.FC<{
                         className="text-fm-pink hover:opacity-80 text-sm inline-flex items-center justify-center gap-1 py-1 transition"
                       >
                         Visit website
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
                         </svg>
                       </a>
                     )}
@@ -1037,8 +1206,13 @@ const ResourcesTab: React.FC<{
         {/* Additional help text */}
         <div className="mt-6 p-4 bg-fm-pink/10 rounded-lg border border-fm-pink/30">
           <p className="text-sm text-fm-text-secondary">
-            <strong className="text-fm-text-primary">Remember:</strong> Your safety is our priority. If you encounter any concerning behavior on Flamoral, please use the in-app reporting tools or contact our safety team at{' '}
-            <a href="mailto:safety@flamoral.com" className="text-fm-pink hover:opacity-80 font-medium transition">
+            <strong className="text-fm-text-primary">Remember:</strong> Your safety is our priority.
+            If you encounter any concerning behavior on Flamoral, please use the in-app reporting
+            tools or contact our safety team at{' '}
+            <a
+              href="mailto:safety@flamoral.com"
+              className="text-fm-pink hover:opacity-80 font-medium transition"
+            >
               safety@flamoral.com
             </a>
           </p>

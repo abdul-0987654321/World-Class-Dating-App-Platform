@@ -103,11 +103,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     clearNotifications,
   };
 
-  return (
-    <NotificationContext.Provider value={value}>
-      {children}
-    </NotificationContext.Provider>
-  );
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 };
 
 // Hook to use notification context

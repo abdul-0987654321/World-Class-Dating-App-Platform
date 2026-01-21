@@ -230,7 +230,7 @@ const TextInput = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #4ECDC4;
+    border-color: #4ecdc4;
   }
 `;
 
@@ -247,8 +247,7 @@ const VisibilityOption = styled.label<{ isSelected: boolean }>`
   padding: 12px;
   background: ${({ isSelected }) =>
     isSelected ? 'rgba(78, 205, 196, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
-  border: 1px solid ${({ isSelected }) =>
-    isSelected ? '#4ECDC4' : 'rgba(255, 255, 255, 0.1)'};
+  border: 1px solid ${({ isSelected }) => (isSelected ? '#4ECDC4' : 'rgba(255, 255, 255, 0.1)')};
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
@@ -323,7 +322,7 @@ const PremiumBadge = styled.div`
   position: absolute;
   top: 4px;
   right: 4px;
-  background: linear-gradient(135deg, #FFD700, #FFA500);
+  background: linear-gradient(135deg, #ffd700, #ffa500);
   color: #333;
   font-size: 8px;
   font-weight: 700;
@@ -342,7 +341,7 @@ const LocationInput = styled.div`
 `;
 
 const LocationIcon = styled.div`
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 20px;
 `;
 
@@ -388,7 +387,7 @@ const CancelButton = styled.button`
 
 const PublishButton = styled.button`
   padding: 12px 32px;
-  background: linear-gradient(135deg, #4ECDC4, #95E1D3);
+  background: linear-gradient(135deg, #4ecdc4, #95e1d3);
   border: none;
   border-radius: 24px;
   color: white;
@@ -434,7 +433,7 @@ const visibilityOptions = [
     value: 'matches_only' as Visibility,
     icon: FiUsers,
     title: 'Matches Only',
-    desc: 'Only people you\'ve matched with can see this',
+    desc: "Only people you've matched with can see this",
   },
   {
     value: 'close_friends' as Visibility,
@@ -461,14 +460,17 @@ export const StoryCreator: React.FC<StoryCreatorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    const url = URL.createObjectURL(file);
-    setMediaType(type);
-    setMediaUrl(url);
-  }, []);
+      const url = URL.createObjectURL(file);
+      setMediaType(type);
+      setMediaUrl(url);
+    },
+    []
+  );
 
   const handlePublish = () => {
     if (!mediaUrl || !mediaType) return;
@@ -611,13 +613,8 @@ export const StoryCreator: React.FC<StoryCreatorProps> = ({
                     isPremium={template.isPremium && !isPremiumUser}
                     onClick={() => handleTemplateSelect(template)}
                   >
-                    <TemplateImage
-                      src={template.previewUrl}
-                      alt={template.name}
-                    />
-                    {template.isPremium && !isPremiumUser && (
-                      <PremiumBadge>PRO</PremiumBadge>
-                    )}
+                    <TemplateImage src={template.previewUrl} alt={template.name} />
+                    {template.isPremium && !isPremiumUser && <PremiumBadge>PRO</PremiumBadge>}
                   </TemplateCard>
                 ))}
               </TemplatesGrid>

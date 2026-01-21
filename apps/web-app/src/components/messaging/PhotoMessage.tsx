@@ -120,9 +120,7 @@ const Container = styled.div<{ $isFromMe: boolean; $hasError: boolean }>`
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
   ${({ $isFromMe }) =>
-    $isFromMe
-      ? 'border-bottom-right-radius: 4px;'
-      : 'border-bottom-left-radius: 4px;'}
+    $isFromMe ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'}
 `;
 
 const ImageWrapper = styled.div`
@@ -162,12 +160,7 @@ const FullImage = styled.img<{ $isLoaded: boolean }>`
 const LoadingPlaceholder = styled.div<{ $aspectRatio: number }>`
   width: 100%;
   padding-top: ${({ $aspectRatio }) => $aspectRatio * 100}%;
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 0px,
-    #e0e0e0 50px,
-    #f0f0f0 100px
-  );
+  background: linear-gradient(90deg, #f0f0f0 0px, #e0e0e0 50px, #f0f0f0 100px);
   background-size: 200px 100%;
   animation: ${shimmer} 1.5s infinite linear;
 `;
@@ -284,7 +277,10 @@ const ActionButton = styled.button<{ $position?: 'left' | 'right' }>`
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    background 0.2s,
+    transform 0.2s;
 
   ${ImageWrapper}:hover & {
     opacity: 1;
@@ -365,9 +361,7 @@ async function downloadImage(url: string, filename?: string): Promise<void> {
       const urlParts = url.split('/');
       const lastPart = urlParts[urlParts.length - 1];
       const extension = blob.type.split('/')[1] || 'jpg';
-      link.download = lastPart.includes('.')
-        ? lastPart
-        : `photo-${Date.now()}.${extension}`;
+      link.download = lastPart.includes('.') ? lastPart : `photo-${Date.now()}.${extension}`;
     }
 
     document.body.appendChild(link);
@@ -483,12 +477,7 @@ export const PhotoMessage: React.FC<PhotoMessageProps> = memo(
 
           {/* Thumbnail for blur-up effect */}
           {thumbnailUrl && showThumbnail && (
-            <ThumbnailImage
-              src={thumbnailUrl}
-              alt=""
-              $isVisible={!isLoaded}
-              aria-hidden="true"
-            />
+            <ThumbnailImage src={thumbnailUrl} alt="" $isVisible={!isLoaded} aria-hidden="true" />
           )}
 
           {/* Full-size image */}
@@ -648,7 +637,9 @@ const LightboxButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -796,12 +787,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = memo(
             $isZoomed={isZoomed}
             onClick={handleImageClick}
           >
-            <LightboxImage
-              src={imageUrl}
-              alt={alt}
-              $isZoomed={isZoomed}
-              draggable={false}
-            />
+            <LightboxImage src={imageUrl} alt={alt} $isZoomed={isZoomed} draggable={false} />
           </LightboxImageContainer>
 
           {/* Navigation buttons */}

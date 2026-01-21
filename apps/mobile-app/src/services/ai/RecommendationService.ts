@@ -128,12 +128,12 @@ class RecommendationService {
   /**
    * Get personalized profile recommendations
    */
-  async getRecommendations(request: RecommendationRequest): Promise<ApiResponse<RecommendationResult>> {
-    return httpClient.post<RecommendationResult>(
-      `${this.baseUrl}/recommend`,
-      request,
-      { timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS }
-    );
+  async getRecommendations(
+    request: RecommendationRequest
+  ): Promise<ApiResponse<RecommendationResult>> {
+    return httpClient.post<RecommendationResult>(`${this.baseUrl}/recommend`, request, {
+      timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS,
+    });
   }
 
   /**
@@ -144,10 +144,11 @@ class RecommendationService {
     location: { latitude: number; longitude: number },
     limit: number = 10
   ): Promise<ApiResponse<RecommendationResult>> {
-    return httpClient.post<RecommendationResult>(
-      `${this.baseUrl}/top-picks`,
-      { user_id: userId, location, limit }
-    );
+    return httpClient.post<RecommendationResult>(`${this.baseUrl}/top-picks`, {
+      user_id: userId,
+      location,
+      limit,
+    });
   }
 
   /**
@@ -157,30 +158,26 @@ class RecommendationService {
     userId: string,
     targetUserId: string
   ): Promise<ApiResponse<CompatibilityResult>> {
-    return httpClient.post<CompatibilityResult>(
-      `${this.baseUrl}/compatibility`,
-      { user_id: userId, target_user_id: targetUserId }
-    );
+    return httpClient.post<CompatibilityResult>(`${this.baseUrl}/compatibility`, {
+      user_id: userId,
+      target_user_id: targetUserId,
+    });
   }
 
   /**
    * Record swipe action for improving recommendations
    */
   async recordSwipeFeedback(feedback: SwipeFeedback): Promise<ApiResponse<{ recorded: boolean }>> {
-    return httpClient.post(
-      `${this.baseUrl}/feedback`,
-      feedback
-    );
+    return httpClient.post(`${this.baseUrl}/feedback`, feedback);
   }
 
   /**
    * Update user embedding based on latest profile/activity
    */
-  async updateUserEmbedding(userId: string): Promise<ApiResponse<{ updated: boolean; version: string }>> {
-    return httpClient.post(
-      `${this.baseUrl}/embedding/update`,
-      { user_id: userId }
-    );
+  async updateUserEmbedding(
+    userId: string
+  ): Promise<ApiResponse<{ updated: boolean; version: string }>> {
+    return httpClient.post(`${this.baseUrl}/embedding/update`, { user_id: userId });
   }
 
   /**
@@ -191,10 +188,11 @@ class RecommendationService {
     likedUserId: string,
     limit: number = 10
   ): Promise<ApiResponse<RecommendedProfile[]>> {
-    return httpClient.post<RecommendedProfile[]>(
-      `${this.baseUrl}/similar`,
-      { user_id: userId, liked_user_id: likedUserId, limit }
-    );
+    return httpClient.post<RecommendedProfile[]>(`${this.baseUrl}/similar`, {
+      user_id: userId,
+      liked_user_id: likedUserId,
+      limit,
+    });
   }
 
   /**
@@ -205,10 +203,11 @@ class RecommendationService {
     location: { latitude: number; longitude: number },
     limit: number = 20
   ): Promise<ApiResponse<RecommendationResult>> {
-    return httpClient.post<RecommendationResult>(
-      `${this.baseUrl}/second-look`,
-      { user_id: userId, location, limit }
-    );
+    return httpClient.post<RecommendationResult>(`${this.baseUrl}/second-look`, {
+      user_id: userId,
+      location,
+      limit,
+    });
   }
 
   /**
@@ -218,38 +217,39 @@ class RecommendationService {
     userId: string,
     limit: number = 50,
     blurred: boolean = true
-  ): Promise<ApiResponse<{
-    profiles: RecommendedProfile[];
-    total_count: number;
-    requires_premium: boolean;
-  }>> {
-    return httpClient.get(
-      `${this.baseUrl}/liked-you/${userId}?limit=${limit}&blurred=${blurred}`
-    );
+  ): Promise<
+    ApiResponse<{
+      profiles: RecommendedProfile[];
+      total_count: number;
+      requires_premium: boolean;
+    }>
+  > {
+    return httpClient.get(`${this.baseUrl}/liked-you/${userId}?limit=${limit}&blurred=${blurred}`);
   }
 
   /**
    * Refresh recommendations (force recalculation)
    */
-  async refreshRecommendations(userId: string): Promise<ApiResponse<{ refreshed: boolean; available_at: string }>> {
-    return httpClient.post(
-      `${this.baseUrl}/refresh`,
-      { user_id: userId }
-    );
+  async refreshRecommendations(
+    userId: string
+  ): Promise<ApiResponse<{ refreshed: boolean; available_at: string }>> {
+    return httpClient.post(`${this.baseUrl}/refresh`, { user_id: userId });
   }
 
   /**
    * Get recommendation statistics for user
    */
-  async getRecommendationStats(userId: string): Promise<ApiResponse<{
-    total_shown: number;
-    total_liked: number;
-    total_passed: number;
-    match_rate: number;
-    avg_compatibility: number;
-    top_matched_interests: string[];
-    recommendation_quality_score: number;
-  }>> {
+  async getRecommendationStats(userId: string): Promise<
+    ApiResponse<{
+      total_shown: number;
+      total_liked: number;
+      total_passed: number;
+      match_rate: number;
+      avg_compatibility: number;
+      top_matched_interests: string[];
+      recommendation_quality_score: number;
+    }>
+  > {
     return httpClient.get(`${this.baseUrl}/stats/${userId}`);
   }
 
@@ -259,15 +259,15 @@ class RecommendationService {
   async getRecommendationExplanation(
     userId: string,
     targetUserId: string
-  ): Promise<ApiResponse<{
-    reasons: MatchReason[];
-    compatibility_breakdown: Record<string, number>;
-    common_interests: string[];
-    similar_traits: string[];
-  }>> {
-    return httpClient.get(
-      `${this.baseUrl}/explain/${userId}/${targetUserId}`
-    );
+  ): Promise<
+    ApiResponse<{
+      reasons: MatchReason[];
+      compatibility_breakdown: Record<string, number>;
+      common_interests: string[];
+      similar_traits: string[];
+    }>
+  > {
+    return httpClient.get(`${this.baseUrl}/explain/${userId}/${targetUserId}`);
   }
 
   /**
@@ -278,10 +278,11 @@ class RecommendationService {
     location: { latitude: number; longitude: number },
     boostId: string
   ): Promise<ApiResponse<RecommendationResult>> {
-    return httpClient.post<RecommendationResult>(
-      `${this.baseUrl}/boost-recommendations`,
-      { user_id: userId, location, boost_id: boostId }
-    );
+    return httpClient.post<RecommendationResult>(`${this.baseUrl}/boost-recommendations`, {
+      user_id: userId,
+      location,
+      boost_id: boostId,
+    });
   }
 
   /**
@@ -291,10 +292,10 @@ class RecommendationService {
     userId: string,
     targetUserIds: string[]
   ): Promise<ApiResponse<{ scores: Record<string, number> }>> {
-    return httpClient.post(
-      `${this.baseUrl}/batch-score`,
-      { user_id: userId, target_user_ids: targetUserIds }
-    );
+    return httpClient.post(`${this.baseUrl}/batch-score`, {
+      user_id: userId,
+      target_user_ids: targetUserIds,
+    });
   }
 }
 

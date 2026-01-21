@@ -61,7 +61,10 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         >
           <Avatar>
             {conversation.participant.photoUrl ? (
-              <AvatarImage src={conversation.participant.photoUrl} alt={conversation.participant.name} />
+              <AvatarImage
+                src={conversation.participant.photoUrl}
+                alt={conversation.participant.name}
+              />
             ) : (
               <AvatarPlaceholder>
                 {conversation.participant.name.charAt(0).toUpperCase()}
@@ -156,10 +159,10 @@ const ConversationItem = styled.div<{ $isSelected: boolean }>`
   cursor: pointer;
   transition: background-color 0.2s;
   border-bottom: 1px solid #f0f0f0;
-  background-color: ${props => props.$isSelected ? '#f8f9fa' : 'transparent'};
+  background-color: ${(props) => (props.$isSelected ? '#f8f9fa' : 'transparent')};
 
   &:hover {
-    background-color: ${props => props.$isSelected ? '#f8f9fa' : '#fafafa'};
+    background-color: ${(props) => (props.$isSelected ? '#f8f9fa' : '#fafafa')};
   }
 `;
 
@@ -232,8 +235,8 @@ const ConversationPreview = styled.div`
 
 const LastMessage = styled.div<{ $hasUnread: boolean }>`
   font-size: 14px;
-  color: ${props => props.$hasUnread ? '#333' : '#666'};
-  font-weight: ${props => props.$hasUnread ? '500' : '400'};
+  color: ${(props) => (props.$hasUnread ? '#333' : '#666')};
+  font-weight: ${(props) => (props.$hasUnread ? '500' : '400')};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

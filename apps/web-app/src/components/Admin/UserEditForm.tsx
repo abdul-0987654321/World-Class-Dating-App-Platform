@@ -168,9 +168,7 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
 
           {/* Age */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Age
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
             <input
               type="number"
               min="18"
@@ -184,9 +182,7 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
 
           {/* Gender */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Gender
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
             <select
               value={formData.gender || ''}
               onChange={(e) => handleChange('gender', e.target.value || undefined)}
@@ -203,9 +199,7 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Location
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
             <input
               type="text"
               value={formData.location || ''}
@@ -218,9 +212,7 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
 
           {/* Bio */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bio
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
             <textarea
               value={formData.bio || ''}
               onChange={(e) => handleChange('bio', e.target.value || undefined)}
@@ -230,7 +222,7 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none resize-none disabled:bg-gray-50 disabled:text-gray-600"
             />
             <p className="mt-1 text-xs text-gray-500">
-              {(formData.bio?.length || 0)} / 500 characters
+              {formData.bio?.length || 0} / 500 characters
             </p>
           </div>
         </div>

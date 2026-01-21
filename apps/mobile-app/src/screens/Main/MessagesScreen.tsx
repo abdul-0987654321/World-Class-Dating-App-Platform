@@ -81,19 +81,21 @@ const MessagesScreen: React.FC = () => {
       dispatch(incrementUnreadCount(conversationId));
 
       // Update conversation's last message
-      const conversation = conversations.find(c => c.id === conversationId);
+      const conversation = conversations.find((c) => c.id === conversationId);
       if (conversation) {
-        dispatch(updateConversation({
-          ...conversation,
-          lastMessage: {
-            id: message.id,
-            content: message.content,
-            senderId: message.senderId,
-            createdAt: message.createdAt,
-            type: message.type,
-          },
-          updatedAt: message.createdAt,
-        }));
+        dispatch(
+          updateConversation({
+            ...conversation,
+            lastMessage: {
+              id: message.id,
+              content: message.content,
+              senderId: message.senderId,
+              createdAt: message.createdAt,
+              type: message.type,
+            },
+            updatedAt: message.createdAt,
+          })
+        );
       }
     });
 
@@ -135,14 +137,17 @@ const MessagesScreen: React.FC = () => {
   }, [dispatch]);
 
   // Handle conversation press
-  const handleConversationPress = useCallback((conversation: Conversation) => {
-    navigation.navigate('Chat', { conversationId: conversation.id });
-  }, [navigation]);
+  const handleConversationPress = useCallback(
+    (conversation: Conversation) => {
+      navigation.navigate('Chat', { conversationId: conversation.id });
+    },
+    [navigation]
+  );
 
   // Filter conversations by search query
   const filteredConversations = searchQuery
-    ? conversations.filter(conv => {
-        const otherUser = conv.participants.find(p => p.id !== currentUserId);
+    ? conversations.filter((conv) => {
+        const otherUser = conv.participants.find((p) => p.id !== currentUserId);
         return otherUser?.name.toLowerCase().includes(searchQuery.toLowerCase());
       })
     : conversations;
@@ -163,7 +168,7 @@ const MessagesScreen: React.FC = () => {
 
   // Render conversation item
   const renderConversation = ({ item }: { item: Conversation }) => {
-    const otherUser = item.participants.find(p => p.id !== currentUserId);
+    const otherUser = item.participants.find((p) => p.id !== currentUserId);
     if (!otherUser) return null;
 
     return (
@@ -181,29 +186,24 @@ const MessagesScreen: React.FC = () => {
           <View style={styles.topRow}>
             <Text style={styles.name}>{otherUser.name}</Text>
             {item.lastMessage && (
-              <Text style={styles.timestamp}>
-                {getTimeAgo(item.lastMessage.createdAt)}
-              </Text>
+              <Text style={styles.timestamp}>{getTimeAgo(item.lastMessage.createdAt)}</Text>
             )}
           </View>
 
           <View style={styles.bottomRow}>
             {item.lastMessage ? (
               <Text
-                style={[
-                  styles.lastMessage,
-                  item.unreadCount > 0 && styles.unreadMessage,
-                ]}
+                style={[styles.lastMessage, item.unreadCount > 0 && styles.unreadMessage]}
                 numberOfLines={1}
               >
                 {item.lastMessage.senderId === currentUserId ? 'You: ' : ''}
                 {item.lastMessage.type === 'text'
                   ? item.lastMessage.content
                   : item.lastMessage.type === 'image'
-                  ? 'Photo'
-                  : item.lastMessage.type === 'gif'
-                  ? 'GIF'
-                  : 'Voice message'}
+                    ? 'Photo'
+                    : item.lastMessage.type === 'gif'
+                      ? 'GIF'
+                      : 'Voice message'}
               </Text>
             ) : (
               <Text style={styles.lastMessage}>New conversation</Text>
@@ -230,9 +230,7 @@ const MessagesScreen: React.FC = () => {
           <Text style={styles.headerTitle}>Messages</Text>
           {unreadCount > 0 && (
             <View style={styles.headerBadge}>
-              <Text style={styles.headerBadgeText}>
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Text>
+              <Text style={styles.headerBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
             </View>
           )}
         </View>
@@ -285,9 +283,7 @@ const MessagesScreen: React.FC = () => {
             {searchQuery ? 'No conversations found' : 'No messages yet'}
           </Text>
           <Text style={styles.emptySubtitle}>
-            {searchQuery
-              ? 'Try a different search term'
-              : 'Start swiping to find your matches!'}
+            {searchQuery ? 'Try a different search term' : 'Start swiping to find your matches!'}
           </Text>
         </View>
       )}

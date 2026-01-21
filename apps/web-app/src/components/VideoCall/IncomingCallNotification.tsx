@@ -79,15 +79,21 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isVisible, onAccept, onReject]);
 
-  const handleAccept = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAccept();
-  }, [onAccept]);
+  const handleAccept = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onAccept();
+    },
+    [onAccept]
+  );
 
-  const handleReject = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onReject();
-  }, [onReject]);
+  const handleReject = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onReject();
+    },
+    [onReject]
+  );
 
   return (
     <AnimatePresence>
@@ -148,11 +154,17 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({
               >
                 {isVideoCall ? (
                   <svg viewBox="0 0 24 24" className="w-8 h-8 text-white">
-                    <path fill="currentColor" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                    <path
+                      fill="currentColor"
+                      d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                    />
                   </svg>
                 ) : (
                   <svg viewBox="0 0 24 24" className="w-8 h-8 text-white">
-                    <path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                    <path
+                      fill="currentColor"
+                      d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"
+                    />
                   </svg>
                 )}
               </motion.div>
@@ -168,7 +180,10 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({
               className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition flex items-center justify-center gap-2"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5 text-red-500">
-                <path fill="currentColor" d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+                <path
+                  fill="currentColor"
+                  d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"
+                />
               </svg>
               <span>Decline</span>
             </motion.button>
@@ -181,11 +196,17 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({
             >
               {isVideoCall ? (
                 <svg viewBox="0 0 24 24" className="w-5 h-5">
-                  <path fill="currentColor" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                  <path
+                    fill="currentColor"
+                    d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                  />
                 </svg>
               ) : (
                 <svg viewBox="0 0 24 24" className="w-5 h-5">
-                  <path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                  <path
+                    fill="currentColor"
+                    d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"
+                  />
                 </svg>
               )}
               <span>Accept</span>
@@ -202,8 +223,20 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({
 
           {/* Keyboard hint */}
           <div className="px-4 pb-3 flex justify-center gap-4 text-xs text-gray-400 dark:text-gray-500">
-            <span>Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400 font-mono">Enter</kbd> to accept</span>
-            <span>Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400 font-mono">Esc</kbd> to decline</span>
+            <span>
+              Press{' '}
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400 font-mono">
+                Enter
+              </kbd>{' '}
+              to accept
+            </span>
+            <span>
+              Press{' '}
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400 font-mono">
+                Esc
+              </kbd>{' '}
+              to decline
+            </span>
           </div>
         </motion.div>
       )}

@@ -27,12 +27,24 @@ import {
 export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
 
 // Legacy uppercase tier type for backward compatibility with existing UI code
-export type SubscriptionTierUppercase = 'FREE' | 'BASIC' | 'PLUS' | 'PREMIUM' | 'PREMIUM_PLUS' | 'ELITE';
+export type SubscriptionTierUppercase =
+  | 'FREE'
+  | 'BASIC'
+  | 'PLUS'
+  | 'PREMIUM'
+  | 'PREMIUM_PLUS'
+  | 'ELITE';
 
 export type BillingCycle = 'monthly' | '3_months' | '6_months' | 'yearly';
 
 // Status type - normalized to US spelling ('canceled' not 'cancelled')
-export type SubscriptionStatus = 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing' | 'grace_period';
+export type SubscriptionStatus =
+  | 'active'
+  | 'canceled'
+  | 'expired'
+  | 'past_due'
+  | 'trialing'
+  | 'grace_period';
 
 /**
  * Converts tier to uppercase for display purposes
@@ -44,7 +56,9 @@ export function tierToUppercase(tier: SubscriptionTier): SubscriptionTierUpperca
 /**
  * Converts tier to lowercase for API requests
  */
-export function tierToLowercase(tier: SubscriptionTier | SubscriptionTierUppercase): SubscriptionTier {
+export function tierToLowercase(
+  tier: SubscriptionTier | SubscriptionTierUppercase
+): SubscriptionTier {
   return tier.toLowerCase() as SubscriptionTier;
 }
 
@@ -171,7 +185,7 @@ class SubscriptionService {
   async getCurrentSubscription(): Promise<Subscription> {
     // In mock mode, return mock data
     if (!import.meta.env.VITE_API_URL) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return getMockSubscription();
     }
 
@@ -262,7 +276,10 @@ class SubscriptionService {
     ];
   }
 
-  async upgradePlan(tier: SubscriptionTier, billingCycle: BillingCycle = 'monthly'): Promise<Subscription> {
+  async upgradePlan(
+    tier: SubscriptionTier,
+    billingCycle: BillingCycle = 'monthly'
+  ): Promise<Subscription> {
     // SECURITY: Always require API for subscription upgrades - no mock mode for payments
     if (!import.meta.env.VITE_API_URL) {
       throw new Error('Payment service unavailable. Please try again later.');

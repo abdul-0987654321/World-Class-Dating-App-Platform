@@ -85,10 +85,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
         codeInputRefs.current[0]?.focus();
       }, 300);
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to send verification code. Please try again.'
-      );
+      Alert.alert('Error', error.message || 'Failed to send verification code. Please try again.');
       console.error('Send code error:', error);
     } finally {
       setIsLoading(false);
@@ -120,10 +117,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
     setIsLoading(true);
     try {
-      const isValid = await onVerifyCode(
-        `${countryCode}${phoneNumber}`,
-        verificationCode
-      );
+      const isValid = await onVerifyCode(`${countryCode}${phoneNumber}`, verificationCode);
 
       if (isValid) {
         setStep('success');
@@ -170,9 +164,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
   const renderPhoneInput = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>Enter your phone number</Text>
-      <Text style={styles.subtitle}>
-        We'll send you a verification code to confirm it's you
-      </Text>
+      <Text style={styles.subtitle}>We'll send you a verification code to confirm it's you</Text>
 
       <View style={styles.phoneInputContainer}>
         <TouchableOpacity
@@ -224,8 +216,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
       />
 
       <Text style={styles.disclaimer}>
-        By continuing, you agree to receive SMS messages. Message and data rates may
-        apply.
+        By continuing, you agree to receive SMS messages. Message and data rates may apply.
       </Text>
     </View>
   );
@@ -253,9 +244,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
             ]}
             value={digit}
             onChangeText={(value) => handleCodeChange(value, index)}
-            onKeyPress={({ nativeEvent }) =>
-              handleCodeKeyPress(nativeEvent.key, index)
-            }
+            onKeyPress={({ nativeEvent }) => handleCodeKeyPress(nativeEvent.key, index)}
             keyboardType="number-pad"
             maxLength={1}
             editable={!isLoading}
@@ -270,9 +259,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
         style={styles.resendButton}
       >
         {resendTimer > 0 ? (
-          <Text style={styles.resendTimerText}>
-            Resend code in {resendTimer}s
-          </Text>
+          <Text style={styles.resendTimerText}>Resend code in {resendTimer}s</Text>
         ) : (
           <Text style={styles.resendText}>Resend code</Text>
         )}
@@ -300,12 +287,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
     return (
       <View style={styles.stepContainer}>
-        <Animated.View
-          style={[
-            styles.successContainer,
-            { transform: [{ scale }], opacity },
-          ]}
-        >
+        <Animated.View style={[styles.successContainer, { transform: [{ scale }], opacity }]}>
           <View style={styles.successCircle}>
             <Text style={styles.successIcon}>✓</Text>
           </View>

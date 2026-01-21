@@ -21,8 +21,8 @@ export const NotFoundPage: React.FC = () => {
 
           {/* Description */}
           <p className="text-fm-text-secondary mb-8">
-            Oops! The page you're looking for doesn't exist or has been moved.
-            Let's get you back on track.
+            Oops! The page you're looking for doesn't exist or has been moved. Let's get you back on
+            track.
           </p>
 
           {/* Action Buttons */}

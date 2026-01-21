@@ -6,10 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type {
-  SpeedDatingMatch,
-  SpeedDatingMatchesResponse,
-} from '../types/speedDating.types';
+import type { SpeedDatingMatch, SpeedDatingMatchesResponse } from '../types/speedDating.types';
 
 const API_BASE_URL = 'https://api.flamoral.com';
 
@@ -203,7 +200,7 @@ export const useSpeedDatingMatch = (
       setMatches(fetchedMatches);
 
       // Identify new matches (not yet seen)
-      const newUnseenMatches = fetchedMatches.filter(m => !seenMatchIds.has(m.id));
+      const newUnseenMatches = fetchedMatches.filter((m) => !seenMatchIds.has(m.id));
       setNewMatches(newUnseenMatches);
 
       // Set pending reveal if there are new matches
@@ -293,26 +290,29 @@ export const useSpeedDatingMatch = (
   /**
    * Reveal a single match
    */
-  const revealMatch = useCallback(async (matchId: string) => {
-    setIsRevealing(true);
-    setRevealedMatchId(matchId);
+  const revealMatch = useCallback(
+    async (matchId: string) => {
+      setIsRevealing(true);
+      setRevealedMatchId(matchId);
 
-    playMatchRevealAnimation();
+      playMatchRevealAnimation();
 
-    // Mark as seen after animation
-    setTimeout(() => {
-      setSeenMatchIds(prev => {
-        const newSet = new Set(prev).add(matchId);
-        saveSeenMatchIds(newSet);
-        return newSet;
-      });
+      // Mark as seen after animation
+      setTimeout(() => {
+        setSeenMatchIds((prev) => {
+          const newSet = new Set(prev).add(matchId);
+          saveSeenMatchIds(newSet);
+          return newSet;
+        });
 
-      setNewMatches(prev => prev.filter(m => m.id !== matchId));
-      setPendingReveal(prev => prev.filter(m => m.id !== matchId));
+        setNewMatches((prev) => prev.filter((m) => m.id !== matchId));
+        setPendingReveal((prev) => prev.filter((m) => m.id !== matchId));
 
-      setIsRevealing(false);
-    }, 500);
-  }, [playMatchRevealAnimation]);
+        setIsRevealing(false);
+      }, 500);
+    },
+    [playMatchRevealAnimation]
+  );
 
   /**
    * Reveal all pending matches
@@ -321,7 +321,7 @@ export const useSpeedDatingMatch = (
     for (const match of pendingReveal) {
       await revealMatch(match.id);
       // Small delay between reveals
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
     }
   }, [pendingReveal, revealMatch]);
 
@@ -329,9 +329,9 @@ export const useSpeedDatingMatch = (
    * Dismiss a match
    */
   const dismissMatch = useCallback((matchId: string) => {
-    setNewMatches(prev => prev.filter(m => m.id !== matchId));
-    setPendingReveal(prev => prev.filter(m => m.id !== matchId));
-    setSeenMatchIds(prev => {
+    setNewMatches((prev) => prev.filter((m) => m.id !== matchId));
+    setPendingReveal((prev) => prev.filter((m) => m.id !== matchId));
+    setSeenMatchIds((prev) => {
       const newSet = new Set(prev).add(matchId);
       saveSeenMatchIds(newSet);
       return newSet;
@@ -353,8 +353,8 @@ export const useSpeedDatingMatch = (
       }
 
       // Update local state
-      setMatches(prev =>
-        prev.map(m =>
+      setMatches((prev) =>
+        prev.map((m) =>
           m.id === matchId
             ? { ...m, hasMessaged: true, lastMessageAt: new Date().toISOString() }
             : m
@@ -372,20 +372,20 @@ export const useSpeedDatingMatch = (
    * Mark match as seen
    */
   const markAsSeen = useCallback(async (matchId: string) => {
-    setSeenMatchIds(prev => {
+    setSeenMatchIds((prev) => {
       const newSet = new Set(prev).add(matchId);
       saveSeenMatchIds(newSet);
       return newSet;
     });
 
-    setNewMatches(prev => prev.filter(m => m.id !== matchId));
+    setNewMatches((prev) => prev.filter((m) => m.id !== matchId));
   }, []);
 
   /**
    * Clear all new matches
    */
   const clearNewMatches = useCallback(() => {
-    const allIds = new Set([...seenMatchIds, ...newMatches.map(m => m.id)]);
+    const allIds = new Set([...seenMatchIds, ...newMatches.map((m) => m.id)]);
     setSeenMatchIds(allIds);
     saveSeenMatchIds(allIds);
     setNewMatches([]);

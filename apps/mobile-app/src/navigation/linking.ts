@@ -6,11 +6,7 @@ import { LinkingOptions } from '@react-navigation/native';
  */
 
 const linking: LinkingOptions<any> = {
-  prefixes: [
-    'flamoral://',
-    'https://flamoral.com',
-    'https://*.flamoral.com',
-  ],
+  prefixes: ['flamoral://', 'https://flamoral.com', 'https://*.flamoral.com'],
   config: {
     screens: {
       Auth: {

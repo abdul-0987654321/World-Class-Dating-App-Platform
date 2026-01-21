@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DailyRewardsModal } from '../../components/gamification/DailyRewardsModal';
-import { AchievementBadgeCard, AchievementBadge } from '../../components/gamification/AchievementBadgeCard';
+import {
+  AchievementBadgeCard,
+  AchievementBadge,
+} from '../../components/gamification/AchievementBadgeCard';
 import { StreakDisplay, StreakData } from '../../components/gamification/StreakDisplay';
 import { CoinWallet, CoinBalance, CoinTransaction } from '../../components/gamification/CoinWallet';
 import { authTokenService } from '../../services/auth-token.service';
@@ -74,7 +77,10 @@ export const EnhancedGamificationPage: React.FC = () => {
   const [coinTransactions, setCoinTransactions] = useState<CoinTransaction[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [purchaseLoading, setPurchaseLoading] = useState(false);
-  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   const loading = loadingState.dashboard || loadingState.achievements || loadingState.wallet;
 
@@ -92,8 +98,8 @@ export const EnhancedGamificationPage: React.FC = () => {
     const headers = { Authorization: `Bearer ${token}` };
 
     // Fetch dashboard data
-    setLoadingState(prev => ({ ...prev, dashboard: true }));
-    setErrorState(prev => ({ ...prev, dashboard: null }));
+    setLoadingState((prev) => ({ ...prev, dashboard: true }));
+    setErrorState((prev) => ({ ...prev, dashboard: null }));
 
     try {
       const dashboardRes = await fetch('/api/v1/gamification/dashboard', { headers });
@@ -106,7 +112,7 @@ export const EnhancedGamificationPage: React.FC = () => {
           setTimeout(() => setShowDailyRewardsModal(true), 500);
         }
       } else if (dashboardRes.status === 401) {
-        setErrorState(prev => ({ ...prev, dashboard: 'Please log in to view your rewards' }));
+        setErrorState((prev) => ({ ...prev, dashboard: 'Please log in to view your rewards' }));
       } else {
         // Use mock data for demo
         setDashboard(getMockDashboard());
@@ -115,12 +121,12 @@ export const EnhancedGamificationPage: React.FC = () => {
       console.error('Failed to load dashboard:', err);
       setDashboard(getMockDashboard());
     } finally {
-      setLoadingState(prev => ({ ...prev, dashboard: false }));
+      setLoadingState((prev) => ({ ...prev, dashboard: false }));
     }
 
     // Fetch achievements
-    setLoadingState(prev => ({ ...prev, achievements: true }));
-    setErrorState(prev => ({ ...prev, achievements: null }));
+    setLoadingState((prev) => ({ ...prev, achievements: true }));
+    setErrorState((prev) => ({ ...prev, achievements: null }));
 
     try {
       const achievementsRes = await fetch('/api/v1/gamification/achievements', { headers });
@@ -134,12 +140,12 @@ export const EnhancedGamificationPage: React.FC = () => {
       console.error('Failed to load achievements:', err);
       setAchievements(getMockAchievements());
     } finally {
-      setLoadingState(prev => ({ ...prev, achievements: false }));
+      setLoadingState((prev) => ({ ...prev, achievements: false }));
     }
 
     // Fetch wallet
-    setLoadingState(prev => ({ ...prev, wallet: true }));
-    setErrorState(prev => ({ ...prev, wallet: null }));
+    setLoadingState((prev) => ({ ...prev, wallet: true }));
+    setErrorState((prev) => ({ ...prev, wallet: null }));
 
     try {
       const walletRes = await fetch('/api/v1/gamification/wallet', { headers });
@@ -159,16 +165,44 @@ export const EnhancedGamificationPage: React.FC = () => {
       console.error('Failed to load wallet:', err);
       setCoinBalance({ balance: 500, totalEarned: 750, totalSpent: 200, totalPurchased: 0 });
     } finally {
-      setLoadingState(prev => ({ ...prev, wallet: false }));
+      setLoadingState((prev) => ({ ...prev, wallet: false }));
     }
   }, []);
 
   const getMockDashboard = (): GamificationDashboard => ({
     dailyRewards: { canClaim: true, currentStreak: 5, dayInCycle: 5, todayReward: null },
     streaks: {
-      login: { id: '1', userId: 'u1', streakType: 'login', currentStreak: 12, longestStreak: 18, streakStartDate: '', lastActivityDate: '', isProtected: false },
-      conversation: { id: '2', userId: 'u1', streakType: 'conversation', currentStreak: 5, longestStreak: 14, streakStartDate: '', lastActivityDate: '', isProtected: false },
-      match: { id: '3', userId: 'u1', streakType: 'match', currentStreak: 3, longestStreak: 7, streakStartDate: '', lastActivityDate: '', isProtected: true, protectionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() },
+      login: {
+        id: '1',
+        userId: 'u1',
+        streakType: 'login',
+        currentStreak: 12,
+        longestStreak: 18,
+        streakStartDate: '',
+        lastActivityDate: '',
+        isProtected: false,
+      },
+      conversation: {
+        id: '2',
+        userId: 'u1',
+        streakType: 'conversation',
+        currentStreak: 5,
+        longestStreak: 14,
+        streakStartDate: '',
+        lastActivityDate: '',
+        isProtected: false,
+      },
+      match: {
+        id: '3',
+        userId: 'u1',
+        streakType: 'match',
+        currentStreak: 3,
+        longestStreak: 7,
+        streakStartDate: '',
+        lastActivityDate: '',
+        isProtected: true,
+        protectionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+      },
     },
     achievements: { unlocked: 8, total: 20, progress: 40, recentBadges: [] },
     wallet: { coins: 500, totalEarned: 750 },
@@ -184,100 +218,252 @@ export const EnhancedGamificationPage: React.FC = () => {
   });
 
   const getMockAchievements = (): AchievementBadge[] => [
-    { id: '1', slug: 'first_match', name: 'First Spark', description: 'Get your first match', iconName: 'heart', iconColor: '#E91E63', backgroundColor: '#FCE4EC', category: 'dating', rarity: 'common', coinReward: 50, xpReward: 100, isHidden: false, currentProgress: 1, targetProgress: 1, isUnlocked: true, isDisplayed: true, unlockedAt: '2025-12-15' },
-    { id: '2', slug: 'matchmaker_bronze', name: 'Matchmaker Bronze', description: 'Get 10 matches', iconName: 'heart', iconColor: '#CD7F32', backgroundColor: '#FFF3E0', category: 'dating', rarity: 'uncommon', coinReward: 100, xpReward: 250, isHidden: false, currentProgress: 7, targetProgress: 10, isUnlocked: false, isDisplayed: false },
-    { id: '3', slug: 'conversation_starter', name: 'Conversation Starter', description: 'Send 10 messages', iconName: 'message', iconColor: '#2196F3', backgroundColor: '#E3F2FD', category: 'social', rarity: 'common', coinReward: 25, xpReward: 50, isHidden: false, currentProgress: 10, targetProgress: 10, isUnlocked: true, isDisplayed: false, unlockedAt: '2025-12-20' },
-    { id: '4', slug: 'week_warrior', name: 'Week Warrior', description: '7-day login streak', iconName: 'fire', iconColor: '#FF5722', backgroundColor: '#FBE9E7', category: 'streak', rarity: 'uncommon', coinReward: 75, xpReward: 150, isHidden: false, currentProgress: 7, targetProgress: 7, isUnlocked: true, isDisplayed: true, unlockedAt: '2025-12-22' },
-    { id: '5', slug: 'profile_pro', name: 'Profile Pro', description: 'Complete your profile 100%', iconName: 'user', iconColor: '#4CAF50', backgroundColor: '#E8F5E9', category: 'profile', rarity: 'uncommon', coinReward: 150, xpReward: 300, isHidden: false, currentProgress: 85, targetProgress: 100, isUnlocked: false, isDisplayed: false },
-    { id: '6', slug: 'early_bird', name: 'Early Bird', description: 'Log in before 7 AM for 5 days', iconName: 'sunrise', iconColor: '#FF9800', backgroundColor: '#FFF3E0', category: 'special', rarity: 'rare', coinReward: 100, xpReward: 200, isHidden: true, currentProgress: 2, targetProgress: 5, isUnlocked: false, isDisplayed: false },
-    { id: '7', slug: 'social_butterfly', name: 'Social Butterfly', description: 'Send 100 messages', iconName: 'message', iconColor: '#9C27B0', backgroundColor: '#F3E5F5', category: 'social', rarity: 'uncommon', coinReward: 100, xpReward: 200, isHidden: false, currentProgress: 45, targetProgress: 100, isUnlocked: false, isDisplayed: false },
-    { id: '8', slug: 'swipe_machine', name: 'Swipe Machine', description: 'Swipe on 100 profiles', iconName: 'repeat', iconColor: '#FF5722', backgroundColor: '#FBE9E7', category: 'engagement', rarity: 'common', coinReward: 50, xpReward: 100, isHidden: false, currentProgress: 100, targetProgress: 100, isUnlocked: true, isDisplayed: false, unlockedAt: '2025-12-25' },
+    {
+      id: '1',
+      slug: 'first_match',
+      name: 'First Spark',
+      description: 'Get your first match',
+      iconName: 'heart',
+      iconColor: '#E91E63',
+      backgroundColor: '#FCE4EC',
+      category: 'dating',
+      rarity: 'common',
+      coinReward: 50,
+      xpReward: 100,
+      isHidden: false,
+      currentProgress: 1,
+      targetProgress: 1,
+      isUnlocked: true,
+      isDisplayed: true,
+      unlockedAt: '2025-12-15',
+    },
+    {
+      id: '2',
+      slug: 'matchmaker_bronze',
+      name: 'Matchmaker Bronze',
+      description: 'Get 10 matches',
+      iconName: 'heart',
+      iconColor: '#CD7F32',
+      backgroundColor: '#FFF3E0',
+      category: 'dating',
+      rarity: 'uncommon',
+      coinReward: 100,
+      xpReward: 250,
+      isHidden: false,
+      currentProgress: 7,
+      targetProgress: 10,
+      isUnlocked: false,
+      isDisplayed: false,
+    },
+    {
+      id: '3',
+      slug: 'conversation_starter',
+      name: 'Conversation Starter',
+      description: 'Send 10 messages',
+      iconName: 'message',
+      iconColor: '#2196F3',
+      backgroundColor: '#E3F2FD',
+      category: 'social',
+      rarity: 'common',
+      coinReward: 25,
+      xpReward: 50,
+      isHidden: false,
+      currentProgress: 10,
+      targetProgress: 10,
+      isUnlocked: true,
+      isDisplayed: false,
+      unlockedAt: '2025-12-20',
+    },
+    {
+      id: '4',
+      slug: 'week_warrior',
+      name: 'Week Warrior',
+      description: '7-day login streak',
+      iconName: 'fire',
+      iconColor: '#FF5722',
+      backgroundColor: '#FBE9E7',
+      category: 'streak',
+      rarity: 'uncommon',
+      coinReward: 75,
+      xpReward: 150,
+      isHidden: false,
+      currentProgress: 7,
+      targetProgress: 7,
+      isUnlocked: true,
+      isDisplayed: true,
+      unlockedAt: '2025-12-22',
+    },
+    {
+      id: '5',
+      slug: 'profile_pro',
+      name: 'Profile Pro',
+      description: 'Complete your profile 100%',
+      iconName: 'user',
+      iconColor: '#4CAF50',
+      backgroundColor: '#E8F5E9',
+      category: 'profile',
+      rarity: 'uncommon',
+      coinReward: 150,
+      xpReward: 300,
+      isHidden: false,
+      currentProgress: 85,
+      targetProgress: 100,
+      isUnlocked: false,
+      isDisplayed: false,
+    },
+    {
+      id: '6',
+      slug: 'early_bird',
+      name: 'Early Bird',
+      description: 'Log in before 7 AM for 5 days',
+      iconName: 'sunrise',
+      iconColor: '#FF9800',
+      backgroundColor: '#FFF3E0',
+      category: 'special',
+      rarity: 'rare',
+      coinReward: 100,
+      xpReward: 200,
+      isHidden: true,
+      currentProgress: 2,
+      targetProgress: 5,
+      isUnlocked: false,
+      isDisplayed: false,
+    },
+    {
+      id: '7',
+      slug: 'social_butterfly',
+      name: 'Social Butterfly',
+      description: 'Send 100 messages',
+      iconName: 'message',
+      iconColor: '#9C27B0',
+      backgroundColor: '#F3E5F5',
+      category: 'social',
+      rarity: 'uncommon',
+      coinReward: 100,
+      xpReward: 200,
+      isHidden: false,
+      currentProgress: 45,
+      targetProgress: 100,
+      isUnlocked: false,
+      isDisplayed: false,
+    },
+    {
+      id: '8',
+      slug: 'swipe_machine',
+      name: 'Swipe Machine',
+      description: 'Swipe on 100 profiles',
+      iconName: 'repeat',
+      iconColor: '#FF5722',
+      backgroundColor: '#FBE9E7',
+      category: 'engagement',
+      rarity: 'common',
+      coinReward: 50,
+      xpReward: 100,
+      isHidden: false,
+      currentProgress: 100,
+      targetProgress: 100,
+      isUnlocked: true,
+      isDisplayed: false,
+      unlockedAt: '2025-12-25',
+    },
   ];
 
-  const handleProtectStreak = useCallback(async (streakType: string) => {
-    try {
-      const token = authTokenService.getToken();
-      const res = await fetch('/api/v1/gamification/streaks/protect', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ streakType, durationHours: 24 }),
-      });
+  const handleProtectStreak = useCallback(
+    async (streakType: string) => {
+      try {
+        const token = authTokenService.getToken();
+        const res = await fetch('/api/v1/gamification/streaks/protect', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ streakType, durationHours: 24 }),
+        });
 
-      if (res.ok) {
-        showNotification('success', `Your ${streakType} streak is now protected for 24 hours!`);
-        loadDashboard();
-      } else {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to protect streak');
-      }
-    } catch (err: any) {
-      showNotification('error', err.message || 'Failed to protect streak');
-      throw err;
-    }
-  }, [loadDashboard, showNotification]);
-
-  const handlePurchase = useCallback(async (productId: string) => {
-    setPurchaseLoading(true);
-    try {
-      const token = authTokenService.getToken();
-      const res = await fetch('/api/v1/gamification/purchase', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ productId, quantity: 1 }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        showNotification('success', `Successfully purchased ${productId.replace('_', ' ')}!`);
-        // Update balance
-        if (data.data?.newBalance) {
-          setCoinBalance(prev => prev ? { ...prev, ...data.data.newBalance } : null);
+        if (res.ok) {
+          showNotification('success', `Your ${streakType} streak is now protected for 24 hours!`);
+          loadDashboard();
+        } else {
+          const data = await res.json();
+          throw new Error(data.message || 'Failed to protect streak');
         }
-        loadDashboard();
-      } else {
-        const data = await res.json();
-        throw new Error(data.message || 'Purchase failed');
+      } catch (err: any) {
+        showNotification('error', err.message || 'Failed to protect streak');
+        throw err;
       }
-    } catch (err: any) {
-      showNotification('error', err.message || 'Purchase failed. Please try again.');
-      throw err;
-    } finally {
-      setPurchaseLoading(false);
-    }
-  }, [loadDashboard, showNotification]);
+    },
+    [loadDashboard, showNotification]
+  );
 
-  const handleToggleBadgeDisplay = useCallback(async (badgeId: string, display: boolean) => {
-    try {
-      const token = authTokenService.getToken();
-      const res = await fetch(`/api/v1/gamification/achievements/${badgeId}/display`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ display }),
-      });
+  const handlePurchase = useCallback(
+    async (productId: string) => {
+      setPurchaseLoading(true);
+      try {
+        const token = authTokenService.getToken();
+        const res = await fetch('/api/v1/gamification/purchase', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId, quantity: 1 }),
+        });
 
-      if (res.ok) {
-        setAchievements(prev =>
-          prev.map(b => b.id === badgeId ? { ...b, isDisplayed: display } : b)
-        );
-        showNotification('success', display ? 'Badge added to profile' : 'Badge removed from profile');
-      } else {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to update badge');
+        if (res.ok) {
+          const data = await res.json();
+          showNotification('success', `Successfully purchased ${productId.replace('_', ' ')}!`);
+          // Update balance
+          if (data.data?.newBalance) {
+            setCoinBalance((prev) => (prev ? { ...prev, ...data.data.newBalance } : null));
+          }
+          loadDashboard();
+        } else {
+          const data = await res.json();
+          throw new Error(data.message || 'Purchase failed');
+        }
+      } catch (err: any) {
+        showNotification('error', err.message || 'Purchase failed. Please try again.');
+        throw err;
+      } finally {
+        setPurchaseLoading(false);
       }
-    } catch (err: any) {
-      showNotification('error', err.message || 'Failed to update badge display');
-      throw err;
-    }
-  }, [showNotification]);
+    },
+    [loadDashboard, showNotification]
+  );
+
+  const handleToggleBadgeDisplay = useCallback(
+    async (badgeId: string, display: boolean) => {
+      try {
+        const token = authTokenService.getToken();
+        const res = await fetch(`/api/v1/gamification/achievements/${badgeId}/display`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ display }),
+        });
+
+        if (res.ok) {
+          setAchievements((prev) =>
+            prev.map((b) => (b.id === badgeId ? { ...b, isDisplayed: display } : b))
+          );
+          showNotification(
+            'success',
+            display ? 'Badge added to profile' : 'Badge removed from profile'
+          );
+        } else {
+          const data = await res.json();
+          throw new Error(data.message || 'Failed to update badge');
+        }
+      } catch (err: any) {
+        showNotification('error', err.message || 'Failed to update badge display');
+        throw err;
+      }
+    },
+    [showNotification]
+  );
 
   const handleRewardClaimed = useCallback(() => {
     loadDashboard();
@@ -285,14 +471,21 @@ export const EnhancedGamificationPage: React.FC = () => {
   }, [loadDashboard, showNotification]);
 
   const categories = ['all', 'dating', 'social', 'profile', 'engagement', 'streak', 'special'];
-  const filteredAchievements = selectedCategory === 'all'
-    ? achievements
-    : achievements.filter(a => a.category === selectedCategory);
+  const filteredAchievements =
+    selectedCategory === 'all'
+      ? achievements
+      : achievements.filter((a) => a.category === selectedCategory);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: 'var(--bg-page)' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--accent-pink)' }} />
+      <div
+        className="min-h-screen flex flex-col items-center justify-center"
+        style={{ background: 'var(--bg-page)' }}
+      >
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+          style={{ borderColor: 'var(--accent-pink)' }}
+        />
         <p className="mt-4 text-sm" style={{ color: 'var(--text-muted)' }}>
           Loading your rewards...
         </p>
@@ -307,21 +500,15 @@ export const EnhancedGamificationPage: React.FC = () => {
         <div
           className="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in"
           style={{
-            background: notification.type === 'success'
-              ? 'rgba(76,175,80,0.95)'
-              : 'rgba(244,67,54,0.95)',
+            background:
+              notification.type === 'success' ? 'rgba(76,175,80,0.95)' : 'rgba(244,67,54,0.95)',
             color: 'white',
             maxWidth: '400px',
           }}
         >
-          <span className="text-xl">
-            {notification.type === 'success' ? '✓' : '⚠️'}
-          </span>
+          <span className="text-xl">{notification.type === 'success' ? '✓' : '⚠️'}</span>
           <p className="font-medium">{notification.message}</p>
-          <button
-            onClick={() => setNotification(null)}
-            className="ml-auto p-1 hover:opacity-80"
-          >
+          <button onClick={() => setNotification(null)} className="ml-auto p-1 hover:opacity-80">
             x
           </button>
         </div>
@@ -352,7 +539,9 @@ export const EnhancedGamificationPage: React.FC = () => {
               <div>
                 <div className="flex justify-between text-sm text-white/80 mb-1">
                   <span>Level {dashboard.level.currentLevel}</span>
-                  <span>Level {dashboard.level.nextLevel.level}: {dashboard.level.nextLevel.title}</span>
+                  <span>
+                    Level {dashboard.level.nextLevel.level}: {dashboard.level.nextLevel.title}
+                  </span>
                 </div>
                 <div className="rounded-full h-3 bg-white/20">
                   <div
@@ -379,10 +568,14 @@ export const EnhancedGamificationPage: React.FC = () => {
               background: dashboard?.dailyRewards.canClaim
                 ? 'linear-gradient(135deg, rgba(255,107,107,0.2) 0%, rgba(156,39,176,0.2) 100%)'
                 : 'var(--surface-card)',
-              border: dashboard?.dailyRewards.canClaim ? '2px solid var(--accent-pink)' : '1px solid var(--border-subtle)',
+              border: dashboard?.dailyRewards.canClaim
+                ? '2px solid var(--accent-pink)'
+                : '1px solid var(--border-subtle)',
             }}
           >
-            <span className="text-3xl block mb-2">{dashboard?.dailyRewards.canClaim ? '🎁' : '✅'}</span>
+            <span className="text-3xl block mb-2">
+              {dashboard?.dailyRewards.canClaim ? '🎁' : '✅'}
+            </span>
             <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
               Daily Reward
             </p>
@@ -391,7 +584,10 @@ export const EnhancedGamificationPage: React.FC = () => {
             </p>
           </button>
 
-          <div className="p-4 rounded-xl" style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}>
+          <div
+            className="p-4 rounded-xl"
+            style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}
+          >
             <span className="text-3xl block mb-2">🔥</span>
             <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
               {dashboard?.streaks.login?.currentStreak || 0} Day Streak
@@ -401,17 +597,29 @@ export const EnhancedGamificationPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-4 rounded-xl" style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}>
+          <div
+            className="p-4 rounded-xl"
+            style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}
+          >
             <span className="text-3xl block mb-2">🏆</span>
             <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
               {dashboard?.achievements.unlocked || 0} Badges
             </p>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              {dashboard?.achievements.total ? `${dashboard.achievements.progress}% complete` : 'Start earning!'}
+              {dashboard?.achievements.total
+                ? `${dashboard.achievements.progress}% complete`
+                : 'Start earning!'}
             </p>
           </div>
 
-          <div className="p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(184,134,11,0.1) 100%)', border: '1px solid rgba(255,215,0,0.3)' }}>
+          <div
+            className="p-4 rounded-xl"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(184,134,11,0.1) 100%)',
+              border: '1px solid rgba(255,215,0,0.3)',
+            }}
+          >
             <span className="text-3xl block mb-2">🪙</span>
             <p className="font-medium" style={{ color: 'var(--coin-primary)' }}>
               {(coinBalance?.balance || 0).toLocaleString()} Coins
@@ -447,7 +655,13 @@ export const EnhancedGamificationPage: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Recent Achievements */}
-            <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}>
+            <div
+              className="rounded-xl p-6"
+              style={{
+                background: 'var(--surface-card)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                   Recent Achievements
@@ -461,14 +675,23 @@ export const EnhancedGamificationPage: React.FC = () => {
                 </button>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {achievements.filter(a => a.isUnlocked).slice(0, 4).map((badge) => (
-                  <AchievementBadgeCard key={badge.id} badge={badge} compact />
-                ))}
+                {achievements
+                  .filter((a) => a.isUnlocked)
+                  .slice(0, 4)
+                  .map((badge) => (
+                    <AchievementBadgeCard key={badge.id} badge={badge} compact />
+                  ))}
               </div>
             </div>
 
             {/* Streak Summary */}
-            <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}>
+            <div
+              className="rounded-xl p-6"
+              style={{
+                background: 'var(--surface-card)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                   Current Streaks
@@ -484,7 +707,12 @@ export const EnhancedGamificationPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 {[
                   { type: 'login', icon: '🔥', label: 'Login', streak: dashboard?.streaks.login },
-                  { type: 'conversation', icon: '💬', label: 'Chat', streak: dashboard?.streaks.conversation },
+                  {
+                    type: 'conversation',
+                    icon: '💬',
+                    label: 'Chat',
+                    streak: dashboard?.streaks.conversation,
+                  },
                   { type: 'match', icon: '💕', label: 'Match', streak: dashboard?.streaks.match },
                 ].map((s) => (
                   <div
@@ -496,20 +724,28 @@ export const EnhancedGamificationPage: React.FC = () => {
                     <p className="text-2xl font-bold mt-2" style={{ color: 'var(--text-primary)' }}>
                       {s.streak?.currentStreak || 0}
                     </p>
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      {s.label}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* In Progress Achievements */}
-            <div className="rounded-xl p-6" style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}>
+            <div
+              className="rounded-xl p-6"
+              style={{
+                background: 'var(--surface-card)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
               <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
                 Almost There!
               </h3>
               <div className="space-y-3">
                 {achievements
-                  .filter(a => !a.isUnlocked && a.currentProgress / a.targetProgress >= 0.5)
+                  .filter((a) => !a.isUnlocked && a.currentProgress / a.targetProgress >= 0.5)
                   .slice(0, 3)
                   .map((badge) => (
                     <AchievementBadgeCard key={badge.id} badge={badge} />
@@ -529,7 +765,8 @@ export const EnhancedGamificationPage: React.FC = () => {
                   onClick={() => setSelectedCategory(cat)}
                   className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition"
                   style={{
-                    background: selectedCategory === cat ? 'var(--accent-gradient)' : 'var(--surface-card)',
+                    background:
+                      selectedCategory === cat ? 'var(--accent-gradient)' : 'var(--surface-card)',
                     color: selectedCategory === cat ? 'white' : 'var(--text-secondary)',
                     border: selectedCategory === cat ? 'none' : '1px solid var(--border-subtle)',
                   }}

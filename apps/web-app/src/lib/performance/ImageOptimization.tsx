@@ -11,14 +11,7 @@
  * @package @flamoral/web
  */
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  memo,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 
 // ============================================================================
 // TYPES
@@ -58,11 +51,16 @@ const formatSupport = {
 // Detect format support on module load
 if (typeof window !== 'undefined') {
   const checkAvif = new Image();
-  checkAvif.onload = () => { formatSupport.avif = true; };
-  checkAvif.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKBzgADlAgIDUhLiMRyAAACUJZQADBBBkYBPHRQ'; // Minimal AVIF test
+  checkAvif.onload = () => {
+    formatSupport.avif = true;
+  };
+  checkAvif.src =
+    'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKBzgADlAgIDUhLiMRyAAACUJZQADBBBkYBPHRQ'; // Minimal AVIF test
 
   const checkWebp = new Image();
-  checkWebp.onload = () => { formatSupport.webp = true; };
+  checkWebp.onload = () => {
+    formatSupport.webp = true;
+  };
   checkWebp.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
 }
 
@@ -99,9 +97,7 @@ export const generateSrcSet = (
   widths: number[] = [320, 640, 768, 1024, 1280, 1536],
   loader: typeof defaultImageLoader = defaultImageLoader
 ): string => {
-  return widths
-    .map((w) => `${loader({ src, width: w })} ${w}w`)
-    .join(', ');
+  return widths.map((w) => `${loader({ src, width: w })} ${w}w`).join(', ');
 };
 
 /**
@@ -168,120 +164,117 @@ const useIntersectionObserver = (
 // OPTIMIZED IMAGE COMPONENT
 // ============================================================================
 
-export const OptimizedImage = memo<ImageProps>(({
-  src,
-  alt,
-  width,
-  height,
-  placeholder,
-  priority = false,
-  quality = 75,
-  sizes,
-  className = '',
-  onLoad,
-  onError,
-  objectFit = 'cover',
-  aspectRatio,
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  const isIntersecting = useIntersectionObserver(containerRef, {
-    rootMargin: '200px',
-  });
+export const OptimizedImage = memo<ImageProps>(
+  ({
+    src,
+    alt,
+    width,
+    height,
+    placeholder,
+    priority = false,
+    quality = 75,
+    sizes,
+    className = '',
+    onLoad,
+    onError,
+    objectFit = 'cover',
+    aspectRatio,
+  }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [loaded, setLoaded] = useState(false);
+    const [error, setError] = useState(false);
+    const isIntersecting = useIntersectionObserver(containerRef, {
+      rootMargin: '200px',
+    });
 
-  const shouldLoad = priority || isIntersecting;
+    const shouldLoad = priority || isIntersecting;
 
-  const handleLoad = useCallback(() => {
-    setLoaded(true);
-    onLoad?.();
-  }, [onLoad]);
+    const handleLoad = useCallback(() => {
+      setLoaded(true);
+      onLoad?.();
+    }, [onLoad]);
 
-  const handleError = useCallback(() => {
-    setError(true);
-    onError?.();
-  }, [onError]);
+    const handleError = useCallback(() => {
+      setError(true);
+      onError?.();
+    }, [onError]);
 
-  // Generate srcset
-  const srcSet = useMemo(
-    () => shouldLoad ? generateSrcSet(src) : undefined,
-    [src, shouldLoad]
-  );
+    // Generate srcset
+    const srcSet = useMemo(() => (shouldLoad ? generateSrcSet(src) : undefined), [src, shouldLoad]);
 
-  // Compute aspect ratio style
-  const aspectRatioStyle = useMemo(() => {
-    if (aspectRatio) {
-      return { aspectRatio: aspectRatio.toString() };
-    }
-    if (width && height) {
-      return { aspectRatio: `${width}/${height}` };
-    }
-    return {};
-  }, [aspectRatio, width, height]);
+    // Compute aspect ratio style
+    const aspectRatioStyle = useMemo(() => {
+      if (aspectRatio) {
+        return { aspectRatio: aspectRatio.toString() };
+      }
+      if (width && height) {
+        return { aspectRatio: `${width}/${height}` };
+      }
+      return {};
+    }, [aspectRatio, width, height]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={`relative overflow-hidden ${className}`}
-      style={{
-        width: width || '100%',
-        height: height || 'auto',
-        ...aspectRatioStyle,
-      }}
-    >
-      {/* Placeholder */}
-      {placeholder && !loaded && (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${placeholder})`,
-            filter: 'blur(20px)',
-            transform: 'scale(1.1)',
-          }}
-        />
-      )}
+    return (
+      <div
+        ref={containerRef}
+        className={`relative overflow-hidden ${className}`}
+        style={{
+          width: width || '100%',
+          height: height || 'auto',
+          ...aspectRatioStyle,
+        }}
+      >
+        {/* Placeholder */}
+        {placeholder && !loaded && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${placeholder})`,
+              filter: 'blur(20px)',
+              transform: 'scale(1.1)',
+            }}
+          />
+        )}
 
-      {/* Gradient placeholder fallback */}
-      {!placeholder && !loaded && !error && (
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse"
-        />
-      )}
+        {/* Gradient placeholder fallback */}
+        {!placeholder && !loaded && !error && (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse" />
+        )}
 
-      {/* Main image */}
-      {shouldLoad && (
-        <img
-          src={src}
-          srcSet={srcSet}
-          sizes={sizes || '100vw'}
-          alt={alt}
-          width={width}
-          height={height}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          fetchPriority={priority ? 'high' : 'auto'}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={`
+        {/* Main image */}
+        {shouldLoad && (
+          <img
+            src={src}
+            srcSet={srcSet}
+            sizes={sizes || '100vw'}
+            alt={alt}
+            width={width}
+            height={height}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={priority ? 'high' : 'auto'}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`
             absolute inset-0 w-full h-full
             object-${objectFit}
             transition-opacity duration-500
             ${loaded ? 'opacity-100' : 'opacity-0'}
           `}
-        />
-      )}
+          />
+        )}
 
-      {/* Error state */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <svg className="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
-          </svg>
-        </div>
-      )}
-    </div>
-  );
-});
+        {/* Error state */}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <svg className="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+            </svg>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 OptimizedImage.displayName = 'OptimizedImage';
 
@@ -307,67 +300,62 @@ const profileSizes = {
   '2xl': 'w-32 h-32',
 };
 
-export const ProfileImage = memo<ProfileImageProps>(({
-  src,
-  alt,
-  size = 'md',
-  priority = false,
-  className = '',
-  verified = false,
-}) => {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+export const ProfileImage = memo<ProfileImageProps>(
+  ({ src, alt, size = 'md', priority = false, className = '', verified = false }) => {
+    const [loaded, setLoaded] = useState(false);
+    const [error, setError] = useState(false);
+    const imgRef = useRef<HTMLImageElement>(null);
 
-  const isIntersecting = useIntersectionObserver(imgRef as any, {
-    rootMargin: '100px',
-  });
+    const isIntersecting = useIntersectionObserver(imgRef as any, {
+      rootMargin: '100px',
+    });
 
-  const shouldLoad = priority || isIntersecting;
+    const shouldLoad = priority || isIntersecting;
 
-  return (
-    <div className={`relative ${profileSizes[size]} ${className}`}>
-      {/* Placeholder */}
-      {!loaded && !error && (
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
-      )}
+    return (
+      <div className={`relative ${profileSizes[size]} ${className}`}>
+        {/* Placeholder */}
+        {!loaded && !error && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
+        )}
 
-      {/* Image */}
-      {shouldLoad && (
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={() => setError(true)}
-          className={`
+        {/* Image */}
+        {shouldLoad && (
+          <img
+            ref={imgRef}
+            src={src}
+            alt={alt}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            onLoad={() => setLoaded(true)}
+            onError={() => setError(true)}
+            className={`
             absolute inset-0 w-full h-full rounded-full object-cover
             transition-opacity duration-300
             ${loaded ? 'opacity-100' : 'opacity-0'}
           `}
-        />
-      )}
+          />
+        )}
 
-      {/* Error state */}
-      {error && (
-        <div className="absolute inset-0 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-400 text-lg">?</span>
-        </div>
-      )}
+        {/* Error state */}
+        {error && (
+          <div className="absolute inset-0 rounded-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400 text-lg">?</span>
+          </div>
+        )}
 
-      {/* Verified badge */}
-      {verified && (
-        <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-          </svg>
-        </div>
-      )}
-    </div>
-  );
-});
+        {/* Verified badge */}
+        {verified && (
+          <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+            </svg>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 ProfileImage.displayName = 'ProfileImage';
 
@@ -382,38 +370,35 @@ export interface GalleryImageProps {
   gap?: number;
 }
 
-export const ImageGallery = memo<GalleryImageProps>(({
-  images,
-  onImageClick,
-  columns = 3,
-  gap = 4,
-}) => {
-  const gridCols = {
-    2: 'grid-cols-2',
-    3: 'grid-cols-3',
-    4: 'grid-cols-4',
-  };
+export const ImageGallery = memo<GalleryImageProps>(
+  ({ images, onImageClick, columns = 3, gap = 4 }) => {
+    const gridCols = {
+      2: 'grid-cols-2',
+      3: 'grid-cols-3',
+      4: 'grid-cols-4',
+    };
 
-  return (
-    <div className={`grid ${gridCols[columns]} gap-${gap}`}>
-      {images.map((image, index) => (
-        <div
-          key={image.url}
-          className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
-          onClick={() => onImageClick?.(index)}
-        >
-          <OptimizedImage
-            src={image.url}
-            alt={image.alt || `Image ${index + 1}`}
-            objectFit="cover"
-            className="w-full h-full"
-            priority={index < 4} // Priority for first 4 images
-          />
-        </div>
-      ))}
-    </div>
-  );
-});
+    return (
+      <div className={`grid ${gridCols[columns]} gap-${gap}`}>
+        {images.map((image, index) => (
+          <div
+            key={image.url}
+            className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
+            onClick={() => onImageClick?.(index)}
+          >
+            <OptimizedImage
+              src={image.url}
+              alt={image.alt || `Image ${index + 1}`}
+              objectFit="cover"
+              className="w-full h-full"
+              priority={index < 4} // Priority for first 4 images
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+);
 
 ImageGallery.displayName = 'ImageGallery';
 
@@ -442,13 +427,7 @@ export const ImagePreloadLinks = memo<{ images: string[] }>(({ images }) => {
   return (
     <>
       {images.slice(0, 3).map((src) => (
-        <link
-          key={src}
-          rel="preload"
-          as="image"
-          href={src}
-          fetchPriority="high"
-        />
+        <link key={src} rel="preload" as="image" href={src} fetchPriority="high" />
       ))}
     </>
   );

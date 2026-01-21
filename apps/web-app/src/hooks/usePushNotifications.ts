@@ -28,10 +28,11 @@ export const usePushNotifications = () => {
   }, []);
 
   const checkSupport = async () => {
-    const isSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
+    const isSupported =
+      'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
 
     if (!isSupported) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isSupported: false,
         isLoading: false,
@@ -42,7 +43,7 @@ export const usePushNotifications = () => {
     const permission = Notification.permission;
     const isSubscribed = await checkSubscription();
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isSupported: true,
       permission,
@@ -63,18 +64,21 @@ export const usePushNotifications = () => {
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!state.isSupported) {
-      setState(prev => ({ ...prev, error: 'Push notifications are not supported in this browser' }));
+      setState((prev) => ({
+        ...prev,
+        error: 'Push notifications are not supported in this browser',
+      }));
       return false;
     }
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const permission = await Notification.requestPermission();
-      setState(prev => ({ ...prev, permission, isLoading: false }));
+      setState((prev) => ({ ...prev, permission, isLoading: false }));
       return permission === 'granted';
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: 'Failed to request notification permission',
@@ -88,7 +92,7 @@ export const usePushNotifications = () => {
       return false;
     }
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -98,7 +102,7 @@ export const usePushNotifications = () => {
 
       if (!vapidPublicKey) {
         console.warn('VAPID public key not configured');
-        setState(prev => ({ ...prev, isLoading: false, isSubscribed: false }));
+        setState((prev) => ({ ...prev, isLoading: false, isSubscribed: false }));
         return false;
       }
 
@@ -110,11 +114,11 @@ export const usePushNotifications = () => {
       // Send subscription to server
       await sendSubscriptionToServer(subscription);
 
-      setState(prev => ({ ...prev, isSubscribed: true, isLoading: false }));
+      setState((prev) => ({ ...prev, isSubscribed: true, isLoading: false }));
       return true;
     } catch (error) {
       console.error('Failed to subscribe:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: 'Failed to subscribe to push notifications',
@@ -124,7 +128,7 @@ export const usePushNotifications = () => {
   }, [state.isSupported, state.permission]);
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -135,10 +139,10 @@ export const usePushNotifications = () => {
         await removeSubscriptionFromServer(subscription);
       }
 
-      setState(prev => ({ ...prev, isSubscribed: false, isLoading: false }));
+      setState((prev) => ({ ...prev, isSubscribed: false, isLoading: false }));
       return true;
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: 'Failed to unsubscribe from push notifications',

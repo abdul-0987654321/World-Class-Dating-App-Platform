@@ -62,10 +62,7 @@ const getItemHeight = <T,>(
 };
 
 // Binary search for finding start index
-const findStartIndex = (
-  scrollTop: number,
-  itemOffsets: number[]
-): number => {
+const findStartIndex = (scrollTop: number, itemOffsets: number[]): number => {
   let low = 0;
   let high = itemOffsets.length - 1;
 
@@ -85,10 +82,7 @@ const findStartIndex = (
 // VIRTUAL LIST COMPONENT
 // ============================================================================
 
-function VirtualListInner<T>(
-  props: VirtualListProps<T>,
-  ref: React.ForwardedRef<VirtualListRef>
-) {
+function VirtualListInner<T>(props: VirtualListProps<T>, ref: React.ForwardedRef<VirtualListRef>) {
   const {
     items,
     renderItem,
@@ -145,21 +139,23 @@ function VirtualListInner<T>(
   }, [scrollTop, containerHeight, items, itemHeight, itemOffsets, overscan]);
 
   // Handle scroll
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    setScrollTop(target.scrollTop);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLDivElement;
+      setScrollTop(target.scrollTop);
 
-    // Check for end reached
-    const scrollPercentage =
-      (target.scrollTop + target.clientHeight) / target.scrollHeight;
+      // Check for end reached
+      const scrollPercentage = (target.scrollTop + target.clientHeight) / target.scrollHeight;
 
-    if (scrollPercentage > onEndReachedThreshold && !endReachedCalledRef.current) {
-      endReachedCalledRef.current = true;
-      onEndReached?.();
-    } else if (scrollPercentage < onEndReachedThreshold) {
-      endReachedCalledRef.current = false;
-    }
-  }, [onEndReached, onEndReachedThreshold]);
+      if (scrollPercentage > onEndReachedThreshold && !endReachedCalledRef.current) {
+        endReachedCalledRef.current = true;
+        onEndReached?.();
+      } else if (scrollPercentage < onEndReachedThreshold) {
+        endReachedCalledRef.current = false;
+      }
+    },
+    [onEndReached, onEndReachedThreshold]
+  );
 
   // Observe container resize
   useEffect(() => {
@@ -180,43 +176,50 @@ function VirtualListInner<T>(
   }, []);
 
   // Expose methods via ref
-  useImperativeHandle(ref, () => ({
-    scrollToIndex: (index: number, options = {}) => {
-      const container = containerRef.current;
-      if (!container || index < 0 || index >= items.length) return;
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToIndex: (index: number, options = {}) => {
+        const container = containerRef.current;
+        if (!container || index < 0 || index >= items.length) return;
 
-      const offset = itemOffsets[index];
-      const itemSize = getItemHeight(itemHeight, items[index], index);
-      let scrollPosition = offset;
+        const offset = itemOffsets[index];
+        const itemSize = getItemHeight(itemHeight, items[index], index);
+        let scrollPosition = offset;
 
-      if (options.align === 'center') {
-        scrollPosition = offset - containerHeight / 2 + itemSize / 2;
-      } else if (options.align === 'end') {
-        scrollPosition = offset - containerHeight + itemSize;
-      }
+        if (options.align === 'center') {
+          scrollPosition = offset - containerHeight / 2 + itemSize / 2;
+        } else if (options.align === 'end') {
+          scrollPosition = offset - containerHeight + itemSize;
+        }
 
-      container.scrollTo({
-        top: Math.max(0, scrollPosition),
-        behavior: 'smooth',
-      });
-    },
-    scrollToTop: () => {
-      containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    scrollToBottom: () => {
-      containerRef.current?.scrollTo({
-        top: totalHeight,
-        behavior: 'smooth',
-      });
-    },
-  }), [items, itemHeight, itemOffsets, containerHeight, totalHeight]);
+        container.scrollTo({
+          top: Math.max(0, scrollPosition),
+          behavior: 'smooth',
+        });
+      },
+      scrollToTop: () => {
+        containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      scrollToBottom: () => {
+        containerRef.current?.scrollTo({
+          top: totalHeight,
+          behavior: 'smooth',
+        });
+      },
+    }),
+    [items, itemHeight, itemOffsets, containerHeight, totalHeight]
+  );
 
   // Get key for item
-  const getKey = useCallback((item: T, index: number): string => {
-    if (getItemKey) return getItemKey(item, index);
-    if (keyExtractor) return keyExtractor(item, index);
-    return `virtual-item-${index}`;
-  }, [getItemKey, keyExtractor]);
+  const getKey = useCallback(
+    (item: T, index: number): string => {
+      if (getItemKey) return getItemKey(item, index);
+      if (keyExtractor) return keyExtractor(item, index);
+      return `virtual-item-${index}`;
+    },
+    [getItemKey, keyExtractor]
+  );
 
   // Render visible items
   const visibleItems = useMemo(() => {
@@ -244,9 +247,7 @@ function VirtualListInner<T>(
   // Empty state
   if (items.length === 0 && ListEmptyComponent) {
     return (
-      <div className={`${className} flex items-center justify-center`}>
-        {ListEmptyComponent}
-      </div>
+      <div className={`${className} flex items-center justify-center`}>{ListEmptyComponent}</div>
     );
   }
 
@@ -259,10 +260,7 @@ function VirtualListInner<T>(
     >
       {ListHeaderComponent}
 
-      <div
-        className={`relative ${containerClassName}`}
-        style={{ height: totalHeight }}
-      >
+      <div className={`relative ${containerClassName}`} style={{ height: totalHeight }}>
         {visibleItems}
       </div>
 
@@ -322,18 +320,18 @@ export function VirtualGrid<T>({
   }, [scrollTop, containerHeight, totalRowHeight, rowCount, overscan]);
 
   // Handle scroll
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    setScrollTop(target.scrollTop);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLDivElement;
+      setScrollTop(target.scrollTop);
 
-    // Check for end reached
-    if (
-      target.scrollTop + target.clientHeight >=
-      target.scrollHeight - totalRowHeight * 2
-    ) {
-      onEndReached?.();
-    }
-  }, [onEndReached, totalRowHeight]);
+      // Check for end reached
+      if (target.scrollTop + target.clientHeight >= target.scrollHeight - totalRowHeight * 2) {
+        onEndReached?.();
+      }
+    },
+    [onEndReached, totalRowHeight]
+  );
 
   // Observe container resize
   useEffect(() => {
@@ -441,101 +439,107 @@ export interface ConversationListProps {
   className?: string;
 }
 
-export const VirtualConversationList = memo<ConversationListProps>(({
-  conversations,
-  onConversationClick,
-  className = '',
-}) => {
-  const formatTime = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+export const VirtualConversationList = memo<ConversationListProps>(
+  ({ conversations, onConversationClick, className = '' }) => {
+    const formatTime = (date: Date) => {
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) {
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(date);
-    } else if (days === 1) {
-      return 'Yesterday';
-    } else if (days < 7) {
-      return new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
-    } else {
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }).format(date);
-    }
-  };
-
-  const renderConversation = useCallback(
-    (conversation: Conversation) => (
-      <button
-        onClick={() => onConversationClick(conversation)}
-        className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-100"
-      >
-        <div className="relative flex-shrink-0">
-          <img
-            src={conversation.userPhoto}
-            alt={conversation.userName}
-            className="w-14 h-14 rounded-full object-cover"
-            loading="lazy"
-          />
-          {conversation.unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-              {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
-            </span>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-semibold text-gray-900 truncate">
-              {conversation.userName}
-            </span>
-            <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
-              {formatTime(conversation.lastMessageTime)}
-            </span>
-          </div>
-
-          <p
-            className={`text-sm truncate ${
-              conversation.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
-            }`}
-          >
-            {conversation.isTyping ? (
-              <span className="text-pink-500 italic">Typing...</span>
-            ) : (
-              conversation.lastMessage
-            )}
-          </p>
-        </div>
-      </button>
-    ),
-    [onConversationClick]
-  );
-
-  return (
-    <VirtualList
-      items={conversations}
-      renderItem={renderConversation}
-      itemHeight={82}
-      className={className}
-      keyExtractor={(conv) => conv.id}
-      ListEmptyComponent={
-        <div className="flex flex-col items-center justify-center py-12 px-4">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          </div>
-          <p className="text-gray-500 text-center">No conversations yet</p>
-          <p className="text-gray-400 text-sm text-center mt-1">Start swiping to find matches!</p>
-        </div>
+      if (days === 0) {
+        return new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+        }).format(date);
+      } else if (days === 1) {
+        return 'Yesterday';
+      } else if (days < 7) {
+        return new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
+      } else {
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }).format(date);
       }
-    />
-  );
-});
+    };
+
+    const renderConversation = useCallback(
+      (conversation: Conversation) => (
+        <button
+          onClick={() => onConversationClick(conversation)}
+          className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-100"
+        >
+          <div className="relative flex-shrink-0">
+            <img
+              src={conversation.userPhoto}
+              alt={conversation.userName}
+              className="w-14 h-14 rounded-full object-cover"
+              loading="lazy"
+            />
+            {conversation.unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+              </span>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-semibold text-gray-900 truncate">{conversation.userName}</span>
+              <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+                {formatTime(conversation.lastMessageTime)}
+              </span>
+            </div>
+
+            <p
+              className={`text-sm truncate ${
+                conversation.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
+              }`}
+            >
+              {conversation.isTyping ? (
+                <span className="text-pink-500 italic">Typing...</span>
+              ) : (
+                conversation.lastMessage
+              )}
+            </p>
+          </div>
+        </button>
+      ),
+      [onConversationClick]
+    );
+
+    return (
+      <VirtualList
+        items={conversations}
+        renderItem={renderConversation}
+        itemHeight={82}
+        className={className}
+        keyExtractor={(conv) => conv.id}
+        ListEmptyComponent={
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <svg
+                className="w-8 h-8 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <p className="text-gray-500 text-center">No conversations yet</p>
+            <p className="text-gray-400 text-sm text-center mt-1">Start swiping to find matches!</p>
+          </div>
+        }
+      />
+    );
+  }
+);
 
 VirtualConversationList.displayName = 'VirtualConversationList';
 
@@ -558,49 +562,47 @@ export interface MatchesGridProps {
   className?: string;
 }
 
-export const VirtualMatchesGrid = memo<MatchesGridProps>(({
-  matches,
-  onMatchClick,
-  className = '',
-}) => {
-  const renderMatch = useCallback(
-    (match: Match) => (
-      <button
-        onClick={() => onMatchClick(match)}
-        className="relative aspect-square rounded-xl overflow-hidden group"
-      >
-        <img
-          src={match.userPhoto}
-          alt={match.userName}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-2 left-2 right-2">
-          <p className="text-white font-medium text-sm truncate">{match.userName}</p>
-        </div>
-        {match.isNew && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 bg-pink-500 text-white text-xs font-medium rounded-full">
-            New
-          </span>
-        )}
-      </button>
-    ),
-    [onMatchClick]
-  );
+export const VirtualMatchesGrid = memo<MatchesGridProps>(
+  ({ matches, onMatchClick, className = '' }) => {
+    const renderMatch = useCallback(
+      (match: Match) => (
+        <button
+          onClick={() => onMatchClick(match)}
+          className="relative aspect-square rounded-xl overflow-hidden group"
+        >
+          <img
+            src={match.userPhoto}
+            alt={match.userName}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute bottom-2 left-2 right-2">
+            <p className="text-white font-medium text-sm truncate">{match.userName}</p>
+          </div>
+          {match.isNew && (
+            <span className="absolute top-2 left-2 px-2 py-0.5 bg-pink-500 text-white text-xs font-medium rounded-full">
+              New
+            </span>
+          )}
+        </button>
+      ),
+      [onMatchClick]
+    );
 
-  return (
-    <VirtualGrid
-      items={matches}
-      renderItem={renderMatch}
-      columnCount={2}
-      rowHeight={180}
-      gap={12}
-      className={className}
-      keyExtractor={(match) => match.id}
-    />
-  );
-});
+    return (
+      <VirtualGrid
+        items={matches}
+        renderItem={renderMatch}
+        columnCount={2}
+        rowHeight={180}
+        gap={12}
+        className={className}
+        keyExtractor={(match) => match.id}
+      />
+    );
+  }
+);
 
 VirtualMatchesGrid.displayName = 'VirtualMatchesGrid';
 

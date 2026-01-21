@@ -76,7 +76,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ visible, onClose, onSelect
 
       // Mock search - filter existing GIFs
       setTimeout(() => {
-        const filtered = MOCK_GIFS.filter(gif =>
+        const filtered = MOCK_GIFS.filter((gif) =>
           gif.title.toLowerCase().includes(query.toLowerCase())
         );
         setGifs(filtered);
@@ -105,45 +105,36 @@ export const GifPicker: React.FC<GifPickerProps> = ({ visible, onClose, onSelect
     }
   }, []);
 
-  const handleSelectGif = useCallback((gifUrl: string) => {
-    onSelectGif(gifUrl);
-    onClose();
-    setSearchQuery('');
-    setSelectedCategory('trending');
-    setGifs(TRENDING_GIFS);
-  }, [onSelectGif, onClose]);
+  const handleSelectGif = useCallback(
+    (gifUrl: string) => {
+      onSelectGif(gifUrl);
+      onClose();
+      setSearchQuery('');
+      setSelectedCategory('trending');
+      setGifs(TRENDING_GIFS);
+    },
+    [onSelectGif, onClose]
+  );
 
-  const renderGifItem = ({ item }: { item: typeof MOCK_GIFS[0] }) => (
+  const renderGifItem = ({ item }: { item: (typeof MOCK_GIFS)[0] }) => (
     <TouchableOpacity
       style={styles.gifItem}
       onPress={() => handleSelectGif(item.url)}
       activeOpacity={0.8}
     >
-      <Image
-        source={{ uri: item.url }}
-        style={styles.gifImage}
-        resizeMode="cover"
-      />
+      <Image source={{ uri: item.url }} style={styles.gifImage} resizeMode="cover" />
     </TouchableOpacity>
   );
 
-  const renderCategoryItem = ({ item }: { item: typeof categories[0] }) => (
-    <TouchableOpacity
-      style={styles.categoryItem}
-      onPress={() => handleCategoryPress(item.id)}
-    >
+  const renderCategoryItem = ({ item }: { item: (typeof categories)[0] }) => (
+    <TouchableOpacity style={styles.categoryItem} onPress={() => handleCategoryPress(item.id)}>
       <Text style={styles.categoryEmoji}>{item.emoji}</Text>
       <Text style={styles.categoryLabel}>{item.label}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>

@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 
 interface Event {
   id: string;
@@ -42,11 +35,7 @@ interface EventCardProps {
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
 
-export const EventCard: React.FC<EventCardProps> = ({
-  event,
-  onPress,
-  onGetTickets,
-}) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, onPress, onGetTickets }) => {
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const options: Intl.DateTimeFormatOptions = {
@@ -86,11 +75,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => onPress(event)}
-      activeOpacity={0.9}
-    >
+    <TouchableOpacity style={styles.container} onPress={() => onPress(event)} activeOpacity={0.9}>
       <Image
         source={{
           uri: event.imageUrls[0] || 'https://via.placeholder.com/400x200',
@@ -112,9 +97,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       )}
 
       <View style={styles.categoryBadge}>
-        <Text style={styles.categoryText}>
-          {event.category.replace('_', ' ').toUpperCase()}
-        </Text>
+        <Text style={styles.categoryText}>{event.category.replace('_', ' ').toUpperCase()}</Text>
       </View>
 
       <View style={styles.content}>
@@ -123,9 +106,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         </Text>
 
         <View style={styles.dateTimeContainer}>
-          <Text style={styles.dateTimeText}>
-            {formatDate(event.startDateTime)}
-          </Text>
+          <Text style={styles.dateTimeText}>{formatDate(event.startDateTime)}</Text>
         </View>
 
         {event.venue && (
@@ -141,18 +122,11 @@ export const EventCard: React.FC<EventCardProps> = ({
 
         <View style={styles.footer}>
           <Text style={styles.price}>
-            {formatPrice(
-              event.priceRange.min,
-              event.priceRange.max,
-              event.priceRange.currency
-            )}
+            {formatPrice(event.priceRange.min, event.priceRange.max, event.priceRange.currency)}
           </Text>
 
           {onGetTickets && !event.isSoldOut && (
-            <TouchableOpacity
-              style={styles.ticketButton}
-              onPress={() => onGetTickets(event)}
-            >
+            <TouchableOpacity style={styles.ticketButton} onPress={() => onGetTickets(event)}>
               <Text style={styles.ticketButtonText}>Get Tickets</Text>
             </TouchableOpacity>
           )}

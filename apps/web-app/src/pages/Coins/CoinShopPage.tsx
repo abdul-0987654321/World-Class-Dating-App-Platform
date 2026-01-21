@@ -75,7 +75,7 @@ export const CoinShopPage: React.FC = () => {
   const loadData = async () => {
     try {
       const token = authTokenService.getToken();
-      const headers: HeadersInit = { 'Authorization': `Bearer ${token}` };
+      const headers: HeadersInit = { Authorization: `Bearer ${token}` };
 
       // Load packages
       const pkgRes = await fetch('/api/coins/packages', { headers });
@@ -108,7 +108,7 @@ export const CoinShopPage: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ packageId: pkg.id }),
       });
@@ -167,14 +167,16 @@ export const CoinShopPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" />
-                  <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#F59E0B">C</text>
+                  <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#F59E0B">
+                    C
+                  </text>
                 </svg>
-                <p className="coin-balance text-4xl font-bold" data-testid="coins">{balance.balance.toLocaleString()}</p>
+                <p className="coin-balance text-4xl font-bold" data-testid="coins">
+                  {balance.balance.toLocaleString()}
+                </p>
               </div>
               {balance.pendingBalance > 0 && (
-                <p className="text-amber-100 text-sm mt-2">
-                  +{balance.pendingBalance} pending
-                </p>
+                <p className="text-amber-100 text-sm mt-2">+{balance.pendingBalance} pending</p>
               )}
             </div>
             <button
@@ -205,8 +207,18 @@ export const CoinShopPage: React.FC = () => {
 
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-6 h-6 text-purple-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <div>
@@ -218,8 +230,18 @@ export const CoinShopPage: React.FC = () => {
 
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <svg
+                  className="w-6 h-6 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
               </div>
               <div>
@@ -253,7 +275,9 @@ export const CoinShopPage: React.FC = () => {
                   <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <circle cx="12" cy="12" r="10" />
-                      <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#F59E0B">C</text>
+                      <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#F59E0B">
+                        C
+                      </text>
                     </svg>
                   </div>
 
@@ -291,8 +315,20 @@ export const CoinShopPage: React.FC = () => {
                   {purchasing === pkg.id ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                       Processing...
                     </span>
@@ -325,18 +361,22 @@ export const CoinShopPage: React.FC = () => {
           <div className="space-y-4">
             <div>
               <h4 className="font-medium text-gray-800 mb-1">Do coins expire?</h4>
-              <p className="text-sm text-gray-600">No, coins never expire. Use them whenever you want!</p>
+              <p className="text-sm text-gray-600">
+                No, coins never expire. Use them whenever you want!
+              </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-800 mb-1">Can I get a refund?</h4>
               <p className="text-sm text-gray-600">
-                Coin purchases are non-refundable. However, if you experience any issues, please contact support.
+                Coin purchases are non-refundable. However, if you experience any issues, please
+                contact support.
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-800 mb-1">How do I earn free coins?</h4>
               <p className="text-sm text-gray-600">
-                You can earn free coins by completing your profile, verifying your account, and referring friends!
+                You can earn free coins by completing your profile, verifying your account, and
+                referring friends!
               </p>
             </div>
           </div>

@@ -83,7 +83,7 @@ export const mockUsers = {
     name: 'Riley Tester',
     age: 28,
     gender: 'female',
-    bio: 'Veterinarian with a heart for animals 🐶. Weekend warrior for outdoor adventures. Looking for someone who doesn\'t take life too seriously!',
+    bio: "Veterinarian with a heart for animals 🐶. Weekend warrior for outdoor adventures. Looking for someone who doesn't take life too seriously!",
     photos: [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop',
       'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop',
@@ -108,7 +108,7 @@ export const mockUsers = {
     name: 'Morgan Sample',
     age: 29,
     gender: 'non-binary',
-    bio: 'Musician and coffee shop hopper. I spend my weekends at live shows and exploring local cafes. Let\'s find the best latte in the city! 🎸☕',
+    bio: "Musician and coffee shop hopper. I spend my weekends at live shows and exploring local cafes. Let's find the best latte in the city! 🎸☕",
     photos: [
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
       'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=600&fit=crop',
@@ -270,11 +270,41 @@ export const mockConversations = [
       isTyping: false,
     },
     messages: [
-      { id: 'm1', senderId: 'matched-user-1', content: 'Hey! I saw you like coffee too!', sentAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(), status: 'read' },
-      { id: 'm2', senderId: 'test-user-1', content: 'Yes! I\'m obsessed with finding the best local roasters', sentAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: 'read' },
-      { id: 'm3', senderId: 'matched-user-1', content: 'Have you tried the new place on 6th street?', sentAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(), status: 'read' },
-      { id: 'm4', senderId: 'test-user-1', content: 'Not yet! Is it good?', sentAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(), status: 'read' },
-      { id: 'm5', senderId: 'matched-user-1', content: 'It\'s amazing! We should go together sometime 😊', sentAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), status: 'delivered' },
+      {
+        id: 'm1',
+        senderId: 'matched-user-1',
+        content: 'Hey! I saw you like coffee too!',
+        sentAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm2',
+        senderId: 'test-user-1',
+        content: "Yes! I'm obsessed with finding the best local roasters",
+        sentAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm3',
+        senderId: 'matched-user-1',
+        content: 'Have you tried the new place on 6th street?',
+        sentAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm4',
+        senderId: 'test-user-1',
+        content: 'Not yet! Is it good?',
+        sentAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm5',
+        senderId: 'matched-user-1',
+        content: "It's amazing! We should go together sometime 😊",
+        sentAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+        status: 'delivered',
+      },
     ],
     unreadCount: 1,
   },
@@ -288,10 +318,34 @@ export const mockConversations = [
       isTyping: false,
     },
     messages: [
-      { id: 'm6', senderId: 'test-user-1', content: 'Hey James! Nice to match with you', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), status: 'read' },
-      { id: 'm7', senderId: 'matched-user-2', content: 'Hey! Likewise! I see you\'re into photography?', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(), status: 'read' },
-      { id: 'm8', senderId: 'test-user-1', content: 'Yeah I love street photography! Do you shoot?', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), status: 'read' },
-      { id: 'm9', senderId: 'matched-user-2', content: 'That sounds great!', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), status: 'read' },
+      {
+        id: 'm6',
+        senderId: 'test-user-1',
+        content: 'Hey James! Nice to match with you',
+        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm7',
+        senderId: 'matched-user-2',
+        content: "Hey! Likewise! I see you're into photography?",
+        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm8',
+        senderId: 'test-user-1',
+        content: 'Yeah I love street photography! Do you shoot?',
+        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+        status: 'read',
+      },
+      {
+        id: 'm9',
+        senderId: 'matched-user-2',
+        content: 'That sounds great!',
+        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        status: 'read',
+      },
     ],
     unreadCount: 0,
   },
@@ -301,7 +355,8 @@ export const mockLikes = [
   {
     id: 'like-1',
     fromUser: {
-      blurredPhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&blur=20',
+      blurredPhotoUrl:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&blur=20',
       name: null,
       age: null,
     },
@@ -312,7 +367,8 @@ export const mockLikes = [
   {
     id: 'like-2',
     fromUser: {
-      blurredPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&blur=20',
+      blurredPhotoUrl:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&blur=20',
       name: null,
       age: null,
     },

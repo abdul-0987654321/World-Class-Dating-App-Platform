@@ -22,9 +22,7 @@ export const TravelBadge: React.FC<TravelBadgeProps> = ({
   const getDisplayText = () => {
     if (isActive) {
       if (daysRemaining !== undefined && daysRemaining > 0) {
-        return `In ${city} for ${daysRemaining} more ${
-          daysRemaining === 1 ? 'day' : 'days'
-        }`;
+        return `In ${city} for ${daysRemaining} more ${daysRemaining === 1 ? 'day' : 'days'}`;
       }
       return `Currently in ${city}`;
     } else if (daysUntilArrival !== undefined && daysUntilArrival > 0) {

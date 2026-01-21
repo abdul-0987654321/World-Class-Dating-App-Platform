@@ -13,7 +13,9 @@ declare module 'react-native' {
     class Text extends React.Component<Animated.AnimatedProps<TextProps>> {}
     class Image extends React.Component<Animated.AnimatedProps<ImageProps>> {}
     class ScrollView extends React.Component<Animated.AnimatedProps<ScrollViewProps>> {}
-    class FlatList<ItemT = any> extends React.Component<Animated.AnimatedProps<FlatListProps<ItemT>>> {}
+    class FlatList<ItemT = any> extends React.Component<
+      Animated.AnimatedProps<FlatListProps<ItemT>>
+    > {}
   }
 }
 
@@ -152,7 +154,12 @@ declare module 'react-native-incall-manager' {
     setSpeakerphoneOn(enable: boolean): void;
     setForceSpeakerphoneOn(flag: boolean | -1): void;
     setMicrophoneMute(enable: boolean): void;
-    startRingtone(ringtone?: string, vibrate?: boolean, ios_category?: string, seconds?: number): void;
+    startRingtone(
+      ringtone?: string,
+      vibrate?: boolean,
+      ios_category?: string,
+      seconds?: number
+    ): void;
     stopRingtone(): void;
     startRingback(ringback?: string): void;
     stopRingback(): void;
@@ -216,33 +223,27 @@ declare module '@react-navigation/native-stack' {
 
   export interface NativeStackNavigationProp<
     ParamList extends ParamListBase,
-    RouteName extends keyof ParamList = string
+    RouteName extends keyof ParamList = string,
   > {
     navigate<T extends keyof ParamList>(
-      ...args: ParamList[T] extends undefined
-        ? [screen: T]
-        : [screen: T, params: ParamList[T]]
+      ...args: ParamList[T] extends undefined ? [screen: T] : [screen: T, params: ParamList[T]]
     ): void;
     goBack(): void;
     reset(state: any): void;
     setParams(params: any): void;
     push<T extends keyof ParamList>(
-      ...args: ParamList[T] extends undefined
-        ? [screen: T]
-        : [screen: T, params: ParamList[T]]
+      ...args: ParamList[T] extends undefined ? [screen: T] : [screen: T, params: ParamList[T]]
     ): void;
     pop(count?: number): void;
     popToTop(): void;
     replace<T extends keyof ParamList>(
-      ...args: ParamList[T] extends undefined
-        ? [screen: T]
-        : [screen: T, params: ParamList[T]]
+      ...args: ParamList[T] extends undefined ? [screen: T] : [screen: T, params: ParamList[T]]
     ): void;
   }
 
   export type NativeStackScreenProps<
     ParamList extends ParamListBase,
-    RouteName extends keyof ParamList = string
+    RouteName extends keyof ParamList = string,
   > = {
     navigation: NativeStackNavigationProp<ParamList, RouteName>;
     route: RouteProp<ParamList, RouteName>;
@@ -510,7 +511,10 @@ declare module 'react-native-google-mobile-ads' {
     EARNED_REWARD: string;
   };
 
-  export function useInterstitialAd(unitId: string, requestOptions?: RequestOptions): {
+  export function useInterstitialAd(
+    unitId: string,
+    requestOptions?: RequestOptions
+  ): {
     isLoaded: boolean;
     isClosed: boolean;
     error: Error | undefined;
@@ -518,7 +522,10 @@ declare module 'react-native-google-mobile-ads' {
     show: () => void;
   };
 
-  export function useRewardedAd(unitId: string, requestOptions?: RequestOptions): {
+  export function useRewardedAd(
+    unitId: string,
+    requestOptions?: RequestOptions
+  ): {
     isLoaded: boolean;
     isClosed: boolean;
     isEarnedReward: boolean;
@@ -546,7 +553,12 @@ declare module 'react-native-agora' {
     setChannelProfile(profile: ChannelProfileType | number): Promise<void>;
     setClientRole(role: ClientRoleType | number): Promise<void>;
     setVideoEncoderConfiguration(config: VideoEncoderConfiguration): Promise<void>;
-    joinChannel(token: string | null, channelId: string, uid: number, options?: ChannelMediaOptions): Promise<void>;
+    joinChannel(
+      token: string | null,
+      channelId: string,
+      uid: number,
+      options?: ChannelMediaOptions
+    ): Promise<void>;
     leaveChannel(): Promise<void>;
     muteLocalAudioStream(mute: boolean): Promise<void>;
     muteLocalVideoStream(mute: boolean): Promise<void>;
@@ -680,7 +692,7 @@ declare module 'react-native-reanimated' {
   // Deprecated but still available for backward compatibility
   export function useAnimatedGestureHandler<
     Event extends object,
-    Context extends object = Record<string, unknown>
+    Context extends object = Record<string, unknown>,
   >(
     handlers: {
       onStart?: (event: Event, context: Context) => void;
@@ -709,16 +721,32 @@ declare module 'react-native-reanimated' {
   export function withDecay(config?: any): any;
   export function withDelay(delayMs: number, animation: any): any;
   export function withSequence(...animations: any[]): any;
-  export function withRepeat(animation: any, numberOfReps?: number, reverse?: boolean, callback?: (finished?: boolean) => void): any;
+  export function withRepeat(
+    animation: any,
+    numberOfReps?: number,
+    reverse?: boolean,
+    callback?: (finished?: boolean) => void
+  ): any;
   export function runOnJS<T extends (...args: any[]) => any>(fn: T): T;
   export function runOnUI<T extends (...args: any[]) => any>(fn: T): T;
-  export function interpolate(value: number, inputRange: number[], outputRange: number[], extrapolation?: any): number;
-  export function interpolateColor(value: number, inputRange: number[], outputRange: string[]): string;
+  export function interpolate(
+    value: number,
+    inputRange: number[],
+    outputRange: number[],
+    extrapolation?: any
+  ): number;
+  export function interpolateColor(
+    value: number,
+    inputRange: number[],
+    outputRange: string[]
+  ): string;
   export function cancelAnimation(sharedValue: SharedValue<any>): void;
   export function makeMutable<T>(initialValue: T): SharedValue<T>;
   export function useDerivedValue<T>(updater: () => T, deps?: any[]): SharedValue<T>;
   export function useAnimatedRef<T extends Component>(): { current: T | null };
-  export function measure(animatedRef: any): { x: number; y: number; width: number; height: number; pageX: number; pageY: number } | null;
+  export function measure(
+    animatedRef: any
+  ): { x: number; y: number; width: number; height: number; pageX: number; pageY: number } | null;
 
   export const Extrapolate: {
     EXTEND: string;
@@ -784,7 +812,8 @@ declare module 'react-native-gesture-handler' {
     state: number;
   }
 
-  export type PanGestureHandlerGestureEvent = GestureEvent<PanGestureHandlerEventPayload> & PanGestureHandlerEventPayload;
+  export type PanGestureHandlerGestureEvent = GestureEvent<PanGestureHandlerEventPayload> &
+    PanGestureHandlerEventPayload;
 
   export interface PanGestureHandlerProps extends ViewProps {
     enabled?: boolean;
@@ -808,7 +837,9 @@ declare module 'react-native-gesture-handler' {
   export class PanGestureHandler extends Component<PanGestureHandlerProps> {}
   export class TapGestureHandler extends Component<any> {}
   export class LongPressGestureHandler extends Component<any> {}
-  export class GestureHandlerRootView extends Component<ViewProps & { children?: React.ReactNode }> {}
+  export class GestureHandlerRootView extends Component<
+    ViewProps & { children?: React.ReactNode }
+  > {}
 
   export const State: {
     UNDETERMINED: number;
@@ -856,7 +887,11 @@ declare module 'react-native-keychain' {
     password: string;
     service?: string;
   }
-  export function setGenericPassword(username: string, password: string, options?: any): Promise<boolean>;
+  export function setGenericPassword(
+    username: string,
+    password: string,
+    options?: any
+  ): Promise<boolean>;
   export function getGenericPassword(options?: any): Promise<UserCredentials | false>;
   export function resetGenericPassword(options?: any): Promise<boolean>;
 }
@@ -899,7 +934,13 @@ declare module '@sentry/react-native' {
   export function setTag(key: string, value: string): void;
   export function setContext(name: string, context: any): void;
   export function addBreadcrumb(breadcrumb: any): void;
-  export const Severity: { Debug: string; Info: string; Warning: string; Error: string; Fatal: string };
+  export const Severity: {
+    Debug: string;
+    Info: string;
+    Warning: string;
+    Error: string;
+    Fatal: string;
+  };
 }
 
 declare module 'jail-monkey' {

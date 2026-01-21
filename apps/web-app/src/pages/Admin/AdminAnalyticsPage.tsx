@@ -51,7 +51,7 @@ export const AdminAnalyticsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/analytics?range=${timeRange}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -108,7 +108,11 @@ export const AdminAnalyticsPage: React.FC = () => {
   };
 
   const formatCurrency = (num: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(num);
   };
 
   if (loading) {
@@ -174,19 +178,27 @@ export const AdminAnalyticsPage: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">MRR</p>
-              <p className="text-2xl font-bold text-gray-800">{formatCurrency(data?.revenue.mrr || 0)}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(data?.revenue.mrr || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">ARR</p>
-              <p className="text-2xl font-bold text-gray-800">{formatCurrency(data?.revenue.arr || 0)}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(data?.revenue.arr || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">ARPU</p>
-              <p className="text-2xl font-bold text-gray-800">{formatCurrency(data?.revenue.arpu || 0)}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(data?.revenue.arpu || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">LTV</p>
-              <p className="text-2xl font-bold text-gray-800">{formatCurrency(data?.revenue.ltv || 0)}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(data?.revenue.ltv || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Conversion Rate</p>
@@ -205,19 +217,27 @@ export const AdminAnalyticsPage: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Total Users</p>
-              <p className="text-2xl font-bold text-gray-800">{formatNumber(data?.users.total || 0)}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatNumber(data?.users.total || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Active Users</p>
-              <p className="text-2xl font-bold text-blue-600">{formatNumber(data?.users.active || 0)}</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {formatNumber(data?.users.active || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">New Users</p>
-              <p className="text-2xl font-bold text-green-600">+{formatNumber(data?.users.new || 0)}</p>
+              <p className="text-2xl font-bold text-green-600">
+                +{formatNumber(data?.users.new || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Churned</p>
-              <p className="text-2xl font-bold text-red-600">-{formatNumber(data?.users.churned || 0)}</p>
+              <p className="text-2xl font-bold text-red-600">
+                -{formatNumber(data?.users.churned || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Retention</p>
@@ -238,13 +258,18 @@ export const AdminAnalyticsPage: React.FC = () => {
                   <div key={gender}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="capitalize">{gender}</span>
-                      <span>{formatNumber(count)} ({percentage}%)</span>
+                      <span>
+                        {formatNumber(count)} ({percentage}%)
+                      </span>
                     </div>
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${
-                          gender === 'male' ? 'bg-blue-500' :
-                          gender === 'female' ? 'bg-pink-500' : 'bg-purple-500'
+                          gender === 'male'
+                            ? 'bg-blue-500'
+                            : gender === 'female'
+                              ? 'bg-pink-500'
+                              : 'bg-purple-500'
                         }`}
                         style={{ width: `${percentage}%` }}
                       />
@@ -266,10 +291,15 @@ export const AdminAnalyticsPage: React.FC = () => {
                   <div key={age}>
                     <div className="flex justify-between text-sm mb-1">
                       <span>{age}</span>
-                      <span>{formatNumber(count)} ({percentage}%)</span>
+                      <span>
+                        {formatNumber(count)} ({percentage}%)
+                      </span>
                     </div>
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500" style={{ width: `${percentage}%` }} />
+                      <div
+                        className="h-full bg-gradient-to-r from-pink-500 to-purple-500"
+                        style={{ width: `${percentage}%` }}
+                      />
                     </div>
                   </div>
                 );
@@ -284,7 +314,10 @@ export const AdminAnalyticsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Subscription Breakdown</h3>
             <div className="space-y-4">
               {Object.entries(data?.users.bySubscription || {}).map(([tier, count]) => {
-                const total = Object.values(data?.users.bySubscription || {}).reduce((a, b) => a + b, 0);
+                const total = Object.values(data?.users.bySubscription || {}).reduce(
+                  (a, b) => a + b,
+                  0
+                );
                 const percentage = ((count / total) * 100).toFixed(1);
                 const colors: Record<string, string> = {
                   free: 'bg-gray-400',
@@ -296,10 +329,15 @@ export const AdminAnalyticsPage: React.FC = () => {
                   <div key={tier}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="capitalize">{tier}</span>
-                      <span>{formatNumber(count)} ({percentage}%)</span>
+                      <span>
+                        {formatNumber(count)} ({percentage}%)
+                      </span>
                     </div>
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full ${colors[tier]}`} style={{ width: `${percentage}%` }} />
+                      <div
+                        className={`h-full ${colors[tier]}`}
+                        style={{ width: `${percentage}%` }}
+                      />
                     </div>
                   </div>
                 );
@@ -313,19 +351,27 @@ export const AdminAnalyticsPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500">DAU</p>
-                <p className="text-xl font-bold text-gray-800">{formatNumber(data?.engagement.dailyActiveUsers || 0)}</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {formatNumber(data?.engagement.dailyActiveUsers || 0)}
+                </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500">WAU</p>
-                <p className="text-xl font-bold text-gray-800">{formatNumber(data?.engagement.weeklyActiveUsers || 0)}</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {formatNumber(data?.engagement.weeklyActiveUsers || 0)}
+                </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500">MAU</p>
-                <p className="text-xl font-bold text-gray-800">{formatNumber(data?.engagement.monthlyActiveUsers || 0)}</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {formatNumber(data?.engagement.monthlyActiveUsers || 0)}
+                </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500">Avg Session</p>
-                <p className="text-xl font-bold text-gray-800">{data?.engagement.avgSessionDuration} min</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {data?.engagement.avgSessionDuration} min
+                </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500">Swipes/User</p>
@@ -333,7 +379,9 @@ export const AdminAnalyticsPage: React.FC = () => {
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500">Messages/User</p>
-                <p className="text-xl font-bold text-gray-800">{data?.engagement.messagesPerUser}</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {data?.engagement.messagesPerUser}
+                </p>
               </div>
             </div>
           </div>
@@ -345,7 +393,9 @@ export const AdminAnalyticsPage: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Total Matches</p>
-              <p className="text-2xl font-bold text-pink-600">{formatNumber(data?.matching.totalMatches || 0)}</p>
+              <p className="text-2xl font-bold text-pink-600">
+                {formatNumber(data?.matching.totalMatches || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Match Rate</p>
@@ -353,7 +403,9 @@ export const AdminAnalyticsPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Conversation Rate</p>
-              <p className="text-2xl font-bold text-green-600">{data?.matching.conversationRate}%</p>
+              <p className="text-2xl font-bold text-green-600">
+                {data?.matching.conversationRate}%
+              </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Avg Matches to Convo</p>

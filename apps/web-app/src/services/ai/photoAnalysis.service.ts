@@ -57,7 +57,14 @@ export interface QualityAnalysisResult {
 }
 
 export interface QualityIssue {
-  type: 'low_resolution' | 'too_dark' | 'too_bright' | 'blurry' | 'grainy' | 'face_obscured' | 'bad_crop';
+  type:
+    | 'low_resolution'
+    | 'too_dark'
+    | 'too_bright'
+    | 'blurry'
+    | 'grainy'
+    | 'face_obscured'
+    | 'bad_crop';
   severity: 'low' | 'medium' | 'high';
   description: string;
   suggestion: string;

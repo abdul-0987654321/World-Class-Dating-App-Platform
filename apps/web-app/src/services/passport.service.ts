@@ -62,16 +62,18 @@ class PassportService {
     return {
       enabled: data.enabled,
       tier: data.tier,
-      activeLocation: data.active_location ? {
-        id: data.active_location.id,
-        city: data.active_location.city,
-        country: data.active_location.country,
-        latitude: data.active_location.latitude,
-        longitude: data.active_location.longitude,
-        startDate: new Date(data.active_location.start_date),
-        endDate: new Date(data.active_location.end_date),
-        isActive: true,
-      } : null,
+      activeLocation: data.active_location
+        ? {
+            id: data.active_location.id,
+            city: data.active_location.city,
+            country: data.active_location.country,
+            latitude: data.active_location.latitude,
+            longitude: data.active_location.longitude,
+            startDate: new Date(data.active_location.start_date),
+            endDate: new Date(data.active_location.end_date),
+            isActive: true,
+          }
+        : null,
       savedLocations: (data.saved_locations || []).map((loc: any) => ({
         id: loc.id,
         city: loc.city,
@@ -200,11 +202,12 @@ class PassportService {
       const destinations = this.getMockDestinations();
       const normalizedQuery = query.toLowerCase();
       return destinations
-        .filter(d =>
-          d.city.toLowerCase().includes(normalizedQuery) ||
-          d.country.toLowerCase().includes(normalizedQuery)
+        .filter(
+          (d) =>
+            d.city.toLowerCase().includes(normalizedQuery) ||
+            d.country.toLowerCase().includes(normalizedQuery)
         )
-        .map(d => ({
+        .map((d) => ({
           city: d.city,
           country: d.country,
           latitude: d.latitude,

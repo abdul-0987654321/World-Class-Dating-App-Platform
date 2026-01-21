@@ -44,13 +44,62 @@ interface Props {
 }
 
 const DEFAULT_CALENDAR: DailyRewardCalendarDay[] = [
-  { dayNumber: 1, rewardType: 'coins', baseAmount: 10, description: 'Start your week!', iconName: 'coin', isSpecialDay: false },
-  { dayNumber: 2, rewardType: 'coins', baseAmount: 15, description: 'Keep going!', iconName: 'coin', isSpecialDay: false },
-  { dayNumber: 3, rewardType: 'super_likes', baseAmount: 2, description: 'Super Likes!', iconName: 'star', isSpecialDay: false },
-  { dayNumber: 4, rewardType: 'coins', baseAmount: 20, description: 'Halfway!', iconName: 'coin', isSpecialDay: false },
-  { dayNumber: 5, rewardType: 'super_likes', baseAmount: 3, description: 'More Super Likes!', iconName: 'star', isSpecialDay: false },
-  { dayNumber: 6, rewardType: 'boosts', baseAmount: 1, description: 'Get boosted!', iconName: 'rocket', isSpecialDay: false },
-  { dayNumber: 7, rewardType: 'coins', baseAmount: 50, description: 'Week complete! Big bonus!', iconName: 'trophy', isSpecialDay: true },
+  {
+    dayNumber: 1,
+    rewardType: 'coins',
+    baseAmount: 10,
+    description: 'Start your week!',
+    iconName: 'coin',
+    isSpecialDay: false,
+  },
+  {
+    dayNumber: 2,
+    rewardType: 'coins',
+    baseAmount: 15,
+    description: 'Keep going!',
+    iconName: 'coin',
+    isSpecialDay: false,
+  },
+  {
+    dayNumber: 3,
+    rewardType: 'super_likes',
+    baseAmount: 2,
+    description: 'Super Likes!',
+    iconName: 'star',
+    isSpecialDay: false,
+  },
+  {
+    dayNumber: 4,
+    rewardType: 'coins',
+    baseAmount: 20,
+    description: 'Halfway!',
+    iconName: 'coin',
+    isSpecialDay: false,
+  },
+  {
+    dayNumber: 5,
+    rewardType: 'super_likes',
+    baseAmount: 3,
+    description: 'More Super Likes!',
+    iconName: 'star',
+    isSpecialDay: false,
+  },
+  {
+    dayNumber: 6,
+    rewardType: 'boosts',
+    baseAmount: 1,
+    description: 'Get boosted!',
+    iconName: 'rocket',
+    isSpecialDay: false,
+  },
+  {
+    dayNumber: 7,
+    rewardType: 'coins',
+    baseAmount: 50,
+    description: 'Week complete! Big bonus!',
+    iconName: 'trophy',
+    isSpecialDay: true,
+  },
 ];
 
 export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardClaimed }) => {
@@ -140,11 +189,13 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
         setClaimResult(data.data);
         setShowSuccess(true);
         onRewardClaimed?.(data.data);
-        setStatus(prev => prev ? { ...prev, canClaim: false, currentStreak: data.data.newStreak } : null);
+        setStatus((prev) =>
+          prev ? { ...prev, canClaim: false, currentStreak: data.data.newStreak } : null
+        );
       } else if (response.status === 400) {
         const data = await response.json();
         setError(data.message || 'Already claimed today');
-        setStatus(prev => prev ? { ...prev, canClaim: false } : null);
+        setStatus((prev) => (prev ? { ...prev, canClaim: false } : null));
       } else if (response.status === 401) {
         setError('Please log in to claim rewards');
       } else {
@@ -159,7 +210,9 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
         setClaimResult(mockResult);
         setShowSuccess(true);
         onRewardClaimed?.(mockResult);
-        setStatus(prev => prev ? { ...prev, canClaim: false, currentStreak: mockResult.newStreak } : null);
+        setStatus((prev) =>
+          prev ? { ...prev, canClaim: false, currentStreak: mockResult.newStreak } : null
+        );
       }
     } catch (err) {
       console.error('Failed to claim reward:', err);
@@ -176,11 +229,16 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
 
   const getRewardIcon = (type: string) => {
     switch (type) {
-      case 'coins': return { icon: 'coin', color: '#FFD700' };
-      case 'super_likes': return { icon: 'star', color: '#FF1493' };
-      case 'boosts': return { icon: 'rocket', color: '#FF6B6B' };
-      case 'premium_trial': return { icon: 'crown', color: '#9C27B0' };
-      default: return { icon: 'gift', color: '#2196F3' };
+      case 'coins':
+        return { icon: 'coin', color: '#FFD700' };
+      case 'super_likes':
+        return { icon: 'star', color: '#FF1493' };
+      case 'boosts':
+        return { icon: 'rocket', color: '#FF6B6B' };
+      case 'premium_trial':
+        return { icon: 'crown', color: '#9C27B0' };
+      default:
+        return { icon: 'gift', color: '#2196F3' };
     }
   };
 
@@ -206,14 +264,21 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
         {/* Header with streak flames */}
         <div
           className="p-6 text-center text-white relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)' }}
+          style={{
+            background: 'linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)',
+          }}
         >
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
@@ -239,7 +304,9 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
               className="mb-4 p-3 rounded-lg flex items-center justify-between"
               style={{ background: 'rgba(244,67,54,0.1)', border: '1px solid rgba(244,67,54,0.3)' }}
             >
-              <p className="text-sm" style={{ color: '#f44336' }}>{error}</p>
+              <p className="text-sm" style={{ color: '#f44336' }}>
+                {error}
+              </p>
               <button
                 onClick={handleRetry}
                 className="text-sm font-medium px-3 py-1 rounded-lg hover:opacity-80 transition"
@@ -272,13 +339,17 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
               {claimResult.weeklyBonus && (
                 <div
                   className="p-4 rounded-xl mt-4"
-                  style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,165,0,0.2) 100%)' }}
+                  style={{
+                    background:
+                      'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,165,0,0.2) 100%)',
+                  }}
                 >
                   <p className="font-bold" style={{ color: 'var(--coin-primary)' }}>
                     Weekly Bonus! 🎊
                   </p>
                   <p style={{ color: 'var(--text-secondary)' }}>
-                    {claimResult.weeklyBonus.title}: +{claimResult.weeklyBonus.reward.amount} {claimResult.weeklyBonus.reward.type}
+                    {claimResult.weeklyBonus.title}: +{claimResult.weeklyBonus.reward.amount}{' '}
+                    {claimResult.weeklyBonus.reward.type}
                   </p>
                 </div>
               )}
@@ -314,8 +385,8 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
                         background: isCurrent
                           ? 'var(--accent-gradient)'
                           : isPast
-                          ? 'rgba(128,128,128,0.1)'
-                          : 'rgba(255,255,255,0.05)',
+                            ? 'rgba(128,128,128,0.1)'
+                            : 'rgba(255,255,255,0.05)',
                         ['--tw-ring-color' as string]: isCurrent ? 'var(--accent-pink)' : undefined,
                       }}
                     >
@@ -357,12 +428,17 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
               {status.todayReward && (
                 <div
                   className="p-4 rounded-xl mb-4"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)' }}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
                 >
                   <div className="flex items-center gap-4">
                     <div
                       className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl"
-                      style={{ background: `${getRewardIcon(status.todayReward.rewardType).color}20` }}
+                      style={{
+                        background: `${getRewardIcon(status.todayReward.rewardType).color}20`,
+                      }}
                     >
                       {status.todayReward.rewardType === 'coins' && '🪙'}
                       {status.todayReward.rewardType === 'super_likes' && '⭐'}
@@ -377,7 +453,8 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
                         className="text-xl font-bold"
                         style={{ color: getRewardIcon(status.todayReward.rewardType).color }}
                       >
-                        {status.todayReward.baseAmount} {status.todayReward.rewardType.replace('_', ' ')}
+                        {status.todayReward.baseAmount}{' '}
+                        {status.todayReward.rewardType.replace('_', ' ')}
                       </p>
                       <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                         {status.todayReward.description}

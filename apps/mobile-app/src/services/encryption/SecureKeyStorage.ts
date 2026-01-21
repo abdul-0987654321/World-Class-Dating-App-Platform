@@ -83,10 +83,7 @@ export class SecureKeyStorage {
   /**
    * Store one-time pre-keys
    */
-  async storeOneTimePreKeys(
-    userId: string,
-    oneTimePreKeys: OneTimePreKey[]
-  ): Promise<void> {
+  async storeOneTimePreKeys(userId: string, oneTimePreKeys: OneTimePreKey[]): Promise<void> {
     try {
       const key = STORAGE_KEYS.ONE_TIME_PREKEYS(userId);
       await SecureStore.setItemAsync(key, JSON.stringify(oneTimePreKeys));
@@ -181,7 +178,7 @@ export class SecureKeyStorage {
       const indexValue = await SecureStore.getItemAsync(indexKey);
       const index: string[] = indexValue ? JSON.parse(indexValue) : [];
 
-      const updatedIndex = index.filter(id => id !== conversationId);
+      const updatedIndex = index.filter((id) => id !== conversationId);
       await SecureStore.setItemAsync(indexKey, JSON.stringify(updatedIndex));
     } catch (error) {
       console.error('Failed to update session keys index:', error);

@@ -69,7 +69,7 @@ const Age = styled.span.attrs({
 `;
 
 const VerifiedBadge = styled(FiCheckCircle)`
-  color: #4ECDC4;
+  color: #4ecdc4;
   font-size: 20px;
 `;
 
@@ -197,7 +197,10 @@ const Dot = styled.div<{ active: boolean }>`
 export const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onLike, onPass, onSuperLike }) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const photos = profile.photos.length > 0 ? profile.photos : [{ url: '/assets/images/default-profile.svg', is_primary: true }];
+  const photos =
+    profile.photos.length > 0
+      ? profile.photos
+      : [{ url: '/assets/images/default-profile.svg', is_primary: true }];
   const currentPhoto = photos[currentPhotoIndex];
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -269,13 +272,34 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onLike, onPass, o
       </ContentContainer>
 
       <ActionButtons>
-        <ActionButton variant="pass" onClick={onPass} title="Pass" aria-label="Pass" data-action="pass" className="pass-button">
+        <ActionButton
+          variant="pass"
+          onClick={onPass}
+          title="Pass"
+          aria-label="Pass"
+          data-action="pass"
+          className="pass-button"
+        >
           <FiX />
         </ActionButton>
-        <ActionButton variant="superlike" onClick={onSuperLike} title="Super Like" aria-label="Super Like" data-action="superlike" className="superlike-button super-like-button">
+        <ActionButton
+          variant="superlike"
+          onClick={onSuperLike}
+          title="Super Like"
+          aria-label="Super Like"
+          data-action="superlike"
+          className="superlike-button super-like-button"
+        >
           <FiStar />
         </ActionButton>
-        <ActionButton variant="like" onClick={onLike} title="Like" aria-label="Like" data-action="like" className="like-button">
+        <ActionButton
+          variant="like"
+          onClick={onLike}
+          title="Like"
+          aria-label="Like"
+          data-action="like"
+          className="like-button"
+        >
           <FiHeart />
         </ActionButton>
       </ActionButtons>

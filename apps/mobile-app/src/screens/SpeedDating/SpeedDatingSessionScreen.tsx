@@ -22,7 +22,10 @@ import { RtcLocalView, RtcRemoteView, VideoRenderMode } from 'react-native-agora
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSpeedDatingSession } from '../../hooks/useSpeedDatingSession';
-import type { SpeedDatingParticipant, SpeedDatingSessionConfig } from '../../types/speedDating.types';
+import type {
+  SpeedDatingParticipant,
+  SpeedDatingSessionConfig,
+} from '../../types/speedDating.types';
 
 const { width, height } = Dimensions.get('window');
 
@@ -150,18 +153,14 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
    * Handle leave session
    */
   const handleLeave = useCallback(() => {
-    Alert.alert(
-      'Leave Session',
-      "Are you sure you want to leave? You won't be able to rejoin.",
-      [
-        { text: 'Stay', style: 'cancel' },
-        {
-          text: 'Leave',
-          style: 'destructive',
-          onPress: leaveSession,
-        },
-      ]
-    );
+    Alert.alert('Leave Session', "Are you sure you want to leave? You won't be able to rejoin.", [
+      { text: 'Stay', style: 'cancel' },
+      {
+        text: 'Leave',
+        style: 'destructive',
+        onPress: leaveSession,
+      },
+    ]);
   }, [leaveSession]);
 
   /**
@@ -194,10 +193,7 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
    */
   const renderWaitingState = () => (
     <View style={styles.waitingContainer}>
-      <LinearGradient
-        colors={['#FF6B6B', '#8B5CF6']}
-        style={styles.waitingGradient}
-      >
+      <LinearGradient colors={['#FF6B6B', '#8B5CF6']} style={styles.waitingGradient}>
         <View style={styles.waitingContent}>
           <View style={styles.waitingIcon}>
             <Text style={styles.waitingEmoji}>🎥</Text>
@@ -228,16 +224,11 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
   const renderCountdownState = () => (
     <View style={styles.countdownContainer}>
       <Animated.View
-        style={[
-          styles.countdownNumber,
-          { transform: [{ scale: countdownScaleAnim }] },
-        ]}
+        style={[styles.countdownNumber, { transform: [{ scale: countdownScaleAnim }] }]}
       >
         <Text style={styles.countdownText}>{timeRemaining}</Text>
       </Animated.View>
-      <Text style={styles.countdownLabel}>
-        Get ready to meet {currentPartner?.name}!
-      </Text>
+      <Text style={styles.countdownLabel}>Get ready to meet {currentPartner?.name}!</Text>
     </View>
   );
 
@@ -246,10 +237,7 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
    */
   const renderEndedState = () => (
     <View style={styles.endedContainer}>
-      <LinearGradient
-        colors={['#FF6B6B', '#8B5CF6']}
-        style={styles.endedGradient}
-      >
+      <LinearGradient colors={['#FF6B6B', '#8B5CF6']} style={styles.endedGradient}>
         <Text style={styles.endedEmoji}>🎉</Text>
         <Text style={styles.endedTitle}>Session Complete!</Text>
         <Text style={styles.endedSubtitle}>
@@ -286,30 +274,15 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
    */
   const renderVotingOverlay = () => (
     <View style={styles.votingOverlay}>
-      <Animated.View
-        style={[styles.votingCard, { transform: [{ scale: voteScaleAnim }] }]}
-      >
-        <Image
-          source={{ uri: currentPartner?.photoUrl }}
-          style={styles.votingPhoto}
-        />
-        <Text style={styles.votingTitle}>
-          Did you connect with {currentPartner?.name}?
-        </Text>
-        <Text style={styles.votingSubtitle}>
-          If you both like each other, you'll be matched!
-        </Text>
+      <Animated.View style={[styles.votingCard, { transform: [{ scale: voteScaleAnim }] }]}>
+        <Image source={{ uri: currentPartner?.photoUrl }} style={styles.votingPhoto} />
+        <Text style={styles.votingTitle}>Did you connect with {currentPartner?.name}?</Text>
+        <Text style={styles.votingSubtitle}>If you both like each other, you'll be matched!</Text>
         <View style={styles.votingButtons}>
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={() => handleVote(false)}
-          >
+          <TouchableOpacity style={styles.skipButton} onPress={() => handleVote(false)}>
             <Text style={styles.skipButtonEmoji}>👋</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.likeButton}
-            onPress={() => handleVote(true)}
-          >
+          <TouchableOpacity style={styles.likeButton} onPress={() => handleVote(true)}>
             <Text style={styles.likeButtonEmoji}>❤️</Text>
           </TouchableOpacity>
         </View>
@@ -348,10 +321,7 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
 
           {/* Timer */}
           <Animated.View
-            style={[
-              styles.timerContainer,
-              { transform: [{ scale: timerPulseAnim }] },
-            ]}
+            style={[styles.timerContainer, { transform: [{ scale: timerPulseAnim }] }]}
           >
             <Text style={[styles.timerText, { color: getTimerColor() }]}>
               {formatTime(timeRemaining)}
@@ -391,9 +361,7 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.partnerName}>
               {currentPartner?.name}, {currentPartner?.age}
             </Text>
-            {currentPartner?.bio && (
-              <Text style={styles.partnerBio}>{currentPartner.bio}</Text>
-            )}
+            {currentPartner?.bio && <Text style={styles.partnerBio}>{currentPartner.bio}</Text>}
           </View>
 
           {/* Timer Overlay when low */}
@@ -473,11 +441,7 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
   }
 
   if (sessionState === 'countdown') {
-    return (
-      <View style={styles.countdownFullScreen}>
-        {renderCountdownState()}
-      </View>
-    );
+    return <View style={styles.countdownFullScreen}>{renderCountdownState()}</View>;
   }
 
   if (sessionState === 'ended') {

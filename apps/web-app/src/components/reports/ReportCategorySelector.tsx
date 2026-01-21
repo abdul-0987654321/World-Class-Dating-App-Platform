@@ -65,9 +65,7 @@ export const ReportCategorySelector: React.FC<ReportCategorySelectorProps> = ({
               <h4 className="category-name">{category.label}</h4>
               <p className="category-description">{category.description}</p>
             </div>
-            {selectedCategory === category.id && (
-              <div className="selected-indicator">✓</div>
-            )}
+            {selectedCategory === category.id && <div className="selected-indicator">✓</div>}
           </button>
         ))}
       </div>

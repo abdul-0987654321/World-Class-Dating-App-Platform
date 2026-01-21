@@ -19,9 +19,7 @@ vi.mock('react-icons/fi', () => ({
 
 // Mock subscription badge
 vi.mock('../subscription/SubscriptionBadge', () => ({
-  TierIcon: ({ tier }: { tier: string }) => (
-    <span data-testid="tier-icon">{tier}</span>
-  ),
+  TierIcon: ({ tier }: { tier: string }) => <span data-testid="tier-icon">{tier}</span>,
   SubscriptionTier: {},
 }));
 
@@ -254,9 +252,11 @@ describe('SwipeCard', () => {
         />
       );
 
-      // Should have two photo dots (one for each photo)
-      const dots = document.querySelectorAll('[class*="Dot"]');
-      expect(dots.length).toBeGreaterThan(0);
+      // Should have photo indicator container
+      const photoIndicator = screen.getByTestId('photo-indicator');
+      expect(photoIndicator).toBeInTheDocument();
+      // Should have children (dots)
+      expect(photoIndicator.children.length).toBe(2); // Two photos = two dots
     });
 
     it('does not render photo dots for single photo', () => {

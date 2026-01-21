@@ -106,7 +106,7 @@ const AddButton = styled.div`
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4ECDC4, #95E1D3);
+  background: linear-gradient(135deg, #4ecdc4, #95e1d3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +131,7 @@ const StoryCount = styled.span`
   position: absolute;
   top: -4px;
   right: -4px;
-  background: #FF6B6B;
+  background: #ff6b6b;
   color: white;
   font-size: 10px;
   padding: 2px 6px;
@@ -176,12 +176,8 @@ export const StoryRing: React.FC<StoryRingProps> = ({
             <PlaceholderAvatar size={sizeValues.avatar}>{initials}</PlaceholderAvatar>
           )}
         </AvatarContainer>
-        {showAddButton && (
-          <AddButton>+</AddButton>
-        )}
-        {storyCount > 1 && hasUnviewedStories && (
-          <StoryCount>{storyCount}</StoryCount>
-        )}
+        {showAddButton && <AddButton>+</AddButton>}
+        {storyCount > 1 && hasUnviewedStories && <StoryCount>{storyCount}</StoryCount>}
       </RingContainer>
       <Username fontSize={sizeValues.font}>
         {isOwnProfile ? 'Your Story' : displayName.split(' ')[0]}

@@ -157,19 +157,12 @@ const IncomingCallOverlay: React.FC<IncomingCallOverlayProps> = ({
             ))}
 
             {/* Avatar */}
-            <Animated.View
-              style={[
-                styles.avatarContainer,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            >
+            <Animated.View style={[styles.avatarContainer, { transform: [{ scale: pulseAnim }] }]}>
               {callerAvatar ? (
                 <Image source={{ uri: callerAvatar }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>
-                    {callerName[0]?.toUpperCase()}
-                  </Text>
+                  <Text style={styles.avatarText}>{callerName[0]?.toUpperCase()}</Text>
                 </View>
               )}
             </Animated.View>
@@ -200,9 +193,7 @@ const IncomingCallOverlay: React.FC<IncomingCallOverlayProps> = ({
               activeOpacity={0.8}
             >
               <View style={styles.actionIconContainer}>
-                <Text style={styles.actionIcon}>
-                  {isVideoCall ? '📹' : '📞'}
-                </Text>
+                <Text style={styles.actionIcon}>{isVideoCall ? '📹' : '📞'}</Text>
               </View>
               <Text style={styles.actionLabel}>Accept</Text>
             </TouchableOpacity>

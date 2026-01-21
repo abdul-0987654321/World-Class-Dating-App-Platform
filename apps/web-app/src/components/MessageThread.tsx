@@ -152,25 +152,26 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
               const msgIsRead = isMessageRead(message);
 
               return (
-              <React.Fragment key={message.id}>
-                {shouldShowDateDivider(message, messages[index - 1]) && (
-                  <DateDivider>
-                    <DateLabel>{formatDate(new Date(msgDate))}</DateLabel>
-                  </DateDivider>
-                )}
-                <MessageBubbleWrapper $isOwn={msgSenderId === currentUserId}>
-                  <MessageBubble $isOwn={msgSenderId === currentUserId}>
-                    <MessageContent>{message.content}</MessageContent>
-                    <MessageTime>
-                      {formatTime(new Date(msgDate))}
-                      {msgSenderId === currentUserId && msgIsRead && (
-                        <ReadIndicator> · Read</ReadIndicator>
-                      )}
-                    </MessageTime>
-                  </MessageBubble>
-                </MessageBubbleWrapper>
-              </React.Fragment>
-            );})}
+                <React.Fragment key={message.id}>
+                  {shouldShowDateDivider(message, messages[index - 1]) && (
+                    <DateDivider>
+                      <DateLabel>{formatDate(new Date(msgDate))}</DateLabel>
+                    </DateDivider>
+                  )}
+                  <MessageBubbleWrapper $isOwn={msgSenderId === currentUserId}>
+                    <MessageBubble $isOwn={msgSenderId === currentUserId}>
+                      <MessageContent>{message.content}</MessageContent>
+                      <MessageTime>
+                        {formatTime(new Date(msgDate))}
+                        {msgSenderId === currentUserId && msgIsRead && (
+                          <ReadIndicator> · Read</ReadIndicator>
+                        )}
+                      </MessageTime>
+                    </MessageBubble>
+                  </MessageBubbleWrapper>
+                </React.Fragment>
+              );
+            })}
             {isTyping && (
               <MessageBubbleWrapper $isOwn={false}>
                 <TypingIndicator>
@@ -315,7 +316,7 @@ const DateLabel = styled.div`
 
 const MessageBubbleWrapper = styled.div<{ $isOwn: boolean }>`
   display: flex;
-  justify-content: ${props => props.$isOwn ? 'flex-end' : 'flex-start'};
+  justify-content: ${(props) => (props.$isOwn ? 'flex-end' : 'flex-start')};
   margin-bottom: 8px;
 `;
 
@@ -323,8 +324,8 @@ const MessageBubble = styled.div<{ $isOwn: boolean }>`
   max-width: 70%;
   padding: 12px 16px;
   border-radius: 18px;
-  background: ${props => props.$isOwn ? '#007bff' : '#f1f3f5'};
-  color: ${props => props.$isOwn ? 'white' : '#333'};
+  background: ${(props) => (props.$isOwn ? '#007bff' : '#f1f3f5')};
+  color: ${(props) => (props.$isOwn ? 'white' : '#333')};
   word-wrap: break-word;
 `;
 
@@ -361,10 +362,12 @@ const TypingDot = styled.div<{ delay: number }>`
   border-radius: 50%;
   background: #999;
   animation: bounce 1.4s infinite ease-in-out;
-  animation-delay: ${props => props.delay}s;
+  animation-delay: ${(props) => props.delay}s;
 
   @keyframes bounce {
-    0%, 60%, 100% {
+    0%,
+    60%,
+    100% {
       transform: translateY(0);
     }
     30% {

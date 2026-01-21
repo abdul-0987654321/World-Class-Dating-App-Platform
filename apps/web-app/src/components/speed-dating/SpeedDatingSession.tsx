@@ -175,8 +175,18 @@ const SpeedDatingSession: React.FC<SpeedDatingSessionProps> = ({
       <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
           <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <svg
+              className="w-10 h-10 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{config.eventTitle}</h2>
@@ -252,13 +262,19 @@ const SpeedDatingSession: React.FC<SpeedDatingSessionProps> = ({
       {/* Top bar with timer and round info */}
       <div className="bg-gray-800 p-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-white/60 text-sm">Round {currentRound} of {config.participants.length}</span>
+          <span className="text-white/60 text-sm">
+            Round {currentRound} of {config.participants.length}
+          </span>
           <div className="flex gap-1">
             {config.participants.map((_, idx) => (
               <div
                 key={idx}
                 className={`w-2 h-2 rounded-full ${
-                  idx < currentRound ? 'bg-green-500' : idx === currentRound - 1 ? 'bg-pink-500' : 'bg-gray-600'
+                  idx < currentRound
+                    ? 'bg-green-500'
+                    : idx === currentRound - 1
+                      ? 'bg-pink-500'
+                      : 'bg-gray-600'
                 }`}
               />
             ))}
@@ -267,9 +283,7 @@ const SpeedDatingSession: React.FC<SpeedDatingSessionProps> = ({
 
         {/* Timer */}
         <div className={`text-center ${sessionState === 'break' ? 'opacity-50' : ''}`}>
-          <div className={`text-4xl font-bold ${getTimerColor()}`}>
-            {formatTime(timeRemaining)}
-          </div>
+          <div className={`text-4xl font-bold ${getTimerColor()}`}>{formatTime(timeRemaining)}</div>
           <div className="text-white/60 text-xs">
             {sessionState === 'break' ? 'Next round in...' : 'Time remaining'}
           </div>
@@ -294,7 +308,9 @@ const SpeedDatingSession: React.FC<SpeedDatingSessionProps> = ({
             className="w-full h-full object-cover"
           />
           <div className="absolute bottom-6 left-6 bg-black/50 backdrop-blur-sm rounded-xl px-4 py-2">
-            <h3 className="text-white font-bold text-xl">{currentPartner?.name}, {currentPartner?.age}</h3>
+            <h3 className="text-white font-bold text-xl">
+              {currentPartner?.name}, {currentPartner?.age}
+            </h3>
             {currentPartner?.bio && (
               <p className="text-white/80 text-sm mt-1">{currentPartner.bio}</p>
             )}
@@ -322,12 +338,22 @@ const SpeedDatingSession: React.FC<SpeedDatingSessionProps> = ({
       <div className="bg-gray-800 p-4 flex items-center justify-center gap-4">
         <button className="w-14 h-14 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center transition">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+            />
           </svg>
         </button>
         <button className="w-14 h-14 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center transition">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
           </svg>
         </button>
         <button
@@ -335,7 +361,12 @@ const SpeedDatingSession: React.FC<SpeedDatingSessionProps> = ({
           className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"
+            />
           </svg>
         </button>
       </div>

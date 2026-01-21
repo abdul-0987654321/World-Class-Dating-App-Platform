@@ -146,8 +146,8 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               {isUploading
                 ? 'Uploading...'
                 : isDragging
-                ? 'Drop your photo here'
-                : 'Click to upload or drag & drop'}
+                  ? 'Drop your photo here'
+                  : 'Click to upload or drag & drop'}
             </UploadText>
             <UploadHint>JPEG, PNG, WebP, GIF (max {maxSizeMB}MB)</UploadHint>
             <UploadHint>Minimum 400x400 pixels recommended</UploadHint>
@@ -165,9 +165,7 @@ const Container = styled.div`
 `;
 
 const DropZone = styled.div<{ isDragging: boolean; disabled: boolean }>`
-  border: 2px dashed
-    ${(props) =>
-      props.isDragging ? '#FF6B6B' : props.disabled ? '#ccc' : '#ddd'};
+  border: 2px dashed ${(props) => (props.isDragging ? '#FF6B6B' : props.disabled ? '#ccc' : '#ddd')};
   border-radius: 12px;
   padding: 40px 20px;
   text-align: center;

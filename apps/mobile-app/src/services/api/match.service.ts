@@ -70,7 +70,9 @@ class MatchService {
   /**
    * Get recent matches
    */
-  async getRecentMatches(limit: number = 10): Promise<ApiResponse<{ count: number; matches: Match[] }>> {
+  async getRecentMatches(
+    limit: number = 10
+  ): Promise<ApiResponse<{ count: number; matches: Match[] }>> {
     try {
       const response = await axios.get(`${this.baseUrl}/recent`, {
         params: { limit },

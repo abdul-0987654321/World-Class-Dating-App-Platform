@@ -64,9 +64,7 @@ interface DashboardStats {
   failedVerifications: number;
 }
 
-const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
-  adminId,
-}) => {
+const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({ adminId }) => {
   const [activeTab, setActiveTab] = useState<'duplicates' | 'attempts'>('duplicates');
   const [duplicateFlags, setDuplicateFlags] = useState<DuplicateFlag[]>([]);
   const [verificationAttempts, setVerificationAttempts] = useState<VerificationAttempt[]>([]);
@@ -84,11 +82,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
-        fetchDuplicateFlags(),
-        fetchVerificationAttempts(),
-        fetchStats(),
-      ]);
+      await Promise.all([fetchDuplicateFlags(), fetchVerificationAttempts(), fetchStats()]);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -236,10 +230,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </SearchBox>
-        <FilterSelect
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-        >
+        <FilterSelect value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="all">All Status</option>
           <option value="flagged">Flagged</option>
           <option value="reviewed">Reviewed</option>
@@ -258,9 +249,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
           filteredFlags.map((flag) => (
             <FlagCard key={flag.id} $status={flag.status}>
               <FlagHeader>
-                <StatusBadge $status={flag.status}>
-                  {flag.status}
-                </StatusBadge>
+                <StatusBadge $status={flag.status}>{flag.status}</StatusBadge>
                 <ConfidenceScore $score={flag.confidenceScore}>
                   {Math.round(flag.confidenceScore * 100)}% match
                 </ConfidenceScore>
@@ -279,7 +268,10 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
                   <ComparisonArrow>⇄</ComparisonArrow>
 
                   <UserCard>
-                    <UserPhoto src={flag.matchingUserDetails.photoUrl} alt={flag.matchingUserDetails.name} />
+                    <UserPhoto
+                      src={flag.matchingUserDetails.photoUrl}
+                      alt={flag.matchingUserDetails.name}
+                    />
                     <UserInfo>
                       <UserName>{flag.matchingUserDetails.name}</UserName>
                       <UserEmail>{flag.matchingUserDetails.email}</UserEmail>
@@ -288,17 +280,11 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
                 </UserComparison>
 
                 <FlagMeta>
-                  <MetaItem>
-                    Flagged: {new Date(flag.createdAt).toLocaleDateString()}
-                  </MetaItem>
+                  <MetaItem>Flagged: {new Date(flag.createdAt).toLocaleDateString()}</MetaItem>
                   {flag.reviewedAt && (
-                    <MetaItem>
-                      Reviewed: {new Date(flag.reviewedAt).toLocaleDateString()}
-                    </MetaItem>
+                    <MetaItem>Reviewed: {new Date(flag.reviewedAt).toLocaleDateString()}</MetaItem>
                   )}
-                  {flag.reviewNotes && (
-                    <ReviewNotes>Notes: {flag.reviewNotes}</ReviewNotes>
-                  )}
+                  {flag.reviewNotes && <ReviewNotes>Notes: {flag.reviewNotes}</ReviewNotes>}
                 </FlagMeta>
               </FlagContent>
 
@@ -361,9 +347,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
                   </ResultBadge>
                 </TableCell>
                 <TableCell>{attempt.ipAddress}</TableCell>
-                <TableCell>
-                  {new Date(attempt.createdAt).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(attempt.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <ViewButton>
                     <FaEye />
@@ -392,7 +376,10 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
           <ModalBody>
             <UserComparison>
               <UserCard>
-                <UserPhoto src={selectedFlag.userDetails.photoUrl} alt={selectedFlag.userDetails.name} />
+                <UserPhoto
+                  src={selectedFlag.userDetails.photoUrl}
+                  alt={selectedFlag.userDetails.name}
+                />
                 <UserInfo>
                   <UserName>{selectedFlag.userDetails.name}</UserName>
                   <UserEmail>{selectedFlag.userDetails.email}</UserEmail>
@@ -402,7 +389,10 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
               <ComparisonArrow>⇄</ComparisonArrow>
 
               <UserCard>
-                <UserPhoto src={selectedFlag.matchingUserDetails.photoUrl} alt={selectedFlag.matchingUserDetails.name} />
+                <UserPhoto
+                  src={selectedFlag.matchingUserDetails.photoUrl}
+                  alt={selectedFlag.matchingUserDetails.name}
+                />
                 <UserInfo>
                   <UserName>{selectedFlag.matchingUserDetails.name}</UserName>
                   <UserEmail>{selectedFlag.matchingUserDetails.email}</UserEmail>
@@ -458,20 +448,12 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
       {renderStats()}
 
       <Tabs>
-        <Tab
-          $active={activeTab === 'duplicates'}
-          onClick={() => setActiveTab('duplicates')}
-        >
+        <Tab $active={activeTab === 'duplicates'} onClick={() => setActiveTab('duplicates')}>
           <FaFlag />
           <span>Duplicate Flags</span>
-          {stats && stats.pendingReview > 0 && (
-            <TabBadge>{stats.pendingReview}</TabBadge>
-          )}
+          {stats && stats.pendingReview > 0 && <TabBadge>{stats.pendingReview}</TabBadge>}
         </Tab>
-        <Tab
-          $active={activeTab === 'attempts'}
-          onClick={() => setActiveTab('attempts')}
-        >
+        <Tab $active={activeTab === 'attempts'} onClick={() => setActiveTab('attempts')}>
           <FaCheckCircle />
           <span>Verification Attempts</span>
         </Tab>
@@ -529,11 +511,8 @@ const StatCard = styled.div`
 const StatValue = styled.div<{ $success?: boolean; $warning?: boolean; $error?: boolean }>`
   font-size: 36px;
   font-weight: 700;
-  color: ${props =>
-    props.$success ? '#10b981' :
-    props.$warning ? '#f59e0b' :
-    props.$error ? '#ef4444' :
-    '#111827'};
+  color: ${(props) =>
+    props.$success ? '#10b981' : props.$warning ? '#f59e0b' : props.$error ? '#ef4444' : '#111827'};
   margin-bottom: 8px;
 `;
 
@@ -563,10 +542,10 @@ const Tab = styled.button<{ $active: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: ${props => props.$active ? 'white' : 'transparent'};
-  color: ${props => props.$active ? '#3b82f6' : '#6b7280'};
+  background: ${(props) => (props.$active ? 'white' : 'transparent')};
+  color: ${(props) => (props.$active ? '#3b82f6' : '#6b7280')};
   border: none;
-  border-bottom: 2px solid ${props => props.$active ? '#3b82f6' : 'transparent'};
+  border-bottom: 2px solid ${(props) => (props.$active ? '#3b82f6' : 'transparent')};
   margin-bottom: -2px;
   font-size: 14px;
   font-weight: 600;
@@ -648,13 +627,17 @@ const FlagsContainer = styled.div`
 
 const FlagCard = styled.div<{ $status: string }>`
   background: white;
-  border: 1px solid ${props => {
-    switch (props.$status) {
-      case 'confirmed': return '#fecaca';
-      case 'dismissed': return '#d1fae5';
-      default: return '#e5e7eb';
-    }
-  }};
+  border: 1px solid
+    ${(props) => {
+      switch (props.$status) {
+        case 'confirmed':
+          return '#fecaca';
+        case 'dismissed':
+          return '#d1fae5';
+        default:
+          return '#e5e7eb';
+      }
+    }};
   border-radius: 12px;
   padding: 20px;
 `;
@@ -675,20 +658,28 @@ const StatusBadge = styled.span<{ $status: string }>`
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  background-color: ${props => {
+  background-color: ${(props) => {
     switch (props.$status) {
-      case 'confirmed': return '#fef2f2';
-      case 'dismissed': return '#d1fae5';
-      case 'reviewed': return '#e0e7ff';
-      default: return '#fef3c7';
+      case 'confirmed':
+        return '#fef2f2';
+      case 'dismissed':
+        return '#d1fae5';
+      case 'reviewed':
+        return '#e0e7ff';
+      default:
+        return '#fef3c7';
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.$status) {
-      case 'confirmed': return '#991b1b';
-      case 'dismissed': return '#065f46';
-      case 'reviewed': return '#3730a3';
-      default: return '#92400e';
+      case 'confirmed':
+        return '#991b1b';
+      case 'dismissed':
+        return '#065f46';
+      case 'reviewed':
+        return '#3730a3';
+      default:
+        return '#92400e';
     }
   }};
 `;
@@ -696,7 +687,8 @@ const StatusBadge = styled.span<{ $status: string }>`
 const ConfidenceScore = styled.span<{ $score: number }>`
   font-size: 14px;
   font-weight: 600;
-  color: ${props => props.$score >= 0.9 ? '#ef4444' : props.$score >= 0.7 ? '#f59e0b' : '#10b981'};
+  color: ${(props) =>
+    props.$score >= 0.9 ? '#ef4444' : props.$score >= 0.7 ? '#f59e0b' : '#10b981'};
 `;
 
 const FlagContent = styled.div`
@@ -781,9 +773,9 @@ const ActionButton = styled.button<{ $confirm?: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: ${props => props.$confirm ? '#3b82f6' : 'white'};
-  color: ${props => props.$confirm ? 'white' : '#374151'};
-  border: 1px solid ${props => props.$confirm ? '#3b82f6' : '#d1d5db'};
+  background-color: ${(props) => (props.$confirm ? '#3b82f6' : 'white')};
+  color: ${(props) => (props.$confirm ? 'white' : '#374151')};
+  border: 1px solid ${(props) => (props.$confirm ? '#3b82f6' : '#d1d5db')};
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -791,7 +783,7 @@ const ActionButton = styled.button<{ $confirm?: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${props => props.$confirm ? '#2563eb' : '#f9fafb'};
+    background-color: ${(props) => (props.$confirm ? '#2563eb' : '#f9fafb')};
   }
 `;
 
@@ -842,8 +834,8 @@ const ResultBadge = styled.span<{ $result: string }>`
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background-color: ${props => props.$result === 'success' ? '#d1fae5' : '#fef2f2'};
-  color: ${props => props.$result === 'success' ? '#065f46' : '#991b1b'};
+  background-color: ${(props) => (props.$result === 'success' ? '#d1fae5' : '#fef2f2')};
+  color: ${(props) => (props.$result === 'success' ? '#065f46' : '#991b1b')};
   border-radius: 9999px;
   font-size: 12px;
   font-weight: 600;

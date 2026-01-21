@@ -175,23 +175,21 @@ describe('ApiClient', () => {
 
   describe('Error Handling', () => {
     it('should throw ApiError on non-ok response', async () => {
-      global.fetch = vi.fn().mockResolvedValue(
-        createMockResponse(
-          { message: 'Not found' },
-          { status: 404, ok: false }
-        )
-      );
+      global.fetch = vi
+        .fn()
+        .mockResolvedValue(
+          createMockResponse({ message: 'Not found' }, { status: 404, ok: false })
+        );
 
       await expect(apiClient.get('/api/notfound')).rejects.toBeInstanceOf(ApiError);
     });
 
     it('should include status code in ApiError', async () => {
-      global.fetch = vi.fn().mockResolvedValue(
-        createMockResponse(
-          { message: 'Unauthorized' },
-          { status: 401, ok: false }
-        )
-      );
+      global.fetch = vi
+        .fn()
+        .mockResolvedValue(
+          createMockResponse({ message: 'Unauthorized' }, { status: 401, ok: false })
+        );
 
       try {
         await apiClient.get('/api/protected');
@@ -202,12 +200,11 @@ describe('ApiClient', () => {
     });
 
     it('should include error message in ApiError', async () => {
-      global.fetch = vi.fn().mockResolvedValue(
-        createMockResponse(
-          { message: 'Custom error message' },
-          { status: 400, ok: false }
-        )
-      );
+      global.fetch = vi
+        .fn()
+        .mockResolvedValue(
+          createMockResponse({ message: 'Custom error message' }, { status: 400, ok: false })
+        );
 
       try {
         await apiClient.post('/api/test', {});
@@ -219,9 +216,9 @@ describe('ApiClient', () => {
 
     it('should include error data in ApiError', async () => {
       const errorData = { message: 'Error', details: [{ field: 'email' }] };
-      global.fetch = vi.fn().mockResolvedValue(
-        createMockResponse(errorData, { status: 422, ok: false })
-      );
+      global.fetch = vi
+        .fn()
+        .mockResolvedValue(createMockResponse(errorData, { status: 422, ok: false }));
 
       try {
         await apiClient.post('/api/test', {});
@@ -294,7 +291,8 @@ describe('ApiClient', () => {
       // Second call (retry) succeeds
       const successResponse = createMockResponse({ success: true });
 
-      global.fetch = vi.fn()
+      global.fetch = vi
+        .fn()
         .mockResolvedValueOnce(csrfError)
         .mockResolvedValueOnce(successResponse);
 

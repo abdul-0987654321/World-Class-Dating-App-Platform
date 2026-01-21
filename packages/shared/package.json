@@ -5,18 +5,36 @@
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "workspaces": [
-    "types",
-    "utils",
-    "constants",
-    "validators",
-    "api-client"
-  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./types/dist/index.d.ts",
+      "import": "./types/dist/index.js",
+      "require": "./types/dist/index.js"
+    },
+    "./utils": {
+      "types": "./utils/dist/index.d.ts",
+      "import": "./utils/dist/index.js",
+      "require": "./utils/dist/index.js"
+    },
+    "./constants": {
+      "types": "./constants/dist/index.d.ts",
+      "import": "./constants/dist/index.js",
+      "require": "./constants/dist/index.js"
+    },
+    "./validators": {
+      "types": "./validators/dist/index.d.ts",
+      "import": "./validators/dist/index.js",
+      "require": "./validators/dist/index.js"
+    },
+    "./api-client": {
+      "types": "./api-client/dist/index.d.ts",
+      "import": "./api-client/dist/index.js",
+      "require": "./api-client/dist/index.js"
     }
   },
   "scripts": {

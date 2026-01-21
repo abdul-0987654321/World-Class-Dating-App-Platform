@@ -90,45 +90,54 @@ export function useSession(): UseSessionReturn {
   /**
    * Check if user has a feature (for UI display only - server enforces)
    */
-  const hasFeature = useCallback((feature: string): boolean => {
-    if (!entitlements) return false;
-    return entitlements.features.includes(feature) || entitlements.features.includes('all');
-  }, [entitlements]);
+  const hasFeature = useCallback(
+    (feature: string): boolean => {
+      if (!entitlements) return false;
+      return entitlements.features.includes(feature) || entitlements.features.includes('all');
+    },
+    [entitlements]
+  );
 
   /**
    * Get a limit value (for UI display only - server enforces)
    * Returns -1 for unlimited
    */
-  const getLimit = useCallback((limitKey: keyof Entitlements['limits']): number | boolean => {
-    if (!entitlements) {
-      // Return restrictive defaults for non-authenticated users
-      const defaults: Record<string, number | boolean> = {
-        dailyLikes: 10,
-        dailySuperLikes: 0,
-        dailyBoosts: 0,
-        messagesBeforeMatch: false,
-        seeWhoLikesYou: false,
-        advancedFilters: false,
-        readReceipts: false,
-        incognitoMode: false,
-        videoCalls: false,
-        prioritySupport: false,
-      };
-      return defaults[limitKey] ?? 0;
-    }
-    return entitlements.limits[limitKey];
-  }, [entitlements]);
+  const getLimit = useCallback(
+    (limitKey: keyof Entitlements['limits']): number | boolean => {
+      if (!entitlements) {
+        // Return restrictive defaults for non-authenticated users
+        const defaults: Record<string, number | boolean> = {
+          dailyLikes: 10,
+          dailySuperLikes: 0,
+          dailyBoosts: 0,
+          messagesBeforeMatch: false,
+          seeWhoLikesYou: false,
+          advancedFilters: false,
+          readReceipts: false,
+          incognitoMode: false,
+          videoCalls: false,
+          prioritySupport: false,
+        };
+        return defaults[limitKey] ?? 0;
+      }
+      return entitlements.limits[limitKey];
+    },
+    [entitlements]
+  );
 
-  return useMemo(() => ({
-    user,
-    entitlements,
-    isAuthenticated,
-    isLoading,
-    error,
-    refreshSession,
-    hasFeature,
-    getLimit,
-  }), [user, entitlements, isAuthenticated, isLoading, error, refreshSession, hasFeature, getLimit]);
+  return useMemo(
+    () => ({
+      user,
+      entitlements,
+      isAuthenticated,
+      isLoading,
+      error,
+      refreshSession,
+      hasFeature,
+      getLimit,
+    }),
+    [user, entitlements, isAuthenticated, isLoading, error, refreshSession, hasFeature, getLimit]
+  );
 }
 
 export default useSession;

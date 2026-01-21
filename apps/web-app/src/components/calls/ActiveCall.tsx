@@ -82,7 +82,7 @@ const ActiveCall: React.FC<ActiveCallProps> = ({
   // Start duration timer
   const startDurationTimer = () => {
     durationTimerRef.current = setInterval(() => {
-      setDuration(prev => prev + 1);
+      setDuration((prev) => prev + 1);
     }, 1000);
   };
 
@@ -128,19 +128,19 @@ const ActiveCall: React.FC<ActiveCallProps> = ({
 
   // Toggle mute
   const handleToggleMute = useCallback(() => {
-    setIsMuted(prev => !prev);
+    setIsMuted((prev) => !prev);
     // In real app, toggle Agora audio track
   }, []);
 
   // Toggle video
   const handleToggleVideo = useCallback(() => {
-    setIsVideoEnabled(prev => !prev);
+    setIsVideoEnabled((prev) => !prev);
     // In real app, toggle Agora video track
   }, []);
 
   // Toggle speaker
   const handleToggleSpeaker = useCallback(() => {
-    setIsSpeakerOn(prev => !prev);
+    setIsSpeakerOn((prev) => !prev);
     // In real app, toggle audio output
   }, []);
 
@@ -207,9 +207,7 @@ const ActiveCall: React.FC<ActiveCallProps> = ({
             ) : (
               <ConnectingOverlay>
                 <PulseCircle />
-                <ConnectingText>
-                  {isOutgoing ? 'Calling...' : 'Connecting...'}
-                </ConnectingText>
+                <ConnectingText>{isOutgoing ? 'Calling...' : 'Connecting...'}</ConnectingText>
               </ConnectingOverlay>
             )}
           </RemoteVideo>
@@ -229,15 +227,17 @@ const ActiveCall: React.FC<ActiveCallProps> = ({
             {participantAvatar ? (
               <img src={participantAvatar} alt={participantName} />
             ) : (
-              <AudioAvatarPlaceholder>
-                {participantName[0]?.toUpperCase()}
-              </AudioAvatarPlaceholder>
+              <AudioAvatarPlaceholder>{participantName[0]?.toUpperCase()}</AudioAvatarPlaceholder>
             )}
             {isSpeakerOn && <SpeakingIndicator $active={true} />}
           </AudioAvatar>
           <ParticipantName>{participantName}</ParticipantName>
           <CallStatus>
-            {isConnecting ? (isOutgoing ? 'Calling...' : 'Connecting...') : formatDuration(duration)}
+            {isConnecting
+              ? isOutgoing
+                ? 'Calling...'
+                : 'Connecting...'
+              : formatDuration(duration)}
           </CallStatus>
         </AudioContainer>
       )}
@@ -290,11 +290,7 @@ const ActiveCall: React.FC<ActiveCallProps> = ({
           </ControlButton>
 
           {callType === 'video' && (
-            <ControlButton
-              onClick={handleSwitchCamera}
-              $type="action"
-              aria-label="Switch camera"
-            >
+            <ControlButton onClick={handleSwitchCamera} $type="action" aria-label="Switch camera">
               <FaExchangeAlt />
             </ControlButton>
           )}
@@ -368,7 +364,7 @@ const VideoPlaceholder = styled.div<{ $small?: boolean }>`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: ${props => props.$small ? '4px' : '16px'};
+  gap: ${(props) => (props.$small ? '4px' : '16px')};
   color: white;
   width: 100%;
   height: 100%;
@@ -466,7 +462,7 @@ const SpeakingIndicator = styled.div<{ $active: boolean }>`
   inset: -8px;
   border-radius: 50%;
   border: 3px solid #10b981;
-  opacity: ${props => props.$active ? 1 : 0};
+  opacity: ${(props) => (props.$active ? 1 : 0)};
   transition: opacity 0.2s;
 `;
 
@@ -518,12 +514,18 @@ const NetworkIndicator = styled.div<{ $color: string }>`
 
   span {
     width: 4px;
-    background: ${props => props.$color};
+    background: ${(props) => props.$color};
     border-radius: 2px;
 
-    &:nth-child(1) { height: 8px; }
-    &:nth-child(2) { height: 12px; }
-    &:nth-child(3) { height: 16px; }
+    &:nth-child(1) {
+      height: 8px;
+    }
+    &:nth-child(2) {
+      height: 12px;
+    }
+    &:nth-child(3) {
+      height: 16px;
+    }
   }
 `;
 
@@ -552,9 +554,8 @@ const ControlButton = styled.button<{ $active?: boolean; $type: 'toggle' | 'acti
   transition: all 0.2s;
   font-size: 20px;
 
-  background: ${props =>
-    props.$active ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.2)'};
-  color: ${props => props.$active ? '#ef4444' : 'white'};
+  background: ${(props) => (props.$active ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
+  color: ${(props) => (props.$active ? '#ef4444' : 'white')};
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);

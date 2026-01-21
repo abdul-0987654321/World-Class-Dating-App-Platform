@@ -113,9 +113,7 @@ const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
               className="call-action-button accept"
               onClick={onAccept}
             >
-              <div className="button-icon">
-                {callType === 'video' ? <FaVideo /> : <FaPhone />}
-              </div>
+              <div className="button-icon">{callType === 'video' ? <FaVideo /> : <FaPhone />}</div>
               <span className="button-label">Accept</span>
             </motion.button>
           </div>

@@ -51,7 +51,7 @@ const EditProfileScreen: React.FC = () => {
 
   const loadProfile = async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/api/users/profile`);
+      const response = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/profile`);
       const data = response.data;
       setProfile(data);
       setBio(data.bio || '');
@@ -77,7 +77,7 @@ const EditProfileScreen: React.FC = () => {
         school,
       };
 
-      await axios.put(`${process.env.API_URL}/api/users/profile`, updates);
+      await axios.put(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/profile`, updates);
 
       Alert.alert('Success', 'Profile updated successfully');
       navigation.goBack();
@@ -116,7 +116,7 @@ const EditProfileScreen: React.FC = () => {
       } as any);
       formData.append('index', index.toString());
 
-      await axios.post(`${process.env.API_URL}/api/photos/upload`, formData, {
+      await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/photos/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -131,28 +131,22 @@ const EditProfileScreen: React.FC = () => {
   };
 
   const handleDeletePhoto = async (index: number) => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to delete this photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(
-                `${process.env.API_URL}/api/users/photos/${index}`
-              );
-              await loadProfile();
-            } catch (error) {
-              console.error('Failed to delete photo:', error);
-              Alert.alert('Error', 'Failed to delete photo');
-            }
-          },
+    Alert.alert('Delete Photo', 'Are you sure you want to delete this photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await axios.delete(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/photos/${index}`);
+            await loadProfile();
+          } catch (error) {
+            console.error('Failed to delete photo:', error);
+            Alert.alert('Error', 'Failed to delete photo');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (loading) {
@@ -168,18 +162,11 @@ const EditProfileScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Icon name="close" size={28} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleSave}
-          disabled={saving}
-        >
+        <TouchableOpacity style={styles.headerButton} onPress={handleSave} disabled={saving}>
           {saving ? (
             <ActivityIndicator size="small" color="#FF6B6B" />
           ) : (
@@ -192,9 +179,7 @@ const EditProfileScreen: React.FC = () => {
         {/* Photos Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Photos</Text>
-          <Text style={styles.sectionSubtitle}>
-            Add at least 2 photos to continue
-          </Text>
+          <Text style={styles.sectionSubtitle}>Add at least 2 photos to continue</Text>
           <View style={styles.photosGrid}>
             {[0, 1, 2, 3, 4, 5].map((index) => {
               const hasPhoto = profile?.photos && profile.photos[index];
@@ -253,9 +238,7 @@ const EditProfileScreen: React.FC = () => {
               <Icon name="briefcase" size={24} color="#666666" />
               <View style={styles.editRowText}>
                 <Text style={styles.editRowLabel}>Occupation</Text>
-                <Text style={styles.editRowValue}>
-                  {occupation || 'Add your job title'}
-                </Text>
+                <Text style={styles.editRowValue}>{occupation || 'Add your job title'}</Text>
               </View>
             </View>
             <Icon name="chevron-right" size={24} color="#CCCCCC" />
@@ -269,9 +252,7 @@ const EditProfileScreen: React.FC = () => {
               <Icon name="office-building" size={24} color="#666666" />
               <View style={styles.editRowText}>
                 <Text style={styles.editRowLabel}>Company</Text>
-                <Text style={styles.editRowValue}>
-                  {company || 'Add your company'}
-                </Text>
+                <Text style={styles.editRowValue}>{company || 'Add your company'}</Text>
               </View>
             </View>
             <Icon name="chevron-right" size={24} color="#CCCCCC" />
@@ -285,9 +266,7 @@ const EditProfileScreen: React.FC = () => {
               <Icon name="school" size={24} color="#666666" />
               <View style={styles.editRowText}>
                 <Text style={styles.editRowLabel}>School</Text>
-                <Text style={styles.editRowValue}>
-                  {school || 'Add your school'}
-                </Text>
+                <Text style={styles.editRowValue}>{school || 'Add your school'}</Text>
               </View>
             </View>
             <Icon name="chevron-right" size={24} color="#CCCCCC" />
@@ -304,9 +283,7 @@ const EditProfileScreen: React.FC = () => {
               <Icon name="heart-multiple" size={24} color="#666666" />
               <View style={styles.editRowText}>
                 <Text style={styles.editRowLabel}>Interests</Text>
-                <Text style={styles.editRowValue}>
-                  {profile?.interests?.length || 0} selected
-                </Text>
+                <Text style={styles.editRowValue}>{profile?.interests?.length || 0} selected</Text>
               </View>
             </View>
             <Icon name="chevron-right" size={24} color="#CCCCCC" />

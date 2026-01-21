@@ -108,19 +108,10 @@ export {
 } from './error-handler';
 
 // API client
-export {
-  createApiClient,
-  initializeApiClient,
-  getApiClient,
-  ApiError,
-} from './api-client';
+export { createApiClient, initializeApiClient, getApiClient, ApiError } from './api-client';
 
 // Error boundary
-export {
-  ErrorBoundary,
-  withErrorBoundary,
-  useErrorHandler,
-} from './error-boundary';
+export { ErrorBoundary, withErrorBoundary, useErrorHandler } from './error-boundary';
 
 // Hooks
 export {

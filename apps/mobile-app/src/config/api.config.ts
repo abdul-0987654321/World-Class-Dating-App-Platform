@@ -41,19 +41,21 @@ export {
 } from '@flamoral/shared/constants';
 
 // Environment-specific configuration
+// Note: All environment variables must use EXPO_PUBLIC_ prefix to be accessible at runtime in Expo
 export const API_CONFIG = {
   // Base URL from environment or default
-  BASE_URL: process.env.API_BASE_URL || 'https://api.flamoral.com',
+  BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.flamoral.com',
 
   // WebSocket URL
-  WS_URL: process.env.WS_BASE_URL || 'wss://api.flamoral.com',
+  WS_URL: process.env.EXPO_PUBLIC_WS_URL || 'wss://api.flamoral.com',
 
   // AI Services URLs (external microservices)
   AI_SERVICES: {
-    FRAUD_DETECTION: process.env.FRAUD_DETECTION_URL || 'https://ai.flamoral.com/fraud',
-    NLP_SERVICE: process.env.NLP_SERVICE_URL || 'https://ai.flamoral.com/nlp',
-    PHOTO_ANALYSIS: process.env.PHOTO_ANALYSIS_URL || 'https://ai.flamoral.com/photos',
-    RECOMMENDATION: process.env.RECOMMENDATION_URL || 'https://ai.flamoral.com/recommendations',
+    FRAUD_DETECTION: process.env.EXPO_PUBLIC_FRAUD_DETECTION_URL || 'https://ai.flamoral.com/fraud',
+    NLP_SERVICE: process.env.EXPO_PUBLIC_NLP_SERVICE_URL || 'https://ai.flamoral.com/nlp',
+    PHOTO_ANALYSIS: process.env.EXPO_PUBLIC_PHOTO_ANALYSIS_URL || 'https://ai.flamoral.com/photos',
+    RECOMMENDATION:
+      process.env.EXPO_PUBLIC_RECOMMENDATION_URL || 'https://ai.flamoral.com/recommendations',
   },
 
   // Request timeouts (milliseconds)
@@ -83,7 +85,7 @@ export const API_CONFIG = {
  * Get authorization headers for API requests
  */
 export const getAuthHeaders = (token: string): Record<string, string> => ({
-  'Authorization': `Bearer ${token}`,
+  Authorization: `Bearer ${token}`,
   'Content-Type': 'application/json',
 });
 
@@ -91,7 +93,7 @@ export const getAuthHeaders = (token: string): Record<string, string> => ({
  * Get multipart headers for file uploads
  */
 export const getMultipartHeaders = (token: string): Record<string, string> => ({
-  'Authorization': `Bearer ${token}`,
+  Authorization: `Bearer ${token}`,
   'Content-Type': 'multipart/form-data',
 });
 
@@ -125,5 +127,7 @@ export const CORE_SERVICES = {
   MATCHING: API_CONFIG.BASE_URL ? `${API_CONFIG.BASE_URL}/api/v1/matches` : '/api/v1/matches',
   MESSAGING: API_CONFIG.BASE_URL ? `${API_CONFIG.BASE_URL}/api/v1/messages` : '/api/v1/messages',
   PAYMENTS: API_CONFIG.BASE_URL ? `${API_CONFIG.BASE_URL}/api/v1/payments` : '/api/v1/payments',
-  NOTIFICATIONS: API_CONFIG.BASE_URL ? `${API_CONFIG.BASE_URL}/api/v1/notifications` : '/api/v1/notifications',
+  NOTIFICATIONS: API_CONFIG.BASE_URL
+    ? `${API_CONFIG.BASE_URL}/api/v1/notifications`
+    : '/api/v1/notifications',
 } as const;

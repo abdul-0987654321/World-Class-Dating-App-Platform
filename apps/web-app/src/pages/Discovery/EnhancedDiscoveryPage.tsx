@@ -405,7 +405,9 @@ export const EnhancedDiscoveryPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() =>
-                          setCurrentPhotoIndex((prev) => Math.min(currentProfile.photos.length - 1, prev + 1))
+                          setCurrentPhotoIndex((prev) =>
+                            Math.min(currentProfile.photos.length - 1, prev + 1)
+                          )
                         }
                         disabled={currentPhotoIndex === currentProfile.photos.length - 1}
                         className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full disabled:opacity-50"
@@ -435,7 +437,9 @@ export const EnhancedDiscoveryPage: React.FC = () => {
                     {currentProfile.compatibilityScore && (
                       <div className="flex items-center space-x-1 bg-green-500 text-white px-3 py-1 rounded-full">
                         <TrendingUp className="w-4 h-4" />
-                        <span className="font-semibold">{currentProfile.compatibilityScore}% Match</span>
+                        <span className="font-semibold">
+                          {currentProfile.compatibilityScore}% Match
+                        </span>
                       </div>
                     )}
                   </div>
@@ -460,14 +464,15 @@ export const EnhancedDiscoveryPage: React.FC = () => {
 
                     <p className="text-lg opacity-90 mb-2">{currentProfile.occupation}</p>
 
-                    {currentProfile.commonInterests && currentProfile.commonInterests.length > 0 && (
-                      <div className="flex items-center space-x-2 mb-3">
-                        <Heart className="w-4 h-4 text-pink-500" />
-                        <span className="text-sm">
-                          You both like {currentProfile.commonInterests.join(', ')}
-                        </span>
-                      </div>
-                    )}
+                    {currentProfile.commonInterests &&
+                      currentProfile.commonInterests.length > 0 && (
+                        <div className="flex items-center space-x-2 mb-3">
+                          <Heart className="w-4 h-4 text-pink-500" />
+                          <span className="text-sm">
+                            You both like {currentProfile.commonInterests.join(', ')}
+                          </span>
+                        </div>
+                      )}
 
                     <p className="mb-4 line-clamp-3">{currentProfile.bio}</p>
 
@@ -586,7 +591,9 @@ export const EnhancedDiscoveryPage: React.FC = () => {
               maxLength={500}
             />
 
-            <div className="text-right text-sm text-gray-500 mb-6">{superLikeMessage.length}/500</div>
+            <div className="text-right text-sm text-gray-500 mb-6">
+              {superLikeMessage.length}/500
+            </div>
 
             <div className="flex space-x-3">
               <button

@@ -8,7 +8,9 @@ describe('Messaging Flow', () => {
     await element(by.id('email-input')).typeText('test@example.com');
     await element(by.id('password-input')).typeText('TestPassword123!');
     await element(by.id('submit-login')).tap();
-    await waitFor(element(by.id('main-tabs'))).toBeVisible().withTimeout(5000);
+    await waitFor(element(by.id('main-tabs')))
+      .toBeVisible()
+      .withTimeout(5000);
   });
 
   beforeEach(async () => {
@@ -89,7 +91,9 @@ describe('Messaging Flow', () => {
     it('should show delivered checkmark', async () => {
       await element(by.id('message-input')).typeText('Test');
       await element(by.id('send-button')).tap();
-      await waitFor(element(by.id('delivered-indicator'))).toBeVisible().withTimeout(3000);
+      await waitFor(element(by.id('delivered-indicator')))
+        .toBeVisible()
+        .withTimeout(3000);
     });
 
     it('should disable send button when input is empty', async () => {
@@ -170,7 +174,9 @@ describe('Messaging Flow', () => {
     it('should refresh conversations on pull', async () => {
       await element(by.id('conversations-list')).swipe('down', 'slow', 0.5);
       await expect(element(by.id('refresh-indicator'))).toBeVisible();
-      await waitFor(element(by.id('refresh-indicator'))).not.toBeVisible().withTimeout(5000);
+      await waitFor(element(by.id('refresh-indicator')))
+        .not.toBeVisible()
+        .withTimeout(5000);
     });
   });
 

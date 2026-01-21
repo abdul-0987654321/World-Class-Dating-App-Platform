@@ -100,7 +100,7 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
       setProfileAdvice(advice);
 
       // Update photo order based on AI recommendations
-      const orderedIds = photoAnalyses.map(a => a.photoId);
+      const orderedIds = photoAnalyses.map((a) => a.photoId);
       onPhotoOrderUpdate(orderedIds);
     } catch (error) {
       console.error('Photo analysis failed:', error);
@@ -109,7 +109,10 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
     }
   };
 
-  const analyzeIndividualPhoto = async (photo: { id: string; uri: string }): Promise<PhotoAnalysis> => {
+  const analyzeIndividualPhoto = async (photo: {
+    id: string;
+    uri: string;
+  }): Promise<PhotoAnalysis> => {
     // Simulate AI photo analysis
     // In production, this would call your ML model API
 
@@ -119,9 +122,13 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
       is_selfie: Math.random() > 0.6,
       is_group_photo: Math.random() > 0.7,
       has_filters: Math.random() > 0.5,
-      photo_type: ['portrait', 'full_body', 'activity', 'group', 'pet', 'landscape'][Math.floor(Math.random() * 6)] as any,
+      photo_type: ['portrait', 'full_body', 'activity', 'group', 'pet', 'landscape'][
+        Math.floor(Math.random() * 6)
+      ] as any,
       dominant_colors: ['#3b82f6', '#ec4899', '#10b981'],
-      brightness_level: ['dark', 'normal', 'bright', 'overexposed'][Math.floor(Math.random() * 4)] as any,
+      brightness_level: ['dark', 'normal', 'bright', 'overexposed'][
+        Math.floor(Math.random() * 4)
+      ] as any,
     };
 
     // Calculate quality scores
@@ -134,11 +141,11 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
 
     const overall = Math.round(
       quality * 0.25 +
-      lighting * 0.15 +
-      composition * 0.15 +
-      facial_visibility * 0.20 +
-      authenticity * 0.15 +
-      appeal * 0.10
+        lighting * 0.15 +
+        composition * 0.15 +
+        facial_visibility * 0.2 +
+        authenticity * 0.15 +
+        appeal * 0.1
     );
 
     // Generate recommendations
@@ -296,7 +303,7 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
   };
 
   const generateProfileAdvice = (photoAnalyses: PhotoAnalysis[]): ProfilePhotoAdvice => {
-    const photo_types = photoAnalyses.map(a => a.detected_features.photo_type);
+    const photo_types = photoAnalyses.map((a) => a.detected_features.photo_type);
     const unique_types = new Set(photo_types);
 
     const missing_types: string[] = [];
@@ -319,7 +326,7 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
       suggestions.push('Vary your photo types to show different aspects of your life');
     }
 
-    if (photoAnalyses.filter(a => a.detected_features.is_selfie).length > 2) {
+    if (photoAnalyses.filter((a) => a.detected_features.is_selfie).length > 2) {
       suggestions.push('Too many selfies - add photos taken by others');
     }
 
@@ -327,7 +334,7 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
       suggestions.push('Consider replacing lower quality photos with better lit, clearer images');
     }
 
-    const group_photos = photoAnalyses.filter(a => a.detected_features.is_group_photo).length;
+    const group_photos = photoAnalyses.filter((a) => a.detected_features.is_group_photo).length;
     if (group_photos > photoAnalyses.length / 2) {
       suggestions.push('Reduce group photos - people should easily identify you');
     }
@@ -369,7 +376,9 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
         <View style={styles.adviceCard}>
           <View style={styles.adviceHeader}>
             <Text style={styles.adviceTitle}>Profile Overview</Text>
-            <Text style={[styles.qualityScore, { color: getScoreColor(profileAdvice.overall_quality) }]}>
+            <Text
+              style={[styles.qualityScore, { color: getScoreColor(profileAdvice.overall_quality) }]}
+            >
               {profileAdvice.overall_quality}/100
             </Text>
           </View>
@@ -393,7 +402,9 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
             <View style={styles.suggestionsContainer}>
               <Text style={styles.suggestionsTitle}>💡 Suggestions:</Text>
               {profileAdvice.suggestions.map((suggestion, index) => (
-                <Text key={index} style={styles.suggestionText}>• {suggestion}</Text>
+                <Text key={index} style={styles.suggestionText}>
+                  • {suggestion}
+                </Text>
               ))}
             </View>
           )}
@@ -424,7 +435,12 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
                   <Text style={styles.rankText}>#{analysis.ranking}</Text>
                 </View>
 
-                <View style={[styles.scoreBadge, { backgroundColor: getScoreColor(analysis.scores.overall) }]}>
+                <View
+                  style={[
+                    styles.scoreBadge,
+                    { backgroundColor: getScoreColor(analysis.scores.overall) },
+                  ]}
+                >
                   <Text style={styles.scoreText}>{analysis.scores.overall}</Text>
                 </View>
               </View>
@@ -441,10 +457,7 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
 
       {selectedPhoto && (
         <View style={styles.detailsModal}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setSelectedPhoto(null)}
-          >
+          <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedPhoto(null)}>
             <Text style={styles.closeButtonText}>✕ Close</Text>
           </TouchableOpacity>
 
@@ -453,7 +466,9 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
           <View style={styles.detailsContent}>
             <View style={styles.detailHeader}>
               <Text style={styles.detailTitle}>Photo #{selectedPhoto.ranking}</Text>
-              <Text style={[styles.detailScore, { color: getScoreColor(selectedPhoto.scores.overall) }]}>
+              <Text
+                style={[styles.detailScore, { color: getScoreColor(selectedPhoto.scores.overall) }]}
+              >
                 {selectedPhoto.scores.overall}/100
               </Text>
             </View>
@@ -466,13 +481,13 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
                 return (
                   <View key={key} style={styles.scoreRow}>
                     <Text style={styles.scoreLabel}>
-                      {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                     </Text>
                     <View style={styles.scoreBarContainer}>
                       <View
                         style={[
                           styles.scoreBar,
-                          { width: `${value}%`, backgroundColor: getScoreColor(value as number) }
+                          { width: `${value}%`, backgroundColor: getScoreColor(value as number) },
                         ]}
                       />
                     </View>
@@ -492,9 +507,12 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
                       styles.recommendationCard,
                       {
                         backgroundColor:
-                          rec.type === 'positive' ? '#ecfdf5' :
-                          rec.type === 'warning' ? '#fef2f2' : '#f0f9ff'
-                      }
+                          rec.type === 'positive'
+                            ? '#ecfdf5'
+                            : rec.type === 'warning'
+                              ? '#fef2f2'
+                              : '#f0f9ff',
+                      },
                     ]}
                   >
                     <Text
@@ -502,12 +520,16 @@ const PhotoSelectionAssistant: React.FC<PhotoSelectionAssistantProps> = ({
                         styles.recommendationText,
                         {
                           color:
-                            rec.type === 'positive' ? '#059669' :
-                            rec.type === 'warning' ? '#dc2626' : '#2563eb'
-                        }
+                            rec.type === 'positive'
+                              ? '#059669'
+                              : rec.type === 'warning'
+                                ? '#dc2626'
+                                : '#2563eb',
+                        },
                       ]}
                     >
-                      {rec.type === 'positive' ? '✅' : rec.type === 'warning' ? '⚠️' : '💡'} {rec.message}
+                      {rec.type === 'positive' ? '✅' : rec.type === 'warning' ? '⚠️' : '💡'}{' '}
+                      {rec.message}
                     </Text>
                   </View>
                 ))}

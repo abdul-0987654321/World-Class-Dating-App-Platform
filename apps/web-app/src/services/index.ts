@@ -59,13 +59,7 @@ export {
 } from './discovery.service';
 
 // Re-export types from matching service
-export type {
-  Match,
-  MatchedUser,
-  Like,
-  MatchesResponse,
-  LikesResponse,
-} from './matching.service';
+export type { Match, MatchedUser, Like, MatchesResponse, LikesResponse } from './matching.service';
 
 // Re-export types from messaging service
 export type {
@@ -132,20 +126,11 @@ export type {
 } from './curated-picks.service';
 
 // Re-export types from passport service
-export type {
-  PassportLocation,
-  PopularDestination,
-  PassportStatus,
-} from './passport.service';
+export type { PassportLocation, PopularDestination, PassportStatus } from './passport.service';
 
 // Policy Service
 export { policyService } from './policy.service';
-export type {
-  Policy,
-  PolicySection,
-  PolicyMetadata,
-  PolicyVersion,
-} from './policy.service';
+export type { Policy, PolicySection, PolicyMetadata, PolicyVersion } from './policy.service';
 
 // AI Coach Service Types
 export type {

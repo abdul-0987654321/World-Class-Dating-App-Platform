@@ -101,20 +101,20 @@ class FraudDetectionService {
     userId: string,
     location: { latitude: number; longitude: number; ip_address?: string }
   ): Promise<LocationAnomalyResult> {
-    return apiClient.post<LocationAnomalyResult>(
-      `${this.baseUrl}/location/check`,
-      { user_id: userId, ...location }
-    );
+    return apiClient.post<LocationAnomalyResult>(`${this.baseUrl}/location/check`, {
+      user_id: userId,
+      ...location,
+    });
   }
 
   async checkDevice(
     userId: string,
     device: FraudCheckRequest['device']
   ): Promise<DeviceCheckResult> {
-    return apiClient.post<DeviceCheckResult>(
-      `${this.baseUrl}/device/check`,
-      { user_id: userId, device }
-    );
+    return apiClient.post<DeviceCheckResult>(`${this.baseUrl}/device/check`, {
+      user_id: userId,
+      device,
+    });
   }
 
   async registerDevice(
@@ -124,14 +124,11 @@ class FraudDetectionService {
     return apiClient.post(`${this.baseUrl}/device/register`, { user_id: userId, device });
   }
 
-  async checkActivityVelocity(
-    userId: string,
-    activityType: string
-  ): Promise<VelocityCheckResult> {
-    return apiClient.post<VelocityCheckResult>(
-      `${this.baseUrl}/velocity/check`,
-      { user_id: userId, activity_type: activityType }
-    );
+  async checkActivityVelocity(userId: string, activityType: string): Promise<VelocityCheckResult> {
+    return apiClient.post<VelocityCheckResult>(`${this.baseUrl}/velocity/check`, {
+      user_id: userId,
+      activity_type: activityType,
+    });
   }
 
   async analyzeProfile(userId: string): Promise<ProfileFraudAnalysis> {

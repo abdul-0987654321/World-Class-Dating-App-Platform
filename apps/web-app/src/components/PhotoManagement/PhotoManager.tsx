@@ -54,7 +54,7 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
     try {
       // Simulate upload progress
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 100);
 
       let photoUrl: string;
@@ -90,10 +90,10 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
   };
 
   const handleRemove = (photoId: string) => {
-    const updatedPhotos = photos.filter(p => p.id !== photoId);
+    const updatedPhotos = photos.filter((p) => p.id !== photoId);
 
     // If removed photo was main, make first photo main
-    if (photos.find(p => p.id === photoId)?.isMain && updatedPhotos.length > 0) {
+    if (photos.find((p) => p.id === photoId)?.isMain && updatedPhotos.length > 0) {
       updatedPhotos[0].isMain = true;
     }
 
@@ -101,7 +101,7 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
   };
 
   const handleSetMain = (photoId: string) => {
-    const updatedPhotos = photos.map(p => ({
+    const updatedPhotos = photos.map((p) => ({
       ...p,
       isMain: p.id === photoId,
     }));
@@ -136,8 +136,19 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
         return (
           <span className="absolute top-2 right-2 px-2 py-1 bg-yellow-500 text-white text-xs rounded-full flex items-center gap-1">
             <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
             </svg>
             Reviewing
           </span>
@@ -146,7 +157,11 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
         return (
           <span className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-1">
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
             Approved
           </span>
@@ -155,7 +170,12 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
         return (
           <span className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
             Rejected
           </span>
@@ -224,7 +244,12 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
             {/* Drag Handle */}
             <div className="absolute bottom-2 left-2 p-1 bg-black/50 rounded text-white">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 8h16M4 16h16"
+                />
               </svg>
             </div>
           </div>
@@ -240,15 +265,31 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
             {uploading ? (
               <>
                 <svg className="w-8 h-8 mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
                 <span className="text-xs font-medium">{uploadProgress}%</span>
               </>
             ) : (
               <>
                 <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 <span className="text-xs font-medium">Add Photo</span>
               </>

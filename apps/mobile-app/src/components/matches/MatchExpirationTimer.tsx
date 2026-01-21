@@ -78,9 +78,7 @@ export const MatchExpirationTimer: React.FC<MatchExpirationTimerProps> = ({
   return (
     <View style={[styles.container, isUrgent && styles.urgentContainer]}>
       <Text style={styles.icon}>⏱️</Text>
-      <Text style={[styles.text, isUrgent && styles.urgentText]}>
-        {timeLeft}
-      </Text>
+      <Text style={[styles.text, isUrgent && styles.urgentText]}>{timeLeft}</Text>
     </View>
   );
 };

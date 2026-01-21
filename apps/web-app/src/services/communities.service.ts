@@ -163,17 +163,23 @@ class CommunitiesService {
   // Community CRUD
   async getCommunities(category?: string): Promise<Community[]> {
     const url = category ? `${this.baseUrl}?category=${category}` : this.baseUrl;
-    const response = await apiClient.get<{ success: boolean; data: { communities: Community[] } }>(url);
+    const response = await apiClient.get<{ success: boolean; data: { communities: Community[] } }>(
+      url
+    );
     return response.data.communities;
   }
 
   async getCommunity(communityId: string): Promise<Community> {
-    const response = await apiClient.get<{ success: boolean; data: Community }>(`${this.baseUrl}/${communityId}`);
+    const response = await apiClient.get<{ success: boolean; data: Community }>(
+      `${this.baseUrl}/${communityId}`
+    );
     return response.data;
   }
 
   async getJoinedCommunities(): Promise<Community[]> {
-    const response = await apiClient.get<{ success: boolean; data: { communities: Community[] } }>(`${this.baseUrl}/joined`);
+    const response = await apiClient.get<{ success: boolean; data: { communities: Community[] } }>(
+      `${this.baseUrl}/joined`
+    );
     return response.data.communities;
   }
 
@@ -195,21 +201,31 @@ class CommunitiesService {
     return { success: response.success, memberCount: community.memberCount };
   }
 
-  async getCommunityMembers(communityId: string, page: number = 1, limit: number = 20): Promise<{ members: CommunityMember[]; total: number }> {
-    const response = await apiClient.get<{ success: boolean; data: { items: CommunityMember[]; total: number } }>(
-      `${this.baseUrl}/${communityId}/members?page=${page}&limit=${limit}`
-    );
+  async getCommunityMembers(
+    communityId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ members: CommunityMember[]; total: number }> {
+    const response = await apiClient.get<{
+      success: boolean;
+      data: { items: CommunityMember[]; total: number };
+    }>(`${this.baseUrl}/${communityId}/members?page=${page}&limit=${limit}`);
     return { members: response.data.items, total: response.data.total };
   }
 
   // Posts
-  async getPosts(communityId: string, page: number = 1, limit: number = 20): Promise<{ posts: Post[]; total: number }> {
-    const response = await apiClient.get<{ success: boolean; data: { items: BackendPost[]; total: number } }>(
-      `${this.baseUrl}/${communityId}/posts?page=${page}&limit=${limit}`
-    );
+  async getPosts(
+    communityId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ posts: Post[]; total: number }> {
+    const response = await apiClient.get<{
+      success: boolean;
+      data: { items: BackendPost[]; total: number };
+    }>(`${this.baseUrl}/${communityId}/posts?page=${page}&limit=${limit}`);
     return {
       posts: response.data.items.map(transformPost),
-      total: response.data.total
+      total: response.data.total,
     };
   }
 
@@ -228,7 +244,7 @@ class CommunitiesService {
     );
     // Refetch the post to get updated data
     const { posts } = await this.getPosts(communityId, 1, 50);
-    const post = posts.find(p => p.id === postId);
+    const post = posts.find((p) => p.id === postId);
     if (!post) throw new Error('Post not found after update');
     return post;
   }
@@ -240,7 +256,10 @@ class CommunitiesService {
     return { success: response.success };
   }
 
-  async likePost(communityId: string, postId: string): Promise<{ success: boolean; likes: number }> {
+  async likePost(
+    communityId: string,
+    postId: string
+  ): Promise<{ success: boolean; likes: number }> {
     await apiClient.post<{ success: boolean; message: string }>(
       `${this.baseUrl}/${communityId}/posts/${postId}/like`
     );
@@ -248,7 +267,10 @@ class CommunitiesService {
     return { success: true, likes: 0 };
   }
 
-  async unlikePost(communityId: string, postId: string): Promise<{ success: boolean; likes: number }> {
+  async unlikePost(
+    communityId: string,
+    postId: string
+  ): Promise<{ success: boolean; likes: number }> {
     await apiClient.delete<{ success: boolean; message: string }>(
       `${this.baseUrl}/${communityId}/posts/${postId}/like`
     );
@@ -256,14 +278,25 @@ class CommunitiesService {
   }
 
   // Comments
-  async getComments(communityId: string, postId: string, page: number = 1, limit: number = 20): Promise<{ comments: Comment[]; total: number }> {
-    const response = await apiClient.get<{ success: boolean; data: { items: Comment[]; total: number } }>(
-      `${this.baseUrl}/${communityId}/posts/${postId}/comments?page=${page}&limit=${limit}`
-    );
+  async getComments(
+    communityId: string,
+    postId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ comments: Comment[]; total: number }> {
+    const response = await apiClient.get<{
+      success: boolean;
+      data: { items: Comment[]; total: number };
+    }>(`${this.baseUrl}/${communityId}/posts/${postId}/comments?page=${page}&limit=${limit}`);
     return { comments: response.data.items, total: response.data.total };
   }
 
-  async createComment(communityId: string, postId: string, content: string, parentId?: string): Promise<Comment> {
+  async createComment(
+    communityId: string,
+    postId: string,
+    content: string,
+    parentId?: string
+  ): Promise<Comment> {
     const response = await apiClient.post<{ success: boolean; data: Comment }>(
       `${this.baseUrl}/${communityId}/posts/${postId}/comments`,
       { content, parentId }
@@ -271,14 +304,22 @@ class CommunitiesService {
     return response.data;
   }
 
-  async deleteComment(communityId: string, postId: string, commentId: string): Promise<{ success: boolean }> {
+  async deleteComment(
+    communityId: string,
+    postId: string,
+    commentId: string
+  ): Promise<{ success: boolean }> {
     const response = await apiClient.delete<{ success: boolean; message: string }>(
       `${this.baseUrl}/${communityId}/posts/${postId}/comments/${commentId}`
     );
     return { success: response.success };
   }
 
-  async likeComment(communityId: string, postId: string, commentId: string): Promise<{ success: boolean; likes: number }> {
+  async likeComment(
+    communityId: string,
+    postId: string,
+    commentId: string
+  ): Promise<{ success: boolean; likes: number }> {
     await apiClient.post<{ success: boolean; message: string }>(
       `${this.baseUrl}/${communityId}/posts/${postId}/comments/${commentId}/like`
     );
@@ -288,7 +329,9 @@ class CommunitiesService {
   // Events
   async getEvents(communityId?: string): Promise<CommunityEvent[]> {
     const url = communityId ? `${this.baseUrl}/${communityId}/events` : `${this.baseUrl}/events`;
-    const response = await apiClient.get<{ success: boolean; data: { events: BackendEvent[] } }>(url);
+    const response = await apiClient.get<{ success: boolean; data: { events: BackendEvent[] } }>(
+      url
+    );
     return response.data.events.map(transformEvent);
   }
 
@@ -299,7 +342,10 @@ class CommunitiesService {
     return transformEvent(response.data);
   }
 
-  async attendEvent(communityId: string, eventId: string): Promise<{ success: boolean; attendees: number }> {
+  async attendEvent(
+    communityId: string,
+    eventId: string
+  ): Promise<{ success: boolean; attendees: number }> {
     await apiClient.post<{ success: boolean; message: string }>(
       `${this.baseUrl}/${communityId}/events/${eventId}/attend`
     );
@@ -307,7 +353,10 @@ class CommunitiesService {
     return { success: true, attendees: event.attendees };
   }
 
-  async unattendEvent(communityId: string, eventId: string): Promise<{ success: boolean; attendees: number }> {
+  async unattendEvent(
+    communityId: string,
+    eventId: string
+  ): Promise<{ success: boolean; attendees: number }> {
     await apiClient.delete<{ success: boolean; message: string }>(
       `${this.baseUrl}/${communityId}/events/${eventId}/attend`
     );
@@ -316,15 +365,18 @@ class CommunitiesService {
   }
 
   async getEventAttendees(communityId: string, eventId: string): Promise<CommunityMember[]> {
-    const response = await apiClient.get<{ success: boolean; data: { items: CommunityMember[]; total: number } }>(
-      `${this.baseUrl}/${communityId}/events/${eventId}/attendees`
-    );
+    const response = await apiClient.get<{
+      success: boolean;
+      data: { items: CommunityMember[]; total: number };
+    }>(`${this.baseUrl}/${communityId}/events/${eventId}/attendees`);
     return response.data.items;
   }
 
   // Categories
   async getCategories(): Promise<string[]> {
-    const response = await apiClient.get<{ success: boolean; data: string[] }>(`${this.baseUrl}/categories`);
+    const response = await apiClient.get<{ success: boolean; data: string[] }>(
+      `${this.baseUrl}/categories`
+    );
     return response.data;
   }
 

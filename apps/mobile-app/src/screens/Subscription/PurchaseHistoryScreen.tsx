@@ -93,7 +93,8 @@ export const PurchaseHistoryScreen: React.FC<{ navigation: any; route: any }> = 
         },
         {
           text: 'Contact Support',
-          onPress: () => navigation.navigate('Support', { transactionId: transaction.transactionId }),
+          onPress: () =>
+            navigation.navigate('Support', { transactionId: transaction.transactionId }),
         },
       ]
     );
@@ -229,7 +230,8 @@ export const PurchaseHistoryScreen: React.FC<{ navigation: any; route: any }> = 
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>
-              ${transactions
+              $
+              {transactions
                 .filter((t) => t.status === 'completed')
                 .reduce((sum, t) => sum + t.amount, 0)
                 .toFixed(2)}
@@ -256,11 +258,7 @@ export const PurchaseHistoryScreen: React.FC<{ navigation: any; route: any }> = 
         ]}
         ListEmptyComponent={renderEmptyState}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#EC4899"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#EC4899" />
         }
       />
     </View>

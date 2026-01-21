@@ -67,9 +67,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.questionContainer}>
           <Text style={styles.title}>What's your first name?</Text>
-          <Text style={styles.subtitle}>
-            This is how you'll appear on Heartly
-          </Text>
+          <Text style={styles.subtitle}>This is how you'll appear on Heartly</Text>
 
           <TextInput
             style={[styles.input, error ? styles.inputError : null]}
@@ -88,9 +86,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Text style={styles.hint}>
-            This can't be changed later, so make sure it's right
-          </Text>
+          <Text style={styles.hint}>This can't be changed later, so make sure it's right</Text>
         </View>
 
         <View style={styles.footer}>
@@ -99,9 +95,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
             onPress={handleContinue}
             disabled={!isValid}
           >
-            <Text style={[styles.buttonText, !isValid && styles.buttonTextDisabled]}>
-              Continue
-            </Text>
+            <Text style={[styles.buttonText, !isValid && styles.buttonTextDisabled]}>Continue</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

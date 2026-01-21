@@ -193,58 +193,57 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
     setCurrentIndex((prev) => prev + 1);
   }, []);
 
-  const handleSwipeUp = useCallback(async (profile: DiscoveryProfile) => {
-    if (superLikesRemaining <= 0) {
-      Alert.alert(
-        'No Super Likes Remaining',
-        'You have used all your super likes for today. Upgrade to premium for unlimited super likes!',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => navigation.navigate('Premium') },
-        ]
-      );
-      return;
-    }
-
-    lastSwipedProfileRef.current = profile;
-
-    try {
-      const response = await discoveryService.superLike(profile.id);
-
-      if (response.success && response.data) {
-        setSuperLikesRemaining((prev) => prev - 1);
-
-        if (response.data.isMatch && response.data.match) {
-          setMatchedProfile(response.data.match);
-          setShowMatch(true);
-        } else {
-          Alert.alert('Super Like Sent!', `${profile.name} will see that you super liked them!`);
-        }
-      } else {
-        Alert.alert('Error', response.error?.message || 'Failed to send super like');
+  const handleSwipeUp = useCallback(
+    async (profile: DiscoveryProfile) => {
+      if (superLikesRemaining <= 0) {
+        Alert.alert(
+          'No Super Likes Remaining',
+          'You have used all your super likes for today. Upgrade to premium for unlimited super likes!',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Upgrade', onPress: () => navigation.navigate('Premium') },
+          ]
+        );
+        return;
       }
-    } catch {
-      Alert.alert('Error', 'Failed to send super like. Please try again.');
-    }
 
-    setCurrentIndex((prev) => prev + 1);
-  }, [superLikesRemaining, navigation]);
+      lastSwipedProfileRef.current = profile;
+
+      try {
+        const response = await discoveryService.superLike(profile.id);
+
+        if (response.success && response.data) {
+          setSuperLikesRemaining((prev) => prev - 1);
+
+          if (response.data.isMatch && response.data.match) {
+            setMatchedProfile(response.data.match);
+            setShowMatch(true);
+          } else {
+            Alert.alert('Super Like Sent!', `${profile.name} will see that you super liked them!`);
+          }
+        } else {
+          Alert.alert('Error', response.error?.message || 'Failed to send super like');
+        }
+      } catch {
+        Alert.alert('Error', 'Failed to send super like. Please try again.');
+      }
+
+      setCurrentIndex((prev) => prev + 1);
+    },
+    [superLikesRemaining, navigation]
+  );
 
   const handleRewind = useCallback(async () => {
     if (rewindsRemaining <= 0) {
-      Alert.alert(
-        'No Rewinds Remaining',
-        'Upgrade to premium for unlimited rewinds!',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => navigation.navigate('Premium') },
-        ]
-      );
+      Alert.alert('No Rewinds Remaining', 'Upgrade to premium for unlimited rewinds!', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Upgrade', onPress: () => navigation.navigate('Premium') },
+      ]);
       return;
     }
 
     if (currentIndex === 0) {
-      Alert.alert('Nothing to Rewind', 'You haven\'t swiped on anyone yet!');
+      Alert.alert('Nothing to Rewind', "You haven't swiped on anyone yet!");
       return;
     }
 
@@ -302,9 +301,12 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
                 );
 
                 // Deactivate after 30 minutes
-                setTimeout(() => {
-                  setIsBoostActive(false);
-                }, 30 * 60 * 1000);
+                setTimeout(
+                  () => {
+                    setIsBoostActive(false);
+                  },
+                  30 * 60 * 1000
+                );
               } else {
                 Alert.alert('Error', response.error?.message || 'Failed to activate boost');
               }
@@ -423,21 +425,24 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
         ) : currentProfile ? (
           <>
             {/* Show next cards behind for preview */}
-            {profiles.slice(currentIndex + 1, currentIndex + 3).reverse().map((profile, index) => (
-              <View
-                key={profile.id}
-                style={[
-                  styles.cardBehind,
-                  {
-                    transform: [
-                      { scale: 1 - (index + 1) * 0.03 },
-                      { translateY: -(index + 1) * 10 },
-                    ],
-                    opacity: 1 - (index + 1) * 0.2,
-                  },
-                ]}
-              />
-            ))}
+            {profiles
+              .slice(currentIndex + 1, currentIndex + 3)
+              .reverse()
+              .map((profile, index) => (
+                <View
+                  key={profile.id}
+                  style={[
+                    styles.cardBehind,
+                    {
+                      transform: [
+                        { scale: 1 - (index + 1) * 0.03 },
+                        { translateY: -(index + 1) * 10 },
+                      ],
+                      opacity: 1 - (index + 1) * 0.2,
+                    },
+                  ]}
+                />
+              ))}
 
             {/* Current card */}
             <SwipeCardEnhanced

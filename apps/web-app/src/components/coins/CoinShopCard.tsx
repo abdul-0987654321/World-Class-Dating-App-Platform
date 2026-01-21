@@ -19,9 +19,7 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
   const bonusAmount = product.bonus || product.bonusCoins || 0;
   const isPopular = product.popular || product.bestValue || false;
 
-  const bonusPercentage = bonusAmount > 0
-    ? Math.round((bonusAmount / coinAmount) * 100)
-    : 0;
+  const bonusPercentage = bonusAmount > 0 ? Math.round((bonusAmount / coinAmount) * 100) : 0;
 
   return (
     <Card className={`coin-shop-card ${isPopular ? 'popular' : ''}`}>
@@ -31,22 +29,13 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
         </div>
       )}
 
-      {bonusPercentage > 0 && (
-        <div className="badge-bonus">+{bonusPercentage}% Bonus</div>
-      )}
+      {bonusPercentage > 0 && <div className="badge-bonus">+{bonusPercentage}% Bonus</div>}
 
       <div className="coin-icon">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" fill="#FFD700" />
           <circle cx="12" cy="12" r="7" fill="#FFA500" />
-          <text
-            x="12"
-            y="16"
-            textAnchor="middle"
-            fill="white"
-            fontSize="10"
-            fontWeight="bold"
-          >
+          <text x="12" y="16" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">
             C
           </text>
         </svg>
@@ -59,11 +48,7 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
         <span className="label">Coins</span>
       </div>
 
-      {bonusAmount > 0 && (
-        <div className="bonus-coins">
-          + {bonusAmount.toLocaleString()} Bonus
-        </div>
-      )}
+      {bonusAmount > 0 && <div className="bonus-coins">+ {bonusAmount.toLocaleString()} Bonus</div>}
 
       <div className="price">
         <span className="currency">$</span>
@@ -72,7 +57,7 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
 
       <div className="value-info">
         <span>
-          ${(product.price / (coinAmount + bonusAmount) * 100).toFixed(2)} per 100 coins
+          ${((product.price / (coinAmount + bonusAmount)) * 100).toFixed(2)} per 100 coins
         </span>
       </div>
 

@@ -49,18 +49,20 @@ export const DiscoveryPage: React.FC = () => {
     try {
       const data = await discoveryService.getRecommendations();
       // Transform DiscoveryProfile to local Profile format
-      setProfiles(data.profiles.map((p: DiscoveryProfile) => ({
-        userId: p.user_id,
-        name: p.first_name,
-        age: p.age,
-        bio: p.bio || '',
-        photos: p.photos.map((photo) => photo.url),
-        distance: p.distance || 0,
-        city: p.city || '',
-        interests: p.interests,
-        verified: p.is_verified,
-        compatibilityScore: p.compatibility_score || 0,
-      })));
+      setProfiles(
+        data.profiles.map((p: DiscoveryProfile) => ({
+          userId: p.user_id,
+          name: p.first_name,
+          age: p.age,
+          bio: p.bio || '',
+          photos: p.photos.map((photo) => photo.url),
+          distance: p.distance || 0,
+          city: p.city || '',
+          interests: p.interests,
+          verified: p.is_verified,
+          compatibilityScore: p.compatibility_score || 0,
+        }))
+      );
     } catch (err) {
       console.error('Failed to load profiles:', err);
     } finally {
@@ -192,7 +194,11 @@ export const DiscoveryPage: React.FC = () => {
                   />
                   <button
                     className="flex-1"
-                    onClick={() => setCurrentPhotoIndex(Math.min(currentProfile.photos.length - 1, currentPhotoIndex + 1))}
+                    onClick={() =>
+                      setCurrentPhotoIndex(
+                        Math.min(currentProfile.photos.length - 1, currentPhotoIndex + 1)
+                      )
+                    }
                   />
                 </div>
 
@@ -272,7 +278,9 @@ export const DiscoveryPage: React.FC = () => {
                           <p className="text-sm text-fm-text-secondary mt-1">{idea.description}</p>
                           <div className="flex flex-wrap gap-2 mt-2 text-xs text-fm-text-secondary">
                             <span className="bg-white/10 px-2 py-1 rounded">{idea.category}</span>
-                            <span className="bg-white/10 px-2 py-1 rounded">{idea.estimatedCost}</span>
+                            <span className="bg-white/10 px-2 py-1 rounded">
+                              {idea.estimatedCost}
+                            </span>
                             <span className="bg-white/10 px-2 py-1 rounded">{idea.duration}</span>
                           </div>
                           {idea.tips && idea.tips.length > 0 && (
@@ -290,8 +298,20 @@ export const DiscoveryPage: React.FC = () => {
                   {coachLoading && (
                     <div className="mt-3 flex items-center gap-2 text-sm text-fm-text-secondary">
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                       Getting date ideas...
                     </div>
@@ -306,7 +326,12 @@ export const DiscoveryPage: React.FC = () => {
                   className="w-16 h-16 bg-fm-surface border-2 border-white/20 rounded-full flex items-center justify-center text-fm-text-secondary hover:border-red-400 hover:text-red-500 transition"
                 >
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
 

@@ -61,22 +61,72 @@ class ReportService {
 
   getCategories(): ReportCategoryInfo[] {
     return [
-      { id: 'fake_profile', label: 'Fake Profile', description: 'This profile appears to be fake or using stolen photos', severity: 'high' },
-      { id: 'harassment', label: 'Harassment', description: 'This user is harassing or bullying others', severity: 'high' },
-      { id: 'inappropriate_content', label: 'Inappropriate Content', description: 'Profile contains inappropriate photos or text', severity: 'medium' },
-      { id: 'spam', label: 'Spam', description: 'This user is sending spam messages', severity: 'low' },
-      { id: 'scam', label: 'Scam', description: 'This user appears to be running a scam', severity: 'critical' },
-      { id: 'underage', label: 'Underage User', description: 'This user appears to be under 18', severity: 'critical' },
-      { id: 'impersonation', label: 'Impersonation', description: 'This user is pretending to be someone else', severity: 'high' },
-      { id: 'hate_speech', label: 'Hate Speech', description: 'Profile contains discriminatory or hateful content', severity: 'high' },
-      { id: 'violence', label: 'Violence/Threats', description: 'This user has made violent threats', severity: 'critical' },
-      { id: 'other', label: 'Other', description: 'Other violation not listed above', severity: 'medium' },
+      {
+        id: 'fake_profile',
+        label: 'Fake Profile',
+        description: 'This profile appears to be fake or using stolen photos',
+        severity: 'high',
+      },
+      {
+        id: 'harassment',
+        label: 'Harassment',
+        description: 'This user is harassing or bullying others',
+        severity: 'high',
+      },
+      {
+        id: 'inappropriate_content',
+        label: 'Inappropriate Content',
+        description: 'Profile contains inappropriate photos or text',
+        severity: 'medium',
+      },
+      {
+        id: 'spam',
+        label: 'Spam',
+        description: 'This user is sending spam messages',
+        severity: 'low',
+      },
+      {
+        id: 'scam',
+        label: 'Scam',
+        description: 'This user appears to be running a scam',
+        severity: 'critical',
+      },
+      {
+        id: 'underage',
+        label: 'Underage User',
+        description: 'This user appears to be under 18',
+        severity: 'critical',
+      },
+      {
+        id: 'impersonation',
+        label: 'Impersonation',
+        description: 'This user is pretending to be someone else',
+        severity: 'high',
+      },
+      {
+        id: 'hate_speech',
+        label: 'Hate Speech',
+        description: 'Profile contains discriminatory or hateful content',
+        severity: 'high',
+      },
+      {
+        id: 'violence',
+        label: 'Violence/Threats',
+        description: 'This user has made violent threats',
+        severity: 'critical',
+      },
+      {
+        id: 'other',
+        label: 'Other',
+        description: 'Other violation not listed above',
+        severity: 'medium',
+      },
     ];
   }
 
   async createReport(request: CreateReportRequest): Promise<Report> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return {
         id: `report-${Date.now()}`,
         reporterId: 'current-user',
@@ -106,7 +156,11 @@ class ReportService {
     return response.json();
   }
 
-  async getMyReports(options?: { limit?: number; offset?: number; status?: ReportStatus }): Promise<{ reports: Report[]; totalCount: number; total: number }> {
+  async getMyReports(options?: {
+    limit?: number;
+    offset?: number;
+    status?: ReportStatus;
+  }): Promise<{ reports: Report[]; totalCount: number; total: number }> {
     if (this.isMock) {
       const mockData = {
         reports: [

@@ -40,7 +40,11 @@ export * from './messaging/ConversationList';
 export { Icebreakers } from './messaging/Icebreakers';
 export type { UserProfile as IcebreakersUserProfile } from './messaging/Icebreakers';
 export { MessageThread } from './messaging/MessageThread';
-export type { Message as ThreadMessage, MessageStatus, MessageType } from './messaging/MessageThread';
+export type {
+  Message as ThreadMessage,
+  MessageStatus,
+  MessageType,
+} from './messaging/MessageThread';
 
 // Monetization Components
 export * from './monetization/BoostCard';
@@ -82,7 +86,7 @@ export type { UserProfile as PersonalityInsightsUserProfile } from './ai/Persona
 export { SemanticMatchScoring } from './ai/SemanticMatchScoring';
 export type {
   UserProfile as SemanticUserProfile,
-  MatchScore as SemanticMatchScore
+  MatchScore as SemanticMatchScore,
 } from './ai/SemanticMatchScoring';
 export { SmartReplySuggestions } from './ai/SmartReplySuggestions';
 export { ToxicityDetection } from './ai/ToxicityDetection';

@@ -112,7 +112,7 @@ class SecureHttpClient {
   private async buildHeaders(options: SecureRequestOptions = {}): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
       ...options.headers,
     };
 
@@ -196,7 +196,7 @@ class SecureHttpClient {
             body: body ? JSON.stringify(body) : undefined,
             timeoutInterval: timeout / 1000, // Convert to seconds
             pkPinning: {
-              hashes: pinConfig.pins.map(pin => pin.replace('sha256/', '')),
+              hashes: pinConfig.pins.map((pin) => pin.replace('sha256/', '')),
             },
           };
 
@@ -224,7 +224,7 @@ class SecureHttpClient {
           if (applyPinning && !this.sslPinningModule) {
             console.warn(
               `SSL Pinning is configured for ${hostname} but native module is not available. ` +
-              'Install react-native-ssl-pinning or similar library.'
+                'Install react-native-ssl-pinning or similar library.'
             );
           }
 
@@ -281,7 +281,7 @@ class SecureHttpClient {
 
         // Exponential backoff
         const delay = 1000 * Math.pow(2, retryCount);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         retryCount++;
       }
     }
@@ -326,17 +326,20 @@ class SecureHttpClient {
     const errorMessage = error.message?.toLowerCase() || '';
 
     let errorType = SSLPinningErrorType.CERTIFICATE_MISMATCH;
-    let userMessage = 'SSL certificate validation failed. Please ensure you are connected to a secure network.';
+    let userMessage =
+      'SSL certificate validation failed. Please ensure you are connected to a secure network.';
 
     if (errorMessage.includes('expired')) {
       errorType = SSLPinningErrorType.EXPIRED_CERTIFICATE;
       userMessage = 'Server certificate has expired. Please update the app.';
     } else if (errorMessage.includes('hostname')) {
       errorType = SSLPinningErrorType.HOSTNAME_MISMATCH;
-      userMessage = 'Server hostname does not match certificate. This may indicate a security issue.';
+      userMessage =
+        'Server hostname does not match certificate. This may indicate a security issue.';
     } else if (errorMessage.includes('untrusted') || errorMessage.includes('trust')) {
       errorType = SSLPinningErrorType.UNTRUSTED_CERTIFICATE;
-      userMessage = 'Server certificate is not trusted. This may indicate a man-in-the-middle attack.';
+      userMessage =
+        'Server certificate is not trusted. This may indicate a man-in-the-middle attack.';
     }
 
     // Log security event
@@ -463,15 +466,27 @@ class SecureHttpClient {
     return this.secureRequest<T>('GET', endpoint, undefined, options);
   }
 
-  async post<T>(endpoint: string, body?: any, options?: SecureRequestOptions): Promise<SecureApiResponse<T>> {
+  async post<T>(
+    endpoint: string,
+    body?: any,
+    options?: SecureRequestOptions
+  ): Promise<SecureApiResponse<T>> {
     return this.secureRequest<T>('POST', endpoint, body, options);
   }
 
-  async put<T>(endpoint: string, body?: any, options?: SecureRequestOptions): Promise<SecureApiResponse<T>> {
+  async put<T>(
+    endpoint: string,
+    body?: any,
+    options?: SecureRequestOptions
+  ): Promise<SecureApiResponse<T>> {
     return this.secureRequest<T>('PUT', endpoint, body, options);
   }
 
-  async patch<T>(endpoint: string, body?: any, options?: SecureRequestOptions): Promise<SecureApiResponse<T>> {
+  async patch<T>(
+    endpoint: string,
+    body?: any,
+    options?: SecureRequestOptions
+  ): Promise<SecureApiResponse<T>> {
     return this.secureRequest<T>('PATCH', endpoint, body, options);
   }
 

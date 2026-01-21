@@ -121,7 +121,7 @@ const TimerBar = styled.div`
 const TimerProgress = styled.div<{ progress: number }>`
   height: 100%;
   width: ${({ progress }) => progress}%;
-  background: linear-gradient(90deg, #4ECDC4, #95E1D3);
+  background: linear-gradient(90deg, #4ecdc4, #95e1d3);
   transition: width 0.1s linear;
 `;
 
@@ -539,11 +539,7 @@ export const VideoProfileRecorder: React.FC<VideoProfileRecorderProps> = ({
       </Header>
 
       <VideoContainer>
-        <Video
-          ref={videoRef}
-          playsInline
-          onEnded={() => setIsPlaying(false)}
-        />
+        <Video ref={videoRef} playsInline onEnded={() => setIsPlaying(false)} />
 
         {hasPermission === false && (
           <Prompt>
@@ -551,9 +547,7 @@ export const VideoProfileRecorder: React.FC<VideoProfileRecorderProps> = ({
               <FiVideo />
             </PromptIcon>
             <PromptText>Camera Access Required</PromptText>
-            <PromptSubtext>
-              Please allow camera access to record your intro video
-            </PromptSubtext>
+            <PromptSubtext>Please allow camera access to record your intro video</PromptSubtext>
           </Prompt>
         )}
 
@@ -564,7 +558,9 @@ export const VideoProfileRecorder: React.FC<VideoProfileRecorderProps> = ({
             </TimerBar>
             <RecordingIndicator>
               <RecordingDot />
-              <span>{formatTime(recordingTime)} / {formatTime(maxDuration)}</span>
+              <span>
+                {formatTime(recordingTime)} / {formatTime(maxDuration)}
+              </span>
             </RecordingIndicator>
           </>
         )}

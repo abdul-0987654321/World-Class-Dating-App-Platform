@@ -14,7 +14,8 @@ import { authService } from '../../services';
 
 // SECURITY: Use API gateway URL in production, localhost only in development
 // In production, all API calls route through the main API gateway
-const MODERATION_API_URL = import.meta.env.VITE_MODERATION_SERVICE_URL ||
+const MODERATION_API_URL =
+  import.meta.env.VITE_MODERATION_SERVICE_URL ||
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? 'http://localhost:3008' : '');
 
@@ -250,17 +251,11 @@ const UserManagement: React.FC = () => {
               <ActionsGroup>
                 {userStatus.status === 'active' && (
                   <>
-                    <ActionButton
-                      $color="#f59e0b"
-                      onClick={() => setShowSuspendModal(true)}
-                    >
+                    <ActionButton $color="#f59e0b" onClick={() => setShowSuspendModal(true)}>
                       <FaUserSlash />
                       Suspend
                     </ActionButton>
-                    <ActionButton
-                      $color="#ef4444"
-                      onClick={() => setShowBanModal(true)}
-                    >
+                    <ActionButton $color="#ef4444" onClick={() => setShowBanModal(true)}>
                       <FaBan />
                       Ban
                     </ActionButton>
@@ -328,9 +323,7 @@ const UserManagement: React.FC = () => {
                 <FaExclamationTriangle />
                 <div>
                   <strong>Active Suspension</strong>
-                  <p>
-                    Ends: {new Date(userStatus.currentSuspensionEndsAt).toLocaleString()}
-                  </p>
+                  <p>Ends: {new Date(userStatus.currentSuspensionEndsAt).toLocaleString()}</p>
                 </div>
               </InfoBox>
             )}
@@ -449,9 +442,7 @@ const UserManagement: React.FC = () => {
               </FormGroup>
             </ModalBody>
             <ModalFooter>
-              <CancelButton onClick={() => setShowSuspendModal(false)}>
-                Cancel
-              </CancelButton>
+              <CancelButton onClick={() => setShowSuspendModal(false)}>Cancel</CancelButton>
               <ConfirmButton $color="#f59e0b" onClick={handleSuspendUser}>
                 Suspend User
               </ConfirmButton>
@@ -471,8 +462,8 @@ const UserManagement: React.FC = () => {
               <WarningBox>
                 <FaExclamationTriangle />
                 <p>
-                  <strong>Warning:</strong> This action will permanently ban the user. They
-                  will not be able to access the platform.
+                  <strong>Warning:</strong> This action will permanently ban the user. They will not
+                  be able to access the platform.
                 </p>
               </WarningBox>
 

@@ -123,9 +123,15 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
   return (
     <div className="w-full mt-6">
       <div className="relative flex items-center justify-center my-6">
-        <div className="flex-grow" style={{ height: '1px', background: 'rgba(139, 92, 246, 0.3)' }}></div>
+        <div
+          className="flex-grow"
+          style={{ height: '1px', background: 'rgba(139, 92, 246, 0.3)' }}
+        ></div>
         <span className="px-4 text-sm text-gray-400">Or continue with</span>
-        <div className="flex-grow" style={{ height: '1px', background: 'rgba(139, 92, 246, 0.3)' }}></div>
+        <div
+          className="flex-grow"
+          style={{ height: '1px', background: 'rgba(139, 92, 246, 0.3)' }}
+        ></div>
       </div>
 
       <div className="flex justify-center gap-4">

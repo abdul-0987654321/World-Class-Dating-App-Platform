@@ -35,7 +35,9 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Take Your Time</CardTitle>
               <CardDescription>
-                Get to know someone through in-app messaging before sharing personal contact information. Watch for red flags like requests for money, inconsistent stories, or pressure to move off the app quickly.
+                Get to know someone through in-app messaging before sharing personal contact
+                information. Watch for red flags like requests for money, inconsistent stories, or
+                pressure to move off the app quickly.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -45,7 +47,9 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Do Your Research</CardTitle>
               <CardDescription>
-                Search for your match on social media and verify their identity. Video chat before meeting in person. Look for verification badges on profiles - they indicate extra steps were taken to confirm identity.
+                Search for your match on social media and verify their identity. Video chat before
+                meeting in person. Look for verification badges on profiles - they indicate extra
+                steps were taken to confirm identity.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -55,7 +59,9 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Keep Personal Info Private</CardTitle>
               <CardDescription>
-                Never share your home address, workplace, financial information, or other sensitive details until you've built trust. Use Flamoral messaging instead of sharing your phone number initially.
+                Never share your home address, workplace, financial information, or other sensitive
+                details until you've built trust. Use Flamoral messaging instead of sharing your
+                phone number initially.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -69,7 +75,9 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Meet in Public</CardTitle>
               <CardDescription>
-                Always choose a busy, public location for your first several dates. Coffee shops, restaurants, and public parks are great options. Avoid isolated areas, private residences, and hotels.
+                Always choose a busy, public location for your first several dates. Coffee shops,
+                restaurants, and public parks are great options. Avoid isolated areas, private
+                residences, and hotels.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -79,7 +87,8 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Tell Someone</CardTitle>
               <CardDescription>
-                Share your plans with a friend or family member. Tell them who you're meeting, where you'll be, and when to expect you back. Set up a check-in system and stick to it.
+                Share your plans with a friend or family member. Tell them who you're meeting, where
+                you'll be, and when to expect you back. Set up a check-in system and stick to it.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -89,7 +98,9 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Arrange Your Own Transportation</CardTitle>
               <CardDescription>
-                Drive yourself, use rideshare, or take public transit. Don't accept rides from your date until you know them well. Keep your phone charged and have backup transportation options.
+                Drive yourself, use rideshare, or take public transit. Don't accept rides from your
+                date until you know them well. Keep your phone charged and have backup
+                transportation options.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -99,7 +110,9 @@ export const SafetyGuidelines: React.FC = () => {
             <CardContent>
               <CardTitle>Stay Sober and Alert</CardTitle>
               <CardDescription>
-                Keep a clear head on first dates. Never leave your drink unattended. If you feel suddenly ill, dizzy, or disoriented, seek help immediately and contact authorities if needed.
+                Keep a clear head on first dates. Never leave your drink unattended. If you feel
+                suddenly ill, dizzy, or disoriented, seek help immediately and contact authorities
+                if needed.
               </CardDescription>
             </CardContent>
           </SafetyCard>
@@ -148,23 +161,29 @@ export const SafetyGuidelines: React.FC = () => {
         <Section>
           <SectionTitle>Reporting & Blocking</SectionTitle>
           <Paragraph>
-            If someone makes you uncomfortable, violates our community guidelines, or behaves inappropriately:
+            If someone makes you uncomfortable, violates our community guidelines, or behaves
+            inappropriately:
           </Paragraph>
           <List>
-            <ListItem><Strong>Block:</Strong> Use the block feature to prevent further contact</ListItem>
-            <ListItem><Strong>Report:</Strong> Report profiles to our Trust & Safety team for review</ListItem>
-            <ListItem><Strong>Unmatch:</Strong> Remove connections you no longer want</ListItem>
+            <ListItem>
+              <Strong>Block:</Strong> Use the block feature to prevent further contact
+            </ListItem>
+            <ListItem>
+              <Strong>Report:</Strong> Report profiles to our Trust & Safety team for review
+            </ListItem>
+            <ListItem>
+              <Strong>Unmatch:</Strong> Remove connections you no longer want
+            </ListItem>
           </List>
           <Paragraph>
-            Our moderation team reviews all reports and takes appropriate action, including permanent bans for serious violations. Your reports help keep our community safe.
+            Our moderation team reviews all reports and takes appropriate action, including
+            permanent bans for serious violations. Your reports help keep our community safe.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>Sexual Health & Consent</SectionTitle>
-          <Paragraph>
-            If you choose to be intimate with someone you meet on Flamoral:
-          </Paragraph>
+          <Paragraph>If you choose to be intimate with someone you meet on Flamoral:</Paragraph>
           <List>
             <ListItem>Practice safe sex and use protection</ListItem>
             <ListItem>Get tested regularly for STIs</ListItem>
@@ -195,7 +214,9 @@ export const SafetyGuidelines: React.FC = () => {
             <ResourceCard>
               <ResourceTitle>FTC Report Fraud</ResourceTitle>
               <ResourceDescription>Report romance scams</ResourceDescription>
-              <ResourceLink href="https://reportfraud.ftc.gov" target="_blank">reportfraud.ftc.gov</ResourceLink>
+              <ResourceLink href="https://reportfraud.ftc.gov" target="_blank">
+                reportfraud.ftc.gov
+              </ResourceLink>
             </ResourceCard>
           </ResourceGrid>
         </Section>
@@ -263,7 +284,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #22C55E 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #22c55e 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -281,7 +302,7 @@ const LastUpdated = styled.div`
 
 const TagLine = styled.div`
   font-size: 1.1rem;
-  color: #22C55E;
+  color: #22c55e;
   margin-top: 0.5rem;
   font-weight: 500;
 `;
@@ -453,7 +474,7 @@ const ContactInfo = styled.div`
   background: rgba(59, 130, 246, 0.1);
   padding: 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #3b82f6;
   text-align: center;
 
   div {

@@ -31,10 +31,7 @@ export const getCacheControl = (cacheTime: number = 86400): string => {
   return `max-age=${cacheTime}`;
 };
 
-export const getImageSource = (
-  uri: string,
-  priority: 'low' | 'normal' | 'high' = 'normal'
-) => {
+export const getImageSource = (uri: string, priority: 'low' | 'normal' | 'high' = 'normal') => {
   const priorityMap = {
     low: FastImage.priority.low,
     normal: FastImage.priority.normal,

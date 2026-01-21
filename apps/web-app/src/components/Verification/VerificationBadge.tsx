@@ -85,9 +85,7 @@ const VerificationBadge: React.FC<VerificationBadgeProps> = ({
           <TooltipTitle>{config.text}</TooltipTitle>
         </TooltipHeader>
         <TooltipDescription>{config.description}</TooltipDescription>
-        {verifiedDate && (
-          <TooltipFooter>Verified {formatDate(verifiedDate)}</TooltipFooter>
-        )}
+        {verifiedDate && <TooltipFooter>Verified {formatDate(verifiedDate)}</TooltipFooter>}
       </Tooltip>
     </TooltipContainer>
   );

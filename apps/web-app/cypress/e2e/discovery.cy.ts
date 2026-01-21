@@ -8,7 +8,7 @@ describe('Discovery & Swiping', () => {
 
   beforeEach(() => {
     cy.login(testUser.email, testUser.password);
-    cy.mockGeolocation(40.7128, -74.0060); // New York coordinates
+    cy.mockGeolocation(40.7128, -74.006); // New York coordinates
     cy.visit('/discover');
   });
 
@@ -21,11 +21,13 @@ describe('Discovery & Swiping', () => {
     });
 
     it('should show profile details on card', () => {
-      cy.get('[data-testid="swipe-card"]').first().within(() => {
-        cy.get('[data-testid="profile-name"]').should('not.be.empty');
-        cy.get('[data-testid="profile-age"]').should('match', /\d+/);
-        cy.get('[data-testid="distance"]').should('be.visible');
-      });
+      cy.get('[data-testid="swipe-card"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="profile-name"]').should('not.be.empty');
+          cy.get('[data-testid="profile-age"]').should('match', /\d+/);
+          cy.get('[data-testid="distance"]').should('be.visible');
+        });
     });
 
     it('should display multiple photos in carousel', () => {
@@ -57,7 +59,10 @@ describe('Discovery & Swiping', () => {
       });
 
       // Verify new card is displayed
-      cy.get('[data-testid="profile-name"]').first().invoke('text').should('not.eq', initialCardName);
+      cy.get('[data-testid="profile-name"]')
+        .first()
+        .invoke('text')
+        .should('not.eq', initialCardName);
     });
 
     it('should swipe left (pass)', () => {
@@ -127,17 +132,17 @@ describe('Discovery & Swiping', () => {
       cy.get('[data-testid="age-max-input"]').clear().type('35');
       cy.get('[data-testid="apply-filters"]').click();
 
-      cy.wait('@updatePrefs').its('request.body').should('deep.include', {
-        ageRange: { min: 25, max: 35 },
-      });
+      cy.wait('@updatePrefs')
+        .its('request.body')
+        .should('deep.include', {
+          ageRange: { min: 25, max: 35 },
+        });
     });
 
     it('should update distance filter', () => {
       cy.interceptAPI('PUT', '**/api/v1/users/preferences', { success: true }, 'updateDistance');
 
-      cy.get('[data-testid="distance-slider"]')
-        .invoke('val', 50)
-        .trigger('change');
+      cy.get('[data-testid="distance-slider"]').invoke('val', 50).trigger('change');
 
       cy.get('[data-testid="apply-filters"]').click();
 
@@ -237,10 +242,15 @@ describe('Discovery & Swiping', () => {
 
   describe('Performance & Loading', () => {
     it('should show loading skeleton while fetching profiles', () => {
-      cy.interceptAPI('GET', '**/api/v1/matches/discover', {
-        delay: 2000,
-        body: { profiles: [] },
-      }, 'slowLoad');
+      cy.interceptAPI(
+        'GET',
+        '**/api/v1/matches/discover',
+        {
+          delay: 2000,
+          body: { profiles: [] },
+        },
+        'slowLoad'
+      );
 
       cy.visit('/discover');
       cy.get('[data-testid="card-skeleton"]').should('be.visible');
@@ -259,10 +269,15 @@ describe('Discovery & Swiping', () => {
 
   describe('Error Handling', () => {
     it('should handle network errors gracefully', () => {
-      cy.interceptAPI('POST', '**/api/v1/matches/swipe', {
-        statusCode: 500,
-        body: { error: 'Server error' },
-      }, 'serverError');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/matches/swipe',
+        {
+          statusCode: 500,
+          body: { error: 'Server error' },
+        },
+        'serverError'
+      );
 
       cy.swipeCard('right');
 
@@ -272,9 +287,14 @@ describe('Discovery & Swiping', () => {
     });
 
     it('should retry failed swipes', () => {
-      cy.interceptAPI('POST', '**/api/v1/matches/swipe', {
-        statusCode: 500,
-      }, 'failedSwipe');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/matches/swipe',
+        {
+          statusCode: 500,
+        },
+        'failedSwipe'
+      );
 
       cy.swipeCard('right');
       cy.wait('@failedSwipe');

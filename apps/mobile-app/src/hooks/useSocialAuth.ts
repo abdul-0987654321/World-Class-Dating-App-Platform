@@ -49,7 +49,8 @@ export const useSocialAuth = () => {
       const response = await axios.post(`${API_URL}/api/v1/auth/social/google`, payload);
 
       if (response.data.success) {
-        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data.data;
+        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } =
+          response.data.data;
 
         // Store tokens and user data
         await setToken(accessToken, refreshToken);
@@ -76,7 +77,8 @@ export const useSocialAuth = () => {
       const response = await axios.post(`${API_URL}/api/v1/auth/social/apple`, payload);
 
       if (response.data.success) {
-        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data.data;
+        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } =
+          response.data.data;
 
         // Store tokens and user data
         await setToken(accessToken, refreshToken);
@@ -103,7 +105,8 @@ export const useSocialAuth = () => {
       const response = await axios.post(`${API_URL}/api/v1/auth/social/facebook`, payload);
 
       if (response.data.success) {
-        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data.data;
+        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } =
+          response.data.data;
 
         // Store tokens and user data
         await setToken(accessToken, refreshToken);
@@ -196,7 +199,8 @@ export const useSocialAuth = () => {
         throw new Error(response.data.message || 'Failed to get linked accounts');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to get linked accounts';
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to get linked accounts';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

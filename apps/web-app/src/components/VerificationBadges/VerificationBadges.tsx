@@ -129,28 +129,25 @@ export const VerificationSummary: React.FC<VerificationSummaryProps> = ({
   return (
     <SummaryContainer className={className}>
       <SummaryText>
-        <strong>{verifiedCount} of {totalCount}</strong> verifications complete
+        <strong>
+          {verifiedCount} of {totalCount}
+        </strong>{' '}
+        verifications complete
       </SummaryText>
       <ProgressBar>
         <ProgressFill percentage={percentage} />
       </ProgressBar>
       <VerificationList>
         <VerificationItem completed={isPhotoVerified}>
-          <CheckIcon completed={isPhotoVerified}>
-            {isPhotoVerified ? '✓' : '○'}
-          </CheckIcon>
+          <CheckIcon completed={isPhotoVerified}>{isPhotoVerified ? '✓' : '○'}</CheckIcon>
           <span>Photo Verification</span>
         </VerificationItem>
         <VerificationItem completed={isPhoneVerified}>
-          <CheckIcon completed={isPhoneVerified}>
-            {isPhoneVerified ? '✓' : '○'}
-          </CheckIcon>
+          <CheckIcon completed={isPhoneVerified}>{isPhoneVerified ? '✓' : '○'}</CheckIcon>
           <span>Phone Verification</span>
         </VerificationItem>
         <VerificationItem completed={isEmailVerified}>
-          <CheckIcon completed={isEmailVerified}>
-            {isEmailVerified ? '✓' : '○'}
-          </CheckIcon>
+          <CheckIcon completed={isEmailVerified}>{isEmailVerified ? '✓' : '○'}</CheckIcon>
           <span>Email Verification</span>
         </VerificationItem>
       </VerificationList>
@@ -161,8 +158,8 @@ export const VerificationSummary: React.FC<VerificationSummaryProps> = ({
 // Styled Components
 const Container = styled.div<{ layout: string }>`
   display: flex;
-  flex-direction: ${props => props.layout === 'vertical' ? 'column' : 'row'};
-  gap: ${props => props.layout === 'stacked' ? '4px' : '8px'};
+  flex-direction: ${(props) => (props.layout === 'vertical' ? 'column' : 'row')};
+  gap: ${(props) => (props.layout === 'stacked' ? '4px' : '8px')};
   align-items: center;
 `;
 
@@ -170,14 +167,17 @@ const Badge = styled.div<{ size: string; color: string }>`
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: ${props => {
+  padding: ${(props) => {
     switch (props.size) {
-      case 'small': return '2px 6px';
-      case 'large': return '6px 12px';
-      default: return '4px 8px';
+      case 'small':
+        return '2px 6px';
+      case 'large':
+        return '6px 12px';
+      default:
+        return '4px 8px';
     }
   }};
-  background: ${props => props.color};
+  background: ${(props) => props.color};
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
@@ -188,11 +188,14 @@ const Badge = styled.div<{ size: string; color: string }>`
 `;
 
 const BadgeIcon = styled.span<{ size: string }>`
-  font-size: ${props => {
+  font-size: ${(props) => {
     switch (props.size) {
-      case 'small': return '10px';
-      case 'large': return '18px';
-      default: return '14px';
+      case 'small':
+        return '10px';
+      case 'large':
+        return '18px';
+      default:
+        return '14px';
     }
   }};
   color: white;
@@ -201,11 +204,14 @@ const BadgeIcon = styled.span<{ size: string }>`
 `;
 
 const BadgeLabel = styled.span<{ size: string }>`
-  font-size: ${props => {
+  font-size: ${(props) => {
     switch (props.size) {
-      case 'small': return '10px';
-      case 'large': return '14px';
-      default: return '12px';
+      case 'small':
+        return '10px';
+      case 'large':
+        return '14px';
+      default:
+        return '12px';
     }
   }};
   color: white;
@@ -226,7 +232,7 @@ const SummaryText = styled.div`
   margin-bottom: 12px;
 
   strong {
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 `;
 
@@ -240,9 +246,9 @@ const ProgressBar = styled.div`
 `;
 
 const ProgressFill = styled.div<{ percentage: number }>`
-  width: ${props => props.percentage}%;
+  width: ${(props) => props.percentage}%;
   height: 100%;
-  background: linear-gradient(90deg, #4ECDC4, #5B8DEF);
+  background: linear-gradient(90deg, #4ecdc4, #5b8def);
   transition: width 0.3s ease;
 `;
 
@@ -257,8 +263,8 @@ const VerificationItem = styled.div<{ completed: boolean }>`
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: ${props => props.completed ? '#4ECDC4' : '#999'};
-  font-weight: ${props => props.completed ? '600' : '400'};
+  color: ${(props) => (props.completed ? '#4ECDC4' : '#999')};
+  font-weight: ${(props) => (props.completed ? '600' : '400')};
 `;
 
 const CheckIcon = styled.span<{ completed: boolean }>`
@@ -268,7 +274,7 @@ const CheckIcon = styled.span<{ completed: boolean }>`
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: ${props => props.completed ? '#4ECDC4' : '#e0e0e0'};
+  background: ${(props) => (props.completed ? '#4ECDC4' : '#e0e0e0')};
   color: white;
   font-size: 12px;
   font-weight: bold;

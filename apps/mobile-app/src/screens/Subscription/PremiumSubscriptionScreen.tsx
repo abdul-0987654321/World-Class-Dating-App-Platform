@@ -128,7 +128,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
       // Check current subscription status from available purchases
       const purchases = await InAppPurchaseService.getAvailablePurchases();
       if (purchases.length > 0) {
-        const activeSubscription = purchases.find(p =>
+        const activeSubscription = purchases.find((p) =>
           Object.values(SUBSCRIPTION_SKUS).includes(p.productId)
         );
         if (activeSubscription) {
@@ -143,7 +143,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
   };
 
   const handleSubscribe = async () => {
-    const tier = SUBSCRIPTION_TIERS.find(t => t.id === selectedTier);
+    const tier = SUBSCRIPTION_TIERS.find((t) => t.id === selectedTier);
     if (!tier || !tier.skus) return;
 
     const skuMap = {
@@ -191,7 +191,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
     };
 
     const sku = skuMap[period];
-    const subscription = subscriptions.find(s => s.productId === sku);
+    const subscription = subscriptions.find((s) => s.productId === sku);
 
     return subscription?.localizedPrice || '...';
   };
@@ -213,15 +213,12 @@ const PremiumSubscriptionScreen: React.FC = () => {
     );
   }
 
-  const selectedTierData = SUBSCRIPTION_TIERS.find(t => t.id === selectedTier)!;
+  const selectedTierData = SUBSCRIPTION_TIERS.find((t) => t.id === selectedTier)!;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
           <Icon name="close" size={28} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Upgrade to Premium</Text>
@@ -231,7 +228,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Tier Selection */}
         <View style={styles.tierSelector}>
-          {SUBSCRIPTION_TIERS.filter(t => t.id !== 'basic').map((tier) => (
+          {SUBSCRIPTION_TIERS.filter((t) => t.id !== 'basic').map((tier) => (
             <TouchableOpacity
               key={tier.id}
               style={[
@@ -264,10 +261,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
             onPress={() => setSelectedPeriod('monthly')}
           >
             <Text
-              style={[
-                styles.periodText,
-                selectedPeriod === 'monthly' && styles.periodTextSelected,
-              ]}
+              style={[styles.periodText, selectedPeriod === 'monthly' && styles.periodTextSelected]}
             >
               1 Month
             </Text>
@@ -320,10 +314,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
               <Text style={styles.savingsText}>{getSavingsText('yearly')}</Text>
             </View>
             <Text
-              style={[
-                styles.periodText,
-                selectedPeriod === 'yearly' && styles.periodTextSelected,
-              ]}
+              style={[styles.periodText, selectedPeriod === 'yearly' && styles.periodTextSelected]}
             >
               1 Year
             </Text>
@@ -340,9 +331,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
 
         {/* Features List */}
         <View style={styles.featuresSection}>
-          <Text style={styles.featuresTitle}>
-            {selectedTierData.name} Features
-          </Text>
+          <Text style={styles.featuresTitle}>{selectedTierData.name} Features</Text>
 
           {selectedTierData.features.map((feature, index) => (
             <View key={index} style={styles.featureRow}>
@@ -398,9 +387,9 @@ const PremiumSubscriptionScreen: React.FC = () => {
 
         {/* Terms */}
         <Text style={styles.terms}>
-          Subscriptions automatically renew unless auto-renew is turned off at least
-          24 hours before the end of the current period. Payment will be charged to
-          your App Store or Google Play account.
+          Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before
+          the end of the current period. Payment will be charged to your App Store or Google Play
+          account.
         </Text>
       </ScrollView>
 
@@ -414,9 +403,7 @@ const PremiumSubscriptionScreen: React.FC = () => {
           {purchasing ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={styles.subscribeButtonText}>
-              Continue with {selectedTierData.name}
-            </Text>
+            <Text style={styles.subscribeButtonText}>Continue with {selectedTierData.name}</Text>
           )}
         </TouchableOpacity>
 

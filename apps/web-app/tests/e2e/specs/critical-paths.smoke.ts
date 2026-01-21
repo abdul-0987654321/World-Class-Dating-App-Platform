@@ -15,10 +15,7 @@ test.describe('Critical Path - Smoke Tests', () => {
     const discoverPage = new DiscoverPage(page);
 
     await loginPage.goto();
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
+    await loginPage.login(process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
     await loginPage.expectSuccessfulLogin();
     await discoverPage.isLoaded();
   });
@@ -64,7 +61,7 @@ test.describe('Critical Path - Smoke Tests', () => {
 
   test('App handles network errors gracefully', async ({ page }) => {
     // Simulate offline
-    await page.route('**/api/**', route => route.abort());
+    await page.route('**/api/**', (route) => route.abort());
 
     await page.goto('/discover');
     await expect(page.getByTestId('error-message')).toBeVisible();

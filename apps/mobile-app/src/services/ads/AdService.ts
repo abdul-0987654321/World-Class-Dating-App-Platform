@@ -173,48 +173,39 @@ class AdServiceClass implements IAdService {
       });
 
       // Set up event listeners
-      const unsubscribeLoaded = interstitial.addAdEventListener(
-        AdEventType.LOADED,
-        () => {
-          console.log('[AdService] Interstitial loaded');
-          this.isLoadingInterstitial = false;
-          AdManager.trackEvent({
-            eventType: 'loaded',
-            adType: 'interstitial',
-            network: 'admob',
-            timestamp: Date.now(),
-          });
-        }
-      );
+      const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+        console.log('[AdService] Interstitial loaded');
+        this.isLoadingInterstitial = false;
+        AdManager.trackEvent({
+          eventType: 'loaded',
+          adType: 'interstitial',
+          network: 'admob',
+          timestamp: Date.now(),
+        });
+      });
 
-      const unsubscribeError = interstitial.addAdEventListener(
-        AdEventType.ERROR,
-        (error) => {
-          console.error('[AdService] Interstitial error:', error);
-          this.isLoadingInterstitial = false;
-          this.lastError = new Error(error.message);
-          AdManager.trackEvent({
-            eventType: 'failed',
-            adType: 'interstitial',
-            network: 'admob',
-            timestamp: Date.now(),
-            metadata: { error: error.message },
-          });
-        }
-      );
+      const unsubscribeError = interstitial.addAdEventListener(AdEventType.ERROR, (error) => {
+        console.error('[AdService] Interstitial error:', error);
+        this.isLoadingInterstitial = false;
+        this.lastError = new Error(error.message);
+        AdManager.trackEvent({
+          eventType: 'failed',
+          adType: 'interstitial',
+          network: 'admob',
+          timestamp: Date.now(),
+          metadata: { error: error.message },
+        });
+      });
 
-      const unsubscribeClosed = interstitial.addAdEventListener(
-        AdEventType.CLOSED,
-        () => {
-          console.log('[AdService] Interstitial closed');
-          // Clean up and preload next ad
-          unsubscribeLoaded();
-          unsubscribeError();
-          unsubscribeClosed();
-          this.interstitialAd = null;
-          this.loadInterstitialAd(); // Preload next
-        }
-      );
+      const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+        console.log('[AdService] Interstitial closed');
+        // Clean up and preload next ad
+        unsubscribeLoaded();
+        unsubscribeError();
+        unsubscribeClosed();
+        this.interstitialAd = null;
+        this.loadInterstitialAd(); // Preload next
+      });
 
       interstitial.load();
       this.interstitialAd = interstitial;
@@ -283,35 +274,29 @@ class AdServiceClass implements IAdService {
       });
 
       // Set up event listeners
-      const unsubscribeLoaded = rewarded.addAdEventListener(
-        RewardedAdEventType.LOADED,
-        () => {
-          console.log('[AdService] Rewarded loaded');
-          this.isLoadingRewarded = false;
-          AdManager.trackEvent({
-            eventType: 'loaded',
-            adType: 'rewarded',
-            network: 'admob',
-            timestamp: Date.now(),
-          });
-        }
-      );
+      const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+        console.log('[AdService] Rewarded loaded');
+        this.isLoadingRewarded = false;
+        AdManager.trackEvent({
+          eventType: 'loaded',
+          adType: 'rewarded',
+          network: 'admob',
+          timestamp: Date.now(),
+        });
+      });
 
-      const unsubscribeError = rewarded.addAdEventListener(
-        AdEventType.ERROR,
-        (error) => {
-          console.error('[AdService] Rewarded error:', error);
-          this.isLoadingRewarded = false;
-          this.lastError = new Error(error.message);
-          AdManager.trackEvent({
-            eventType: 'failed',
-            adType: 'rewarded',
-            network: 'admob',
-            timestamp: Date.now(),
-            metadata: { error: error.message },
-          });
-        }
-      );
+      const unsubscribeError = rewarded.addAdEventListener(AdEventType.ERROR, (error) => {
+        console.error('[AdService] Rewarded error:', error);
+        this.isLoadingRewarded = false;
+        this.lastError = new Error(error.message);
+        AdManager.trackEvent({
+          eventType: 'failed',
+          adType: 'rewarded',
+          network: 'admob',
+          timestamp: Date.now(),
+          metadata: { error: error.message },
+        });
+      });
 
       rewarded.load();
       this.rewardedAd = rewarded;
@@ -339,7 +324,7 @@ class AdServiceClass implements IAdService {
       // Try to load
       await this.loadRewardedAd();
       // Wait a bit for ad to load
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       if (!this.rewardedAd?.loaded) {
         return null;
       }
@@ -354,7 +339,7 @@ class AdServiceClass implements IAdService {
           console.log('[AdService] Reward earned:', reward);
 
           // Find the reward configuration
-          const rewardConfig = DEFAULT_REWARDS.find(r => r.type === rewardId as RewardType);
+          const rewardConfig = DEFAULT_REWARDS.find((r) => r.type === (rewardId as RewardType));
 
           earnedReward = {
             rewardId,
@@ -375,17 +360,14 @@ class AdServiceClass implements IAdService {
         }
       );
 
-      const unsubscribeClosed = this.rewardedAd!.addAdEventListener(
-        AdEventType.CLOSED,
-        () => {
-          console.log('[AdService] Rewarded closed');
-          unsubscribeEarned();
-          unsubscribeClosed();
-          this.rewardedAd = null;
-          this.loadRewardedAd(); // Preload next
-          resolve(earnedReward);
-        }
-      );
+      const unsubscribeClosed = this.rewardedAd!.addAdEventListener(AdEventType.CLOSED, () => {
+        console.log('[AdService] Rewarded closed');
+        unsubscribeEarned();
+        unsubscribeClosed();
+        this.rewardedAd = null;
+        this.loadRewardedAd(); // Preload next
+        resolve(earnedReward);
+      });
 
       // Show the ad
       this.rewardedAd!.show().catch((error) => {
@@ -446,7 +428,7 @@ class AdServiceClass implements IAdService {
     const remainingViews = AdManager.getRemainingRewardedViews();
     const timeUntilNext = AdManager.getTimeUntilNextRewarded();
 
-    return DEFAULT_REWARDS.map(config => ({
+    return DEFAULT_REWARDS.map((config) => ({
       id: config.type,
       config,
       available: remainingViews > 0 && timeUntilNext === 0,

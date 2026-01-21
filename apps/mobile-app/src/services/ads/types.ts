@@ -11,12 +11,12 @@ export type AdType = 'banner' | 'interstitial' | 'rewarded';
 
 // Ad Sizes for banners
 export type BannerAdSize =
-  | 'banner'           // 320x50
-  | 'largeBanner'      // 320x100
-  | 'mediumRectangle'  // 300x250
-  | 'fullBanner'       // 468x60
-  | 'leaderboard'      // 728x90
-  | 'smartBanner';     // Adaptive
+  | 'banner' // 320x50
+  | 'largeBanner' // 320x100
+  | 'mediumRectangle' // 300x250
+  | 'fullBanner' // 468x60
+  | 'leaderboard' // 728x90
+  | 'smartBanner'; // Adaptive
 
 // Banner placement positions
 export type BannerPlacement =
@@ -35,12 +35,7 @@ export type InterstitialTrigger =
   | 'app_resume';
 
 // Reward types for video ads
-export type RewardType =
-  | 'coins'
-  | 'super_likes'
-  | 'boosts'
-  | 'rewinds'
-  | 'premium_trial';
+export type RewardType = 'coins' | 'super_likes' | 'boosts' | 'rewinds' | 'premium_trial';
 
 // Ad Unit IDs - Platform specific
 export interface AdUnitIds {
@@ -266,19 +261,19 @@ export const DEFAULT_AD_CONFIG: AdConfig = {
 // Default frequency cap configuration
 export const DEFAULT_FREQUENCY_CAP: FrequencyCapConfig = {
   interstitial: {
-    minSecondsBetweenAds: 60,      // 1 minute minimum between interstitials
-    maxAdsPerSession: 5,           // Max 5 interstitials per session
-    maxAdsPerDay: 15,              // Max 15 interstitials per day
-    minActionsBeforeFirstAd: 3,   // User must take 3 actions before first ad
-    cooldownAfterPurchase: 24,    // 24 hour cooldown after purchase
+    minSecondsBetweenAds: 60, // 1 minute minimum between interstitials
+    maxAdsPerSession: 5, // Max 5 interstitials per session
+    maxAdsPerDay: 15, // Max 15 interstitials per day
+    minActionsBeforeFirstAd: 3, // User must take 3 actions before first ad
+    cooldownAfterPurchase: 24, // 24 hour cooldown after purchase
   },
   rewarded: {
-    maxViewsPerDay: 10,            // Max 10 reward videos per day
-    cooldownBetweenViews: 300,     // 5 minutes between views
-    resetTime: '00:00',            // Reset at midnight
+    maxViewsPerDay: 10, // Max 10 reward videos per day
+    cooldownBetweenViews: 300, // 5 minutes between views
+    resetTime: '00:00', // Reset at midnight
   },
   banner: {
-    refreshIntervalSeconds: 60,    // Refresh banner every 60 seconds
+    refreshIntervalSeconds: 60, // Refresh banner every 60 seconds
   },
 };
 

@@ -30,25 +30,25 @@ interface EventCardProps {
 const CATEGORY_EMOJIS: Record<string, string> = {
   'speed-dating': '⚡',
   'singles-mixer': '🎉',
-  'outdoor': '🌳',
-  'cooking': '👨‍🍳',
+  outdoor: '🌳',
+  cooking: '👨‍🍳',
   'wine-tasting': '🍷',
   'game-night': '🎮',
-  'fitness': '💪',
-  'arts': '🎨',
-  'virtual': '💻',
+  fitness: '💪',
+  arts: '🎨',
+  virtual: '💻',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
   'speed-dating': 'Speed Dating',
   'singles-mixer': 'Mixer',
-  'outdoor': 'Outdoor',
-  'cooking': 'Cooking',
+  outdoor: 'Outdoor',
+  cooking: 'Cooking',
   'wine-tasting': 'Wine',
   'game-night': 'Games',
-  'fitness': 'Fitness',
-  'arts': 'Arts',
-  'virtual': 'Virtual',
+  fitness: 'Fitness',
+  arts: 'Arts',
+  virtual: 'Virtual',
 };
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -172,9 +172,7 @@ const EventCard: React.FC<EventCardProps> = ({
 
             {/* Price */}
             <div className="bg-gray-100 px-3 py-1 rounded-lg">
-              <span className="font-bold text-gray-900">
-                {price === 0 ? 'Free' : `$${price}`}
-              </span>
+              <span className="font-bold text-gray-900">{price === 0 ? 'Free' : `$${price}`}</span>
             </div>
           </div>
         </div>

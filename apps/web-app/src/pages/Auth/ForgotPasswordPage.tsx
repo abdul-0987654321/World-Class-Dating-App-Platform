@@ -39,20 +39,28 @@ export const ForgotPasswordPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-md w-full bg-fm-surface/80 backdrop-blur-sm rounded-2xl border border-white/10 p-8 text-center">
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <svg
+                className="w-8 h-8 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-fm-text-primary mb-4">Check Your Email</h1>
             <p className="text-fm-text-secondary mb-6">
-              We've sent password reset instructions to <span className="text-fm-text-primary font-medium">{email}</span>
+              We've sent password reset instructions to{' '}
+              <span className="text-fm-text-primary font-medium">{email}</span>
             </p>
             <p className="text-sm text-fm-text-secondary mb-6">
               Didn't receive the email? Check your spam folder or{' '}
-              <button
-                onClick={() => setSubmitted(false)}
-                className="text-fm-pink hover:underline"
-              >
+              <button onClick={() => setSubmitted(false)} className="text-fm-pink hover:underline">
                 try again
               </button>
             </p>
@@ -90,7 +98,10 @@ export const ForgotPasswordPage: React.FC = () => {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-fm-text-secondary mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-fm-text-secondary mb-2"
+              >
                 Email Address
               </label>
               <input

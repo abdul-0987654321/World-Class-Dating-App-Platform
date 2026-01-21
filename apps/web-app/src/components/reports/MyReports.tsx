@@ -107,7 +107,7 @@ export const MyReports: React.FC = () => {
           <label>Filter by status:</label>
           <select
             value={statusFilter || ''}
-            onChange={(e) => setStatusFilter(e.target.value as ReportStatus || undefined)}
+            onChange={(e) => setStatusFilter((e.target.value as ReportStatus) || undefined)}
             className="status-filter"
           >
             <option value="">All Reports</option>
@@ -149,61 +149,59 @@ export const MyReports: React.FC = () => {
               const actionTaken = report.actionTaken || report.resolution;
 
               return (
-              <div key={report.id} className="report-card">
-                <div className="report-header-row">
-                  <div className="report-user">
-                    <div className="user-avatar">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={firstName}
-                        />
-                      ) : (
-                        <div className="avatar-placeholder">
-                          {firstName.charAt(0)}
-                          {lastName.charAt(0)}
-                        </div>
-                      )}
+                <div key={report.id} className="report-card">
+                  <div className="report-header-row">
+                    <div className="report-user">
+                      <div className="user-avatar">
+                        {photoUrl ? (
+                          <img src={photoUrl} alt={firstName} />
+                        ) : (
+                          <div className="avatar-placeholder">
+                            {firstName.charAt(0)}
+                            {lastName.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="user-info">
+                        <h4>
+                          {firstName} {lastName}
+                        </h4>
+                        <span className="report-date">{formatDate(report.createdAt)}</span>
+                      </div>
                     </div>
-                    <div className="user-info">
-                      <h4>
-                        {firstName} {lastName}
-                      </h4>
-                      <span className="report-date">{formatDate(report.createdAt)}</span>
-                    </div>
-                  </div>
-                  {getStatusBadge(report.status)}
-                </div>
-
-                <div className="report-details">
-                  <div className="detail-row">
-                    <span className="detail-label">Type:</span>
-                    <span className="detail-value">{formatReportType(reportType)}</span>
+                    {getStatusBadge(report.status)}
                   </div>
 
-                  {report.description && (
+                  <div className="report-details">
                     <div className="detail-row">
-                      <span className="detail-label">Description:</span>
-                      <span className="detail-value">{report.description}</span>
+                      <span className="detail-label">Type:</span>
+                      <span className="detail-value">{formatReportType(reportType)}</span>
                     </div>
-                  )}
 
-                  {actionTaken && (
-                    <div className="action-taken">
-                      <span className="action-label">Action Taken:</span>
-                      <span className="action-value">{actionTaken}</span>
-                    </div>
-                  )}
+                    {report.description && (
+                      <div className="detail-row">
+                        <span className="detail-label">Description:</span>
+                        <span className="detail-value">{report.description}</span>
+                      </div>
+                    )}
 
-                  {report.resolvedAt && (
-                    <div className="detail-row">
-                      <span className="detail-label">Resolved:</span>
-                      <span className="detail-value">{formatDate(report.resolvedAt)}</span>
-                    </div>
-                  )}
+                    {actionTaken && (
+                      <div className="action-taken">
+                        <span className="action-label">Action Taken:</span>
+                        <span className="action-value">{actionTaken}</span>
+                      </div>
+                    )}
+
+                    {report.resolvedAt && (
+                      <div className="detail-row">
+                        <span className="detail-label">Resolved:</span>
+                        <span className="detail-value">{formatDate(report.resolvedAt)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );})}
+              );
+            })}
           </div>
 
           {hasMore && (

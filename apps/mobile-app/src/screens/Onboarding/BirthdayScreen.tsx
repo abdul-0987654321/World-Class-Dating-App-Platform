@@ -4,14 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -80,8 +73,18 @@ const BirthdayScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const formatDate = (d: Date): string => {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   };
@@ -102,24 +105,16 @@ const BirthdayScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>2 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
         <View style={styles.questionContainer}>
           <Text style={styles.title}>When's your birthday, {name}?</Text>
-          <Text style={styles.subtitle}>
-            Your age will be shown on your profile
-          </Text>
+          <Text style={styles.subtitle}>Your age will be shown on your profile</Text>
 
           {Platform.OS === 'android' && (
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowPicker(true)}
-            >
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowPicker(true)}>
               <Text style={styles.dateButtonText}>{formatDate(date)}</Text>
             </TouchableOpacity>
           )}
@@ -146,9 +141,7 @@ const BirthdayScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )}
 
-          <Text style={styles.hint}>
-            This can't be changed later. Make sure it's accurate.
-          </Text>
+          <Text style={styles.hint}>This can't be changed later. Make sure it's accurate.</Text>
         </View>
 
         <View style={styles.footer}>
@@ -157,9 +150,7 @@ const BirthdayScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={handleContinue}
             disabled={!isValid}
           >
-            <Text style={[styles.buttonText, !isValid && styles.buttonTextDisabled]}>
-              Continue
-            </Text>
+            <Text style={[styles.buttonText, !isValid && styles.buttonTextDisabled]}>Continue</Text>
           </TouchableOpacity>
         </View>
       </View>

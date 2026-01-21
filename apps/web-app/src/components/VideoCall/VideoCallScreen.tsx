@@ -47,7 +47,9 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [callDuration, setCallDuration] = useState(0);
   const [connectionState, setConnectionState] = useState<string>('CONNECTING');
-  const [networkQuality, setNetworkQuality] = useState<'excellent' | 'good' | 'fair' | 'poor'>('good');
+  const [networkQuality, setNetworkQuality] = useState<'excellent' | 'good' | 'fair' | 'poor'>(
+    'good'
+  );
 
   const localVideoRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useRef<HTMLDivElement>(null);
@@ -337,21 +339,13 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
           </button>
         )}
 
-        <button
-          className="control-button end-call"
-          onClick={handleEndCall}
-          title="End Call"
-        >
+        <button className="control-button end-call" onClick={handleEndCall} title="End Call">
           <span className="icon">📞</span>
           <span className="label">End</span>
         </button>
 
         {!isAudioOnly && (
-          <button
-            className="control-button"
-            onClick={switchCamera}
-            title="Switch Camera"
-          >
+          <button className="control-button" onClick={switchCamera} title="Switch Camera">
             <span className="icon">🔄</span>
             <span className="label">Flip</span>
           </button>

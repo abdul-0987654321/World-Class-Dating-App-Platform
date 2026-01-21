@@ -21,7 +21,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingStackParamList } from './OnboardingNavigator';
 import { createApiClient, ProfileApi } from '../../api/client';
 
-type OnboardingCompleteScreenNavigationProp = StackNavigationProp<OnboardingStackParamList, 'OnboardingComplete'>;
+type OnboardingCompleteScreenNavigationProp = StackNavigationProp<
+  OnboardingStackParamList,
+  'OnboardingComplete'
+>;
 type OnboardingCompleteScreenRouteProp = RouteProp<OnboardingStackParamList, 'OnboardingComplete'>;
 
 interface Props {
@@ -94,6 +97,12 @@ const OnboardingCompleteScreen: React.FC<Props> = ({ navigation, route }) => {
       });
       const profileApi = new ProfileApi(apiClient);
 
+      // Transform prompts from {promptId, answer} to {question, answer} format
+      const transformedPrompts = (profileData.prompts || []).map((p) => ({
+        question: p.promptId,
+        answer: p.answer,
+      }));
+
       await profileApi.createProfile({
         name: profileData.name,
         birthday: profileData.birthday,
@@ -101,10 +110,15 @@ const OnboardingCompleteScreen: React.FC<Props> = ({ navigation, route }) => {
         interestedIn: profileData.interestedIn || [],
         photos: profileData.photos || [],
         interests: profileData.interests || [],
-        prompts: profileData.prompts || [],
-        location: profileData.location,
+        prompts: transformedPrompts,
+        location: profileData.location
+          ? {
+              latitude: profileData.location.latitude,
+              longitude: profileData.location.longitude,
+            }
+          : undefined,
         lifestyle: profileData.lifestyle,
-        relationshipGoals: profileData.relationshipGoals,
+        relationshipGoals: profileData.relationshipGoal,
       });
 
       console.log('Profile created successfully');
@@ -250,10 +264,7 @@ const OnboardingCompleteScreen: React.FC<Props> = ({ navigation, route }) => {
         </Animated.View>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleStartExploring}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleStartExploring}>
             <Text style={styles.buttonText}>Start Exploring</Text>
           </TouchableOpacity>
         </View>

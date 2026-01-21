@@ -102,24 +102,30 @@ class ReferralService {
     return response.data;
   }
 
-  async validateCode(code: string): Promise<{ valid: boolean; referrer?: { name: string; photoUrl?: string } }> {
-    const response = await apiClient.get<{ data: { valid: boolean; referrer?: { name: string; photoUrl?: string } } }>(
-      `${this.baseUrl}/validate/${code}`
-    );
+  async validateCode(
+    code: string
+  ): Promise<{ valid: boolean; referrer?: { name: string; photoUrl?: string } }> {
+    const response = await apiClient.get<{
+      data: { valid: boolean; referrer?: { name: string; photoUrl?: string } };
+    }>(`${this.baseUrl}/validate/${code}`);
     return response.data;
   }
 
-  async applyCode(code: string): Promise<{ success: boolean; reward?: { coins?: number; gems?: number; premiumDays?: number } }> {
-    const response = await apiClient.post<{ data: { success: boolean; reward?: { coins?: number; gems?: number; premiumDays?: number } } }>(
-      `${this.baseUrl}/apply`,
-      { code }
-    );
+  async applyCode(code: string): Promise<{
+    success: boolean;
+    reward?: { coins?: number; gems?: number; premiumDays?: number };
+  }> {
+    const response = await apiClient.post<{
+      data: { success: boolean; reward?: { coins?: number; gems?: number; premiumDays?: number } };
+    }>(`${this.baseUrl}/apply`, { code });
     return response.data;
   }
 
   // Referrals List
   async getMyReferrals(status?: string): Promise<Referral[]> {
-    const url = status ? `${this.baseUrl}/my-referrals?status=${status}` : `${this.baseUrl}/my-referrals`;
+    const url = status
+      ? `${this.baseUrl}/my-referrals?status=${status}`
+      : `${this.baseUrl}/my-referrals`;
     const response = await apiClient.get<{ data: { referrals: Referral[] } }>(url);
     return response.data.referrals;
   }
@@ -130,30 +136,49 @@ class ReferralService {
   }
 
   // Rewards
-  async claimReferralReward(referralId: string): Promise<{ success: boolean; reward: { coins?: number; gems?: number; premiumDays?: number } }> {
-    const response = await apiClient.post<{ data: { success: boolean; reward: { coins?: number; gems?: number; premiumDays?: number } } }>(
-      `${this.baseUrl}/${referralId}/claim`
-    );
+  async claimReferralReward(referralId: string): Promise<{
+    success: boolean;
+    reward: { coins?: number; gems?: number; premiumDays?: number };
+  }> {
+    const response = await apiClient.post<{
+      data: { success: boolean; reward: { coins?: number; gems?: number; premiumDays?: number } };
+    }>(`${this.baseUrl}/${referralId}/claim`);
     return response.data;
   }
 
-  async claimAllPendingRewards(): Promise<{ success: boolean; totalClaimed: number; rewards: { coins: number; gems: number; premiumDays: number } }> {
-    const response = await apiClient.post<{ data: { success: boolean; totalClaimed: number; rewards: { coins: number; gems: number; premiumDays: number } } }>(
-      `${this.baseUrl}/claim-all`
-    );
+  async claimAllPendingRewards(): Promise<{
+    success: boolean;
+    totalClaimed: number;
+    rewards: { coins: number; gems: number; premiumDays: number };
+  }> {
+    const response = await apiClient.post<{
+      data: {
+        success: boolean;
+        totalClaimed: number;
+        rewards: { coins: number; gems: number; premiumDays: number };
+      };
+    }>(`${this.baseUrl}/claim-all`);
     return response.data;
   }
 
   // Tiers
   async getTiers(): Promise<ReferralTier[]> {
-    const response = await apiClient.get<{ data: { tiers: ReferralTier[] } }>(`${this.baseUrl}/tiers`);
+    const response = await apiClient.get<{ data: { tiers: ReferralTier[] } }>(
+      `${this.baseUrl}/tiers`
+    );
     return response.data.tiers;
   }
 
-  async claimTierReward(tier: number): Promise<{ success: boolean; reward: { coins?: number; gems?: number; premiumDays?: number; badge?: string } }> {
-    const response = await apiClient.post<{ data: { success: boolean; reward: { coins?: number; gems?: number; premiumDays?: number; badge?: string } } }>(
-      `${this.baseUrl}/tiers/${tier}/claim`
-    );
+  async claimTierReward(tier: number): Promise<{
+    success: boolean;
+    reward: { coins?: number; gems?: number; premiumDays?: number; badge?: string };
+  }> {
+    const response = await apiClient.post<{
+      data: {
+        success: boolean;
+        reward: { coins?: number; gems?: number; premiumDays?: number; badge?: string };
+      };
+    }>(`${this.baseUrl}/tiers/${tier}/claim`);
     return response.data;
   }
 
@@ -164,7 +189,9 @@ class ReferralService {
   }
 
   // Leaderboard
-  async getLeaderboard(period: 'weekly' | 'monthly' | 'all_time' = 'monthly'): Promise<ReferralLeaderboardEntry[]> {
+  async getLeaderboard(
+    period: 'weekly' | 'monthly' | 'all_time' = 'monthly'
+  ): Promise<ReferralLeaderboardEntry[]> {
     const response = await apiClient.get<{ data: { leaderboard: ReferralLeaderboardEntry[] } }>(
       `${this.baseUrl}/leaderboard?period=${period}`
     );
@@ -173,23 +200,42 @@ class ReferralService {
 
   // Share
   async getShareContent(): Promise<{ message: string; url: string; code: string }> {
-    const response = await apiClient.get<{ data: { message: string; url: string; code: string } }>(`${this.baseUrl}/share`);
-    return response.data;
-  }
-
-  async trackShareAction(platform: 'copy' | 'whatsapp' | 'facebook' | 'twitter' | 'email' | 'sms' | 'other'): Promise<void> {
-    await apiClient.post(`${this.baseUrl}/share/track`, { platform });
-  }
-
-  // Notification preferences
-  async getReferralNotificationSettings(): Promise<{ emailOnReferral: boolean; pushOnReferral: boolean; emailOnReward: boolean; pushOnReward: boolean }> {
-    const response = await apiClient.get<{ data: { emailOnReferral: boolean; pushOnReferral: boolean; emailOnReward: boolean; pushOnReward: boolean } }>(
-      `${this.baseUrl}/notifications`
+    const response = await apiClient.get<{ data: { message: string; url: string; code: string } }>(
+      `${this.baseUrl}/share`
     );
     return response.data;
   }
 
-  async updateReferralNotificationSettings(settings: { emailOnReferral?: boolean; pushOnReferral?: boolean; emailOnReward?: boolean; pushOnReward?: boolean }): Promise<void> {
+  async trackShareAction(
+    platform: 'copy' | 'whatsapp' | 'facebook' | 'twitter' | 'email' | 'sms' | 'other'
+  ): Promise<void> {
+    await apiClient.post(`${this.baseUrl}/share/track`, { platform });
+  }
+
+  // Notification preferences
+  async getReferralNotificationSettings(): Promise<{
+    emailOnReferral: boolean;
+    pushOnReferral: boolean;
+    emailOnReward: boolean;
+    pushOnReward: boolean;
+  }> {
+    const response = await apiClient.get<{
+      data: {
+        emailOnReferral: boolean;
+        pushOnReferral: boolean;
+        emailOnReward: boolean;
+        pushOnReward: boolean;
+      };
+    }>(`${this.baseUrl}/notifications`);
+    return response.data;
+  }
+
+  async updateReferralNotificationSettings(settings: {
+    emailOnReferral?: boolean;
+    pushOnReferral?: boolean;
+    emailOnReward?: boolean;
+    pushOnReward?: boolean;
+  }): Promise<void> {
     await apiClient.put(`${this.baseUrl}/notifications`, settings);
   }
 }

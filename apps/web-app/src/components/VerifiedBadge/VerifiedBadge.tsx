@@ -37,7 +37,8 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
 const Container = styled.div<{ $size: 'small' | 'medium' | 'large' }>`
   display: inline-flex;
   align-items: center;
-  gap: ${props => props.$size === 'small' ? '0.25rem' : props.$size === 'medium' ? '0.375rem' : '0.5rem'};
+  gap: ${(props) =>
+    props.$size === 'small' ? '0.25rem' : props.$size === 'medium' ? '0.375rem' : '0.5rem'};
 `;
 
 const BadgeIcon = styled.div<{ $size: 'small' | 'medium' | 'large' }>`
@@ -58,12 +59,13 @@ const CheckIcon = styled.div<{ size: number }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: ${props => props.size}px;
-  height: ${props => props.size}px;
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
 `;
 
 const BadgeText = styled.span<{ $size: 'small' | 'medium' | 'large' }>`
-  font-size: ${props => props.$size === 'small' ? '0.75rem' : props.$size === 'medium' ? '0.875rem' : '1rem'};
+  font-size: ${(props) =>
+    props.$size === 'small' ? '0.75rem' : props.$size === 'medium' ? '0.875rem' : '1rem'};
   font-weight: 600;
   color: #2196f3;
 `;

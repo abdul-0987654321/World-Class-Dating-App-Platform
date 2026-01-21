@@ -59,8 +59,20 @@ const transactionIcons: Record<string, { icon: string; color: string }> = {
 };
 
 const PURCHASE_ITEMS: PurchaseItem[] = [
-  { icon: '⭐', label: 'Super Like', coins: 50, id: 'super_like', description: 'Stand out to someone special' },
-  { icon: '🚀', label: 'Boost', coins: 100, id: 'boost', description: 'Be seen by more people for 30 mins' },
+  {
+    icon: '⭐',
+    label: 'Super Like',
+    coins: 50,
+    id: 'super_like',
+    description: 'Stand out to someone special',
+  },
+  {
+    icon: '🚀',
+    label: 'Boost',
+    coins: 100,
+    id: 'boost',
+    description: 'Be seen by more people for 30 mins',
+  },
   { icon: '↩️', label: 'Rewind', coins: 25, id: 'rewind', description: 'Undo your last swipe' },
   { icon: '👀', label: 'See Likes', coins: 200, id: 'see_likes', description: 'See who likes you' },
 ];
@@ -95,14 +107,17 @@ export const CoinWallet: React.FC<Props> = ({
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }, []);
 
-  const handlePurchaseClick = useCallback((item: PurchaseItem) => {
-    if (balance.balance < item.coins) {
-      setPurchaseError(`Not enough coins. You need ${item.coins - balance.balance} more coins.`);
-      setTimeout(() => setPurchaseError(null), 3000);
-      return;
-    }
-    setConfirmPurchase(item);
-  }, [balance.balance]);
+  const handlePurchaseClick = useCallback(
+    (item: PurchaseItem) => {
+      if (balance.balance < item.coins) {
+        setPurchaseError(`Not enough coins. You need ${item.coins - balance.balance} more coins.`);
+        setTimeout(() => setPurchaseError(null), 3000);
+        return;
+      }
+      setConfirmPurchase(item);
+    },
+    [balance.balance]
+  );
 
   const handleConfirmPurchase = useCallback(async () => {
     if (!confirmPurchase || !onPurchase) return;
@@ -174,7 +189,9 @@ export const CoinWallet: React.FC<Props> = ({
           style={{ background: 'rgba(76,175,80,0.1)', border: '1px solid rgba(76,175,80,0.3)' }}
         >
           <span className="text-xl">✅</span>
-          <p className="text-sm font-medium" style={{ color: '#4CAF50' }}>{purchaseSuccess}</p>
+          <p className="text-sm font-medium" style={{ color: '#4CAF50' }}>
+            {purchaseSuccess}
+          </p>
         </div>
       )}
 
@@ -184,7 +201,9 @@ export const CoinWallet: React.FC<Props> = ({
           style={{ background: 'rgba(244,67,54,0.1)', border: '1px solid rgba(244,67,54,0.3)' }}
         >
           <span className="text-xl">⚠️</span>
-          <p className="text-sm font-medium" style={{ color: '#f44336' }}>{purchaseError}</p>
+          <p className="text-sm font-medium" style={{ color: '#f44336' }}>
+            {purchaseError}
+          </p>
         </div>
       )}
 
@@ -209,10 +228,7 @@ export const CoinWallet: React.FC<Props> = ({
                 {confirmPurchase.description}
               </p>
             </div>
-            <div
-              className="p-4 rounded-xl mb-4"
-              style={{ background: 'rgba(255,215,0,0.1)' }}
-            >
+            <div className="p-4 rounded-xl mb-4" style={{ background: 'rgba(255,215,0,0.1)' }}>
               <div className="flex items-center justify-between">
                 <span style={{ color: 'var(--text-secondary)' }}>{confirmPurchase.label}</span>
                 <span className="font-bold" style={{ color: 'var(--coin-primary)' }}>
@@ -313,7 +329,10 @@ export const CoinWallet: React.FC<Props> = ({
               <p className="text-xs mt-1 font-medium" style={{ color: 'var(--text-primary)' }}>
                 {item.label}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: canAfford ? 'var(--coin-primary)' : '#f44336' }}>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: canAfford ? 'var(--coin-primary)' : '#f44336' }}
+              >
                 {item.coins} 🪙
               </p>
             </button>
@@ -326,7 +345,10 @@ export const CoinWallet: React.FC<Props> = ({
         className="p-4 rounded-xl"
         style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}
       >
-        <h3 className="font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+        <h3
+          className="font-bold mb-3 flex items-center gap-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
           <span>💰</span>
           Ways to Earn Coins
         </h3>
@@ -339,9 +361,7 @@ export const CoinWallet: React.FC<Props> = ({
                 style={{ background: 'rgba(255,255,255,0.05)' }}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">
-                    {transactionIcons[method.type]?.icon || '🪙'}
-                  </span>
+                  <span className="text-xl">{transactionIcons[method.type]?.icon || '🪙'}</span>
                   <div>
                     <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
                       {method.name}
@@ -367,11 +387,21 @@ export const CoinWallet: React.FC<Props> = ({
             <div className="space-y-2">
               {[
                 { icon: '📅', name: 'Daily Login', desc: 'Log in each day', coins: 5 },
-                { icon: '🎁', name: 'Claim Daily Reward', desc: 'Visit the rewards page', coins: 10 },
+                {
+                  icon: '🎁',
+                  name: 'Claim Daily Reward',
+                  desc: 'Visit the rewards page',
+                  coins: 10,
+                },
                 { icon: '💕', name: 'Get a Match', desc: 'When you match with someone', coins: 3 },
                 { icon: '💬', name: 'Send Messages', desc: 'Engage with your matches', coins: 1 },
                 { icon: '🔥', name: 'Streak Milestones', desc: 'Maintain your streaks', coins: 25 },
-                { icon: '🏆', name: 'Unlock Achievements', desc: 'Complete achievements', coins: 10 },
+                {
+                  icon: '🏆',
+                  name: 'Unlock Achievements',
+                  desc: 'Complete achievements',
+                  coins: 10,
+                },
               ].map((item, idx) => (
                 <div
                   key={idx}
@@ -404,14 +434,20 @@ export const CoinWallet: React.FC<Props> = ({
         className="p-4 rounded-xl"
         style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)' }}
       >
-        <h3 className="font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+        <h3
+          className="font-bold mb-3 flex items-center gap-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
           <span>📜</span>
           Recent Transactions
         </h3>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {transactions.length > 0 ? (
             transactions.map((tx) => {
-              const { icon, color } = transactionIcons[tx.source] || { icon: '🪙', color: 'var(--coin-primary)' };
+              const { icon, color } = transactionIcons[tx.source] || {
+                icon: '🪙',
+                color: 'var(--coin-primary)',
+              };
               const isPositive = tx.type === 'earned' || tx.type === 'purchased';
 
               return (
@@ -432,11 +468,9 @@ export const CoinWallet: React.FC<Props> = ({
                     </div>
                   </div>
                   <div className="text-right">
-                    <p
-                      className="font-bold"
-                      style={{ color: isPositive ? '#4CAF50' : '#f44336' }}
-                    >
-                      {isPositive ? '+' : '-'}{Math.abs(tx.amount)} 🪙
+                    <p className="font-bold" style={{ color: isPositive ? '#4CAF50' : '#f44336' }}>
+                      {isPositive ? '+' : '-'}
+                      {Math.abs(tx.amount)} 🪙
                     </p>
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       Bal: {tx.balanceAfter}

@@ -6,7 +6,14 @@
 import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
-import { FaCamera, FaUpload, FaCheckCircle, FaTimesCircle, FaSpinner, FaRedo } from 'react-icons/fa';
+import {
+  FaCamera,
+  FaUpload,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaSpinner,
+  FaRedo,
+} from 'react-icons/fa';
 import apiClient, { ApiError } from '../../services/api.client';
 
 type UploadType = 'selfie' | 'document' | 'id_front' | 'id_back';
@@ -140,7 +147,7 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
 
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
     setIsCameraMode(false);
@@ -163,13 +170,17 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
         }
         context.drawImage(video, 0, 0);
 
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], `${type}-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            setSelectedFile(file);
-            setPreviewUrl(canvas.toDataURL('image/jpeg'));
-          }
-        }, 'image/jpeg', 0.9);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const file = new File([blob], `${type}-${Date.now()}.jpg`, { type: 'image/jpeg' });
+              setSelectedFile(file);
+              setPreviewUrl(canvas.toDataURL('image/jpeg'));
+            }
+          },
+          'image/jpeg',
+          0.9
+        );
       }
 
       stopCamera();
@@ -236,7 +247,7 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
     const pollInterval = 2000;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
 
       try {
         const response = await apiClient.get<{ success: boolean; data: VerificationResult }>(
@@ -274,13 +285,7 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
 
   const renderCameraView = () => (
     <CameraContainer>
-      <Video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        $mirror={type === 'selfie'}
-      />
+      <Video ref={videoRef} autoPlay playsInline muted $mirror={type === 'selfie'} />
       <CameraOverlay>
         {type === 'selfie' && <FaceGuide />}
         <CameraControls>
@@ -348,9 +353,7 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
       <SpinnerIcon>
         <FaSpinner className="spin" />
       </SpinnerIcon>
-      <ProcessingTitle>
-        {status === 'uploading' ? 'Uploading...' : 'Processing...'}
-      </ProcessingTitle>
+      <ProcessingTitle>{status === 'uploading' ? 'Uploading...' : 'Processing...'}</ProcessingTitle>
       <ProcessingDescription>
         {status === 'uploading'
           ? 'Uploading your photo securely'
@@ -391,9 +394,7 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
     <Container>
       <Header>
         <Title>{config.title}</Title>
-        {onCancel && status === 'idle' && (
-          <CancelButton onClick={onCancel}>Cancel</CancelButton>
-        )}
+        {onCancel && status === 'idle' && <CancelButton onClick={onCancel}>Cancel</CancelButton>}
       </Header>
 
       {isCameraMode && renderCameraView()}
@@ -532,12 +533,12 @@ const ActionButton = styled.button<{ $variant: 'primary' | 'secondary' }>`
   cursor: pointer;
   transition: all 0.2s;
 
-  background-color: ${props => props.$variant === 'primary' ? '#3b82f6' : 'white'};
-  color: ${props => props.$variant === 'primary' ? 'white' : '#374151'};
-  border: ${props => props.$variant === 'primary' ? 'none' : '1px solid #d1d5db'};
+  background-color: ${(props) => (props.$variant === 'primary' ? '#3b82f6' : 'white')};
+  color: ${(props) => (props.$variant === 'primary' ? 'white' : '#374151')};
+  border: ${(props) => (props.$variant === 'primary' ? 'none' : '1px solid #d1d5db')};
 
   &:hover {
-    background-color: ${props => props.$variant === 'primary' ? '#2563eb' : '#f9fafb'};
+    background-color: ${(props) => (props.$variant === 'primary' ? '#2563eb' : '#f9fafb')};
   }
 `;
 
@@ -592,7 +593,7 @@ const CameraContainer = styled.div`
 const Video = styled.video<{ $mirror?: boolean }>`
   width: 100%;
   display: block;
-  transform: ${props => props.$mirror ? 'scaleX(-1)' : 'none'};
+  transform: ${(props) => (props.$mirror ? 'scaleX(-1)' : 'none')};
 `;
 
 const CameraOverlay = styled.div`
@@ -627,7 +628,7 @@ const CameraControls = styled.div`
 
 const CameraButton = styled.button<{ $variant?: 'cancel' }>`
   padding: 12px 24px;
-  background-color: ${props => props.$variant === 'cancel' ? 'rgba(0, 0, 0, 0.5)' : '#3b82f6'};
+  background-color: ${(props) => (props.$variant === 'cancel' ? 'rgba(0, 0, 0, 0.5)' : '#3b82f6')};
   color: white;
   border: none;
   border-radius: 8px;
@@ -681,8 +682,12 @@ const SpinnerIcon = styled.div`
   }
 
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -709,7 +714,7 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div<{ $progress: number }>`
   height: 100%;
-  width: ${props => props.$progress}%;
+  width: ${(props) => props.$progress}%;
   background: linear-gradient(90deg, #3b82f6, #10b981);
   transition: width 0.3s;
 `;
@@ -721,14 +726,14 @@ const ResultContainer = styled.div`
 
 const ResultIcon = styled.div<{ $success?: boolean }>`
   font-size: 64px;
-  color: ${props => props.$success ? '#10b981' : '#ef4444'};
+  color: ${(props) => (props.$success ? '#10b981' : '#ef4444')};
   margin-bottom: 24px;
 `;
 
 const ResultTitle = styled.h3<{ $success?: boolean }>`
   font-size: 20px;
   font-weight: 700;
-  color: ${props => props.$success ? '#10b981' : '#ef4444'};
+  color: ${(props) => (props.$success ? '#10b981' : '#ef4444')};
   margin-bottom: 12px;
 `;
 

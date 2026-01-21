@@ -109,10 +109,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({
         withSequence(
           withSpring(1.2, { damping: 8, stiffness: 100 }),
           withSpring(1, { damping: 10, stiffness: 150 }),
-          withSequence(
-            withTiming(1.1, { duration: 500 }),
-            withTiming(1, { duration: 500 })
-          )
+          withSequence(withTiming(1.1, { duration: 500 }), withTiming(1, { duration: 500 }))
         )
       );
 
@@ -130,10 +127,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({
   }));
 
   const titleAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: titleScale.value },
-      { rotate: `${titleRotate.value}deg` },
-    ],
+    transform: [{ scale: titleScale.value }, { rotate: `${titleRotate.value}deg` }],
   }));
 
   const leftImageAnimatedStyle = useAnimatedStyle(() => ({
@@ -211,21 +205,14 @@ export const MatchModal: React.FC<MatchModalProps> = ({
 
               {/* Match Image */}
               <Animated.View style={[styles.imageWrapper, rightImageAnimatedStyle]}>
-                <Image
-                  source={{ uri: matchedProfile.photo }}
-                  style={styles.profileImage}
-                />
+                <Image source={{ uri: matchedProfile.photo }} style={styles.profileImage} />
               </Animated.View>
             </View>
 
             {/* Subtitle */}
             <Animated.View style={contentAnimatedStyle}>
-              <Text style={styles.subtitle}>
-                You and {matchedProfile.name} liked each other!
-              </Text>
-              <Text style={styles.message}>
-                Start a conversation and make a connection
-              </Text>
+              <Text style={styles.subtitle}>You and {matchedProfile.name} liked each other!</Text>
+              <Text style={styles.message}>Start a conversation and make a connection</Text>
             </Animated.View>
 
             {/* Action Buttons */}

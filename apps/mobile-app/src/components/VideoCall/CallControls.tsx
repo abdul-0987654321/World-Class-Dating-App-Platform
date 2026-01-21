@@ -4,13 +4,7 @@
  */
 
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 
 interface CallControlsProps {
   isMuted: boolean;
@@ -57,19 +51,14 @@ const CallControls: React.FC<CallControlsProps> = ({
         {/* Video Toggle (only for video calls) */}
         {!isAudioOnly && (
           <TouchableOpacity
-            style={[
-              styles.controlButton,
-              !isVideoEnabled && styles.controlButtonActive,
-            ]}
+            style={[styles.controlButton, !isVideoEnabled && styles.controlButtonActive]}
             onPress={onToggleVideo}
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
               <Text style={styles.icon}>{isVideoEnabled ? '📹' : '📷'}</Text>
             </View>
-            <Text style={styles.label}>
-              {isVideoEnabled ? 'Stop' : 'Start'}
-            </Text>
+            <Text style={styles.label}>{isVideoEnabled ? 'Stop' : 'Start'}</Text>
           </TouchableOpacity>
         )}
 
@@ -87,10 +76,7 @@ const CallControls: React.FC<CallControlsProps> = ({
 
         {/* Speaker Toggle */}
         <TouchableOpacity
-          style={[
-            styles.controlButton,
-            isSpeakerOn && styles.controlButtonActive,
-          ]}
+          style={[styles.controlButton, isSpeakerOn && styles.controlButtonActive]}
           onPress={onToggleSpeaker}
           activeOpacity={0.7}
         >

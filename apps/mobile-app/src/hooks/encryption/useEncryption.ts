@@ -35,7 +35,7 @@ export const useEncryption = () => {
     }
 
     try {
-      setStatus(prev => ({ ...prev, isLoading: true, error: null }));
+      setStatus((prev) => ({ ...prev, isLoading: true, error: null }));
 
       // Check if keys already exist
       const hasKeys = await SecureKeyStorage.hasKeys(user.id);
@@ -63,7 +63,7 @@ export const useEncryption = () => {
           signature: keys.signedPreKey.signature,
           timestamp: keys.signedPreKey.timestamp,
         },
-        oneTimePreKeys: keys.oneTimePreKeys.map(key => ({
+        oneTimePreKeys: keys.oneTimePreKeys.map((key) => ({
           keyId: key.keyId,
           publicKey: key.publicKey,
         })),
@@ -88,7 +88,10 @@ export const useEncryption = () => {
    * Encrypt a message
    */
   const encryptMessage = useCallback(
-    async (plaintext: string, conversationId: string): Promise<{
+    async (
+      plaintext: string,
+      conversationId: string
+    ): Promise<{
       ciphertext: string;
       iv: string;
       authTag: string;
@@ -121,10 +124,7 @@ export const useEncryption = () => {
     ): Promise<string | null> => {
       try {
         const sessionKey = await EncryptionService.getOrCreateSessionKey(conversationId);
-        const plaintext = await EncryptionService.decryptMessage(
-          encryptedMessage,
-          sessionKey
-        );
+        const plaintext = await EncryptionService.decryptMessage(encryptedMessage, sessionKey);
         return plaintext;
       } catch (error) {
         console.error('Failed to decrypt message:', error);

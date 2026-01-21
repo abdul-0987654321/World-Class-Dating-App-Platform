@@ -50,62 +50,67 @@ export function useUpgradeModal(): UseUpgradeModalReturn {
     isOpen: false,
   });
 
-  const showUpgradeModal = useCallback((
-    feature?: string,
-    message?: string,
-    requiredTier?: string
-  ) => {
-    setUpgradeModalState({
-      isOpen: true,
-      feature,
-      message,
-      requiredTier,
-    });
-  }, []);
+  const showUpgradeModal = useCallback(
+    (feature?: string, message?: string, requiredTier?: string) => {
+      setUpgradeModalState({
+        isOpen: true,
+        feature,
+        message,
+        requiredTier,
+      });
+    },
+    []
+  );
 
   const closeUpgradeModal = useCallback(() => {
     setUpgradeModalState({ isOpen: false });
   }, []);
 
-  const handleApiError = useCallback((error: unknown): boolean => {
-    if (error instanceof ApiError && error.status === 402) {
-      // Extract feature and tier info from error response if available
-      const errorData = error.data as Record<string, unknown> | undefined;
-      const feature = (errorData?.feature as string) || undefined;
-      const message = (errorData?.message as string) || error.message;
-      const requiredTier = (errorData?.requiredTier as string) || 'GOLD';
-
-      showUpgradeModal(feature, message, requiredTier);
-      return true;
-    }
-    return false;
-  }, [showUpgradeModal]);
-
-  const wrapApiCall = useCallback(async <T>(
-    apiCall: () => Promise<T>,
-    feature?: string
-  ): Promise<T> => {
-    try {
-      return await apiCall();
-    } catch (error) {
+  const handleApiError = useCallback(
+    (error: unknown): boolean => {
       if (error instanceof ApiError && error.status === 402) {
+        // Extract feature and tier info from error response if available
         const errorData = error.data as Record<string, unknown> | undefined;
+        const feature = (errorData?.feature as string) || undefined;
         const message = (errorData?.message as string) || error.message;
         const requiredTier = (errorData?.requiredTier as string) || 'GOLD';
 
         showUpgradeModal(feature, message, requiredTier);
+        return true;
       }
-      throw error;
-    }
-  }, [showUpgradeModal]);
+      return false;
+    },
+    [showUpgradeModal]
+  );
 
-  return useMemo(() => ({
-    upgradeModalState,
-    showUpgradeModal,
-    closeUpgradeModal,
-    handleApiError,
-    wrapApiCall,
-  }), [upgradeModalState, showUpgradeModal, closeUpgradeModal, handleApiError, wrapApiCall]);
+  const wrapApiCall = useCallback(
+    async <T>(apiCall: () => Promise<T>, feature?: string): Promise<T> => {
+      try {
+        return await apiCall();
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 402) {
+          const errorData = error.data as Record<string, unknown> | undefined;
+          const message = (errorData?.message as string) || error.message;
+          const requiredTier = (errorData?.requiredTier as string) || 'GOLD';
+
+          showUpgradeModal(feature, message, requiredTier);
+        }
+        throw error;
+      }
+    },
+    [showUpgradeModal]
+  );
+
+  return useMemo(
+    () => ({
+      upgradeModalState,
+      showUpgradeModal,
+      closeUpgradeModal,
+      handleApiError,
+      wrapApiCall,
+    }),
+    [upgradeModalState, showUpgradeModal, closeUpgradeModal, handleApiError, wrapApiCall]
+  );
 }
 
 export default useUpgradeModal;

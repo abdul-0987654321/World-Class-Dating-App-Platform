@@ -4,12 +4,7 @@
  */
 
 // Banner Ads
-export {
-  BannerAdComponent,
-  InlineBannerAd,
-  BottomBannerAd,
-  default as BannerAd,
-} from './BannerAd';
+export { BannerAdComponent, InlineBannerAd, BottomBannerAd, default as BannerAd } from './BannerAd';
 
 // Interstitial Ads
 export {

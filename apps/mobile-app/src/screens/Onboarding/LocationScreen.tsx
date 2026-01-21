@@ -105,10 +105,7 @@ const LocationScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>6 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
@@ -126,14 +123,9 @@ const LocationScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
                 <View style={styles.locationInfo}>
                   <Text style={styles.locationCity}>{location.city}</Text>
-                  <Text style={styles.locationCoords}>
-                    Location confirmed
-                  </Text>
+                  <Text style={styles.locationCoords}>Location confirmed</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.changeButton}
-                  onPress={requestLocation}
-                >
+                <TouchableOpacity style={styles.changeButton} onPress={requestLocation}>
                   <Text style={styles.changeButtonText}>Update</Text>
                 </TouchableOpacity>
               </View>
@@ -150,12 +142,8 @@ const LocationScreen: React.FC<Props> = ({ navigation, route }) => {
                     <View style={styles.locationIconLarge}>
                       <Text style={styles.locationIconTextLarge}>📍</Text>
                     </View>
-                    <Text style={styles.enableLocationText}>
-                      Enable Location
-                    </Text>
-                    <Text style={styles.enableLocationSubtext}>
-                      Tap to allow location access
-                    </Text>
+                    <Text style={styles.enableLocationText}>Enable Location</Text>
+                    <Text style={styles.enableLocationSubtext}>Tap to allow location access</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -167,9 +155,8 @@ const LocationScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.privacyContainer}>
             <Text style={styles.privacyTitle}>🔒 Your privacy matters</Text>
             <Text style={styles.privacyText}>
-              • Only your city is shown to others{'\n'}
-              • Your exact location is never shared{'\n'}
-              • You control your distance preferences
+              • Only your city is shown to others{'\n'}• Your exact location is never shared{'\n'}•
+              You control your distance preferences
             </Text>
           </View>
         </View>

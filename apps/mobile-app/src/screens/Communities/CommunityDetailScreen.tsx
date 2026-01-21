@@ -74,14 +74,10 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleJoinToggle = useCallback(async () => {
     if (community?.isJoined) {
-      Alert.alert(
-        'Leave Community',
-        `Are you sure you want to leave ${community.name}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Leave', style: 'destructive', onPress: leaveCommunity },
-        ]
-      );
+      Alert.alert('Leave Community', `Are you sure you want to leave ${community.name}?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Leave', style: 'destructive', onPress: leaveCommunity },
+      ]);
     } else {
       await joinCommunity();
     }
@@ -99,9 +95,12 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [newPostText, createPost]);
 
-  const handleLikePost = useCallback(async (postId: string) => {
-    await likePost(postId);
-  }, [likePost]);
+  const handleLikePost = useCallback(
+    async (postId: string) => {
+      await likePost(postId);
+    },
+    [likePost]
+  );
 
   const handlePostOptions = useCallback((post: CommunityPost) => {
     setSelectedPost(post);
@@ -111,22 +110,18 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleDeletePost = useCallback(async () => {
     if (!selectedPost) return;
 
-    Alert.alert(
-      'Delete Post',
-      'Are you sure you want to delete this post?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            await deletePost(selectedPost.id);
-            setShowPostOptions(false);
-            setSelectedPost(null);
-          },
+    Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deletePost(selectedPost.id);
+          setShowPostOptions(false);
+          setSelectedPost(null);
         },
-      ]
-    );
+      },
+    ]);
   }, [selectedPost, deletePost]);
 
   const handleReportPost = useCallback(async () => {
@@ -212,40 +207,28 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <View>
             <View style={styles.authorNameRow}>
               <Text style={styles.authorName}>{item.author.name}</Text>
-              {item.author.isVerified && (
-                <Icon name="checkmark-circle" size={14} color="#2196F3" />
-              )}
+              {item.author.isVerified && <Icon name="checkmark-circle" size={14} color="#2196F3" />}
             </View>
             <Text style={styles.postTime}>{formatTimeAgo(item.createdAt)}</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.postOptionsButton}
-          onPress={() => handlePostOptions(item)}
-        >
+        <TouchableOpacity style={styles.postOptionsButton} onPress={() => handlePostOptions(item)}>
           <Icon name="ellipsis-horizontal" size={20} color="#999" />
         </TouchableOpacity>
       </View>
 
       <Text style={styles.postContent}>{item.content}</Text>
 
-      {item.imageUrl && (
-        <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-      )}
+      {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.postImage} />}
 
       <View style={styles.postActions}>
-        <TouchableOpacity
-          style={styles.postAction}
-          onPress={() => handleLikePost(item.id)}
-        >
+        <TouchableOpacity style={styles.postAction} onPress={() => handleLikePost(item.id)}>
           <Icon
             name={item.isLiked ? 'heart' : 'heart-outline'}
             size={22}
             color={item.isLiked ? '#FF6B6B' : '#666'}
           />
-          <Text style={[styles.actionText, item.isLiked && styles.likedText]}>
-            {item.likes}
-          </Text>
+          <Text style={[styles.actionText, item.isLiked && styles.likedText]}>{item.likes}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.postAction}>
           <Icon name="chatbubble-outline" size={20} color="#666" />
@@ -273,10 +256,7 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const renderPostsTab = () => (
     <View style={styles.tabContent}>
       {community?.isJoined && (
-        <TouchableOpacity
-          style={styles.createPostButton}
-          onPress={() => setShowPostModal(true)}
-        >
+        <TouchableOpacity style={styles.createPostButton} onPress={() => setShowPostModal(true)}>
           <Icon name="create-outline" size={20} color="#FF6B6B" />
           <Text style={styles.createPostText}>Share something with the community...</Text>
         </TouchableOpacity>
@@ -286,9 +266,7 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.emptyPosts}>
           <Icon name="newspaper-outline" size={48} color="#ccc" />
           <Text style={styles.emptyPostsTitle}>No posts yet</Text>
-          <Text style={styles.emptyPostsSubtitle}>
-            Be the first to share something!
-          </Text>
+          <Text style={styles.emptyPostsSubtitle}>Be the first to share something!</Text>
         </View>
       ) : (
         <FlatList
@@ -321,9 +299,7 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Stats */}
       <View style={styles.statsSection}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>
-            {formatMemberCount(community?.memberCount || 0)}
-          </Text>
+          <Text style={styles.statValue}>{formatMemberCount(community?.memberCount || 0)}</Text>
           <Text style={styles.statLabel}>Members</Text>
         </View>
         <View style={styles.statDivider} />
@@ -388,17 +364,11 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <View style={styles.headerOverlay} />
         <View style={[styles.communityHeader, { backgroundColor: community.color }]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           {userRole === 'admin' && (
-            <TouchableOpacity
-              style={styles.settingsButton}
-              onPress={navigateToSettings}
-            >
+            <TouchableOpacity style={styles.settingsButton} onPress={navigateToSettings}>
               <Icon name="settings-outline" size={24} color="#fff" />
             </TouchableOpacity>
           )}
@@ -418,10 +388,7 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Join Button */}
       <View style={styles.joinSection}>
         <TouchableOpacity
-          style={[
-            styles.joinButton,
-            community.isJoined && styles.joinedButton,
-          ]}
+          style={[styles.joinButton, community.isJoined && styles.joinedButton]}
           onPress={handleJoinToggle}
         >
           <Icon
@@ -429,12 +396,7 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             size={20}
             color={community.isJoined ? '#666' : '#fff'}
           />
-          <Text
-            style={[
-              styles.joinButtonText,
-              community.isJoined && styles.joinedButtonText,
-            ]}
-          >
+          <Text style={[styles.joinButtonText, community.isJoined && styles.joinedButtonText]}>
             {community.isJoined ? 'Joined' : 'Join Community'}
           </Text>
         </TouchableOpacity>
@@ -448,9 +410,7 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             style={[styles.tab, activeTab === tab && styles.tabActive]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text
-              style={[styles.tabText, activeTab === tab && styles.tabTextActive]}
-            >
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -477,16 +437,8 @@ const CommunityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.modalCancel}>Cancel</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Create Post</Text>
-            <TouchableOpacity
-              onPress={handleCreatePost}
-              disabled={!newPostText.trim()}
-            >
-              <Text
-                style={[
-                  styles.modalPost,
-                  !newPostText.trim() && styles.modalPostDisabled,
-                ]}
-              >
+            <TouchableOpacity onPress={handleCreatePost} disabled={!newPostText.trim()}>
+              <Text style={[styles.modalPost, !newPostText.trim() && styles.modalPostDisabled]}>
                 Post
               </Text>
             </TouchableOpacity>

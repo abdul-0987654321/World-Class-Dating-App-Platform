@@ -18,9 +18,7 @@ describe('Card', () => {
     });
 
     it('applies default styling', () => {
-      renderWithProviders(
-        <Card data-testid="card">Content</Card>
-      );
+      renderWithProviders(<Card data-testid="card">Content</Card>);
       const card = screen.getByTestId('card');
       expect(card).toBeInTheDocument();
     });
@@ -86,9 +84,7 @@ describe('Card', () => {
 
   describe('CardFooter Component', () => {
     it('renders footer content', () => {
-      renderWithProviders(
-        <CardFooter>Footer text</CardFooter>
-      );
+      renderWithProviders(<CardFooter>Footer text</CardFooter>);
       expect(screen.getByText('Footer text')).toBeInTheDocument();
     });
 
@@ -131,9 +127,7 @@ describe('Card', () => {
 
   describe('Styling', () => {
     it('Card has styled-component wrapper', () => {
-      renderWithProviders(
-        <Card data-testid="styled-card">Styled</Card>
-      );
+      renderWithProviders(<Card data-testid="styled-card">Styled</Card>);
       const card = screen.getByTestId('styled-card');
       expect(card).toBeInTheDocument();
     });

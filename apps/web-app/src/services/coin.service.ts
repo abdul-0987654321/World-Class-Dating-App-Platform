@@ -133,7 +133,7 @@ class CoinService {
 
   async purchaseCoins(packageId: string, paymentMethodId: string): Promise<PurchaseResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return {
         success: true,
         transactionId: `txn-${Date.now()}`,
@@ -164,7 +164,7 @@ class CoinService {
 
   async spendCoins(amount: number, itemType: string, itemId: string): Promise<PurchaseResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         success: true,
         transactionId: `txn-${Date.now()}`,
@@ -192,7 +192,9 @@ class CoinService {
     return response.json();
   }
 
-  async getTransactionHistory(cursor?: string): Promise<{ transactions: CoinTransaction[]; nextCursor?: string }> {
+  async getTransactionHistory(
+    cursor?: string
+  ): Promise<{ transactions: CoinTransaction[]; nextCursor?: string }> {
     if (this.isMock) {
       return {
         transactions: [
@@ -218,9 +220,7 @@ class CoinService {
       };
     }
 
-    const url = cursor
-      ? `/api/coins/transactions?cursor=${cursor}`
-      : '/api/coins/transactions';
+    const url = cursor ? `/api/coins/transactions?cursor=${cursor}` : '/api/coins/transactions';
 
     const response = await fetch(url, {
       headers: {

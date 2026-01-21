@@ -92,7 +92,9 @@ const useParticleSystem = (
         size: 8 + Math.random() * 6,
         rotation: Math.random() * 360,
         rotationSpeed: (Math.random() - 0.5) * 10,
-        shape: fullConfig.shapes[Math.floor(Math.random() * fullConfig.shapes.length)] as Particle['shape'],
+        shape: fullConfig.shapes[
+          Math.floor(Math.random() * fullConfig.shapes.length)
+        ] as Particle['shape'],
         opacity: 1,
         gravity: fullConfig.gravity,
         decay: fullConfig.decay,
@@ -101,35 +103,32 @@ const useParticleSystem = (
     [config]
   );
 
-  const drawParticle = useCallback(
-    (ctx: CanvasRenderingContext2D, particle: Particle) => {
-      ctx.save();
-      ctx.translate(particle.x, particle.y);
-      ctx.rotate((particle.rotation * Math.PI) / 180);
-      ctx.globalAlpha = particle.opacity;
-      ctx.fillStyle = particle.color;
+  const drawParticle = useCallback((ctx: CanvasRenderingContext2D, particle: Particle) => {
+    ctx.save();
+    ctx.translate(particle.x, particle.y);
+    ctx.rotate((particle.rotation * Math.PI) / 180);
+    ctx.globalAlpha = particle.opacity;
+    ctx.fillStyle = particle.color;
 
-      switch (particle.shape) {
-        case 'square':
-          ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
-          break;
-        case 'circle':
-          ctx.beginPath();
-          ctx.arc(0, 0, particle.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-          break;
-        case 'heart':
-          drawHeart(ctx, particle.size);
-          break;
-        case 'star':
-          drawStar(ctx, particle.size);
-          break;
-      }
+    switch (particle.shape) {
+      case 'square':
+        ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+        break;
+      case 'circle':
+        ctx.beginPath();
+        ctx.arc(0, 0, particle.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      case 'heart':
+        drawHeart(ctx, particle.size);
+        break;
+      case 'star':
+        drawStar(ctx, particle.size);
+        break;
+    }
 
-      ctx.restore();
-    },
-    []
-  );
+    ctx.restore();
+  }, []);
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
@@ -239,239 +238,260 @@ const drawStar = (ctx: CanvasRenderingContext2D, size: number) => {
 // MATCH CELEBRATION COMPONENT
 // ============================================================================
 
-export const MatchCelebration = memo<MatchCelebrationProps>(({
-  visible,
-  currentUser,
-  matchedUser,
-  onSendMessage,
-  onKeepSwiping,
-  onClose,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [showContent, setShowContent] = useState(false);
+export const MatchCelebration = memo<MatchCelebrationProps>(
+  ({ visible, currentUser, matchedUser, onSendMessage, onKeepSwiping, onClose }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [showContent, setShowContent] = useState(false);
 
-  const { burst: confettiBurst } = useParticleSystem(canvasRef, visible, CELEBRATION_CONFIG.confetti);
-  const { burst: heartBurst } = useParticleSystem(canvasRef, visible, CELEBRATION_CONFIG.heartBurst);
+    const { burst: confettiBurst } = useParticleSystem(
+      canvasRef,
+      visible,
+      CELEBRATION_CONFIG.confetti
+    );
+    const { burst: heartBurst } = useParticleSystem(
+      canvasRef,
+      visible,
+      CELEBRATION_CONFIG.heartBurst
+    );
 
-  // Trigger celebration effects when visible
-  useEffect(() => {
-    if (visible) {
-      setShowContent(false);
+    // Trigger celebration effects when visible
+    useEffect(() => {
+      if (visible) {
+        setShowContent(false);
 
-      // Resize canvas
-      if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth;
-        canvasRef.current.height = window.innerHeight;
+        // Resize canvas
+        if (canvasRef.current) {
+          canvasRef.current.width = window.innerWidth;
+          canvasRef.current.height = window.innerHeight;
+        }
+
+        // Trigger confetti burst
+        setTimeout(() => confettiBurst(), 100);
+        setTimeout(
+          () => confettiBurst({ x: window.innerWidth * 0.3, y: window.innerHeight * 0.3 }),
+          200
+        );
+        setTimeout(
+          () => confettiBurst({ x: window.innerWidth * 0.7, y: window.innerHeight * 0.3 }),
+          300
+        );
+
+        // Trigger heart burst in center
+        setTimeout(() => heartBurst(), 400);
+
+        // Show content after initial burst
+        setTimeout(() => setShowContent(true), 500);
       }
+    }, [visible, confettiBurst, heartBurst]);
 
-      // Trigger confetti burst
-      setTimeout(() => confettiBurst(), 100);
-      setTimeout(() => confettiBurst({ x: window.innerWidth * 0.3, y: window.innerHeight * 0.3 }), 200);
-      setTimeout(() => confettiBurst({ x: window.innerWidth * 0.7, y: window.innerHeight * 0.3 }), 300);
-
-      // Trigger heart burst in center
-      setTimeout(() => heartBurst(), 400);
-
-      // Show content after initial burst
-      setTimeout(() => setShowContent(true), 500);
-    }
-  }, [visible, confettiBurst, heartBurst]);
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Background */}
+    return (
+      <AnimatePresence>
+        {visible && (
           <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-pink-600/95 via-rose-500/95 to-pink-700/95"
+            className="fixed inset-0 z-50 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          />
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Background */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-br from-pink-600/95 via-rose-500/95 to-pink-700/95"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            />
 
-          {/* Particle Canvas */}
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: 10 }}
-          />
+            {/* Particle Canvas */}
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 pointer-events-none"
+              style={{ zIndex: 10 }}
+            />
 
-          {/* Content */}
-          <AnimatePresence>
-            {showContent && (
-              <motion.div
-                className="relative z-20 flex flex-col items-center px-6 text-white"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{
-                  type: 'spring',
-                  ...ANIMATION_CONFIG.springs.bouncy,
-                }}
-              >
-                {/* Title */}
-                <motion.h1
-                  className="text-5xl md:text-7xl font-bold mb-8 text-center"
-                  initial={{ opacity: 0, y: -30, rotate: -10 }}
-                  animate={{ opacity: 1, y: 0, rotate: 0 }}
+            {/* Content */}
+            <AnimatePresence>
+              {showContent && (
+                <motion.div
+                  className="relative z-20 flex flex-col items-center px-6 text-white"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
                   transition={{
                     type: 'spring',
-                    damping: 10,
-                    stiffness: 100,
-                    delay: 0.1,
-                  }}
-                  style={{
-                    textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                    ...ANIMATION_CONFIG.springs.bouncy,
                   }}
                 >
-                  It's a Match!
-                </motion.h1>
-
-                {/* Profile Images */}
-                <div className="flex items-center justify-center gap-4 mb-8">
-                  {/* Current User */}
-                  <motion.div
-                    className="relative"
-                    initial={{ opacity: 0, scale: 0, x: -100 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                  {/* Title */}
+                  <motion.h1
+                    className="text-5xl md:text-7xl font-bold mb-8 text-center"
+                    initial={{ opacity: 0, y: -30, rotate: -10 }}
+                    animate={{ opacity: 1, y: 0, rotate: 0 }}
                     transition={{
                       type: 'spring',
-                      ...ANIMATION_CONFIG.springs.bouncy,
-                      delay: 0.2,
+                      damping: 10,
+                      stiffness: 100,
+                      delay: 0.1,
+                    }}
+                    style={{
+                      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
                     }}
                   >
-                    <div className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white overflow-hidden shadow-2xl">
-                      <img
-                        src={currentUser.photo}
-                        alt={currentUser.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </motion.div>
+                    It's a Match!
+                  </motion.h1>
 
-                  {/* Heart Icon */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{
-                      opacity: 1,
-                      scale: [0, 1.3, 1],
-                    }}
-                    transition={{
-                      delay: 0.4,
-                      duration: 0.5,
-                      times: [0, 0.6, 1],
-                    }}
-                  >
-                    <motion.span
-                      className="text-5xl md:text-6xl"
-                      animate={{
-                        scale: [1, 1.1, 1],
-                      }}
+                  {/* Profile Images */}
+                  <div className="flex items-center justify-center gap-4 mb-8">
+                    {/* Current User */}
+                    <motion.div
+                      className="relative"
+                      initial={{ opacity: 0, scale: 0, x: -100 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
                       transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
+                        type: 'spring',
+                        ...ANIMATION_CONFIG.springs.bouncy,
+                        delay: 0.2,
                       }}
                     >
-                      <span role="img" aria-label="hearts">&#128149;</span>
-                    </motion.span>
-                  </motion.div>
+                      <div className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white overflow-hidden shadow-2xl">
+                        <img
+                          src={currentUser.photo}
+                          alt={currentUser.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </motion.div>
 
-                  {/* Matched User */}
+                    {/* Heart Icon */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{
+                        opacity: 1,
+                        scale: [0, 1.3, 1],
+                      }}
+                      transition={{
+                        delay: 0.4,
+                        duration: 0.5,
+                        times: [0, 0.6, 1],
+                      }}
+                    >
+                      <motion.span
+                        className="text-5xl md:text-6xl"
+                        animate={{
+                          scale: [1, 1.1, 1],
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                      >
+                        <span role="img" aria-label="hearts">
+                          &#128149;
+                        </span>
+                      </motion.span>
+                    </motion.div>
+
+                    {/* Matched User */}
+                    <motion.div
+                      className="relative"
+                      initial={{ opacity: 0, scale: 0, x: 100 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      transition={{
+                        type: 'spring',
+                        ...ANIMATION_CONFIG.springs.bouncy,
+                        delay: 0.3,
+                      }}
+                    >
+                      <div className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white overflow-hidden shadow-2xl">
+                        <img
+                          src={matchedUser.photo}
+                          alt={matchedUser.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Subtitle */}
+                  <motion.p
+                    className="text-xl md:text-2xl mb-2 text-center font-medium"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    You and {matchedUser.name} liked each other!
+                  </motion.p>
+
+                  <motion.p
+                    className="text-white/80 mb-8 text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    Start a conversation and make a connection
+                  </motion.p>
+
+                  {/* Action Buttons */}
                   <motion.div
-                    className="relative"
-                    initial={{ opacity: 0, scale: 0, x: 100 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{
-                      type: 'spring',
-                      ...ANIMATION_CONFIG.springs.bouncy,
-                      delay: 0.3,
-                    }}
+                    className="flex flex-col gap-4 w-full max-w-xs"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
                   >
-                    <div className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white overflow-hidden shadow-2xl">
-                      <img
-                        src={matchedUser.photo}
-                        alt={matchedUser.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <motion.button
+                      onClick={onSendMessage}
+                      className="w-full py-4 px-8 bg-white text-pink-600 font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Send Message
+                    </motion.button>
+
+                    <motion.button
+                      onClick={onKeepSwiping}
+                      className="w-full py-4 px-8 bg-transparent border-2 border-white text-white font-semibold rounded-full hover:bg-white/10 transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Keep Swiping
+                    </motion.button>
                   </motion.div>
-                </div>
-
-                {/* Subtitle */}
-                <motion.p
-                  className="text-xl md:text-2xl mb-2 text-center font-medium"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  You and {matchedUser.name} liked each other!
-                </motion.p>
-
-                <motion.p
-                  className="text-white/80 mb-8 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  Start a conversation and make a connection
-                </motion.p>
-
-                {/* Action Buttons */}
-                <motion.div
-                  className="flex flex-col gap-4 w-full max-w-xs"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <motion.button
-                    onClick={onSendMessage}
-                    className="w-full py-4 px-8 bg-white text-pink-600 font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-shadow"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Send Message
-                  </motion.button>
-
-                  <motion.button
-                    onClick={onKeepSwiping}
-                    className="w-full py-4 px-8 bg-transparent border-2 border-white text-white font-semibold rounded-full hover:bg-white/10 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Keep Swiping
-                  </motion.button>
                 </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
 
-          {/* Close Button */}
-          <motion.button
-            onClick={onClose}
-            className="absolute top-6 right-6 z-30 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label="Close"
-          >
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </motion.button>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-});
+            {/* Close Button */}
+            <motion.button
+              onClick={onClose}
+              className="absolute top-6 right-6 z-30 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Close"
+            >
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
+);
 
 MatchCelebration.displayName = 'MatchCelebration';
 

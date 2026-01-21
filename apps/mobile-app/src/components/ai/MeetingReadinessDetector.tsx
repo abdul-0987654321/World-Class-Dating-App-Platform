@@ -27,7 +27,10 @@ export const assessMeetingReadiness = (
   const mutual_interest = mutualEngagement ? 85 : 45;
 
   const readiness_score = Math.round(
-    (conversation_depth * 0.3 + mutual_interest * 0.3 + engagement_level * 0.25 + time_invested * 0.15)
+    conversation_depth * 0.3 +
+      mutual_interest * 0.3 +
+      engagement_level * 0.25 +
+      time_invested * 0.15
   );
 
   const is_ready = readiness_score >= 65;
@@ -38,19 +41,22 @@ export const assessMeetingReadiness = (
 
   if (readiness_score >= 75) {
     suggested_timing = 'now';
-    recommendation = 'Perfect time to suggest meeting! The connection is strong and both of you are engaged.';
-    ideal_approach = '"I\'ve really enjoyed our conversations! Would you like to grab coffee this weekend?"';
+    recommendation =
+      'Perfect time to suggest meeting! The connection is strong and both of you are engaged.';
+    ideal_approach =
+      '"I\'ve really enjoyed our conversations! Would you like to grab coffee this weekend?"';
   } else if (readiness_score >= 60) {
     suggested_timing = 'soon';
     recommendation = 'Almost there! Have 1-2 more quality conversations, then suggest meeting.';
     ideal_approach = 'Build a bit more rapport, then casually suggest meeting up.';
   } else if (readiness_score >= 40) {
     suggested_timing = 'wait';
-    recommendation = 'Keep building connection through messaging. Look for signs of mutual interest.';
+    recommendation =
+      'Keep building connection through messaging. Look for signs of mutual interest.';
     ideal_approach = 'Share more about yourself and show genuine interest in them.';
   } else {
     suggested_timing = 'not_yet';
-    recommendation = 'Focus on having meaningful conversations first. Don\'t rush to meet.';
+    recommendation = "Focus on having meaningful conversations first. Don't rush to meet.";
     ideal_approach = 'Ask open-ended questions and find common ground.';
   }
 
@@ -128,7 +134,13 @@ const styles = StyleSheet.create({
   barContainer: { height: 8, backgroundColor: '#e5e7eb', borderRadius: 4, marginBottom: 4 },
   bar: { height: '100%', borderRadius: 4 },
   factorValue: { fontSize: 12, color: '#374151', fontWeight: '600' },
-  recommendationCard: { backgroundColor: '#f9fafb', padding: 16, borderRadius: 12, borderLeftWidth: 4, marginBottom: 16 },
+  recommendationCard: {
+    backgroundColor: '#f9fafb',
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    marginBottom: 16,
+  },
   recommendationTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
   recommendationText: { fontSize: 14, color: '#374151', lineHeight: 20 },
   approachCard: { backgroundColor: '#ecfdf5', padding: 16, borderRadius: 12 },

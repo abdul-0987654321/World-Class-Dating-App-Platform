@@ -354,11 +354,7 @@ export const PerformanceProvider: React.FC<{
     getBudgetStatus,
   };
 
-  return (
-    <PerformanceContext.Provider value={value}>
-      {children}
-    </PerformanceContext.Provider>
-  );
+  return <PerformanceContext.Provider value={value}>{children}</PerformanceContext.Provider>;
 };
 
 // ============================================================================
@@ -430,7 +426,15 @@ export const PerformanceOverlay = memo(() => {
         <div className="border-t border-gray-700 mt-2 pt-2">
           <div className="flex justify-between items-center">
             <span>FPS:</span>
-            <span className={metrics.fps < 30 ? 'text-red-400' : metrics.fps < 55 ? 'text-yellow-400' : 'text-green-400'}>
+            <span
+              className={
+                metrics.fps < 30
+                  ? 'text-red-400'
+                  : metrics.fps < 55
+                    ? 'text-yellow-400'
+                    : 'text-green-400'
+              }
+            >
               {metrics.fps}
             </span>
           </div>

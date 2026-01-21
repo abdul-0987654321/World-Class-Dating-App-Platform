@@ -87,11 +87,11 @@ class SocketService {
       // Message handlers
       this.socket.on('message:new', (message) => {
         const handlers = this.messageHandlers.get(message.conversationId) || [];
-        handlers.forEach(handler => handler(message));
+        handlers.forEach((handler) => handler(message));
 
         // Also notify global handlers
         const globalHandlers = this.messageHandlers.get('*') || [];
-        globalHandlers.forEach(handler => handler(message));
+        globalHandlers.forEach((handler) => handler(message));
       });
 
       this.socket.on('message:delivered', () => {
@@ -104,38 +104,38 @@ class SocketService {
 
       // Typing handlers
       this.socket.on('typing', (data) => {
-        this.typingHandlers.forEach(handler => handler(data));
+        this.typingHandlers.forEach((handler) => handler(data));
       });
 
       // Online status handlers
       this.socket.on('presence:online', (data) => {
-        this.onlineStatusHandlers.forEach(handler => handler({ ...data, isOnline: true }));
+        this.onlineStatusHandlers.forEach((handler) => handler({ ...data, isOnline: true }));
       });
 
       this.socket.on('presence:offline', (data) => {
-        this.onlineStatusHandlers.forEach(handler => handler({ ...data, isOnline: false }));
+        this.onlineStatusHandlers.forEach((handler) => handler({ ...data, isOnline: false }));
       });
 
       // Match handlers
       this.socket.on('match:new', (match) => {
-        this.matchHandlers.forEach(handler => handler(match));
+        this.matchHandlers.forEach((handler) => handler(match));
       });
 
       // Reward event handlers (real-time balance & streak updates)
       this.socket.on('coins:updated', (data) => {
-        this.coinUpdateHandlers.forEach(handler => handler(data));
+        this.coinUpdateHandlers.forEach((handler) => handler(data));
       });
 
       this.socket.on('streak:updated', (data) => {
-        this.streakUpdateHandlers.forEach(handler => handler(data));
+        this.streakUpdateHandlers.forEach((handler) => handler(data));
       });
 
       this.socket.on('reward:claimed', (data) => {
-        this.rewardClaimedHandlers.forEach(handler => handler(data));
+        this.rewardClaimedHandlers.forEach((handler) => handler(data));
       });
 
       this.socket.on('reward:milestone', (data) => {
-        this.rewardMilestoneHandlers.forEach(handler => handler(data));
+        this.rewardMilestoneHandlers.forEach((handler) => handler(data));
       });
 
       // Error handling

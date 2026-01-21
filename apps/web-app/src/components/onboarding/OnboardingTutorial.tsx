@@ -73,7 +73,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'welcome-1',
         title: 'Welcome to Flamoral!',
-        description: 'Let us show you around. This quick tour will help you get the most out of your dating experience.',
+        description:
+          'Let us show you around. This quick tour will help you get the most out of your dating experience.',
         placement: 'center',
         action: 'none',
         skipable: true,
@@ -82,7 +83,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'welcome-2',
         title: 'Complete Your Profile',
-        description: 'A complete profile gets 10x more matches! Add your best photos and write a bio that shows your personality.',
+        description:
+          'A complete profile gets 10x more matches! Add your best photos and write a bio that shows your personality.',
         target: '[data-tutorial="profile-completion"]',
         placement: 'bottom',
         action: 'click',
@@ -104,7 +106,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'welcome-4',
         title: 'Check Your Messages',
-        description: 'When you match with someone, start a conversation here. Be yourself and have fun!',
+        description:
+          'When you match with someone, start a conversation here. Be yourself and have fun!',
         target: '[data-tutorial="messages-tab"]',
         placement: 'bottom',
         action: 'click',
@@ -114,7 +117,7 @@ const TUTORIALS: Tutorial[] = [
       },
       {
         id: 'welcome-5',
-        title: 'You\'re All Set!',
+        title: "You're All Set!",
         description: 'Start swiping and find your perfect match. Good luck! 💕',
         placement: 'center',
         action: 'none',
@@ -134,7 +137,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'profile-1',
         title: 'Add Your Best Photos',
-        description: 'Upload 4-6 photos that show your face clearly. Smile, show hobbies, and avoid group photos as your main pic.',
+        description:
+          'Upload 4-6 photos that show your face clearly. Smile, show hobbies, and avoid group photos as your main pic.',
         target: '[data-tutorial="photo-upload"]',
         placement: 'right',
         action: 'none',
@@ -144,7 +148,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'profile-2',
         title: 'Write Your Bio',
-        description: 'Tell people what makes you unique. Mention your interests, what you\'re looking for, and add a conversation starter.',
+        description:
+          "Tell people what makes you unique. Mention your interests, what you're looking for, and add a conversation starter.",
         target: '[data-tutorial="bio-input"]',
         placement: 'bottom',
         action: 'none',
@@ -164,7 +169,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'profile-4',
         title: 'Set Your Preferences',
-        description: 'Tell us who you\'re looking for. Age range, distance, and what matters most to you.',
+        description:
+          "Tell us who you're looking for. Age range, distance, and what matters most to you.",
         target: '[data-tutorial="preferences"]',
         placement: 'top',
         action: 'none',
@@ -174,7 +180,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'profile-5',
         title: 'Get Verified',
-        description: 'Verified profiles get 3x more matches. Take a quick selfie to prove you\'re real!',
+        description:
+          "Verified profiles get 3x more matches. Take a quick selfie to prove you're real!",
         target: '[data-tutorial="verification"]',
         placement: 'bottom',
         action: 'none',
@@ -194,7 +201,7 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'swipe-1',
         title: 'Swipe Right = Like',
-        description: 'See someone you\'re interested in? Swipe right or tap the heart button.',
+        description: "See someone you're interested in? Swipe right or tap the heart button.",
         target: '[data-tutorial="like-button"]',
         placement: 'top',
         action: 'none',
@@ -203,7 +210,7 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'swipe-2',
         title: 'Swipe Left = Pass',
-        description: 'Not feeling it? Swipe left or tap the X. No pressure, they won\'t know.',
+        description: "Not feeling it? Swipe left or tap the X. No pressure, they won't know.",
         target: '[data-tutorial="pass-button"]',
         placement: 'top',
         action: 'none',
@@ -212,7 +219,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'swipe-3',
         title: 'Super Like = Stand Out',
-        description: 'Really like someone? Super Like them! They\'ll see you liked them and you\'re 3x more likely to match.',
+        description:
+          "Really like someone? Super Like them! They'll see you liked them and you're 3x more likely to match.",
         target: '[data-tutorial="superlike-button"]',
         placement: 'top',
         action: 'none',
@@ -240,7 +248,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'msg-1',
         title: 'Start with Their Profile',
-        description: 'Reference something specific from their bio or photos. "I see you love hiking! What\'s your favorite trail?"',
+        description:
+          'Reference something specific from their bio or photos. "I see you love hiking! What\'s your favorite trail?"',
         placement: 'center',
         action: 'none',
         showProgress: true,
@@ -248,7 +257,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'msg-2',
         title: 'Ask Open Questions',
-        description: 'Avoid yes/no questions. "What got you into photography?" beats "Do you like photography?"',
+        description:
+          'Avoid yes/no questions. "What got you into photography?" beats "Do you like photography?"',
         placement: 'center',
         action: 'none',
         showProgress: true,
@@ -256,7 +266,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'msg-3',
         title: 'Use Smart Replies',
-        description: 'Stuck on what to say? Tap the lightbulb for AI-powered conversation starters tailored to their profile.',
+        description:
+          'Stuck on what to say? Tap the lightbulb for AI-powered conversation starters tailored to their profile.',
         target: '[data-tutorial="smart-replies"]',
         placement: 'top',
         action: 'none',
@@ -265,7 +276,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'msg-4',
         title: 'Know When to Meet',
-        description: 'Watch for the "Ready to Meet" indicator. When it appears, suggest meeting up!',
+        description:
+          'Watch for the "Ready to Meet" indicator. When it appears, suggest meeting up!',
         target: '[data-tutorial="meeting-ready"]',
         placement: 'bottom',
         action: 'none',
@@ -284,7 +296,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'safety-1',
         title: 'Safety Center',
-        description: 'Access safety resources, emergency contacts, and date planning tools anytime.',
+        description:
+          'Access safety resources, emergency contacts, and date planning tools anytime.',
         target: '[data-tutorial="safety-center"]',
         placement: 'left',
         action: 'none',
@@ -293,7 +306,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'safety-2',
         title: 'Report & Block',
-        description: 'See something concerning? Use the report button. We take every report seriously.',
+        description:
+          'See something concerning? Use the report button. We take every report seriously.',
         target: '[data-tutorial="report-button"]',
         placement: 'left',
         action: 'none',
@@ -302,7 +316,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'safety-3',
         title: 'Video Verify',
-        description: 'Look for the verification badge. It means they\'ve proven they\'re real through video.',
+        description:
+          "Look for the verification badge. It means they've proven they're real through video.",
         target: '[data-tutorial="verified-badge"]',
         placement: 'bottom',
         action: 'none',
@@ -311,7 +326,8 @@ const TUTORIALS: Tutorial[] = [
       {
         id: 'safety-4',
         title: 'Share Your Plans',
-        description: 'Meeting up? Use our Date Check-in feature to share your location with trusted contacts.',
+        description:
+          'Meeting up? Use our Date Check-in feature to share your location with trusted contacts.',
         target: '[data-tutorial="date-checkin"]',
         placement: 'top',
         action: 'none',
@@ -354,10 +370,10 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const completed = localStorage.getItem('completedTutorials');
     const skipped = localStorage.getItem('skippedTutorials');
     if (completed) {
-      setState(s => ({ ...s, completedTutorials: JSON.parse(completed) }));
+      setState((s) => ({ ...s, completedTutorials: JSON.parse(completed) }));
     }
     if (skipped) {
-      setState(s => ({ ...s, skippedTutorials: JSON.parse(skipped) }));
+      setState((s) => ({ ...s, skippedTutorials: JSON.parse(skipped) }));
     }
   }, []);
 
@@ -365,7 +381,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const hasVisited = localStorage.getItem('hasVisitedBefore');
     if (!hasVisited) {
-      const welcomeTutorial = tutorials.find(t => t.trigger === 'first-visit');
+      const welcomeTutorial = tutorials.find((t) => t.trigger === 'first-visit');
       if (welcomeTutorial && !state.completedTutorials.includes(welcomeTutorial.id)) {
         setTimeout(() => startTutorial(welcomeTutorial.id), 1000);
       }
@@ -373,20 +389,23 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [tutorials, state.completedTutorials]);
 
-  const startTutorial = useCallback((tutorialId: string) => {
-    const tutorial = tutorials.find(t => t.id === tutorialId);
-    if (!tutorial) return;
+  const startTutorial = useCallback(
+    (tutorialId: string) => {
+      const tutorial = tutorials.find((t) => t.id === tutorialId);
+      if (!tutorial) return;
 
-    setState(s => ({
-      ...s,
-      activeTutorial: tutorial,
-      currentStepIndex: 0,
-      isActive: true,
-    }));
+      setState((s) => ({
+        ...s,
+        activeTutorial: tutorial,
+        currentStepIndex: 0,
+        isActive: true,
+      }));
 
-    // Run onEnter for first step
-    tutorial.steps[0]?.onEnter?.();
-  }, [tutorials]);
+      // Run onEnter for first step
+      tutorial.steps[0]?.onEnter?.();
+    },
+    [tutorials]
+  );
 
   const nextStep = useCallback(() => {
     if (!state.activeTutorial) return;
@@ -396,7 +415,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     if (state.currentStepIndex < state.activeTutorial.steps.length - 1) {
       const nextIndex = state.currentStepIndex + 1;
-      setState(s => ({ ...s, currentStepIndex: nextIndex }));
+      setState((s) => ({ ...s, currentStepIndex: nextIndex }));
       state.activeTutorial.steps[nextIndex]?.onEnter?.();
     } else {
       completeTutorial();
@@ -410,7 +429,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     currentStep?.onExit?.();
 
     const prevIndex = state.currentStepIndex - 1;
-    setState(s => ({ ...s, currentStepIndex: prevIndex }));
+    setState((s) => ({ ...s, currentStepIndex: prevIndex }));
     state.activeTutorial.steps[prevIndex]?.onEnter?.();
   }, [state.activeTutorial, state.currentStepIndex]);
 
@@ -420,7 +439,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const tutorialId = state.activeTutorial.id;
     const newSkipped = [...state.skippedTutorials, tutorialId];
 
-    setState(s => ({
+    setState((s) => ({
       ...s,
       skippedTutorials: newSkipped,
       activeTutorial: null,
@@ -437,7 +456,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const tutorialId = state.activeTutorial.id;
     const newCompleted = [...state.completedTutorials, tutorialId];
 
-    setState(s => ({
+    setState((s) => ({
       ...s,
       completedTutorials: newCompleted,
       activeTutorial: null,
@@ -449,20 +468,23 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [state.activeTutorial, state.completedTutorials]);
 
   const resetTutorial = useCallback((tutorialId: string) => {
-    setState(s => ({
+    setState((s) => ({
       ...s,
-      completedTutorials: s.completedTutorials.filter(id => id !== tutorialId),
-      skippedTutorials: s.skippedTutorials.filter(id => id !== tutorialId),
+      completedTutorials: s.completedTutorials.filter((id) => id !== tutorialId),
+      skippedTutorials: s.skippedTutorials.filter((id) => id !== tutorialId),
     }));
   }, []);
 
-  const isTutorialCompleted = useCallback((tutorialId: string) => {
-    return state.completedTutorials.includes(tutorialId);
-  }, [state.completedTutorials]);
+  const isTutorialCompleted = useCallback(
+    (tutorialId: string) => {
+      return state.completedTutorials.includes(tutorialId);
+    },
+    [state.completedTutorials]
+  );
 
   const registerTutorial = useCallback((tutorial: Tutorial) => {
-    setTutorials(prev => {
-      if (prev.find(t => t.id === tutorial.id)) return prev;
+    setTutorials((prev) => {
+      if (prev.find((t) => t.id === tutorial.id)) return prev;
       return [...prev, tutorial];
     });
   }, []);
@@ -628,9 +650,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
               <div
                 key={i}
                 className={`h-1 flex-1 rounded-full transition-colors ${
-                  i <= currentStep
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-600'
-                    : 'bg-slate-700'
+                  i <= currentStep ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-slate-700'
                 }`}
               />
             ))}
@@ -705,15 +725,16 @@ export const TutorialList: React.FC<{ className?: string }> = ({ className }) =>
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {TUTORIALS.map(tutorial => (
+      {TUTORIALS.map((tutorial) => (
         <button
           key={tutorial.id}
           onClick={() => startTutorial(tutorial.id)}
           className={`
             w-full p-4 rounded-xl border text-left transition-all
-            ${isTutorialCompleted(tutorial.id)
-              ? 'bg-green-500/10 border-green-500/30'
-              : 'bg-slate-800/50 border-slate-700/50 hover:border-purple-500/50'
+            ${
+              isTutorialCompleted(tutorial.id)
+                ? 'bg-green-500/10 border-green-500/30'
+                : 'bg-slate-800/50 border-slate-700/50 hover:border-purple-500/50'
             }
           `}
         >

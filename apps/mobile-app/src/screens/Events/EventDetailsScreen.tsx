@@ -68,7 +68,8 @@ interface Props {
 const MOCK_EVENT: EventDetails = {
   id: '1',
   title: 'Speed Dating Night - Ages 25-35',
-  description: 'Join us for an exciting evening of meeting new people! Our professional speed dating event brings together 30 amazing singles for an evening of fun, connection, and potential romance.\n\nEach date lasts 5 minutes, giving you just enough time to make a first impression. After the event, log into your Heartly app to see your matches!',
+  description:
+    'Join us for an exciting evening of meeting new people! Our professional speed dating event brings together 30 amazing singles for an evening of fun, connection, and potential romance.\n\nEach date lasts 5 minutes, giving you just enough time to make a first impression. After the event, log into your Heartly app to see your matches!',
   imageUrl: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf',
   images: [
     'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf',
@@ -153,45 +154,37 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
 
-    Alert.alert(
-      'Join Event',
-      `Confirm your attendance to "${event.title}" for $${event.price}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Join',
-          onPress: () => {
-            setEvent({
-              ...event,
-              isAttending: true,
-              attendeeCount: event.attendeeCount + 1,
-            });
-            Alert.alert('Success', "You're going! See you there!");
-          },
+    Alert.alert('Join Event', `Confirm your attendance to "${event.title}" for $${event.price}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Join',
+        onPress: () => {
+          setEvent({
+            ...event,
+            isAttending: true,
+            attendeeCount: event.attendeeCount + 1,
+          });
+          Alert.alert('Success', "You're going! See you there!");
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleLeaveEvent = () => {
-    Alert.alert(
-      'Leave Event',
-      'Are you sure you want to cancel your attendance?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Leave',
-          style: 'destructive',
-          onPress: () => {
-            setEvent({
-              ...event,
-              isAttending: false,
-              attendeeCount: event.attendeeCount - 1,
-            });
-          },
+    Alert.alert('Leave Event', 'Are you sure you want to cancel your attendance?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Leave',
+        style: 'destructive',
+        onPress: () => {
+          setEvent({
+            ...event,
+            isAttending: false,
+            attendeeCount: event.attendeeCount - 1,
+          });
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const spotsLeft = event.maxAttendees - event.attendeeCount;
@@ -201,17 +194,11 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Image */}
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: event.images[selectedImageIndex] }}
-            style={styles.heroImage}
-          />
+          <Image source={{ uri: event.images[selectedImageIndex] }} style={styles.heroImage} />
 
           {/* Back button */}
           <SafeAreaView style={styles.headerOverlay}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
               <Text style={styles.backButtonText}>←</Text>
             </TouchableOpacity>
             <View style={styles.headerActions}>
@@ -219,9 +206,7 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={styles.actionIcon}>📤</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionButton} onPress={handleBookmark}>
-                <Text style={styles.actionIcon}>
-                  {event.isBookmarked ? '❤️' : '🤍'}
-                </Text>
+                <Text style={styles.actionIcon}>{event.isBookmarked ? '❤️' : '🤍'}</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -229,16 +214,10 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Image thumbnails */}
           <View style={styles.imageThumbnails}>
             {event.images.map((img, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => setSelectedImageIndex(index)}
-              >
+              <TouchableOpacity key={index} onPress={() => setSelectedImageIndex(index)}>
                 <Image
                   source={{ uri: img }}
-                  style={[
-                    styles.thumbnail,
-                    selectedImageIndex === index && styles.thumbnailActive,
-                  ]}
+                  style={[styles.thumbnail, selectedImageIndex === index && styles.thumbnailActive]}
                 />
               </TouchableOpacity>
             ))}
@@ -298,16 +277,12 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Host */}
           <TouchableOpacity style={styles.hostCard}>
             <View style={styles.hostAvatar}>
-              <Text style={styles.hostAvatarText}>
-                {event.host.name[0]?.toUpperCase()}
-              </Text>
+              <Text style={styles.hostAvatarText}>{event.host.name[0]?.toUpperCase()}</Text>
             </View>
             <View style={styles.hostInfo}>
               <Text style={styles.hostLabel}>Hosted by</Text>
               <Text style={styles.hostName}>{event.host.name}</Text>
-              <Text style={styles.hostStats}>
-                {event.host.eventsHosted} events hosted
-              </Text>
+              <Text style={styles.hostStats}>{event.host.eventsHosted} events hosted</Text>
             </View>
             <Text style={styles.hostArrow}>→</Text>
           </TouchableOpacity>
@@ -356,17 +331,13 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               {event.attendees.map((attendee) => (
                 <View key={attendee.id} style={styles.attendeeCard}>
                   <View style={styles.attendeeAvatar}>
-                    <Text style={styles.attendeeAvatarText}>
-                      {attendee.name[0]?.toUpperCase()}
-                    </Text>
+                    <Text style={styles.attendeeAvatarText}>{attendee.name[0]?.toUpperCase()}</Text>
                   </View>
                   <Text style={styles.attendeeName}>{attendee.name}</Text>
                 </View>
               ))}
               <View style={styles.moreAttendees}>
-                <Text style={styles.moreAttendeesText}>
-                  +{event.attendeeCount - 5}
-                </Text>
+                <Text style={styles.moreAttendeesText}>+{event.attendeeCount - 5}</Text>
               </View>
             </ScrollView>
           </View>
@@ -380,21 +351,13 @@ const EventDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Price</Text>
-          <Text style={styles.priceValue}>
-            {event.price === 0 ? 'Free' : `$${event.price}`}
-          </Text>
+          <Text style={styles.priceValue}>{event.price === 0 ? 'Free' : `$${event.price}`}</Text>
         </View>
         <TouchableOpacity
-          style={[
-            styles.ctaButton,
-            event.isAttending && styles.ctaButtonAttending,
-          ]}
+          style={[styles.ctaButton, event.isAttending && styles.ctaButtonAttending]}
           onPress={event.isAttending ? handleLeaveEvent : handleJoinEvent}
         >
-          <Text style={[
-            styles.ctaButtonText,
-            event.isAttending && styles.ctaButtonTextAttending,
-          ]}>
+          <Text style={[styles.ctaButtonText, event.isAttending && styles.ctaButtonTextAttending]}>
             {event.isAttending ? "You're Going ✓" : 'Join Event'}
           </Text>
         </TouchableOpacity>

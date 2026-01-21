@@ -5,7 +5,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CallHistoryItem } from '../components/VideoCall/CallHistory';
-import { callHistoryService, CallHistoryFilters, CallHistoryResponse } from '../services/call-history.service';
+import {
+  callHistoryService,
+  CallHistoryFilters,
+  CallHistoryResponse,
+} from '../services/call-history.service';
 
 interface UseCallHistoryOptions {
   autoLoad?: boolean;
@@ -36,11 +40,7 @@ interface UseCallHistoryReturn {
 }
 
 export function useCallHistory(options: UseCallHistoryOptions = {}): UseCallHistoryReturn {
-  const {
-    autoLoad = true,
-    pageSize = 20,
-    initialFilter = 'all',
-  } = options;
+  const { autoLoad = true, pageSize = 20, initialFilter = 'all' } = options;
 
   const [calls, setCalls] = useState<CallHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +48,9 @@ export function useCallHistory(options: UseCallHistoryOptions = {}): UseCallHist
   const [hasMore, setHasMore] = useState(true);
   const [totalCalls, setTotalCalls] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentFilter, setCurrentFilter] = useState<'all' | 'missed' | 'video' | 'audio'>(initialFilter);
+  const [currentFilter, setCurrentFilter] = useState<'all' | 'missed' | 'video' | 'audio'>(
+    initialFilter
+  );
   const [unseenMissedCount, setUnseenMissedCount] = useState(0);
 
   const isLoadingRef = useRef(false);
@@ -79,46 +81,49 @@ export function useCallHistory(options: UseCallHistoryOptions = {}): UseCallHist
   }, [currentPage, pageSize, currentFilter]);
 
   // Load calls
-  const loadCalls = useCallback(async (reset = false) => {
-    if (isLoadingRef.current) return;
+  const loadCalls = useCallback(
+    async (reset = false) => {
+      if (isLoadingRef.current) return;
 
-    isLoadingRef.current = true;
-    setIsLoading(true);
-    setError(null);
+      isLoadingRef.current = true;
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const page = reset ? 1 : currentPage;
-      const filters = { ...buildFilters(), page };
+      try {
+        const page = reset ? 1 : currentPage;
+        const filters = { ...buildFilters(), page };
 
-      const response: CallHistoryResponse = await callHistoryService.getCallHistory(filters);
+        const response: CallHistoryResponse = await callHistoryService.getCallHistory(filters);
 
-      if (reset) {
-        setCalls(response.calls);
-        setCurrentPage(1);
-      } else {
-        setCalls(prev => [...prev, ...response.calls]);
+        if (reset) {
+          setCalls(response.calls);
+          setCurrentPage(1);
+        } else {
+          setCalls((prev) => [...prev, ...response.calls]);
+        }
+
+        setTotalCalls(response.total);
+        setHasMore(response.hasMore);
+
+        if (!reset && response.hasMore) {
+          setCurrentPage((prev) => prev + 1);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load call history';
+        setError(message);
+        console.error('Error loading call history:', err);
+      } finally {
+        setIsLoading(false);
+        isLoadingRef.current = false;
       }
-
-      setTotalCalls(response.total);
-      setHasMore(response.hasMore);
-
-      if (!reset && response.hasMore) {
-        setCurrentPage(prev => prev + 1);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load call history';
-      setError(message);
-      console.error('Error loading call history:', err);
-    } finally {
-      setIsLoading(false);
-      isLoadingRef.current = false;
-    }
-  }, [buildFilters, currentPage]);
+    },
+    [buildFilters, currentPage]
+  );
 
   // Load more (pagination)
   const loadMore = useCallback(async () => {
     if (!hasMore || isLoading) return;
-    setCurrentPage(prev => prev + 1);
+    setCurrentPage((prev) => prev + 1);
   }, [hasMore, isLoading]);
 
   // Effect to load when page changes
@@ -132,8 +137,8 @@ export function useCallHistory(options: UseCallHistoryOptions = {}): UseCallHist
   const deleteCall = useCallback(async (callId: string) => {
     try {
       await callHistoryService.deleteCall(callId);
-      setCalls(prev => prev.filter(call => call.callId !== callId));
-      setTotalCalls(prev => prev - 1);
+      setCalls((prev) => prev.filter((call) => call.callId !== callId));
+      setTotalCalls((prev) => prev - 1);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete call';
       setError(message);
@@ -180,13 +185,16 @@ export function useCallHistory(options: UseCallHistoryOptions = {}): UseCallHist
   }, [loadCalls]);
 
   // Set filter and reload
-  const setFilter = useCallback((filter: 'all' | 'missed' | 'video' | 'audio') => {
-    if (filter === currentFilter) return;
-    setCurrentFilter(filter);
-    setCalls([]);
-    setCurrentPage(1);
-    setHasMore(true);
-  }, [currentFilter]);
+  const setFilter = useCallback(
+    (filter: 'all' | 'missed' | 'video' | 'audio') => {
+      if (filter === currentFilter) return;
+      setCurrentFilter(filter);
+      setCalls([]);
+      setCurrentPage(1);
+      setHasMore(true);
+    },
+    [currentFilter]
+  );
 
   // Effect to reload when filter changes
   useEffect(() => {
@@ -199,9 +207,10 @@ export function useCallHistory(options: UseCallHistoryOptions = {}): UseCallHist
       loadCalls(true);
 
       // Also load unseen count
-      callHistoryService.getUnseenMissedCallsCount()
-        .then(count => setUnseenMissedCount(count))
-        .catch(err => console.error('Error fetching unseen count:', err));
+      callHistoryService
+        .getUnseenMissedCallsCount()
+        .then((count) => setUnseenMissedCount(count))
+        .catch((err) => console.error('Error fetching unseen count:', err));
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

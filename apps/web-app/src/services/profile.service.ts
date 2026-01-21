@@ -167,7 +167,9 @@ function transformBackendProfile(data: BackendProfile): UserProfile {
     id: photo.id || `photo-${index}`,
     url: photo.url,
     isPrimary: toBoolean(photo.is_primary ?? photo.isPrimary),
-    moderationStatus: (photo.moderation_status || photo.moderationStatus || 'pending') as ProfilePhoto['moderationStatus'],
+    moderationStatus: (photo.moderation_status ||
+      photo.moderationStatus ||
+      'pending') as ProfilePhoto['moderationStatus'],
     order: toNumber(photo.order, index),
   }));
 
@@ -210,7 +212,10 @@ function transformBackendProfile(data: BackendProfile): UserProfile {
     prompts,
     isVerified: toBoolean(data.is_verified ?? data.isVerified ?? data.is_photo_verified),
     premiumTier: normalizeSubscriptionTier(data.premium_tier || data.premiumTier) || undefined,
-    profileCompletion: toNumber(data.profile_completion ?? data.profileCompletion ?? data.profile_completion_percentage, 0),
+    profileCompletion: toNumber(
+      data.profile_completion ?? data.profileCompletion ?? data.profile_completion_percentage,
+      0
+    ),
     settings: transformedSettings,
     createdAt: toDateString(data.created_at || data.createdAt) || new Date().toISOString(),
     updatedAt: toDateString(data.updated_at || data.updatedAt) || new Date().toISOString(),
@@ -253,10 +258,13 @@ class ProfileService {
     }
 
     // Backend may return wrapped response { success, data } or direct profile
-    const response = await apiClient.get<{ success: boolean; data: BackendProfile } | BackendProfile>('/api/profile');
+    const response = await apiClient.get<
+      { success: boolean; data: BackendProfile } | BackendProfile
+    >('/api/profile');
 
     // Handle both wrapped and unwrapped response formats
-    const backendProfile = 'success' in response && response.data ? response.data : response as BackendProfile;
+    const backendProfile =
+      'success' in response && response.data ? response.data : (response as BackendProfile);
     return transformBackendProfile(backendProfile);
   }
 
@@ -268,10 +276,13 @@ class ProfileService {
     }
 
     // Backend may return wrapped response { success, data } or direct profile
-    const response = await apiClient.patch<{ success: boolean; data: BackendProfile } | BackendProfile>('/api/profile', data);
+    const response = await apiClient.patch<
+      { success: boolean; data: BackendProfile } | BackendProfile
+    >('/api/profile', data);
 
     // Handle both wrapped and unwrapped response formats
-    const backendProfile = 'success' in response && response.data ? response.data : response as BackendProfile;
+    const backendProfile =
+      'success' in response && response.data ? response.data : (response as BackendProfile);
     return transformBackendProfile(backendProfile);
   }
 

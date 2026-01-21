@@ -25,7 +25,7 @@ export const useNotificationPermissions = () => {
 
   const checkPermissions = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, loading: true }));
+      setState((prev) => ({ ...prev, loading: true }));
       const status = await notificationService.getPermissionStatus();
 
       setState({
@@ -35,7 +35,7 @@ export const useNotificationPermissions = () => {
       });
     } catch (error) {
       console.error('Failed to check notification permissions:', error);
-      setState(prev => ({ ...prev, loading: false }));
+      setState((prev) => ({ ...prev, loading: false }));
     }
   }, []);
 
@@ -59,7 +59,7 @@ export const useNotificationPermissions = () => {
 
       const granted = await notificationService.requestPermissions();
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         granted,
         canRequest: !granted,

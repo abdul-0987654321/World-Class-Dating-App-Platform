@@ -12,7 +12,9 @@ export const validatePhone = (phone: string): boolean => {
   return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
 };
 
-export const validatePassword = (password: string): {
+export const validatePassword = (
+  password: string
+): {
   isValid: boolean;
   errors: string[];
 } => {

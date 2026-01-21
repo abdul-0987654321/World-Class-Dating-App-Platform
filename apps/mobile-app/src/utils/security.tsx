@@ -80,12 +80,7 @@ export const performSecurityCheck = (): SecurityCheck => {
 export const isDeviceCompromised = (): boolean => {
   const checks = performSecurityCheck();
 
-  return (
-    checks.isRooted ||
-    checks.isJailbroken ||
-    checks.hasXposed ||
-    checks.hasFrida
-  );
+  return checks.isRooted || checks.isJailbroken || checks.hasXposed || checks.hasFrida;
 };
 
 /**

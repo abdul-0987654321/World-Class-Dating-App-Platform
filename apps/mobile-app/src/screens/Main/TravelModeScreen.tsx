@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TravelModeToggle } from '../../components/travel/TravelModeToggle';
 import { TravelScheduleView } from '../../components/travel/TravelScheduleView';
@@ -18,17 +11,12 @@ interface TravelModeScreenProps {
   navigation: any;
 }
 
-export const TravelModeScreen: React.FC<TravelModeScreenProps> = ({
-  userId,
-  navigation,
-}) => {
+export const TravelModeScreen: React.FC<TravelModeScreenProps> = ({ userId, navigation }) => {
   const [showDestinationPicker, setShowDestinationPicker] = useState(false);
   const [showAddTripModal, setShowAddTripModal] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<any>(null);
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  );
+  const [endDate, setEndDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
   const [travelNotes, setTravelNotes] = useState('');
 
   const handleSelectDestination = (destination: any) => {
@@ -103,8 +91,8 @@ export const TravelModeScreen: React.FC<TravelModeScreenProps> = ({
             <Icon name="map-marker-radius" size={32} color="#FF6B6B" />
             <Text style={styles.featureTitle}>Match Before You Arrive</Text>
             <Text style={styles.featureDescription}>
-              Set your destination and start matching with people in that city
-              before you even get there
+              Set your destination and start matching with people in that city before you even get
+              there
             </Text>
           </View>
 
@@ -112,8 +100,8 @@ export const TravelModeScreen: React.FC<TravelModeScreenProps> = ({
             <Icon name="airplane" size={32} color="#FF6B6B" />
             <Text style={styles.featureTitle}>Show You're Traveling</Text>
             <Text style={styles.featureDescription}>
-              Your profile displays a "Traveling to [City]" badge, making it
-              easy for locals to discover you
+              Your profile displays a "Traveling to [City]" badge, making it easy for locals to
+              discover you
             </Text>
           </View>
 
@@ -121,8 +109,8 @@ export const TravelModeScreen: React.FC<TravelModeScreenProps> = ({
             <Icon name="calendar-clock" size={32} color="#FF6B6B" />
             <Text style={styles.featureTitle}>Automatic Switching</Text>
             <Text style={styles.featureDescription}>
-              Your location automatically updates when your travel dates arrive
-              and resets when you return
+              Your location automatically updates when your travel dates arrive and resets when you
+              return
             </Text>
           </View>
         </View>
@@ -148,21 +136,15 @@ export const TravelModeScreen: React.FC<TravelModeScreenProps> = ({
             </View>
             <View style={styles.premiumFeatureItem}>
               <Icon name="check-circle" size={20} color="#4CAF50" />
-              <Text style={styles.premiumFeatureText}>
-                Multiple destinations simultaneously
-              </Text>
+              <Text style={styles.premiumFeatureText}>Multiple destinations simultaneously</Text>
             </View>
             <View style={styles.premiumFeatureItem}>
               <Icon name="check-circle" size={20} color="#4CAF50" />
-              <Text style={styles.premiumFeatureText}>
-                Travel buddy matching
-              </Text>
+              <Text style={styles.premiumFeatureText}>Travel buddy matching</Text>
             </View>
             <View style={styles.premiumFeatureItem}>
               <Icon name="check-circle" size={20} color="#4CAF50" />
-              <Text style={styles.premiumFeatureText}>
-                Full travel history
-              </Text>
+              <Text style={styles.premiumFeatureText}>Full travel history</Text>
             </View>
           </View>
         </View>

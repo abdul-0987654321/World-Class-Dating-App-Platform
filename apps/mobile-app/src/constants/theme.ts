@@ -28,19 +28,19 @@ export const Colors = {
   gray900: '#3A3A3C',
 
   // Semantic — Master Prompt Specification
-  success: '#22C55E',        // Emerald Green
+  success: '#22C55E', // Emerald Green
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
 
   // Background — Midnight Blue base
-  background: '#1a1a2e',     // Midnight Blue
+  background: '#1a1a2e', // Midnight Blue
   backgroundSecondary: '#232342',
   backgroundTertiary: '#2d2d44', // Deep Charcoal
 
   // Gradients — Master Prompt Specification
   gradient: {
-    primary: ['#EC4899', '#F472B6'],  // Electric Pink
+    primary: ['#EC4899', '#F472B6'], // Electric Pink
     secondary: ['#667EEA', '#764BA2'],
     gold: ['#F7971E', '#FFD200'],
     romance: ['#EC4899', '#7B61FF', '#2ED4FF'], // Aurora gradient

@@ -40,12 +40,7 @@ const messagingSlice = createSlice({
   },
 });
 
-export const {
-  setConversations,
-  setCurrentConversation,
-  setMessages,
-  addMessage,
-  clearMessages,
-} = messagingSlice.actions;
+export const { setConversations, setCurrentConversation, setMessages, addMessage, clearMessages } =
+  messagingSlice.actions;
 
 export default messagingSlice.reducer;

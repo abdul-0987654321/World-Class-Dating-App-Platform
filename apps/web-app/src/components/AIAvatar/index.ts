@@ -12,9 +12,4 @@ export {
   avatarGuardrails,
 } from './AIAvatarSystem';
 
-export type {
-  AvatarContext,
-  AvatarMessage,
-  AvatarState,
-  AIAvatarProps,
-} from './AIAvatarSystem';
+export type { AvatarContext, AvatarMessage, AvatarState, AIAvatarProps } from './AIAvatarSystem';

@@ -46,7 +46,15 @@ export interface ToxicityAnalysisResult {
 }
 
 export interface ToxicityCategory {
-  category: 'harassment' | 'hate_speech' | 'sexual_content' | 'profanity' | 'spam' | 'threat' | 'identity_attack' | 'scam';
+  category:
+    | 'harassment'
+    | 'hate_speech'
+    | 'sexual_content'
+    | 'profanity'
+    | 'spam'
+    | 'threat'
+    | 'identity_attack'
+    | 'scam';
   score: number;
   confidence: number;
   matched_patterns?: string[];
@@ -135,53 +143,44 @@ class NLPService {
   /**
    * Analyze sentiment of text
    */
-  async analyzeSentiment(request: SentimentAnalysisRequest): Promise<ApiResponse<SentimentAnalysisResult>> {
-    return httpClient.post<SentimentAnalysisResult>(
-      `${this.baseUrl}/sentiment`,
-      request,
-      { timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS }
-    );
+  async analyzeSentiment(
+    request: SentimentAnalysisRequest
+  ): Promise<ApiResponse<SentimentAnalysisResult>> {
+    return httpClient.post<SentimentAnalysisResult>(`${this.baseUrl}/sentiment`, request, {
+      timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS,
+    });
   }
 
   /**
    * Check text for toxicity and inappropriate content
    */
-  async analyzeToxicity(request: ToxicityAnalysisRequest): Promise<ApiResponse<ToxicityAnalysisResult>> {
-    return httpClient.post<ToxicityAnalysisResult>(
-      `${this.baseUrl}/toxicity`,
-      request,
-      { timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS }
-    );
+  async analyzeToxicity(
+    request: ToxicityAnalysisRequest
+  ): Promise<ApiResponse<ToxicityAnalysisResult>> {
+    return httpClient.post<ToxicityAnalysisResult>(`${this.baseUrl}/toxicity`, request, {
+      timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS,
+    });
   }
 
   /**
    * Detect language of text
    */
   async detectLanguage(text: string): Promise<ApiResponse<LanguageDetectionResult>> {
-    return httpClient.post<LanguageDetectionResult>(
-      `${this.baseUrl}/language/detect`,
-      { text }
-    );
+    return httpClient.post<LanguageDetectionResult>(`${this.baseUrl}/language/detect`, { text });
   }
 
   /**
    * Extract keywords and entities from text
    */
   async extractKeywords(text: string): Promise<ApiResponse<KeywordExtractionResult>> {
-    return httpClient.post<KeywordExtractionResult>(
-      `${this.baseUrl}/keywords`,
-      { text }
-    );
+    return httpClient.post<KeywordExtractionResult>(`${this.baseUrl}/keywords`, { text });
   }
 
   /**
    * Extract interests from profile bio or prompts
    */
   async extractInterests(text: string): Promise<ApiResponse<InterestExtractionResult>> {
-    return httpClient.post<InterestExtractionResult>(
-      `${this.baseUrl}/interests`,
-      { text }
-    );
+    return httpClient.post<InterestExtractionResult>(`${this.baseUrl}/interests`, { text });
   }
 
   /**
@@ -190,10 +189,9 @@ class NLPService {
   async analyzeConversation(
     messages: { text: string; sender_id: string; timestamp: string }[]
   ): Promise<ApiResponse<ConversationAnalysisResult>> {
-    return httpClient.post<ConversationAnalysisResult>(
-      `${this.baseUrl}/conversation/analyze`,
-      { messages }
-    );
+    return httpClient.post<ConversationAnalysisResult>(`${this.baseUrl}/conversation/analyze`, {
+      messages,
+    });
   }
 
   /**
@@ -203,10 +201,10 @@ class NLPService {
     conversation: { text: string; sender_id: string }[],
     userId: string
   ): Promise<ApiResponse<SmartReplyResult>> {
-    return httpClient.post<SmartReplyResult>(
-      `${this.baseUrl}/replies/suggest`,
-      { conversation, user_id: userId }
-    );
+    return httpClient.post<SmartReplyResult>(`${this.baseUrl}/replies/suggest`, {
+      conversation,
+      user_id: userId,
+    });
   }
 
   /**
@@ -215,31 +213,29 @@ class NLPService {
   async moderateContent(
     text: string,
     contentType: 'bio' | 'message' | 'prompt' | 'photo_caption'
-  ): Promise<ApiResponse<{
-    approved: boolean;
-    reason?: string;
-    modified_text?: string;
-    issues: string[];
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/moderate`,
-      { text, content_type: contentType }
-    );
+  ): Promise<
+    ApiResponse<{
+      approved: boolean;
+      reason?: string;
+      modified_text?: string;
+      issues: string[];
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/moderate`, { text, content_type: contentType });
   }
 
   /**
    * Check if message contains scam indicators
    */
-  async detectScam(text: string): Promise<ApiResponse<{
-    is_scam: boolean;
-    confidence: number;
-    indicators: string[];
-    scam_type?: string;
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/scam/detect`,
-      { text }
-    );
+  async detectScam(text: string): Promise<
+    ApiResponse<{
+      is_scam: boolean;
+      confidence: number;
+      indicators: string[];
+      scam_type?: string;
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/scam/detect`, { text });
   }
 
   /**
@@ -249,34 +245,32 @@ class NLPService {
     targetProfileBio: string,
     targetInterests: string[],
     senderInterests: string[]
-  ): Promise<ApiResponse<{
-    icebreakers: { text: string; type: string; confidence: number }[];
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/icebreakers/generate`,
-      {
-        target_bio: targetProfileBio,
-        target_interests: targetInterests,
-        sender_interests: senderInterests,
-      }
-    );
+  ): Promise<
+    ApiResponse<{
+      icebreakers: { text: string; type: string; confidence: number }[];
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/icebreakers/generate`, {
+      target_bio: targetProfileBio,
+      target_interests: targetInterests,
+      sender_interests: senderInterests,
+    });
   }
 
   /**
    * Analyze profile bio quality and get improvement suggestions
    */
-  async analyzeBioQuality(bio: string): Promise<ApiResponse<{
-    quality_score: number;
-    strengths: string[];
-    improvements: string[];
-    suggested_additions: string[];
-    word_count: number;
-    readability_score: number;
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/bio/analyze`,
-      { bio }
-    );
+  async analyzeBioQuality(bio: string): Promise<
+    ApiResponse<{
+      quality_score: number;
+      strengths: string[];
+      improvements: string[];
+      suggested_additions: string[];
+      word_count: number;
+      readability_score: number;
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/bio/analyze`, { bio });
   }
 }
 

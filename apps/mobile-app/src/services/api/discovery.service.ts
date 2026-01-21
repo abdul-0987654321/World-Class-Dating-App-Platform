@@ -180,9 +180,7 @@ class DiscoveryService {
   /**
    * Update discovery filters
    */
-  async updateFilters(
-    filters: Partial<DiscoveryFilters>
-  ): Promise<ApiResponse<DiscoveryFilters>> {
+  async updateFilters(filters: Partial<DiscoveryFilters>): Promise<ApiResponse<DiscoveryFilters>> {
     return httpClient.put<DiscoveryFilters>(`${this.baseUrl}/filters`, filters);
   }
 

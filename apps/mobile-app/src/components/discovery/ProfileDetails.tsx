@@ -260,10 +260,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   };
 
   const renderLifestyle = () => {
-    const hasLifestyle =
-      profile.pets ||
-      profile.languages ||
-      profile.relationshipGoal;
+    const hasLifestyle = profile.pets || profile.languages || profile.relationshipGoal;
 
     if (!hasLifestyle) return null;
 
@@ -408,10 +405,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowMoreMenu(true)}
-            style={styles.moreButton}
-          >
+          <TouchableOpacity onPress={() => setShowMoreMenu(true)} style={styles.moreButton}>
             <Text style={styles.moreButtonText}>⋯</Text>
           </TouchableOpacity>
         </View>
@@ -421,10 +415,9 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: false }
-          )}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+            useNativeDriver: false,
+          })}
           scrollEventThrottle={16}
         >
           {renderPhotoCarousel()}

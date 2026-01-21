@@ -159,7 +159,12 @@ export const NotificationSettingsPage: React.FC = () => {
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Profile
         </button>
@@ -170,7 +175,12 @@ export const NotificationSettingsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -201,13 +211,17 @@ export const NotificationSettingsPage: React.FC = () => {
           />
           <Toggle
             checked={settings.push.superLikes}
-            onChange={(v) => setSettings({ ...settings, push: { ...settings.push, superLikes: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, push: { ...settings.push, superLikes: v } })
+            }
             label="Super Likes"
             description="Get notified for super likes"
           />
           <Toggle
             checked={settings.push.profileViews}
-            onChange={(v) => setSettings({ ...settings, push: { ...settings.push, profileViews: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, push: { ...settings.push, profileViews: v } })
+            }
             label="Profile Views"
             description="Get notified when someone views your profile"
           />
@@ -217,7 +231,12 @@ export const NotificationSettingsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-purple-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -236,25 +255,33 @@ export const NotificationSettingsPage: React.FC = () => {
           />
           <Toggle
             checked={settings.email.messages}
-            onChange={(v) => setSettings({ ...settings, email: { ...settings.email, messages: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, email: { ...settings.email, messages: v } })
+            }
             label="Unread Messages"
             description="Get email reminders for unread messages"
           />
           <Toggle
             checked={settings.email.weeklyDigest}
-            onChange={(v) => setSettings({ ...settings, email: { ...settings.email, weeklyDigest: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, email: { ...settings.email, weeklyDigest: v } })
+            }
             label="Weekly Digest"
             description="Receive a weekly summary of your activity"
           />
           <Toggle
             checked={settings.email.promotions}
-            onChange={(v) => setSettings({ ...settings, email: { ...settings.email, promotions: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, email: { ...settings.email, promotions: v } })
+            }
             label="Promotions & Offers"
             description="Receive promotional emails and special offers"
           />
           <Toggle
             checked={settings.email.securityAlerts}
-            onChange={(v) => setSettings({ ...settings, email: { ...settings.email, securityAlerts: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, email: { ...settings.email, securityAlerts: v } })
+            }
             label="Security Alerts"
             description="Important security notifications (recommended)"
           />
@@ -264,7 +291,12 @@ export const NotificationSettingsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-indigo-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -277,7 +309,9 @@ export const NotificationSettingsPage: React.FC = () => {
           </div>
           <Toggle
             checked={settings.quietHours.enabled}
-            onChange={(v) => setSettings({ ...settings, quietHours: { ...settings.quietHours, enabled: v } })}
+            onChange={(v) =>
+              setSettings({ ...settings, quietHours: { ...settings.quietHours, enabled: v } })
+            }
             label="Enable Quiet Hours"
             description="Pause notifications during specified hours"
           />
@@ -289,7 +323,10 @@ export const NotificationSettingsPage: React.FC = () => {
                   type="time"
                   value={settings.quietHours.start}
                   onChange={(e) =>
-                    setSettings({ ...settings, quietHours: { ...settings.quietHours, start: e.target.value } })
+                    setSettings({
+                      ...settings,
+                      quietHours: { ...settings.quietHours, start: e.target.value },
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
@@ -300,7 +337,10 @@ export const NotificationSettingsPage: React.FC = () => {
                   type="time"
                   value={settings.quietHours.end}
                   onChange={(e) =>
-                    setSettings({ ...settings, quietHours: { ...settings.quietHours, end: e.target.value } })
+                    setSettings({
+                      ...settings,
+                      quietHours: { ...settings.quietHours, end: e.target.value },
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />

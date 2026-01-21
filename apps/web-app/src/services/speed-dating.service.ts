@@ -93,17 +93,23 @@ class SpeedDatingService {
 
   // Events
   async getUpcomingEvents(): Promise<SpeedDatingEvent[]> {
-    const response = await apiClient.get<{ data: { events: SpeedDatingEvent[] } }>(`${this.baseUrl}/events`);
+    const response = await apiClient.get<{ data: { events: SpeedDatingEvent[] } }>(
+      `${this.baseUrl}/events`
+    );
     return response.data.events;
   }
 
   async getEvent(eventId: string): Promise<SpeedDatingEvent> {
-    const response = await apiClient.get<{ data: SpeedDatingEvent }>(`${this.baseUrl}/events/${eventId}`);
+    const response = await apiClient.get<{ data: SpeedDatingEvent }>(
+      `${this.baseUrl}/events/${eventId}`
+    );
     return response.data;
   }
 
   async getRegisteredEvents(): Promise<SpeedDatingEvent[]> {
-    const response = await apiClient.get<{ data: { events: SpeedDatingEvent[] } }>(`${this.baseUrl}/my-events`);
+    const response = await apiClient.get<{ data: { events: SpeedDatingEvent[] } }>(
+      `${this.baseUrl}/my-events`
+    );
     return response.data.events;
   }
 
@@ -144,12 +150,19 @@ class SpeedDatingService {
   }
 
   async getIcebreakers(): Promise<string[]> {
-    const response = await apiClient.get<{ data: { icebreakers: string[] } }>(`${this.baseUrl}/icebreakers`);
+    const response = await apiClient.get<{ data: { icebreakers: string[] } }>(
+      `${this.baseUrl}/icebreakers`
+    );
     return response.data.icebreakers;
   }
 
   // Matching
-  async submitInterest(eventId: string, roundId: string, partnerId: string, interested: boolean): Promise<{ success: boolean; mutual?: boolean }> {
+  async submitInterest(
+    eventId: string,
+    roundId: string,
+    partnerId: string,
+    interested: boolean
+  ): Promise<{ success: boolean; mutual?: boolean }> {
     const response = await apiClient.post<{ data: { success: boolean; mutual?: boolean } }>(
       `${this.baseUrl}/events/${eventId}/rounds/${roundId}/interest`,
       { partnerId, interested }
@@ -165,7 +178,9 @@ class SpeedDatingService {
   }
 
   async getAllMatches(): Promise<SpeedDatingMatch[]> {
-    const response = await apiClient.get<{ data: { matches: SpeedDatingMatch[] } }>(`${this.baseUrl}/matches`);
+    const response = await apiClient.get<{ data: { matches: SpeedDatingMatch[] } }>(
+      `${this.baseUrl}/matches`
+    );
     return response.data.matches;
   }
 
@@ -176,7 +191,10 @@ class SpeedDatingService {
   }
 
   // Video Call (within speed dating)
-  async getVideoToken(eventId: string, roundId: string): Promise<{ token: string; roomId: string }> {
+  async getVideoToken(
+    eventId: string,
+    roundId: string
+  ): Promise<{ token: string; roomId: string }> {
     const response = await apiClient.get<{ data: { token: string; roomId: string } }>(
       `${this.baseUrl}/events/${eventId}/rounds/${roundId}/video-token`
     );
@@ -184,7 +202,13 @@ class SpeedDatingService {
   }
 
   // Rate partner after round
-  async ratePartner(eventId: string, roundId: string, partnerId: string, rating: number, feedback?: string): Promise<{ success: boolean }> {
+  async ratePartner(
+    eventId: string,
+    roundId: string,
+    partnerId: string,
+    rating: number,
+    feedback?: string
+  ): Promise<{ success: boolean }> {
     const response = await apiClient.post<{ data: { success: boolean } }>(
       `${this.baseUrl}/events/${eventId}/rounds/${roundId}/rate`,
       { partnerId, rating, feedback }
@@ -193,7 +217,13 @@ class SpeedDatingService {
   }
 
   // Report inappropriate behavior
-  async reportPartner(eventId: string, roundId: string, partnerId: string, reason: string, details?: string): Promise<{ success: boolean }> {
+  async reportPartner(
+    eventId: string,
+    roundId: string,
+    partnerId: string,
+    reason: string,
+    details?: string
+  ): Promise<{ success: boolean }> {
     const response = await apiClient.post<{ data: { success: boolean } }>(
       `${this.baseUrl}/events/${eventId}/report`,
       { roundId, partnerId, reason, details }

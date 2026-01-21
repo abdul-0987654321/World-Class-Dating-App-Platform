@@ -21,11 +21,7 @@ interface MediaMessageProps {
   onImageClick?: (url: string) => void;
 }
 
-export const MediaMessage: React.FC<MediaMessageProps> = ({
-  media,
-  isFromMe,
-  onImageClick,
-}) => {
+export const MediaMessage: React.FC<MediaMessageProps> = ({ media, isFromMe, onImageClick }) => {
   switch (media.type) {
     case 'image':
       return (
@@ -46,9 +42,7 @@ export const MediaMessage: React.FC<MediaMessageProps> = ({
         />
       );
     case 'voice':
-      return (
-        <VoiceMessage url={media.url} duration={media.duration} isFromMe={isFromMe} />
-      );
+      return <VoiceMessage url={media.url} duration={media.duration} isFromMe={isFromMe} />;
     case 'gif':
       return <GifMessage url={media.url} isFromMe={isFromMe} onClick={onImageClick} />;
     default:
@@ -64,12 +58,7 @@ interface ImageMessageProps {
   onClick?: (url: string) => void;
 }
 
-const ImageMessage: React.FC<ImageMessageProps> = ({
-  url,
-  thumbnailUrl,
-  isFromMe,
-  onClick,
-}) => {
+const ImageMessage: React.FC<ImageMessageProps> = ({ url, thumbnailUrl, isFromMe, onClick }) => {
   const [loaded, setLoaded] = useState(false);
 
   return (
@@ -124,12 +113,7 @@ interface VideoMessageProps {
   isFromMe: boolean;
 }
 
-const VideoMessage: React.FC<VideoMessageProps> = ({
-  url,
-  thumbnailUrl,
-  duration,
-  isFromMe,
-}) => {
+const VideoMessage: React.FC<VideoMessageProps> = ({ url, thumbnailUrl, duration, isFromMe }) => {
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -287,8 +271,8 @@ const VoiceMessage: React.FC<VoiceMessageProps> = ({ url, duration, isFromMe }) 
                       ? 'bg-white'
                       : 'bg-white/40'
                     : isActive
-                    ? 'bg-pink-500'
-                    : 'bg-gray-200'
+                      ? 'bg-pink-500'
+                      : 'bg-gray-200'
                 }`}
                 style={{ height: `${height}%` }}
               />
@@ -354,7 +338,12 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ url, onClose }) =>
         onClick={onClose}
       >
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
       <img

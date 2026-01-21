@@ -103,7 +103,7 @@ class Logger {
     }
 
     if (Array.isArray(data)) {
-      return data.map(item => this.sanitize(item));
+      return data.map((item) => this.sanitize(item));
     }
 
     if (typeof data === 'object') {
@@ -113,8 +113,8 @@ class Logger {
         const lowerKey = key.toLowerCase();
 
         // Check if this field should be masked
-        const isSensitive = this.sensitiveFields.some(
-          field => lowerKey.includes(field.toLowerCase())
+        const isSensitive = this.sensitiveFields.some((field) =>
+          lowerKey.includes(field.toLowerCase())
         );
 
         if (isSensitive) {
@@ -135,11 +135,7 @@ class Logger {
   /**
    * Format log message with context
    */
-  private formatMessage(
-    level: string,
-    message: string,
-    context?: LogContext
-  ): string {
+  private formatMessage(level: string, message: string, context?: LogContext): string {
     const timestamp = new Date().toISOString();
     let logMessage = `[${timestamp}] [${level}] ${message}`;
 
@@ -238,12 +234,14 @@ class Logger {
 
     const errorContext = {
       ...context,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        // Only include stack trace in development
-        ...(this.isDevelopment && { stack: error.stack }),
-      } : undefined,
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            // Only include stack trace in development
+            ...(this.isDevelopment && { stack: error.stack }),
+          }
+        : undefined,
     };
 
     const formattedMessage = this.formatMessage('ERROR', message, errorContext);
@@ -264,12 +262,14 @@ class Logger {
   public fatal(message: string, error?: Error, context?: LogContext): void {
     const errorContext = {
       ...context,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        // Only include stack trace in development
-        ...(this.isDevelopment && { stack: error.stack }),
-      } : undefined,
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            // Only include stack trace in development
+            ...(this.isDevelopment && { stack: error.stack }),
+          }
+        : undefined,
     };
 
     const formattedMessage = this.formatMessage('FATAL', message, errorContext);
@@ -340,7 +340,7 @@ class Logger {
       const urlObj = new URL(url);
       const sensitiveParams = ['token', 'access_token', 'refresh_token', 'api_key', 'key'];
 
-      sensitiveParams.forEach(param => {
+      sensitiveParams.forEach((param) => {
         if (urlObj.searchParams.has(param)) {
           urlObj.searchParams.set(param, '[REDACTED]');
         }
@@ -376,10 +376,18 @@ export default logger;
 export const debug = (message: string, context?: LogContext) => logger.debug(message, context);
 export const info = (message: string, context?: LogContext) => logger.info(message, context);
 export const warn = (message: string, context?: LogContext) => logger.warn(message, context);
-export const error = (message: string, err?: Error, context?: LogContext) => logger.error(message, err, context);
-export const fatal = (message: string, err?: Error, context?: LogContext) => logger.fatal(message, err, context);
+export const error = (message: string, err?: Error, context?: LogContext) =>
+  logger.error(message, err, context);
+export const fatal = (message: string, err?: Error, context?: LogContext) =>
+  logger.fatal(message, err, context);
 export const performance = (metricName: string, duration: number, context?: LogContext) =>
   logger.performance(metricName, duration, context);
-export const network = (method: string, url: string, status: number, duration: number, context?: LogContext) =>
-  logger.network(method, url, status, duration, context);
-export const userAction = (action: string, context?: LogContext) => logger.userAction(action, context);
+export const network = (
+  method: string,
+  url: string,
+  status: number,
+  duration: number,
+  context?: LogContext
+) => logger.network(method, url, status, duration, context);
+export const userAction = (action: string, context?: LogContext) =>
+  logger.userAction(action, context);

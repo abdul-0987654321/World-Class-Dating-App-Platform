@@ -29,7 +29,9 @@ interface UseCoachReturn extends UseCoachState {
   icebreakerSuggestions: string[];
 
   // Response suggestions
-  generateResponses: (request: ResponseSuggestionRequest) => Promise<ResponseSuggestionResponse | null>;
+  generateResponses: (
+    request: ResponseSuggestionRequest
+  ) => Promise<ResponseSuggestionResponse | null>;
   responseSuggestions: string[];
 
   // Profile tips
@@ -60,77 +62,90 @@ export const useCoach = (): UseCoachReturn => {
   const [dateIdeas, setDateIdeas] = useState<DateIdeaResponse | null>(null);
   const [usage, setUsage] = useState<UsageResponse | null>(null);
 
-  const generateIcebreakers = useCallback(async (request: IcebreakerRequest): Promise<IcebreakerResponse | null> => {
-    setLoading(true);
-    setError(null);
+  const generateIcebreakers = useCallback(
+    async (request: IcebreakerRequest): Promise<IcebreakerResponse | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = await coachService.generateIcebreakers(request);
-      setIcebreakerSuggestions(response.suggestions);
-      setRemainingUses(response.remainingUses);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to generate icebreakers';
-      setError(message);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const response = await coachService.generateIcebreakers(request);
+        setIcebreakerSuggestions(response.suggestions);
+        setRemainingUses(response.remainingUses);
+        return response;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to generate icebreakers';
+        setError(message);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-  const generateResponses = useCallback(async (request: ResponseSuggestionRequest): Promise<ResponseSuggestionResponse | null> => {
-    setLoading(true);
-    setError(null);
+  const generateResponses = useCallback(
+    async (request: ResponseSuggestionRequest): Promise<ResponseSuggestionResponse | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = await coachService.generateResponseSuggestions(request);
-      setResponseSuggestions(response.suggestions);
-      setRemainingUses(response.remainingUses);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to generate response suggestions';
-      setError(message);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const response = await coachService.generateResponseSuggestions(request);
+        setResponseSuggestions(response.suggestions);
+        setRemainingUses(response.remainingUses);
+        return response;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to generate response suggestions';
+        setError(message);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-  const getProfileTips = useCallback(async (request: ProfileTipRequest): Promise<ProfileTipResponse | null> => {
-    setLoading(true);
-    setError(null);
+  const getProfileTips = useCallback(
+    async (request: ProfileTipRequest): Promise<ProfileTipResponse | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = await coachService.getProfileTips(request);
-      setProfileTips(response);
-      setRemainingUses(response.remainingUses);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to get profile tips';
-      setError(message);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const response = await coachService.getProfileTips(request);
+        setProfileTips(response);
+        setRemainingUses(response.remainingUses);
+        return response;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to get profile tips';
+        setError(message);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-  const generateDateIdeas = useCallback(async (request: DateIdeaRequest): Promise<DateIdeaResponse | null> => {
-    setLoading(true);
-    setError(null);
+  const generateDateIdeas = useCallback(
+    async (request: DateIdeaRequest): Promise<DateIdeaResponse | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = await coachService.generateDateIdeas(request);
-      setDateIdeas(response);
-      setRemainingUses(response.remainingUses);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to generate date ideas';
-      setError(message);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const response = await coachService.generateDateIdeas(request);
+        setDateIdeas(response);
+        setRemainingUses(response.remainingUses);
+        return response;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to generate date ideas';
+        setError(message);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const checkUsage = useCallback(async (): Promise<UsageResponse | null> => {
     try {

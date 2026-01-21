@@ -48,11 +48,7 @@ export const BlockButton: React.FC<BlockButtonProps> = ({
 
   return (
     <>
-      <button
-        className={`block-button ${variant}`}
-        onClick={handleBlockClick}
-        disabled={loading}
-      >
+      <button className={`block-button ${variant}`} onClick={handleBlockClick} disabled={loading}>
         {loading ? 'Blocking...' : variant === 'text' ? 'Block User' : '🚫 Block'}
       </button>
 

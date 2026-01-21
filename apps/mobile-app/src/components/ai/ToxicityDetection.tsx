@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  Modal,
-} from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
 import { Button } from '../common/Button';
 
 export type ToxicityCategory =
@@ -89,9 +82,7 @@ export const ToxicityDetection: React.FC<ToxicityDetectionProps> = ({
     }
   };
 
-  const performDefaultAnalysis = async (
-    content: string
-  ): Promise<ToxicityAnalysis> => {
+  const performDefaultAnalysis = async (content: string): Promise<ToxicityAnalysis> => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -110,9 +101,7 @@ export const ToxicityDetection: React.FC<ToxicityDetectionProps> = ({
 
     const categories: ToxicityScore[] = Object.entries(toxicKeywords).map(
       ([category, keywords]) => {
-        const matches = keywords.filter((keyword) =>
-          lowerContent.includes(keyword)
-        );
+        const matches = keywords.filter((keyword) => lowerContent.includes(keyword));
         const score = Math.min(matches.length * 0.3, 1);
 
         return {
@@ -152,8 +141,8 @@ export const ToxicityDetection: React.FC<ToxicityDetectionProps> = ({
       action === 'block'
         ? 'This message contains inappropriate content and should not be sent.'
         : action === 'warn'
-        ? 'This message may be perceived as inappropriate. Consider rephrasing.'
-        : 'Message appears appropriate.';
+          ? 'This message may be perceived as inappropriate. Consider rephrasing.'
+          : 'Message appears appropriate.';
 
     return {
       overallScore,
@@ -216,20 +205,14 @@ export const ToxicityDetection: React.FC<ToxicityDetectionProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalIcon}>
-                {getSeverityIcon(analysis.severity)}
-              </Text>
+              <Text style={styles.modalIcon}>{getSeverityIcon(analysis.severity)}</Text>
               <Text style={styles.modalTitle}>
-                {analysis.action === 'block'
-                  ? 'Message Blocked'
-                  : 'Content Warning'}
+                {analysis.action === 'block' ? 'Message Blocked' : 'Content Warning'}
               </Text>
             </View>
 
             <View style={styles.modalContent}>
-              <Text style={styles.modalDescription}>
-                {analysis.recommendation}
-              </Text>
+              <Text style={styles.modalDescription}>{analysis.recommendation}</Text>
 
               {analysis.flaggedPhrases.length > 0 && (
                 <View style={styles.flaggedSection}>
@@ -252,9 +235,7 @@ export const ToxicityDetection: React.FC<ToxicityDetectionProps> = ({
                       <Text style={styles.categoryLabel}>
                         {getCategoryLabel(category.category)}
                       </Text>
-                      <Text style={styles.categoryScore}>
-                        {Math.round(category.score * 100)}%
-                      </Text>
+                      <Text style={styles.categoryScore}>{Math.round(category.score * 100)}%</Text>
                     </View>
                   ))}
                 </View>
@@ -326,9 +307,7 @@ export const ToxicityDetection: React.FC<ToxicityDetectionProps> = ({
           ]}
           onPress={() => setShowWarningModal(true)}
         >
-          <Text style={styles.warningIcon}>
-            {getSeverityIcon(analysis.severity)}
-          </Text>
+          <Text style={styles.warningIcon}>{getSeverityIcon(analysis.severity)}</Text>
           <Text style={styles.warningText}>Content may be inappropriate</Text>
           <TouchableOpacity onPress={() => setShowWarningModal(true)}>
             <Text style={styles.warningAction}>Review</Text>

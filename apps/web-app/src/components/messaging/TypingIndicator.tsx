@@ -131,9 +131,7 @@ function getTypingText(
     return '';
   }
 
-  const names = typingUsers
-    .map((u) => u.userName || 'Someone')
-    .filter(Boolean);
+  const names = typingUsers.map((u) => u.userName || 'Someone').filter(Boolean);
 
   if (names.length === 1) {
     return `${names[0]} is typing`;
@@ -174,9 +172,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = memo(
     return (
       <Container $variant={variant} className={className} role="status" aria-live="polite">
         {variant === 'bubble' && typingUsers.length === 1 && (
-          <Avatar aria-hidden="true">
-            {getInitials(typingUsers[0].userName)}
-          </Avatar>
+          <Avatar aria-hidden="true">{getInitials(typingUsers[0].userName)}</Avatar>
         )}
 
         <DotsContainer aria-label="Typing indicator">

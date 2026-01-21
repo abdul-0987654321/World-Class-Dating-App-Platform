@@ -1,13 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import {
-  FiMic,
-  FiX,
-  FiSend,
-  FiTrash2,
-  FiPlay,
-  FiPause,
-} from 'react-icons/fi';
+import { FiMic, FiX, FiSend, FiTrash2, FiPlay, FiPause } from 'react-icons/fi';
 
 interface VoiceNoteRecorderProps {
   onSend: (audioBlob: Blob, duration: number) => void;
@@ -74,8 +67,8 @@ const WaveBar = styled.div<{ isRecording: boolean; delay: number }>`
   height: 20%;
   background: ${({ isRecording }) => (isRecording ? '#FF6B6B' : '#4ECDC4')};
   border-radius: 2px;
-  animation: ${({ isRecording }) => (isRecording ? waveAnimation : 'none')} 0.5s
-    ease-in-out infinite;
+  animation: ${({ isRecording }) => (isRecording ? waveAnimation : 'none')} 0.5s ease-in-out
+    infinite;
   animation-delay: ${({ delay }) => delay}ms;
 `;
 
@@ -96,8 +89,8 @@ const ActionButton = styled.button<{ variant?: 'danger' | 'primary' }>`
     variant === 'danger'
       ? 'rgba(255, 107, 107, 0.1)'
       : variant === 'primary'
-      ? 'linear-gradient(135deg, #4ECDC4, #95E1D3)'
-      : 'rgba(0, 0, 0, 0.05)'};
+        ? 'linear-gradient(135deg, #4ECDC4, #95E1D3)'
+        : 'rgba(0, 0, 0, 0.05)'};
   color: ${({ variant }) =>
     variant === 'danger' ? '#FF6B6B' : variant === 'primary' ? 'white' : '#666'};
   font-size: 18px;
@@ -130,10 +123,7 @@ const PlayerContainer = styled.div<{ isOwn: boolean }>`
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: ${({ isOwn }) =>
-    isOwn
-      ? 'linear-gradient(135deg, #4ECDC4, #95E1D3)'
-      : '#f0f0f0'};
+  background: ${({ isOwn }) => (isOwn ? 'linear-gradient(135deg, #4ECDC4, #95E1D3)' : '#f0f0f0')};
   border-radius: 20px;
   max-width: 280px;
 `;
@@ -232,8 +222,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
         };
         audioRef.current.ontimeupdate = () => {
           if (audioRef.current) {
-            const progress =
-              (audioRef.current.currentTime / audioRef.current.duration) * 100;
+            const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
             setPlaybackProgress(progress);
           }
         };
@@ -352,11 +341,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
           </RecordButton>
           <WaveformContainer>
             {waveBars.map((i) => (
-              <WaveBar
-                key={i}
-                isRecording={true}
-                delay={i * 50}
-              />
+              <WaveBar key={i} isRecording={true} delay={i * 50} />
             ))}
           </WaveformContainer>
           <Timer>{formatTime(recordingTime)}</Timer>

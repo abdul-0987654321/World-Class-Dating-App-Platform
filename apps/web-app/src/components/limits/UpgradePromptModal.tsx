@@ -143,7 +143,8 @@ export const UpgradePromptModal: React.FC<UpgradePromptModalProps> = ({
   };
 
   const defaultMessages = {
-    limit: "Don't let limits hold you back! Upgrade to Premium for unlimited likes, swipes, and more.",
+    limit:
+      "Don't let limits hold you back! Upgrade to Premium for unlimited likes, swipes, and more.",
     premium: 'Get access to exclusive premium features and find your perfect match faster.',
   };
 
@@ -188,9 +189,7 @@ export const UpgradePromptModal: React.FC<UpgradePromptModalProps> = ({
           <FiX />
         </CloseButton>
 
-        <IconContainer variant={type}>
-          {type === 'limit' ? <FiZap /> : <FiStar />}
-        </IconContainer>
+        <IconContainer variant={type}>{type === 'limit' ? <FiZap /> : <FiStar />}</IconContainer>
 
         <Title>{displayTitle}</Title>
         <Message>{displayMessage}</Message>

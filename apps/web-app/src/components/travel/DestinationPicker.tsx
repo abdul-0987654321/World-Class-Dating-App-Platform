@@ -78,14 +78,11 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
       setLoading(true);
       setActiveTab('search');
 
-      const response = await fetch(
-        `/api/geocoding/search?query=${encodeURIComponent(query)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${await getAuthToken()}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/geocoding/search?query=${encodeURIComponent(query)}`, {
+        headers: {
+          Authorization: `Bearer ${await getAuthToken()}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -110,8 +107,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
 
   if (!isOpen) return null;
 
-  const destinations =
-    activeTab === 'popular' ? popularDestinations : searchResults;
+  const destinations = activeTab === 'popular' ? popularDestinations : searchResults;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -124,9 +120,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
         <div className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Choose Destination
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900">Choose Destination</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -192,8 +186,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
                             </h4>
                             <p className="text-sm text-gray-600">
                               {destination.country}
-                              {destination.airport_code &&
-                                ` (${destination.airport_code})`}
+                              {destination.airport_code && ` (${destination.airport_code})`}
                             </p>
                             {destination.traveler_count !== undefined && (
                               <p className="text-xs text-gray-500 mt-1">

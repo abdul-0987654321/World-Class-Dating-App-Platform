@@ -36,21 +36,16 @@ const LimitItem = styled.div<{ isNearLimit: boolean; isReached: boolean }>`
     isReached
       ? theme.colors.error + '10'
       : isNearLimit
-      ? theme.colors.warning + '10'
-      : theme.colors.backgroundSecondary};
+        ? theme.colors.warning + '10'
+        : theme.colors.backgroundSecondary};
   border: 1px solid
     ${({ isReached, isNearLimit, theme }) =>
-      isReached
-        ? theme.colors.error
-        : isNearLimit
-        ? theme.colors.warning
-        : 'transparent'};
+      isReached ? theme.colors.error : isNearLimit ? theme.colors.warning : 'transparent'};
 `;
 
 const LimitIcon = styled.div<{ isReached: boolean }>`
   font-size: ${({ theme }) => theme.fontSize.lg};
-  color: ${({ isReached, theme }) =>
-    isReached ? theme.colors.error : theme.colors.primary};
+  color: ${({ isReached, theme }) => (isReached ? theme.colors.error : theme.colors.primary)};
 `;
 
 const LimitContent = styled.div`
@@ -66,8 +61,7 @@ const LimitLabel = styled.div`
 const LimitValue = styled.div<{ isReached: boolean }>`
   font-size: ${({ theme }) => theme.fontSize.sm};
   font-weight: ${({ theme }) => theme.fontWeight.semibold};
-  color: ${({ isReached, theme }) =>
-    isReached ? theme.colors.error : theme.colors.text};
+  color: ${({ isReached, theme }) => (isReached ? theme.colors.error : theme.colors.text)};
 `;
 
 const UnlimitedBadge = styled.span`
@@ -184,9 +178,10 @@ export const DailyLimitsDisplay: React.FC<DailyLimitsDisplayProps> = ({ onLimitR
 
   // Find the earliest reset time
   const resetTimes = Object.values(limits)
-    .map(limit => limit?.resetAt)
+    .map((limit) => limit?.resetAt)
     .filter(Boolean) as Date[];
-  const nextReset = resetTimes.length > 0 ? new Date(Math.min(...resetTimes.map(d => d.getTime()))) : null;
+  const nextReset =
+    resetTimes.length > 0 ? new Date(Math.min(...resetTimes.map((d) => d.getTime()))) : null;
 
   return (
     <Container>

@@ -57,17 +57,23 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
     setSearchQuery(query);
   }, []);
 
-  const handleMemberPress = useCallback((member: CommunityMember) => {
-    // Navigate to member's profile
-    navigation.navigate('Profile', { userId: member.id });
-  }, [navigation]);
+  const handleMemberPress = useCallback(
+    (member: CommunityMember) => {
+      // Navigate to member's profile
+      navigation.navigate('Profile', { userId: member.id });
+    },
+    [navigation]
+  );
 
-  const handleMemberLongPress = useCallback((member: CommunityMember) => {
-    if (userRole === 'admin' || userRole === 'moderator') {
-      setSelectedMember(member);
-      setShowMemberOptions(true);
-    }
-  }, [userRole]);
+  const handleMemberLongPress = useCallback(
+    (member: CommunityMember) => {
+      if (userRole === 'admin' || userRole === 'moderator') {
+        setSelectedMember(member);
+        setShowMemberOptions(true);
+      }
+    },
+    [userRole]
+  );
 
   const handleKickMember = useCallback(async () => {
     if (!selectedMember) return;
@@ -93,13 +99,11 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   }, [selectedMember, kickMember]);
 
-  const handlePromoteMember = useCallback(async (role: 'moderator' | 'admin') => {
-    if (!selectedMember) return;
+  const handlePromoteMember = useCallback(
+    async (role: 'moderator' | 'admin') => {
+      if (!selectedMember) return;
 
-    Alert.alert(
-      'Promote Member',
-      `Promote ${selectedMember.name} to ${role}?`,
-      [
+      Alert.alert('Promote Member', `Promote ${selectedMember.name} to ${role}?`, [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Promote',
@@ -112,31 +116,28 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
             setSelectedMember(null);
           },
         },
-      ]
-    );
-  }, [selectedMember, promoteMember]);
+      ]);
+    },
+    [selectedMember, promoteMember]
+  );
 
   const handleDemoteMember = useCallback(async () => {
     if (!selectedMember) return;
 
-    Alert.alert(
-      'Demote Member',
-      `Remove ${selectedMember.name}'s special role?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Demote',
-          onPress: async () => {
-            const success = await demoteMember(selectedMember.id);
-            if (success) {
-              Alert.alert('Success', `${selectedMember.name} is now a regular member.`);
-            }
-            setShowMemberOptions(false);
-            setSelectedMember(null);
-          },
+    Alert.alert('Demote Member', `Remove ${selectedMember.name}'s special role?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Demote',
+        onPress: async () => {
+          const success = await demoteMember(selectedMember.id);
+          if (success) {
+            Alert.alert('Success', `${selectedMember.name} is now a regular member.`);
+          }
+          setShowMemberOptions(false);
+          setSelectedMember(null);
         },
-      ]
-    );
+      },
+    ]);
   }, [selectedMember, demoteMember]);
 
   const handleReportMember = useCallback(async () => {
@@ -289,10 +290,7 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={() => setFilterBy(filter)}
           >
             <Text
-              style={[
-                styles.filterChipText,
-                filterBy === filter && styles.filterChipTextActive,
-              ]}
+              style={[styles.filterChipText, filterBy === filter && styles.filterChipTextActive]}
             >
               {filter.charAt(0).toUpperCase() + filter.slice(1)}
             </Text>
@@ -313,10 +311,7 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
@@ -348,9 +343,7 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
             <View style={styles.emptyState}>
               <Icon name="people-outline" size={48} color="#ccc" />
               <Text style={styles.emptyTitle}>No members found</Text>
-              <Text style={styles.emptySubtitle}>
-                Try adjusting your search or filters
-              </Text>
+              <Text style={styles.emptySubtitle}>Try adjusting your search or filters</Text>
             </View>
           )
         }
@@ -399,38 +392,37 @@ const CommunityMembersScreen: React.FC<Props> = ({ navigation, route }) => {
                       onPress={() => handlePromoteMember('moderator')}
                     >
                       <Icon name="shield-outline" size={22} color="#2196F3" />
-                      <Text style={[styles.optionText, { color: '#2196F3' }]}>
-                        Make Moderator
-                      </Text>
+                      <Text style={[styles.optionText, { color: '#2196F3' }]}>Make Moderator</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.optionItem}
                       onPress={() => handlePromoteMember('admin')}
                     >
                       <Icon name="star-outline" size={22} color="#FF6B6B" />
-                      <Text style={[styles.optionText, { color: '#FF6B6B' }]}>
-                        Make Admin
-                      </Text>
+                      <Text style={[styles.optionText, { color: '#FF6B6B' }]}>Make Admin</Text>
                     </TouchableOpacity>
                   </>
                 )}
 
-                {userRole === 'admin' && selectedMember.role !== 'member' && selectedMember.role !== 'admin' && (
-                  <TouchableOpacity style={styles.optionItem} onPress={handleDemoteMember}>
-                    <Icon name="arrow-down-outline" size={22} color="#666" />
-                    <Text style={styles.optionText}>Remove Role</Text>
-                  </TouchableOpacity>
-                )}
+                {userRole === 'admin' &&
+                  selectedMember.role !== 'member' &&
+                  selectedMember.role !== 'admin' && (
+                    <TouchableOpacity style={styles.optionItem} onPress={handleDemoteMember}>
+                      <Icon name="arrow-down-outline" size={22} color="#666" />
+                      <Text style={styles.optionText}>Remove Role</Text>
+                    </TouchableOpacity>
+                  )}
 
-                {(userRole === 'admin' || userRole === 'moderator') && selectedMember.role === 'member' && (
-                  <TouchableOpacity
-                    style={[styles.optionItem, styles.optionItemDanger]}
-                    onPress={handleKickMember}
-                  >
-                    <Icon name="remove-circle-outline" size={22} color="#FF3B30" />
-                    <Text style={styles.optionTextDanger}>Remove from Community</Text>
-                  </TouchableOpacity>
-                )}
+                {(userRole === 'admin' || userRole === 'moderator') &&
+                  selectedMember.role === 'member' && (
+                    <TouchableOpacity
+                      style={[styles.optionItem, styles.optionItemDanger]}
+                      onPress={handleKickMember}
+                    >
+                      <Icon name="remove-circle-outline" size={22} color="#FF3B30" />
+                      <Text style={styles.optionTextDanger}>Remove from Community</Text>
+                    </TouchableOpacity>
+                  )}
 
                 <TouchableOpacity style={styles.optionItem} onPress={handleReportMember}>
                   <Icon name="flag-outline" size={22} color="#666" />

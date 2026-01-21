@@ -91,79 +91,80 @@ export function useAssistant(options: UseAssistantOptions = {}): UseAssistantRet
   }, []);
 
   // Send message (non-streaming)
-  const sendMessage = useCallback(async (message: string) => {
-    if (!message.trim() || isLoading || isStreaming) return;
+  const sendMessage = useCallback(
+    async (message: string) => {
+      if (!message.trim() || isLoading || isStreaming) return;
 
-    setError(null);
-    setSuggestions([]);
-    setActions([]);
+      setError(null);
+      setSuggestions([]);
+      setActions([]);
 
-    // Add user message optimistically
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: message,
-      timestamp: new Date().toISOString(),
-      context,
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await assistantService.sendMessage(message, context);
-
-      // Add assistant response
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: response.data.message,
+      // Add user message optimistically
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: message,
         timestamp: new Date().toISOString(),
-        context: response.data.context,
+        context,
       };
-      setMessages(prev => [...prev, assistantMessage]);
-      setSuggestions(response.data.suggestions || []);
-      setActions(response.data.actions || []);
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
 
-      // Update context if changed
-      if (response.data.context !== context) {
-        setContextState(response.data.context);
+      try {
+        const response = await assistantService.sendMessage(message, context);
+
+        // Add assistant response
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: response.data.message,
+          timestamp: new Date().toISOString(),
+          context: response.data.context,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        setSuggestions(response.data.suggestions || []);
+        setActions(response.data.actions || []);
+
+        // Update context if changed
+        if (response.data.context !== context) {
+          setContextState(response.data.context);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to send message');
+        // Remove the optimistic user message on error
+        setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message');
-      // Remove the optimistic user message on error
-      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [context, isLoading, isStreaming]);
+    },
+    [context, isLoading, isStreaming]
+  );
 
   // Stream message
-  const streamMessage = useCallback(async (message: string) => {
-    if (!message.trim() || isLoading || isStreaming) return;
+  const streamMessage = useCallback(
+    async (message: string) => {
+      if (!message.trim() || isLoading || isStreaming) return;
 
-    setError(null);
-    setSuggestions([]);
-    setActions([]);
+      setError(null);
+      setSuggestions([]);
+      setActions([]);
 
-    // Add user message
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: message,
-      timestamp: new Date().toISOString(),
-      context,
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setIsStreaming(true);
-    setStreamingContent('');
-
-    let fullContent = '';
-
-    try {
-      await assistantService.streamMessage(
-        message,
+      // Add user message
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date().toISOString(),
         context,
-        {
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      setIsStreaming(true);
+      setStreamingContent('');
+
+      let fullContent = '';
+
+      try {
+        await assistantService.streamMessage(message, context, {
           onChunk: (content) => {
             fullContent += content;
             setStreamingContent(fullContent);
@@ -177,7 +178,7 @@ export function useAssistant(options: UseAssistantOptions = {}): UseAssistantRet
               timestamp: new Date().toISOString(),
               context,
             };
-            setMessages(prev => [...prev, assistantMessage]);
+            setMessages((prev) => [...prev, assistantMessage]);
             setStreamingContent('');
             setIsStreaming(false);
           },
@@ -186,14 +187,15 @@ export function useAssistant(options: UseAssistantOptions = {}): UseAssistantRet
             setIsStreaming(false);
             setStreamingContent('');
           },
-        }
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Stream failed');
-      setIsStreaming(false);
-      setStreamingContent('');
-    }
-  }, [context, isLoading, isStreaming]);
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Stream failed');
+        setIsStreaming(false);
+        setStreamingContent('');
+      }
+    },
+    [context, isLoading, isStreaming]
+  );
 
   // Set context
   const setContext = useCallback((newContext: AssistantContext) => {

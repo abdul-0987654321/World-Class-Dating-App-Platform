@@ -87,7 +87,7 @@ class VideoCallService {
    */
   private getHeaders() {
     return {
-      'Authorization': `Bearer ${this.authToken}`,
+      Authorization: `Bearer ${this.authToken}`,
       'Content-Type': 'application/json',
     };
   }
@@ -191,18 +191,12 @@ class VideoCallService {
   /**
    * Get call history
    */
-  async getCallHistory(
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<VideoCallHistoryResponse> {
+  async getCallHistory(limit: number = 20, offset: number = 0): Promise<VideoCallHistoryResponse> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/video-chat/history`,
-        {
-          params: { limit, offset },
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/video-chat/history`, {
+        params: { limit, offset },
+        headers: this.getHeaders(),
+      });
 
       return response.data;
     } catch (error: any) {
@@ -220,10 +214,9 @@ class VideoCallService {
    */
   async getActiveCall(): Promise<ActiveCallResponse> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/video-chat/active`,
-        { headers: this.getHeaders() }
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/video-chat/active`, {
+        headers: this.getHeaders(),
+      });
 
       return response.data;
     } catch (error: any) {
@@ -262,9 +255,7 @@ class VideoCallService {
   /**
    * Check if user can make calls (has remaining minutes)
    */
-  async checkCallEligibility(
-    callType: 'video' | 'audio'
-  ): Promise<{
+  async checkCallEligibility(callType: 'video' | 'audio'): Promise<{
     success: boolean;
     canCall: boolean;
     remainingMinutes?: number;
@@ -272,13 +263,10 @@ class VideoCallService {
     error?: string;
   }> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/video-chat/eligibility`,
-        {
-          params: { callType },
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/video-chat/eligibility`, {
+        params: { callType },
+        headers: this.getHeaders(),
+      });
 
       return response.data;
     } catch (error: any) {

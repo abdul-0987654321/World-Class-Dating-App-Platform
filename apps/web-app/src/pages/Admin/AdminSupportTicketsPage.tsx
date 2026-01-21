@@ -30,7 +30,9 @@ export const AdminSupportTicketsPage: React.FC = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'open' | 'in_progress' | 'waiting_user' | 'resolved'>('open');
+  const [filter, setFilter] = useState<
+    'all' | 'open' | 'in_progress' | 'waiting_user' | 'resolved'
+  >('open');
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
 
@@ -44,7 +46,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/tickets?status=${filter !== 'all' ? filter : ''}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -59,7 +61,8 @@ export const AdminSupportTicketsPage: React.FC = () => {
             userEmail: 'alex@example.com',
             userName: 'Alex Johnson',
             subject: 'Cannot upload profile photos',
-            description: 'When I try to upload photos, I get an error message saying "Upload failed". I\'ve tried multiple times with different photos.',
+            description:
+              'When I try to upload photos, I get an error message saying "Upload failed". I\'ve tried multiple times with different photos.',
             category: 'technical',
             priority: 'high',
             status: 'open',
@@ -73,13 +76,20 @@ export const AdminSupportTicketsPage: React.FC = () => {
             userEmail: 'sarah@example.com',
             userName: 'Sarah Williams',
             subject: 'Charged twice for subscription',
-            description: 'I was charged $29.99 twice on the same day for my Platinum subscription. Please refund one charge.',
+            description:
+              'I was charged $29.99 twice on the same day for my Platinum subscription. Please refund one charge.',
             category: 'billing',
             priority: 'urgent',
             status: 'in_progress',
             assignedToName: 'Support Team',
             messages: [
-              { id: '1', senderId: 'admin1', senderType: 'admin', content: 'We\'re looking into this. Can you provide your transaction IDs?', createdAt: new Date(Date.now() - 1800000).toISOString() },
+              {
+                id: '1',
+                senderId: 'admin1',
+                senderType: 'admin',
+                content: "We're looking into this. Can you provide your transaction IDs?",
+                createdAt: new Date(Date.now() - 1800000).toISOString(),
+              },
             ],
             createdAt: new Date(Date.now() - 7200000).toISOString(),
             updatedAt: new Date(Date.now() - 1800000).toISOString(),
@@ -97,7 +107,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch('/api/admin/tickets/stats', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -122,7 +132,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
       const token = authTokenService.getToken();
       await fetch(`/api/admin/tickets/${ticketId}/assign`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchTickets();
     } catch (err) {
@@ -138,7 +148,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
       await fetch(`/api/admin/tickets/${ticketId}/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ content: replyMessage }),
@@ -147,9 +157,11 @@ export const AdminSupportTicketsPage: React.FC = () => {
       setReplyMessage('');
       fetchTickets();
       if (selectedTicket) {
-        const updatedTicket = await (await fetch(`/api/admin/tickets/${ticketId}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        })).json();
+        const updatedTicket = await (
+          await fetch(`/api/admin/tickets/${ticketId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ).json();
         setSelectedTicket(updatedTicket.data);
       }
     } catch (err) {
@@ -163,7 +175,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
       await fetch(`/api/admin/tickets/${ticketId}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status }),
@@ -274,7 +286,9 @@ export const AdminSupportTicketsPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <p className="text-sm text-gray-500">Avg Response</p>
-              <p className="text-2xl font-bold text-gray-800">{Math.round(stats.avgResponseTime / 60)}m</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {Math.round(stats.avgResponseTime / 60)}m
+              </p>
             </div>
           </div>
         )}
@@ -317,14 +331,20 @@ export const AdminSupportTicketsPage: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-gray-800">{ticket.subject}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${getPriorityColor(ticket.priority)}`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs ${getPriorityColor(ticket.priority)}`}
+                        >
                           {ticket.priority}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusColor(ticket.status)}`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs ${getStatusColor(ticket.status)}`}
+                        >
                           {ticket.status.replace('_', ' ')}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm line-clamp-2 mb-2">{ticket.description}</p>
+                      <p className="text-gray-600 text-sm line-clamp-2 mb-2">
+                        {ticket.description}
+                      </p>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span>From: {ticket.userName}</span>
                         <span>•</span>
@@ -363,11 +383,21 @@ export const AdminSupportTicketsPage: React.FC = () => {
             <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white">
               <div>
                 <h3 className="text-xl font-bold text-gray-800">{selectedTicket.subject}</h3>
-                <p className="text-gray-500">{selectedTicket.userName} ({selectedTicket.userEmail})</p>
+                <p className="text-gray-500">
+                  {selectedTicket.userName} ({selectedTicket.userEmail})
+                </p>
               </div>
-              <button onClick={() => setSelectedTicket(null)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setSelectedTicket(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>

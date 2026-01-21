@@ -348,14 +348,8 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
                 style={[styles.controlButton, isMuted && styles.controlButtonActive]}
                 onPress={handleToggleMute}
               >
-                <Icon
-                  name={isMuted ? 'mic-off' : 'mic'}
-                  size={28}
-                  color="#fff"
-                />
-                <Text style={styles.controlLabel}>
-                  {isMuted ? 'Unmute' : 'Mute'}
-                </Text>
+                <Icon name={isMuted ? 'mic-off' : 'mic'} size={28} color="#fff" />
+                <Text style={styles.controlLabel}>{isMuted ? 'Unmute' : 'Mute'}</Text>
               </TouchableOpacity>
 
               {/* Video Toggle */}
@@ -369,9 +363,7 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
                     size={28}
                     color="#fff"
                   />
-                  <Text style={styles.controlLabel}>
-                    {isVideoEnabled ? 'Stop' : 'Start'}
-                  </Text>
+                  <Text style={styles.controlLabel}>{isVideoEnabled ? 'Stop' : 'Start'}</Text>
                 </TouchableOpacity>
               )}
 
@@ -389,20 +381,13 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
                 style={[styles.controlButton, !isSpeakerEnabled && styles.controlButtonActive]}
                 onPress={handleToggleSpeaker}
               >
-                <Icon
-                  name={isSpeakerEnabled ? 'volume-up' : 'volume-off'}
-                  size={28}
-                  color="#fff"
-                />
+                <Icon name={isSpeakerEnabled ? 'volume-up' : 'volume-off'} size={28} color="#fff" />
                 <Text style={styles.controlLabel}>Speaker</Text>
               </TouchableOpacity>
 
               {/* Switch Camera */}
               {callType === 'video' && isVideoEnabled && (
-                <TouchableOpacity
-                  style={styles.controlButton}
-                  onPress={handleSwitchCamera}
-                >
+                <TouchableOpacity style={styles.controlButton} onPress={handleSwitchCamera}>
                   <Icon name="flip-camera-ios" size={28} color="#fff" />
                   <Text style={styles.controlLabel}>Flip</Text>
                 </TouchableOpacity>

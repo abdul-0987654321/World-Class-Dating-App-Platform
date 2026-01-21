@@ -357,10 +357,7 @@ class ApiClient {
     return token ? { 'X-CSRF-Token': token } : {};
   }
 
-  async request<T>(
-    endpoint: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
+  async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const {
       skipAuth = false,
       skipCsrf = false,
@@ -376,11 +373,9 @@ class ApiClient {
 
     // Check circuit breaker before making request
     if (!this.circuitBreaker.allowRequest()) {
-      throw new ApiError(
-        'Service temporarily unavailable. Please try again later.',
-        503,
-        { code: 'CIRCUIT_BREAKER_OPEN' }
-      );
+      throw new ApiError('Service temporarily unavailable. Please try again later.', 503, {
+        code: 'CIRCUIT_BREAKER_OPEN',
+      });
     }
 
     // Determine if CSRF token is needed (for state-changing methods)
@@ -395,7 +390,7 @@ class ApiClient {
       'Content-Type': 'application/json',
       ...(!skipAuth ? this.getAuthHeader() : {}),
       ...(needsCsrf ? await this.getCsrfHeader(skipCsrf) : {}),
-      ...(fetchOptions.headers as Record<string, string> || {}),
+      ...((fetchOptions.headers as Record<string, string>) || {}),
     };
 
     // Add idempotency key header for write operations
@@ -475,7 +470,10 @@ class ApiClient {
           const errorCode = errorData.code || '';
 
           // Only attempt refresh for expired tokens, not invalid credentials
-          if (errorCode === 'TOKEN_EXPIRED' || errorData.message?.toLowerCase().includes('expired')) {
+          if (
+            errorCode === 'TOKEN_EXPIRED' ||
+            errorData.message?.toLowerCase().includes('expired')
+          ) {
             try {
               await this.refreshAuthToken();
               // Token refreshed - retry the original request (don't count as retry attempt)
@@ -485,11 +483,10 @@ class ApiClient {
               // Token refresh failed - clear auth state and throw
               authTokenService.clearTokens();
               this.circuitBreaker.recordFailure();
-              throw new ApiError(
-                'Session expired. Please log in again.',
-                401,
-                { code: 'SESSION_EXPIRED', ...errorData }
-              );
+              throw new ApiError('Session expired. Please log in again.', 401, {
+                code: 'SESSION_EXPIRED',
+                ...errorData,
+              });
             }
           }
         }
@@ -574,11 +571,10 @@ class ApiClient {
 
         // Wrap unknown errors
         this.circuitBreaker.recordFailure();
-        throw new ApiError(
-          'An unexpected error occurred. Please try again.',
-          0,
-          { code: 'UNKNOWN_ERROR', originalError: error }
-        );
+        throw new ApiError('An unexpected error occurred. Please try again.', 0, {
+          code: 'UNKNOWN_ERROR',
+          originalError: error,
+        });
       }
     }
 
@@ -599,11 +595,7 @@ class ApiClient {
   /**
    * POST request - use idempotencyKey option for retryable write operations
    */
-  async post<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -615,11 +607,7 @@ class ApiClient {
    * POST request with auto-generated idempotency key (safe to retry)
    * Use for critical operations like payments, subscriptions, etc.
    */
-  async postIdempotent<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async postIdempotent<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -631,11 +619,7 @@ class ApiClient {
   /**
    * PUT request - inherently idempotent, safe to retry
    */
-  async put<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     // PUT is idempotent by design, but we add idempotency key for tracking
     return this.request<T>(endpoint, {
       ...options,
@@ -648,11 +632,7 @@ class ApiClient {
   /**
    * PATCH request
    */
-  async patch<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async patch<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',
@@ -663,11 +643,7 @@ class ApiClient {
   /**
    * PATCH request with auto-generated idempotency key (safe to retry)
    */
-  async patchIdempotent<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async patchIdempotent<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',

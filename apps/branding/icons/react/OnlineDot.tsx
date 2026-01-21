@@ -11,11 +11,7 @@ export interface IconProps {
   color?: string;
 }
 
-export const OnlineDot: React.FC<IconProps> = ({
-  size = 24,
-  className,
-  color,
-}) => {
+export const OnlineDot: React.FC<IconProps> = ({ size = 24, className, color }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -38,13 +34,7 @@ export const OnlineDot: React.FC<IconProps> = ({
           </feMerge>
         </filter>
       </defs>
-      <circle
-        cx="12"
-        cy="12"
-        r="6"
-        fill={color || 'url(#onlineGradient)'}
-        filter="url(#glow)"
-      />
+      <circle cx="12" cy="12" r="6" fill={color || 'url(#onlineGradient)'} filter="url(#glow)" />
       <circle cx="12" cy="12" r="3" fill="#FFF6EE" opacity="0.5" />
     </svg>
   );

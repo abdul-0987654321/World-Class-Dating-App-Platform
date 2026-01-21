@@ -94,13 +94,8 @@ export const getFontSize = (baseSize: number, scale: number = 1): number => {
  */
 export const MINIMUM_TOUCH_TARGET_SIZE = 44;
 
-export const getTouchTargetSize = (
-  size: number,
-  enforceMinimum: boolean = true
-): number => {
-  return enforceMinimum
-    ? Math.max(size, MINIMUM_TOUCH_TARGET_SIZE)
-    : size;
+export const getTouchTargetSize = (size: number, enforceMinimum: boolean = true): number => {
+  return enforceMinimum ? Math.max(size, MINIMUM_TOUCH_TARGET_SIZE) : size;
 };
 
 /**

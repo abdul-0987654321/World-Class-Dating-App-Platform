@@ -88,9 +88,7 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
     }
   };
 
-  const generateDefaultAnalysis = async (
-    profile: UserProfile
-  ): Promise<PersonalityAnalysis> => {
+  const generateDefaultAnalysis = async (profile: UserProfile): Promise<PersonalityAnalysis> => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -230,15 +228,8 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
           {analysis.scores.map((score) => (
             <View key={score.trait} style={styles.scoreCard}>
               <View style={styles.scoreHeader}>
-                <Text style={styles.scoreLabel}>
-                  {getTraitLabel(score.trait)}
-                </Text>
-                <Text
-                  style={[
-                    styles.scoreValue,
-                    { color: getScoreColor(score.score) },
-                  ]}
-                >
+                <Text style={styles.scoreLabel}>{getTraitLabel(score.trait)}</Text>
+                <Text style={[styles.scoreValue, { color: getScoreColor(score.score) }]}>
                   {score.score}%
                 </Text>
               </View>
@@ -278,17 +269,12 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
           {analysis.insights.map((insight, index) => (
             <View
               key={index}
-              style={[
-                styles.insightCard,
-                insight.type === 'warning' && styles.insightCardWarning,
-              ]}
+              style={[styles.insightCard, insight.type === 'warning' && styles.insightCardWarning]}
             >
               <Text style={styles.insightIcon}>{insight.icon}</Text>
               <View style={styles.insightContent}>
                 <Text style={styles.insightTitle}>{insight.title}</Text>
-                <Text style={styles.insightDescription}>
-                  {insight.description}
-                </Text>
+                <Text style={styles.insightDescription}>{insight.description}</Text>
               </View>
             </View>
           ))}
@@ -297,19 +283,12 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
     );
   };
 
-  const renderExpandableSection = (
-    title: string,
-    items: string[],
-    sectionKey: string
-  ) => {
+  const renderExpandableSection = (title: string, items: string[], sectionKey: string) => {
     const isExpanded = expandedSections.has(sectionKey);
 
     return (
       <View style={styles.section}>
-        <TouchableOpacity
-          style={styles.expandableHeader}
-          onPress={() => toggleSection(sectionKey)}
-        >
+        <TouchableOpacity style={styles.expandableHeader} onPress={() => toggleSection(sectionKey)}>
           <Text style={styles.sectionTitle}>{title}</Text>
           <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
         </TouchableOpacity>
@@ -375,9 +354,7 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
         <Text style={styles.headerIcon}>🧠</Text>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>AI Personality Insights</Text>
-          <Text style={styles.headerSubtitle}>
-            Understanding {profile.name}'s personality
-          </Text>
+          <Text style={styles.headerSubtitle}>Understanding {profile.name}'s personality</Text>
         </View>
       </View>
 
@@ -395,11 +372,7 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
 
       {/* Compatibility Tips */}
       {analysis.compatibilityTips.length > 0 &&
-        renderExpandableSection(
-          'Compatibility Tips',
-          analysis.compatibilityTips,
-          'compatibility'
-        )}
+        renderExpandableSection('Compatibility Tips', analysis.compatibilityTips, 'compatibility')}
 
       {/* Conversation Suggestions */}
       {analysis.conversationSuggestions.length > 0 &&
@@ -413,8 +386,8 @@ export const PersonalityInsights: React.FC<PersonalityInsightsProps> = ({
       <View style={styles.disclaimerCard}>
         <Text style={styles.disclaimerIcon}>ℹ️</Text>
         <Text style={styles.disclaimerText}>
-          This analysis is based on AI interpretation of profile content and should
-          be used as a conversation guide, not a definitive personality assessment.
+          This analysis is based on AI interpretation of profile content and should be used as a
+          conversation guide, not a definitive personality assessment.
         </Text>
       </View>
     </ScrollView>

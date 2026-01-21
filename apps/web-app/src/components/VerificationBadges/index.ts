@@ -1,7 +1,7 @@
 export {
   VerificationBadges,
   SingleVerificationBadge,
-  VerificationSummary
+  VerificationSummary,
 } from './VerificationBadges';
 import { VerificationBadges } from './VerificationBadges';
 export default VerificationBadges;

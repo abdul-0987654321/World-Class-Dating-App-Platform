@@ -25,9 +25,7 @@ const LinearGradient: React.FC<{
   style?: any;
   children?: React.ReactNode;
 }> = ({ colors, style, children }) => (
-  <View style={[style, { backgroundColor: colors[colors.length - 1] }]}>
-    {children}
-  </View>
+  <View style={[style, { backgroundColor: colors[colors.length - 1] }]}>{children}</View>
 );
 
 // ============================================
@@ -91,27 +89,18 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   onSuperLike,
   onPress,
 }) => {
-  const imageSource =
-    typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl;
+  const imageSource = typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl;
 
   return (
     <View style={styles.container}>
       {/* Main Card */}
-      <TouchableOpacity
-        activeOpacity={0.95}
-        onPress={onPress}
-        style={styles.card}
-      >
+      <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.card}>
         {/* Image */}
         <Image source={imageSource} style={styles.image} resizeMode="cover" />
 
         {/* Gradient Overlay */}
         <LinearGradient
-          colors={[
-            'transparent',
-            'rgba(26, 26, 26, 0.3)',
-            'rgba(26, 26, 26, 0.85)',
-          ]}
+          colors={['transparent', 'rgba(26, 26, 26, 0.3)', 'rgba(26, 26, 26, 0.85)']}
           locations={[0, 0.5, 1]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
@@ -141,9 +130,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
               <Text style={styles.locationIcon}>📍</Text>
               <Text style={styles.location}>
                 {location}
-                {distance && (
-                  <Text style={styles.distance}> • {distance}</Text>
-                )}
+                {distance && <Text style={styles.distance}> • {distance}</Text>}
               </Text>
             </View>
           )}

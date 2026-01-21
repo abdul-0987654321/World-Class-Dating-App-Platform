@@ -100,33 +100,25 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const showImageOptions = (index: number) => {
-    Alert.alert(
-      'Add Photo',
-      'Choose how you want to add a photo',
-      [
-        { text: 'Take Photo', onPress: () => takePhoto(index) },
-        { text: 'Choose from Library', onPress: () => pickImage(index) },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Add Photo', 'Choose how you want to add a photo', [
+      { text: 'Take Photo', onPress: () => takePhoto(index) },
+      { text: 'Choose from Library', onPress: () => pickImage(index) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const removePhoto = (index: number) => {
-    Alert.alert(
-      'Remove Photo',
-      'Are you sure you want to remove this photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            const newPhotos = photos.filter((_, i) => i !== index);
-            setPhotos(newPhotos);
-          },
+    Alert.alert('Remove Photo', 'Are you sure you want to remove this photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          const newPhotos = photos.filter((_, i) => i !== index);
+          setPhotos(newPhotos);
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const uploadPhotoToServer = async (uri: string, index: number): Promise<string> => {
@@ -138,7 +130,7 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
     } as any);
 
     const response = await axios.post(
-      `${process.env.API_URL}/api/photos/upload`,
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/photos/upload`,
       formData,
       {
         headers: {
@@ -183,20 +175,14 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
       <TouchableOpacity
         key={index}
-        style={[
-          styles.photoSlot,
-          isMainPhoto && styles.mainPhotoSlot,
-        ]}
-        onPress={() => photo ? undefined : showImageOptions(index)}
-        onLongPress={() => photo ? removePhoto(index) : undefined}
+        style={[styles.photoSlot, isMainPhoto && styles.mainPhotoSlot]}
+        onPress={() => (photo ? undefined : showImageOptions(index))}
+        onLongPress={() => (photo ? removePhoto(index) : undefined)}
       >
         {photo ? (
           <>
             <Image source={{ uri: photo }} style={styles.photo} />
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => removePhoto(index)}
-            >
+            <TouchableOpacity style={styles.removeButton} onPress={() => removePhoto(index)}>
               <Text style={styles.removeButtonText}>×</Text>
             </TouchableOpacity>
             {isMainPhoto && (
@@ -208,9 +194,7 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
         ) : (
           <View style={styles.emptySlot}>
             <Text style={styles.plusIcon}>+</Text>
-            {isMainPhoto && (
-              <Text style={styles.mainPhotoLabel}>Main Photo</Text>
-            )}
+            {isMainPhoto && <Text style={styles.mainPhotoLabel}>Main Photo</Text>}
           </View>
         )}
       </TouchableOpacity>
@@ -227,23 +211,19 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>5 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
         <View style={styles.questionContainer}>
           <Text style={styles.title}>Add your best photos</Text>
           <Text style={styles.subtitle}>
-            Add at least {MIN_PHOTOS} photos to continue. Your first photo will be your main profile picture.
+            Add at least {MIN_PHOTOS} photos to continue. Your first photo will be your main profile
+            picture.
           </Text>
 
           <View style={styles.photosGrid}>
-            <View style={styles.mainPhotoContainer}>
-              {renderPhotoSlot(0)}
-            </View>
+            <View style={styles.mainPhotoContainer}>{renderPhotoSlot(0)}</View>
             <View style={styles.secondaryPhotosContainer}>
               {[1, 2, 3, 4, 5].map((index) => renderPhotoSlot(index))}
             </View>
@@ -270,7 +250,9 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
             {uploading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={[styles.buttonText, photos.length < MIN_PHOTOS && styles.buttonTextDisabled]}>
+              <Text
+                style={[styles.buttonText, photos.length < MIN_PHOTOS && styles.buttonTextDisabled]}
+              >
                 Continue
               </Text>
             )}

@@ -61,7 +61,10 @@ const getMockEvents = (): SpeedDatingEvent[] => [
     status: 'upcoming',
     isRegistered: true,
     price: 0,
-    host: { name: 'Flamoral Team', photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100' },
+    host: {
+      name: 'Flamoral Team',
+      photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100',
+    },
   },
   {
     id: '2',
@@ -77,7 +80,10 @@ const getMockEvents = (): SpeedDatingEvent[] => [
     status: 'upcoming',
     isRegistered: false,
     price: 5,
-    host: { name: 'TechConnect', photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
+    host: {
+      name: 'TechConnect',
+      photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+    },
   },
   {
     id: '3',
@@ -93,7 +99,10 @@ const getMockEvents = (): SpeedDatingEvent[] => [
     status: 'upcoming',
     isRegistered: false,
     price: 10,
-    host: { name: 'Wine Club NYC', photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100' },
+    host: {
+      name: 'Wine Club NYC',
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
+    },
   },
   {
     id: '4',
@@ -109,7 +118,10 @@ const getMockEvents = (): SpeedDatingEvent[] => [
     status: 'live',
     isRegistered: false,
     price: 0,
-    host: { name: 'Flamoral Team', photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100' },
+    host: {
+      name: 'Flamoral Team',
+      photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100',
+    },
   },
 ];
 
@@ -248,44 +260,51 @@ export const useSpeedDating = (options: UseSpeedDatingOptions = {}): UseSpeedDat
   /**
    * Register for an event
    */
-  const registerForEvent = useCallback(async (eventId: string): Promise<SpeedDatingRegistrationResponse> => {
-    try {
-      // Try API first
+  const registerForEvent = useCallback(
+    async (eventId: string): Promise<SpeedDatingRegistrationResponse> => {
       try {
-        const response = await apiRequest<SpeedDatingRegistrationResponse>(
-          '/speed-dating/events/register',
-          'POST',
-          { eventId }
-        );
+        // Try API first
+        try {
+          const response = await apiRequest<SpeedDatingRegistrationResponse>(
+            '/speed-dating/events/register',
+            'POST',
+            { eventId }
+          );
 
-        // Update local state
-        setEvents(prev => prev.map(e =>
-          e.id === eventId
-            ? { ...e, isRegistered: true, currentParticipants: e.currentParticipants + 1 }
-            : e
-        ));
+          // Update local state
+          setEvents((prev) =>
+            prev.map((e) =>
+              e.id === eventId
+                ? { ...e, isRegistered: true, currentParticipants: e.currentParticipants + 1 }
+                : e
+            )
+          );
 
-        return response;
-      } catch {
-        // Mock registration for development
-        setEvents(prev => prev.map(e =>
-          e.id === eventId
-            ? { ...e, isRegistered: true, currentParticipants: e.currentParticipants + 1 }
-            : e
-        ));
+          return response;
+        } catch {
+          // Mock registration for development
+          setEvents((prev) =>
+            prev.map((e) =>
+              e.id === eventId
+                ? { ...e, isRegistered: true, currentParticipants: e.currentParticipants + 1 }
+                : e
+            )
+          );
 
-        return {
-          success: true,
-          eventId,
-          registrationId: `reg_${Date.now()}`,
-          message: 'Successfully registered for event',
-        };
+          return {
+            success: true,
+            eventId,
+            registrationId: `reg_${Date.now()}`,
+            message: 'Successfully registered for event',
+          };
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to register';
+        throw new Error(message);
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to register';
-      throw new Error(message);
-    }
-  }, []);
+    },
+    []
+  );
 
   /**
    * Unregister from an event
@@ -298,11 +317,17 @@ export const useSpeedDating = (options: UseSpeedDatingOptions = {}): UseSpeedDat
         // Mock unregistration for development
       }
 
-      setEvents(prev => prev.map(e =>
-        e.id === eventId
-          ? { ...e, isRegistered: false, currentParticipants: Math.max(0, e.currentParticipants - 1) }
-          : e
-      ));
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === eventId
+            ? {
+                ...e,
+                isRegistered: false,
+                currentParticipants: Math.max(0, e.currentParticipants - 1),
+              }
+            : e
+        )
+      );
 
       return true;
     } catch (err) {
@@ -445,8 +470,8 @@ export const useSpeedDating = (options: UseSpeedDatingOptions = {}): UseSpeedDat
   }, [autoRefresh, refreshInterval, refreshData]);
 
   // Computed values
-  const liveEvents = events.filter(e => e.status === 'live');
-  const upcomingEvents = events.filter(e => e.status === 'upcoming');
+  const liveEvents = events.filter((e) => e.status === 'live');
+  const upcomingEvents = events.filter((e) => e.status === 'upcoming');
 
   return {
     events,

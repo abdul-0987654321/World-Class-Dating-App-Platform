@@ -6,10 +6,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 // Custom debounce hook to avoid lodash dependency
-function useDebounce<T extends (...args: any[]) => any>(
-  callback: T,
-  delay: number
-): T {
+function useDebounce<T extends (...args: any[]) => any>(callback: T, delay: number): T {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
@@ -206,10 +203,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelect, onClose, isOpen 
       {/* Footer */}
       <div className="p-2 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
         <span className="text-xs text-gray-400">Powered by GIPHY</span>
-        <button
-          onClick={onClose}
-          className="text-xs text-gray-500 hover:text-gray-700"
-        >
+        <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700">
           Close
         </button>
       </div>

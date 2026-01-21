@@ -57,9 +57,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
           style={styles.settingIcon}
         />
         <View style={styles.settingText}>
-          <Text style={[styles.settingTitle, dangerous && styles.dangerText]}>
-            {title}
-          </Text>
+          <Text style={[styles.settingTitle, dangerous && styles.dangerText]}>{title}</Text>
           {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
         </View>
       </View>
@@ -141,7 +139,7 @@ const SettingsScreen: React.FC = () => {
               const response = await fetch('https://api.flamoral.com/api/v1/auth/account', {
                 method: 'DELETE',
                 headers: {
-                  'Authorization': `Bearer ${token}`,
+                  Authorization: `Bearer ${token}`,
                   'Content-Type': 'application/json',
                 },
               });
@@ -153,21 +151,17 @@ const SettingsScreen: React.FC = () => {
               // Clear all local storage
               await TokenStorage.clear();
 
-              Alert.alert(
-                'Account Deleted',
-                'Your account has been permanently deleted.',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Auth' as never }],
-                      });
-                    },
+              Alert.alert('Account Deleted', 'Your account has been permanently deleted.', [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    navigation.reset({
+                      index: 0,
+                      routes: [{ name: 'Auth' as never }],
+                    });
                   },
-                ]
-              );
+                },
+              ]);
             } catch (error) {
               console.error('Delete account error:', error);
               Alert.alert(
@@ -214,9 +208,10 @@ const SettingsScreen: React.FC = () => {
   const handleShareApp = async () => {
     try {
       await Share.share({
-        message: Platform.OS === 'ios'
-          ? 'Check out Flamoral - Find meaningful connections! https://apps.apple.com/app/flamoral/id123456789'
-          : 'Check out Flamoral - Find meaningful connections! https://play.google.com/store/apps/details?id=com.flamoral.app',
+        message:
+          Platform.OS === 'ios'
+            ? 'Check out Flamoral - Find meaningful connections! https://apps.apple.com/app/flamoral/id123456789'
+            : 'Check out Flamoral - Find meaningful connections! https://play.google.com/store/apps/details?id=com.flamoral.app',
         title: 'Share Flamoral',
       });
     } catch (error) {
@@ -225,9 +220,10 @@ const SettingsScreen: React.FC = () => {
   };
 
   const handleRateApp = () => {
-    const appStoreUrl = Platform.OS === 'ios'
-      ? 'https://apps.apple.com/app/flamoral/id123456789?action=write-review'
-      : 'https://play.google.com/store/apps/details?id=com.flamoral.app';
+    const appStoreUrl =
+      Platform.OS === 'ios'
+        ? 'https://apps.apple.com/app/flamoral/id123456789?action=write-review'
+        : 'https://play.google.com/store/apps/details?id=com.flamoral.app';
 
     Linking.openURL(appStoreUrl).catch((err) => {
       console.error('Failed to open app store:', err);
@@ -356,11 +352,7 @@ const SettingsScreen: React.FC = () => {
             title="Share Flamoral"
             onPress={handleShareApp}
           />
-          <SettingItem
-            icon="star-half-outline"
-            title="Rate Us"
-            onPress={handleRateApp}
-          />
+          <SettingItem icon="star-half-outline" title="Rate Us" onPress={handleRateApp} />
         </View>
       </View>
 

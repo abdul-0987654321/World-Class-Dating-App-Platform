@@ -129,17 +129,53 @@ export const useGamification = (): UseGamificationReturn => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const getHeaders = useCallback(() => ({
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  }), [token]);
+  const getHeaders = useCallback(
+    () => ({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }),
+    [token]
+  );
 
   const getMockDashboard = (): GamificationDashboard => ({
-    dailyRewards: { canClaim: true, currentStreak: 5, dayInCycle: 5, todayReward: { type: 'coins', amount: 25 } },
+    dailyRewards: {
+      canClaim: true,
+      currentStreak: 5,
+      dayInCycle: 5,
+      todayReward: { type: 'coins', amount: 25 },
+    },
     streaks: {
-      login: { id: '1', userId: 'u1', streakType: 'login', currentStreak: 12, longestStreak: 18, streakStartDate: '', lastActivityDate: '', isProtected: false },
-      conversation: { id: '2', userId: 'u1', streakType: 'conversation', currentStreak: 5, longestStreak: 14, streakStartDate: '', lastActivityDate: '', isProtected: false },
-      match: { id: '3', userId: 'u1', streakType: 'match', currentStreak: 3, longestStreak: 7, streakStartDate: '', lastActivityDate: '', isProtected: true, protectionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() },
+      login: {
+        id: '1',
+        userId: 'u1',
+        streakType: 'login',
+        currentStreak: 12,
+        longestStreak: 18,
+        streakStartDate: '',
+        lastActivityDate: '',
+        isProtected: false,
+      },
+      conversation: {
+        id: '2',
+        userId: 'u1',
+        streakType: 'conversation',
+        currentStreak: 5,
+        longestStreak: 14,
+        streakStartDate: '',
+        lastActivityDate: '',
+        isProtected: false,
+      },
+      match: {
+        id: '3',
+        userId: 'u1',
+        streakType: 'match',
+        currentStreak: 3,
+        longestStreak: 7,
+        streakStartDate: '',
+        lastActivityDate: '',
+        isProtected: true,
+        protectionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+      },
     },
     achievements: { unlocked: 8, total: 20, progress: 40, recentBadges: [] },
     wallet: { coins: 500, gems: 15, totalEarned: 750, totalSpent: 200 },
@@ -235,47 +271,53 @@ export const useGamification = (): UseGamificationReturn => {
     }
   }, [token, getHeaders, loadDashboard]);
 
-  const protectStreak = useCallback(async (streakType: string, durationHours: number = 24): Promise<boolean> => {
-    if (!token) return false;
+  const protectStreak = useCallback(
+    async (streakType: string, durationHours: number = 24): Promise<boolean> => {
+      if (!token) return false;
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/gamification/streaks/protect`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ streakType, durationHours }),
-      });
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/gamification/streaks/protect`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ streakType, durationHours }),
+        });
 
-      if (response.ok) {
-        await loadDashboard();
-        return true;
+        if (response.ok) {
+          await loadDashboard();
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.error('Failed to protect streak:', err);
+        return false;
       }
-      return false;
-    } catch (err) {
-      console.error('Failed to protect streak:', err);
-      return false;
-    }
-  }, [token, getHeaders, loadDashboard]);
+    },
+    [token, getHeaders, loadDashboard]
+  );
 
-  const purchaseItem = useCallback(async (productId: string, quantity: number = 1): Promise<boolean> => {
-    if (!token) return false;
+  const purchaseItem = useCallback(
+    async (productId: string, quantity: number = 1): Promise<boolean> => {
+      if (!token) return false;
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/gamification/purchase`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ productId, quantity }),
-      });
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/gamification/purchase`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ productId, quantity }),
+        });
 
-      if (response.ok) {
-        await loadDashboard();
-        return true;
+        if (response.ok) {
+          await loadDashboard();
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.error('Failed to purchase item:', err);
+        return false;
       }
-      return false;
-    } catch (err) {
-      console.error('Failed to purchase item:', err);
-      return false;
-    }
-  }, [token, getHeaders, loadDashboard]);
+    },
+    [token, getHeaders, loadDashboard]
+  );
 
   return {
     dashboard,

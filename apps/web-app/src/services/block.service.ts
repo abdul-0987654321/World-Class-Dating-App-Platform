@@ -32,7 +32,7 @@ class BlockService {
 
   async blockUser(userId: string, reason?: string): Promise<BlockResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         success: true,
         message: 'User blocked successfully',
@@ -57,7 +57,7 @@ class BlockService {
 
   async unblockUser(userId: string): Promise<BlockResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         success: true,
         message: 'User unblocked successfully',

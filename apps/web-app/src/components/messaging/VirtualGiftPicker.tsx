@@ -26,26 +26,138 @@ interface VirtualGiftPickerProps {
 // Virtual gifts catalog - WeChat/dating app style
 const GIFT_CATALOG: VirtualGift[] = [
   // Basic gifts (free or low cost)
-  { id: 'rose', name: 'Rose', emoji: '🌹', price: 5, category: 'basic', description: 'A classic romantic gesture' },
-  { id: 'heart', name: 'Heart', emoji: '❤️', price: 5, category: 'basic', description: 'Show your love' },
-  { id: 'kiss', name: 'Kiss', emoji: '💋', price: 10, category: 'basic', description: 'Blow them a kiss' },
-  { id: 'hug', name: 'Hug', emoji: '🤗', price: 10, category: 'basic', description: 'Virtual warm hug' },
-  { id: 'flowers', name: 'Flowers', emoji: '💐', price: 15, category: 'basic', description: 'A beautiful bouquet' },
-  { id: 'chocolate', name: 'Chocolate', emoji: '🍫', price: 15, category: 'basic', description: 'Sweet treat' },
+  {
+    id: 'rose',
+    name: 'Rose',
+    emoji: '🌹',
+    price: 5,
+    category: 'basic',
+    description: 'A classic romantic gesture',
+  },
+  {
+    id: 'heart',
+    name: 'Heart',
+    emoji: '❤️',
+    price: 5,
+    category: 'basic',
+    description: 'Show your love',
+  },
+  {
+    id: 'kiss',
+    name: 'Kiss',
+    emoji: '💋',
+    price: 10,
+    category: 'basic',
+    description: 'Blow them a kiss',
+  },
+  {
+    id: 'hug',
+    name: 'Hug',
+    emoji: '🤗',
+    price: 10,
+    category: 'basic',
+    description: 'Virtual warm hug',
+  },
+  {
+    id: 'flowers',
+    name: 'Flowers',
+    emoji: '💐',
+    price: 15,
+    category: 'basic',
+    description: 'A beautiful bouquet',
+  },
+  {
+    id: 'chocolate',
+    name: 'Chocolate',
+    emoji: '🍫',
+    price: 15,
+    category: 'basic',
+    description: 'Sweet treat',
+  },
 
   // Premium gifts
-  { id: 'teddy', name: 'Teddy Bear', emoji: '🧸', price: 50, category: 'premium', description: 'Cute and cuddly' },
-  { id: 'perfume', name: 'Perfume', emoji: '🧴', price: 75, category: 'premium', description: 'Fragrant luxury' },
-  { id: 'wine', name: 'Wine', emoji: '🍷', price: 100, category: 'premium', description: 'Cheers to us!' },
-  { id: 'ring', name: 'Ring', emoji: '💍', price: 150, category: 'premium', description: 'A promise of commitment' },
-  { id: 'fireworks', name: 'Fireworks', emoji: '🎆', price: 200, category: 'premium', description: 'Celebrate your connection' },
+  {
+    id: 'teddy',
+    name: 'Teddy Bear',
+    emoji: '🧸',
+    price: 50,
+    category: 'premium',
+    description: 'Cute and cuddly',
+  },
+  {
+    id: 'perfume',
+    name: 'Perfume',
+    emoji: '🧴',
+    price: 75,
+    category: 'premium',
+    description: 'Fragrant luxury',
+  },
+  {
+    id: 'wine',
+    name: 'Wine',
+    emoji: '🍷',
+    price: 100,
+    category: 'premium',
+    description: 'Cheers to us!',
+  },
+  {
+    id: 'ring',
+    name: 'Ring',
+    emoji: '💍',
+    price: 150,
+    category: 'premium',
+    description: 'A promise of commitment',
+  },
+  {
+    id: 'fireworks',
+    name: 'Fireworks',
+    emoji: '🎆',
+    price: 200,
+    category: 'premium',
+    description: 'Celebrate your connection',
+  },
 
   // Luxury gifts
-  { id: 'crown', name: 'Crown', emoji: '👑', price: 500, category: 'luxury', description: 'For royalty' },
-  { id: 'diamond', name: 'Diamond', emoji: '💎', price: 750, category: 'luxury', description: 'Rare and precious' },
-  { id: 'castle', name: 'Castle', emoji: '🏰', price: 1000, category: 'luxury', description: 'A fairy tale gift' },
-  { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 1500, category: 'luxury', description: 'Out of this world!' },
-  { id: 'yacht', name: 'Yacht', emoji: '🛥️', price: 2000, category: 'luxury', description: 'Ultimate luxury' },
+  {
+    id: 'crown',
+    name: 'Crown',
+    emoji: '👑',
+    price: 500,
+    category: 'luxury',
+    description: 'For royalty',
+  },
+  {
+    id: 'diamond',
+    name: 'Diamond',
+    emoji: '💎',
+    price: 750,
+    category: 'luxury',
+    description: 'Rare and precious',
+  },
+  {
+    id: 'castle',
+    name: 'Castle',
+    emoji: '🏰',
+    price: 1000,
+    category: 'luxury',
+    description: 'A fairy tale gift',
+  },
+  {
+    id: 'rocket',
+    name: 'Rocket',
+    emoji: '🚀',
+    price: 1500,
+    category: 'luxury',
+    description: 'Out of this world!',
+  },
+  {
+    id: 'yacht',
+    name: 'Yacht',
+    emoji: '🛥️',
+    price: 2000,
+    category: 'luxury',
+    description: 'Ultimate luxury',
+  },
 ];
 
 export const VirtualGiftPicker: React.FC<VirtualGiftPickerProps> = ({
@@ -133,9 +245,7 @@ export const VirtualGiftPicker: React.FC<VirtualGiftPickerProps> = ({
           </div>
           <div className="text-right">
             <p className="text-xs text-white/80">Your Balance</p>
-            <p className="font-bold text-lg">
-              {loading ? '...' : balance?.coins || 0} coins
-            </p>
+            <p className="font-bold text-lg">{loading ? '...' : balance?.coins || 0} coins</p>
           </div>
         </div>
       </div>
@@ -171,11 +281,7 @@ export const VirtualGiftPicker: React.FC<VirtualGiftPickerProps> = ({
                 selectedGift?.id === gift.id
                   ? 'border-pink-500 bg-pink-50'
                   : 'border-transparent hover:border-gray-200 hover:bg-gray-50'
-              } ${
-                balance && balance.coins < gift.price
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
-              }`}
+              } ${balance && balance.coins < gift.price ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="text-3xl mb-1">{gift.emoji}</div>
               <div className="text-xs font-medium text-gray-700">{gift.name}</div>

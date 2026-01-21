@@ -36,8 +36,8 @@ const AIAvatar: React.FC<{
 
   const avatarMessages = [
     "Welcome to FLAMORAL. I'm here to guide you through finding meaningful connections.",
-    "Your safety and privacy are our top priorities. All profiles are verified.",
-    "Ready to start your journey? Let me show you how FLAMORAL works.",
+    'Your safety and privacy are our top priorities. All profiles are verified.',
+    'Ready to start your journey? Let me show you how FLAMORAL works.',
   ];
 
   useEffect(() => {
@@ -81,7 +81,12 @@ const AIAvatar: React.FC<{
             aria-label="Close avatar guide"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
@@ -112,7 +117,9 @@ const AIAvatar: React.FC<{
               </div>
               {/* Status Indicator */}
               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-base-charcoal flex items-center justify-center">
-                <div className={`w-2 h-2 bg-white rounded-full ${!reducedMotion ? 'animate-pulse' : ''}`} />
+                <div
+                  className={`w-2 h-2 bg-white rounded-full ${!reducedMotion ? 'animate-pulse' : ''}`}
+                />
               </div>
             </div>
 
@@ -147,12 +154,27 @@ const AIAvatar: React.FC<{
             >
               {state.isMuted ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+                  />
                 </svg>
               ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                  />
                 </svg>
               )}
             </button>
@@ -167,12 +189,27 @@ const AIAvatar: React.FC<{
             >
               {state.isPaused ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               )}
             </button>
@@ -230,11 +267,18 @@ const FeatureModal: React.FC<{
               className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-base-dark-gray"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
 
-            <div className={`w-16 h-16 ${feature.gradient} rounded-2xl flex items-center justify-center text-white mb-6`}>
+            <div
+              className={`w-16 h-16 ${feature.gradient} rounded-2xl flex items-center justify-center text-white mb-6`}
+            >
               {feature.icon}
             </div>
 
@@ -246,8 +290,16 @@ const FeatureModal: React.FC<{
               <ul className="space-y-3">
                 {feature.details.map((detail, index) => (
                   <li key={index} className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <span className="text-gray-300">{detail}</span>
                   </li>
@@ -303,7 +355,8 @@ const FuturisticLandingPage: React.FC = () => {
   const features: Feature[] = [
     {
       title: 'AI-Powered Compatibility',
-      description: 'Our advanced neural networks analyze 50+ compatibility factors to match you with people who truly align with your values, interests, and relationship goals.',
+      description:
+        'Our advanced neural networks analyze 50+ compatibility factors to match you with people who truly align with your values, interests, and relationship goals.',
       details: [
         'Deep learning analysis of personality traits and communication styles',
         'Behavioral pattern recognition from engagement data',
@@ -314,14 +367,20 @@ const FuturisticLandingPage: React.FC = () => {
       ],
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+          />
         </svg>
       ),
       gradient: 'bg-gradient-pink-blue',
     },
     {
       title: 'Video Dating Experience',
-      description: 'Build genuine connections through HD video calls before meeting in person. See real chemistry with crystal-clear video and audio.',
+      description:
+        'Build genuine connections through HD video calls before meeting in person. See real chemistry with crystal-clear video and audio.',
       details: [
         'HD video and audio powered by enterprise-grade infrastructure',
         'Virtual date backgrounds and ambient settings',
@@ -332,14 +391,20 @@ const FuturisticLandingPage: React.FC = () => {
       ],
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
         </svg>
       ),
       gradient: 'bg-gradient-blue-green',
     },
     {
       title: 'Verified & Authentic',
-      description: 'Every profile goes through our multi-layer verification. Connect with confidence knowing you are meeting real people with real intentions.',
+      description:
+        'Every profile goes through our multi-layer verification. Connect with confidence knowing you are meeting real people with real intentions.',
       details: [
         'AI-powered photo verification matching selfies to profiles',
         'Real-time fraud detection and bot prevention',
@@ -350,7 +415,12 @@ const FuturisticLandingPage: React.FC = () => {
       ],
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
         </svg>
       ),
       gradient: 'bg-gradient-green-yellow',
@@ -361,25 +431,29 @@ const FuturisticLandingPage: React.FC = () => {
     {
       step: 1,
       title: 'Create Your Profile',
-      description: 'Sign up in minutes. Our AI helps you craft a profile that authentically represents who you are.',
+      description:
+        'Sign up in minutes. Our AI helps you craft a profile that authentically represents who you are.',
       gradient: 'from-pink-500 to-pink-600',
     },
     {
       step: 2,
       title: 'Discover Matches',
-      description: 'Our algorithm analyzes compatibility across 50+ factors to show you meaningful connections.',
+      description:
+        'Our algorithm analyzes compatibility across 50+ factors to show you meaningful connections.',
       gradient: 'from-blue-500 to-blue-600',
     },
     {
       step: 3,
       title: 'Start Conversations',
-      description: 'Break the ice with AI-powered conversation starters or jump straight into video dating.',
+      description:
+        'Break the ice with AI-powered conversation starters or jump straight into video dating.',
       gradient: 'from-green-500 to-green-600',
     },
     {
       step: 4,
       title: 'Build Connections',
-      description: 'Move from chat to video calls to real-world dates. We are with you every step of the way.',
+      description:
+        'Move from chat to video calls to real-world dates. We are with you every step of the way.',
       gradient: 'from-yellow-500 to-yellow-600',
     },
   ];
@@ -388,39 +462,68 @@ const FuturisticLandingPage: React.FC = () => {
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
         </svg>
       ),
       title: 'AI Fraud Detection',
-      description: 'Advanced machine learning detects and removes fake profiles, scammers, and suspicious behavior in real-time.',
+      description:
+        'Advanced machine learning detects and removes fake profiles, scammers, and suspicious behavior in real-time.',
     },
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
         </svg>
       ),
       title: '24/7 Moderation',
-      description: 'Our dedicated safety team reviews reports around the clock to maintain a respectful community.',
+      description:
+        'Our dedicated safety team reviews reports around the clock to maintain a respectful community.',
     },
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
         </svg>
       ),
       title: 'Privacy First',
-      description: 'Your data is encrypted end-to-end and never sold. You control who sees your profile and information.',
+      description:
+        'Your data is encrypted end-to-end and never sold. You control who sees your profile and information.',
     },
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+          />
         </svg>
       ),
       title: 'Block & Report',
-      description: 'Easy one-tap blocking and reporting. We take immediate action on policy violations.',
+      description:
+        'Easy one-tap blocking and reporting. We take immediate action on policy violations.',
     },
   ];
 
@@ -428,21 +531,24 @@ const FuturisticLandingPage: React.FC = () => {
     {
       names: 'Sarah & Michael',
       time: 'Together 2 years',
-      quote: 'We matched on FLAMORAL and instantly connected over our love for hiking. The video dating feature helped us build real chemistry before meeting. Now we are engaged!',
+      quote:
+        'We matched on FLAMORAL and instantly connected over our love for hiking. The video dating feature helped us build real chemistry before meeting. Now we are engaged!',
       gradient: 'from-pink-500 to-blue-500',
       initial: 'S',
     },
     {
       names: 'James & Emma',
       time: 'Together 1 year',
-      quote: 'After disappointing experiences on other apps, FLAMORAL felt different. The verification gave me confidence, and the matching was incredibly accurate.',
+      quote:
+        'After disappointing experiences on other apps, FLAMORAL felt different. The verification gave me confidence, and the matching was incredibly accurate.',
       gradient: 'from-blue-500 to-green-500',
       initial: 'J',
     },
     {
       names: 'Alex & Jordan',
       time: 'Together 8 months',
-      quote: "Our 94% compatibility score was spot on. The AI really understood what we were looking for. We connected immediately and haven't looked back.",
+      quote:
+        "Our 94% compatibility score was spot on. The AI really understood what we were looking for. We connected immediately and haven't looked back.",
       gradient: 'from-green-500 to-yellow-500',
       initial: 'A',
     },
@@ -474,14 +580,26 @@ const FuturisticLandingPage: React.FC = () => {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-gradient-pink-blue font-heading">FLAMORAL</span>
+              <span className="text-2xl font-bold text-gradient-pink-blue font-heading">
+                FLAMORAL
+              </span>
             </Link>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-400 hover:text-white transition-colors">Features</a>
-              <a href="#how-it-works" className="text-gray-400 hover:text-white transition-colors">How It Works</a>
-              <a href="#safety" className="text-gray-400 hover:text-white transition-colors">Safety</a>
-              <a href="#success" className="text-gray-400 hover:text-white transition-colors">Success Stories</a>
-              <Link to="/subscription" className="text-gray-400 hover:text-white transition-colors">Pricing</Link>
+              <a href="#features" className="text-gray-400 hover:text-white transition-colors">
+                Features
+              </a>
+              <a href="#how-it-works" className="text-gray-400 hover:text-white transition-colors">
+                How It Works
+              </a>
+              <a href="#safety" className="text-gray-400 hover:text-white transition-colors">
+                Safety
+              </a>
+              <a href="#success" className="text-gray-400 hover:text-white transition-colors">
+                Success Stories
+              </a>
+              <Link to="/subscription" className="text-gray-400 hover:text-white transition-colors">
+                Pricing
+              </Link>
             </div>
             <div className="flex items-center space-x-4">
               <Link
@@ -512,8 +630,14 @@ const FuturisticLandingPage: React.FC = () => {
       >
         {/* Background Effects - Contained blur orbs */}
         <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none" />
-        <div className="absolute top-1/4 left-0 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl pointer-events-none" style={{ left: '-6rem' }} />
-        <div className="absolute bottom-1/4 right-0 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl pointer-events-none" style={{ right: '-6rem' }} />
+        <div
+          className="absolute top-1/4 left-0 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl pointer-events-none"
+          style={{ left: '-6rem' }}
+        />
+        <div
+          className="absolute bottom-1/4 right-0 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl pointer-events-none"
+          style={{ right: '-6rem' }}
+        />
 
         <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -525,13 +649,11 @@ const FuturisticLandingPage: React.FC = () => {
             >
               <h1 className="text-display-2 lg:text-display-1 font-bold leading-tight font-heading">
                 Find Your Perfect
-                <span className="block text-gradient-pink-blue">
-                  Connection
-                </span>
+                <span className="block text-gradient-pink-blue">Connection</span>
               </h1>
               <p className="text-xl text-gray-400 leading-relaxed max-w-xl">
-                Join 2M+ verified singles finding real love through AI-powered matching.
-                100% photo-verified profiles. Start free today.
+                Join 2M+ verified singles finding real love through AI-powered matching. 100%
+                photo-verified profiles. Start free today.
               </p>
 
               {/* Trust Signals */}
@@ -558,8 +680,19 @@ const FuturisticLandingPage: React.FC = () => {
                   aria-label="Create free account and start matching"
                 >
                   Create Free Account
-                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <svg
+                    className="ml-2 w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
                   </svg>
                 </Link>
                 <a
@@ -572,8 +705,17 @@ const FuturisticLandingPage: React.FC = () => {
               </div>
               {/* Urgency Microcopy */}
               <p className="text-sm text-green-400 flex items-center justify-center lg:justify-start">
-                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 No credit card required • Takes 60 seconds to sign up
               </p>
@@ -582,7 +724,13 @@ const FuturisticLandingPage: React.FC = () => {
               <div className="pt-6 border-t border-base-dark-gray">
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4">
                   <div className="flex -space-x-3">
-                    {['bg-gradient-to-br from-pink-400 to-pink-600', 'bg-gradient-to-br from-blue-400 to-blue-600', 'bg-gradient-to-br from-green-400 to-green-600', 'bg-gradient-to-br from-yellow-400 to-yellow-600', 'bg-gradient-to-br from-pink-400 to-blue-600'].map((bg, i) => (
+                    {[
+                      'bg-gradient-to-br from-pink-400 to-pink-600',
+                      'bg-gradient-to-br from-blue-400 to-blue-600',
+                      'bg-gradient-to-br from-green-400 to-green-600',
+                      'bg-gradient-to-br from-yellow-400 to-yellow-600',
+                      'bg-gradient-to-br from-pink-400 to-blue-600',
+                    ].map((bg, i) => (
                       <div
                         key={i}
                         className={`w-10 h-10 rounded-full ${bg} border-2 border-base-deep-black flex items-center justify-center text-white text-sm font-medium`}
@@ -614,12 +762,17 @@ const FuturisticLandingPage: React.FC = () => {
             >
               {/* Contained glow effects behind card */}
               <div className="absolute top-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-pink-500/30 rounded-full filter blur-3xl animate-pulse pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-32 md:w-48 h-32 md:h-48 bg-blue-500/30 rounded-full filter blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
+              <div
+                className="absolute bottom-0 right-0 w-32 md:w-48 h-32 md:h-48 bg-blue-500/30 rounded-full filter blur-3xl animate-pulse pointer-events-none"
+                style={{ animationDelay: '2s' }}
+              />
 
               <div className="relative bg-base-charcoal/80 backdrop-blur-xl rounded-3xl border border-base-dark-gray p-6 sm:p-8 transform hover:scale-[1.02] transition-transform duration-500 shadow-elevation-4 w-full max-w-md lg:max-w-lg">
                 <div className="space-y-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-pink-blue flex items-center justify-center text-white text-2xl font-bold">E</div>
+                    <div className="w-16 h-16 rounded-full bg-gradient-pink-blue flex items-center justify-center text-white text-2xl font-bold">
+                      E
+                    </div>
                     <div>
                       <h3 className="font-semibold text-white text-lg">Emma, 28</h3>
                       <div className="flex items-center text-sm text-green-400">
@@ -636,25 +789,43 @@ const FuturisticLandingPage: React.FC = () => {
 
                   <div className="flex flex-wrap gap-2">
                     {['Adventure', 'Photography', 'Travel', 'Music'].map((tag) => (
-                      <span key={tag} className="px-3 py-1 bg-base-dark-gray rounded-full text-sm text-gray-300">
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-base-dark-gray rounded-full text-sm text-gray-300"
+                      >
                         {tag}
                       </span>
                     ))}
                   </div>
 
                   <p className="text-gray-400 italic">
-                    "Looking for someone who loves spontaneous adventures and meaningful conversations over coffee..."
+                    "Looking for someone who loves spontaneous adventures and meaningful
+                    conversations over coffee..."
                   </p>
 
                   <div className="flex justify-center space-x-4 pt-4">
                     <button className="w-14 h-14 rounded-full bg-base-dark-gray flex items-center justify-center text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 hover:scale-110">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                     <button className="w-16 h-16 rounded-full bg-gradient-pink-blue flex items-center justify-center text-white shadow-glow-pink hover:scale-110 transition-all duration-300 animate-heartbeat">
                       <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </button>
                     <button className="w-14 h-14 rounded-full bg-gradient-blue-green flex items-center justify-center text-white hover:scale-110 transition-all duration-300 hover:shadow-glow-blue">
@@ -701,15 +872,27 @@ const FuturisticLandingPage: React.FC = () => {
                 className="text-left bg-base-charcoal/50 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray hover:border-pink-500/50 hover:shadow-glow-pink-sm transition-all duration-500 hover:scale-[1.02] group h-full flex flex-col focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-base-deep-black"
                 aria-label={`Learn more about ${feature.title}`}
               >
-                <div className={`w-14 h-14 ${feature.gradient} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <div
+                  className={`w-14 h-14 ${feature.gradient} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}
+                >
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
                 <p className="text-gray-400 mb-4">{feature.description}</p>
                 <span className="text-pink-400 font-medium inline-flex items-center group-hover:translate-x-2 transition-transform duration-300">
                   Learn more
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4 ml-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </span>
               </motion.button>
@@ -719,10 +902,18 @@ const FuturisticLandingPage: React.FC = () => {
           {/* Additional Features Grid */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
-              { icon: '🎯', title: 'Smart Filters', desc: 'Filter by lifestyle, interests, values' },
+              {
+                icon: '🎯',
+                title: 'Smart Filters',
+                desc: 'Filter by lifestyle, interests, values',
+              },
               { icon: '⚡', title: 'Super Likes', desc: 'Stand out from the crowd' },
               { icon: '🚀', title: 'Profile Boosts', desc: 'Get 10x more visibility' },
-              { icon: '💬', title: 'AI Icebreakers', desc: 'Never run out of conversation starters' },
+              {
+                icon: '💬',
+                title: 'AI Icebreakers',
+                desc: 'Never run out of conversation starters',
+              },
             ].map((item, index) => (
               <motion.div
                 key={index}
@@ -774,7 +965,9 @@ const FuturisticLandingPage: React.FC = () => {
                   <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-base-dark-gray to-transparent" />
                 )}
                 <div className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-8 text-center border border-base-dark-gray hover:border-pink-500/30 transition-all duration-500 h-full flex flex-col items-center justify-start">
-                  <div className={`w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg`}>
+                  <div
+                    className={`w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg`}
+                  >
                     {step.step}
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
@@ -797,8 +990,19 @@ const FuturisticLandingPage: React.FC = () => {
               aria-label="Get started with a free account"
             >
               Create Free Account
-              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <svg
+                className="ml-2 w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </Link>
           </motion.div>
@@ -820,7 +1024,8 @@ const FuturisticLandingPage: React.FC = () => {
                 Your <span className="text-gradient-blue-green">Safety</span> is Our Priority
               </h2>
               <p className="text-lg text-gray-400 mb-8">
-                We have built multiple layers of protection to ensure you have a safe and positive experience on FLAMORAL.
+                We have built multiple layers of protection to ensure you have a safe and positive
+                experience on FLAMORAL.
               </p>
               <div className="space-y-6">
                 {safetyFeatures.map((item, index) => (
@@ -848,7 +1053,12 @@ const FuturisticLandingPage: React.FC = () => {
               >
                 Visit Safety Center
                 <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </Link>
             </motion.div>
@@ -862,8 +1072,18 @@ const FuturisticLandingPage: React.FC = () => {
             >
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="w-20 h-20 bg-gradient-blue-green rounded-full flex items-center justify-center mx-auto mb-6 animate-avatar-pulse">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  <svg
+                    className="w-10 h-10 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Safety Statistics</h3>
@@ -900,7 +1120,9 @@ const FuturisticLandingPage: React.FC = () => {
             <h2 className="text-4xl lg:text-5xl font-bold font-heading mb-4">
               Real <span className="text-gradient-pink-yellow">Success</span> Stories
             </h2>
-            <p className="text-xl text-gray-400">Thousands have found their perfect match on FLAMORAL</p>
+            <p className="text-xl text-gray-400">
+              Thousands have found their perfect match on FLAMORAL
+            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
@@ -914,7 +1136,9 @@ const FuturisticLandingPage: React.FC = () => {
                 className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray hover:border-pink-500/30 transition-all duration-500 h-full flex flex-col justify-between"
               >
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${story.gradient} flex items-center justify-center text-white text-xl font-bold`}>
+                  <div
+                    className={`w-14 h-14 rounded-full bg-gradient-to-br ${story.gradient} flex items-center justify-center text-white text-xl font-bold`}
+                  >
                     {story.initial}
                   </div>
                   <div>
@@ -926,7 +1150,11 @@ const FuturisticLandingPage: React.FC = () => {
                 <div className="flex text-pink-500">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <svg key={i} className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   ))}
                 </div>
@@ -948,7 +1176,12 @@ const FuturisticLandingPage: React.FC = () => {
             >
               Start Your Success Story
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </Link>
           </motion.div>
@@ -983,18 +1216,33 @@ const FuturisticLandingPage: React.FC = () => {
             >
               <h3 className="text-lg font-bold text-white mb-1">Free</h3>
               <p className="text-xs text-gray-400 mb-3">Get started</p>
-              <p className="text-2xl font-bold text-white mb-4">$0<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-2xl font-bold text-white mb-4">
+                $0<span className="text-sm font-normal text-gray-500">/mo</span>
+              </p>
               <ul className="space-y-2 mb-4 flex-grow">
-                {['50 daily swipes', 'Basic filters', '1 Super Like/day', 'Photo verification'].map((feature) => (
-                  <li key={feature} className="flex items-start text-gray-300 text-xs">
-                    <svg className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
+                {['50 daily swipes', 'Basic filters', '1 Super Like/day', 'Photo verification'].map(
+                  (feature) => (
+                    <li key={feature} className="flex items-start text-gray-300 text-xs">
+                      <svg
+                        className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {feature}
+                    </li>
+                  )
+                )}
               </ul>
-              <Link to="/signup" className="block w-full text-center border border-pink-500 text-pink-400 py-2 rounded-full text-sm font-semibold hover:bg-pink-500/10 transition-all duration-300">
+              <Link
+                to="/signup"
+                className="block w-full text-center border border-pink-500 text-pink-400 py-2 rounded-full text-sm font-semibold hover:bg-pink-500/10 transition-all duration-300"
+              >
                 Start Free
               </Link>
             </motion.div>
@@ -1009,18 +1257,36 @@ const FuturisticLandingPage: React.FC = () => {
             >
               <h3 className="text-lg font-bold text-white mb-1">Basic</h3>
               <p className="text-xs text-gray-400 mb-3">Essential features</p>
-              <p className="text-2xl font-bold text-white mb-4">$9.99<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-2xl font-bold text-white mb-4">
+                $9.99<span className="text-sm font-normal text-gray-500">/mo</span>
+              </p>
               <ul className="space-y-2 mb-4 flex-grow">
-                {['Unlimited swipes', 'See who likes you', '5 Super Likes/day', '1 Boost/month'].map((feature) => (
+                {[
+                  'Unlimited swipes',
+                  'See who likes you',
+                  '5 Super Likes/day',
+                  '1 Boost/month',
+                ].map((feature) => (
                   <li key={feature} className="flex items-start text-gray-300 text-xs">
-                    <svg className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Link to="/signup?tier=basic" className="block w-full text-center border border-pink-500 text-pink-400 py-2 rounded-full text-sm font-semibold hover:bg-pink-500/10 transition-all duration-300">
+              <Link
+                to="/signup?tier=basic"
+                className="block w-full text-center border border-pink-500 text-pink-400 py-2 rounded-full text-sm font-semibold hover:bg-pink-500/10 transition-all duration-300"
+              >
                 Choose Basic
               </Link>
             </motion.div>
@@ -1034,22 +1300,39 @@ const FuturisticLandingPage: React.FC = () => {
               className="relative bg-base-charcoal/50 rounded-2xl p-4 sm:p-5 border border-green-500/50 h-full flex flex-col"
             >
               <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">BEST VALUE</span>
+                <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  BEST VALUE
+                </span>
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Plus</h3>
               <p className="text-xs text-gray-400 mb-3">Enhanced matching</p>
-              <p className="text-2xl font-bold text-white mb-4">$19.99<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-2xl font-bold text-white mb-4">
+                $19.99<span className="text-sm font-normal text-gray-500">/mo</span>
+              </p>
               <ul className="space-y-2 mb-4 flex-grow">
-                {['All Basic features', 'Advanced filters', 'Read receipts', 'Incognito mode'].map((feature) => (
-                  <li key={feature} className="flex items-start text-gray-300 text-xs">
-                    <svg className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
+                {['All Basic features', 'Advanced filters', 'Read receipts', 'Incognito mode'].map(
+                  (feature) => (
+                    <li key={feature} className="flex items-start text-gray-300 text-xs">
+                      <svg
+                        className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {feature}
+                    </li>
+                  )
+                )}
               </ul>
-              <Link to="/signup?tier=plus" className="block w-full text-center bg-green-500 text-white py-2 rounded-full text-sm font-semibold hover:bg-green-600 transition-all duration-300">
+              <Link
+                to="/signup?tier=plus"
+                className="block w-full text-center bg-green-500 text-white py-2 rounded-full text-sm font-semibold hover:bg-green-600 transition-all duration-300"
+              >
                 Choose Plus
               </Link>
             </motion.div>
@@ -1063,22 +1346,42 @@ const FuturisticLandingPage: React.FC = () => {
               className="relative bg-gradient-pink-blue rounded-2xl p-4 sm:p-5 transform lg:scale-105 origin-center shadow-glow-pink h-full flex flex-col"
             >
               <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                <span className="bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full text-[10px] font-bold">MOST POPULAR</span>
+                <span className="bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  MOST POPULAR
+                </span>
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Premium</h3>
               <p className="text-xs text-pink-100 mb-3">Full experience</p>
-              <p className="text-2xl font-bold text-white mb-4">$29.99<span className="text-sm font-normal text-pink-100">/mo</span></p>
+              <p className="text-2xl font-bold text-white mb-4">
+                $29.99<span className="text-sm font-normal text-pink-100">/mo</span>
+              </p>
               <ul className="space-y-2 mb-4 flex-grow">
-                {['All Plus features', 'Unlimited Super Likes', 'Video dating', 'AI matchmaking'].map((feature) => (
+                {[
+                  'All Plus features',
+                  'Unlimited Super Likes',
+                  'Video dating',
+                  'AI matchmaking',
+                ].map((feature) => (
                   <li key={feature} className="flex items-start text-white text-xs">
-                    <svg className="w-4 h-4 text-white mr-1.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      className="w-4 h-4 text-white mr-1.5 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Link to="/signup?tier=premium" className="block w-full text-center bg-white text-pink-500 py-2 rounded-full text-sm font-semibold hover:shadow-lg transition-all duration-300">
+              <Link
+                to="/signup?tier=premium"
+                className="block w-full text-center bg-white text-pink-500 py-2 rounded-full text-sm font-semibold hover:shadow-lg transition-all duration-300"
+              >
                 Start Free Trial
               </Link>
             </motion.div>
@@ -1093,18 +1396,36 @@ const FuturisticLandingPage: React.FC = () => {
             >
               <h3 className="text-lg font-bold text-white mb-1">Premium+</h3>
               <p className="text-xs text-gray-400 mb-3">Priority access</p>
-              <p className="text-2xl font-bold text-white mb-4">$39.99<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-2xl font-bold text-white mb-4">
+                $39.99<span className="text-sm font-normal text-gray-500">/mo</span>
+              </p>
               <ul className="space-y-2 mb-4 flex-grow">
-                {['All Premium features', 'Passport (travel)', 'Message before match', 'Priority support'].map((feature) => (
+                {[
+                  'All Premium features',
+                  'Passport (travel)',
+                  'Message before match',
+                  'Priority support',
+                ].map((feature) => (
                   <li key={feature} className="flex items-start text-gray-300 text-xs">
-                    <svg className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      className="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Link to="/signup?tier=premium_plus" className="block w-full text-center border border-pink-500 text-pink-400 py-2 rounded-full text-sm font-semibold hover:bg-pink-500/10 transition-all duration-300">
+              <Link
+                to="/signup?tier=premium_plus"
+                className="block w-full text-center border border-pink-500 text-pink-400 py-2 rounded-full text-sm font-semibold hover:bg-pink-500/10 transition-all duration-300"
+              >
                 Choose Premium+
               </Link>
             </motion.div>
@@ -1124,25 +1445,46 @@ const FuturisticLandingPage: React.FC = () => {
                 </svg>
               </div>
               <p className="text-xs text-gray-400 mb-3">White glove service</p>
-              <p className="text-2xl font-bold text-white mb-4">$59.99<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-2xl font-bold text-white mb-4">
+                $59.99<span className="text-sm font-normal text-gray-500">/mo</span>
+              </p>
               <ul className="space-y-2 mb-4 flex-grow">
-                {['All Premium+ features', 'VIP badge', 'Dedicated coach', 'Background verified'].map((feature) => (
+                {[
+                  'All Premium+ features',
+                  'VIP badge',
+                  'Dedicated coach',
+                  'Background verified',
+                ].map((feature) => (
                   <li key={feature} className="flex items-start text-gray-300 text-xs">
-                    <svg className="w-4 h-4 text-yellow-400 mr-1.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      className="w-4 h-4 text-yellow-400 mr-1.5 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Link to="/signup?tier=elite" className="block w-full text-center bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-2 rounded-full text-sm font-semibold hover:shadow-lg transition-all duration-300">
+              <Link
+                to="/signup?tier=elite"
+                className="block w-full text-center bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-2 rounded-full text-sm font-semibold hover:shadow-lg transition-all duration-300"
+              >
                 Go Elite
               </Link>
             </motion.div>
           </div>
 
           <div className="text-center mt-8">
-            <Link to="/subscription" className="text-pink-400 font-semibold hover:text-pink-300 transition-colors">
+            <Link
+              to="/subscription"
+              className="text-pink-400 font-semibold hover:text-pink-300 transition-colors"
+            >
               View full pricing details →
             </Link>
           </div>
@@ -1160,21 +1502,45 @@ const FuturisticLandingPage: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 font-heading">Ready to Find Your Match?</h2>
-            <p className="text-xl text-pink-100 mb-8">Join millions of singles finding meaningful connections every day</p>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 font-heading">
+              Ready to Find Your Match?
+            </h2>
+            <p className="text-xl text-pink-100 mb-8">
+              Join millions of singles finding meaningful connections every day
+            </p>
             <Link
               to="/signup"
               className="inline-flex items-center bg-white text-pink-500 px-10 py-4 rounded-full text-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-500"
               aria-label="Create your free FLAMORAL account"
             >
               Start Matching Free
-              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <svg
+                className="ml-2 w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </Link>
             <p className="text-pink-100 text-sm mt-4 flex items-center justify-center">
-              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               No credit card required • Start matching in 60 seconds
             </p>
@@ -1187,13 +1553,29 @@ const FuturisticLandingPage: React.FC = () => {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <span className="text-2xl font-bold text-gradient-pink-blue font-heading">FLAMORAL</span>
-              <p className="mt-4 text-sm text-gray-400">Finding meaningful connections through intelligent matching.</p>
+              <span className="text-2xl font-bold text-gradient-pink-blue font-heading">
+                FLAMORAL
+              </span>
+              <p className="mt-4 text-sm text-gray-400">
+                Finding meaningful connections through intelligent matching.
+              </p>
               <div className="flex space-x-4 mt-6">
                 {[
-                  { name: 'twitter', url: 'https://twitter.com/flamoralapp', icon: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
-                  { name: 'instagram', url: 'https://instagram.com/flamoralapp', icon: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z' },
-                  { name: 'facebook', url: 'https://facebook.com/flamoralapp', icon: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' }
+                  {
+                    name: 'twitter',
+                    url: 'https://twitter.com/flamoralapp',
+                    icon: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z',
+                  },
+                  {
+                    name: 'instagram',
+                    url: 'https://instagram.com/flamoralapp',
+                    icon: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z',
+                  },
+                  {
+                    name: 'facebook',
+                    url: 'https://facebook.com/flamoralapp',
+                    icon: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
+                  },
                 ].map((social) => (
                   <a
                     key={social.name}
@@ -1217,7 +1599,10 @@ const FuturisticLandingPage: React.FC = () => {
               <ul className="space-y-2 text-sm">
                 {['About Us', 'Careers', 'Press', 'Contact'].map((item) => (
                   <li key={item}>
-                    <Link to={`/${item.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-white transition-colors">
+                    <Link
+                      to={`/${item.toLowerCase().replace(' ', '-')}`}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
                       {item}
                     </Link>
                   </li>
@@ -1229,7 +1614,10 @@ const FuturisticLandingPage: React.FC = () => {
               <ul className="space-y-2 text-sm">
                 {['Help Center', 'Safety Tips', 'Community', 'Dating Blog'].map((item) => (
                   <li key={item}>
-                    <Link to={`/${item.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-white transition-colors">
+                    <Link
+                      to={`/${item.toLowerCase().replace(' ', '-')}`}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
                       {item}
                     </Link>
                   </li>
@@ -1247,7 +1635,10 @@ const FuturisticLandingPage: React.FC = () => {
                   { name: 'Safety Hub', path: '/safety-hub' },
                 ].map((item) => (
                   <li key={item.name}>
-                    <Link to={item.path} className="text-gray-400 hover:text-white transition-colors">
+                    <Link
+                      to={item.path}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
                       {item.name}
                     </Link>
                   </li>
@@ -1256,7 +1647,9 @@ const FuturisticLandingPage: React.FC = () => {
             </div>
           </div>
           <div className="border-t border-base-dark-gray mt-8 pt-8 flex flex-col md:flex-row justify-between items-center text-sm">
-            <p className="text-gray-400">&copy; {new Date().getFullYear()} FLAMORAL. All rights reserved.</p>
+            <p className="text-gray-400">
+              &copy; {new Date().getFullYear()} FLAMORAL. All rights reserved.
+            </p>
             <div className="flex space-x-6 mt-4 md:mt-0 text-gray-400">
               <span>United States</span>
               <span>English</span>

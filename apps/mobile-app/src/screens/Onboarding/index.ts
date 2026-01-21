@@ -17,7 +17,4 @@ export { default as LifestyleScreen } from './LifestyleScreen';
 export { default as NotificationPermissionScreen } from './NotificationPermissionScreen';
 export { default as OnboardingCompleteScreen } from './OnboardingCompleteScreen';
 
-export type {
-  OnboardingStackParamList,
-  OnboardingProfileData,
-} from './OnboardingNavigator';
+export type { OnboardingStackParamList, OnboardingProfileData } from './OnboardingNavigator';

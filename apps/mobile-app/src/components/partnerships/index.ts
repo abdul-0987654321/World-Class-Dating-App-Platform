@@ -2,7 +2,10 @@
 // Components for restaurant reservations, event tickets, gift delivery, and date planning
 
 // Card Components
-export { default as RestaurantCard, RestaurantCard as RestaurantCardComponent } from './RestaurantCard';
+export {
+  default as RestaurantCard,
+  RestaurantCard as RestaurantCardComponent,
+} from './RestaurantCard';
 export { default as EventCard, EventCard as EventCardComponent } from './EventCard';
 export { default as GiftCard, GiftCard as GiftCardComponent } from './GiftCard';
 export { default as DatePlanCard } from './DatePlanCard';

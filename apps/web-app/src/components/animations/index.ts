@@ -16,10 +16,7 @@ export {
 } from './SwipeCardAnimated';
 
 // Match celebration
-export {
-  MatchCelebration,
-  type MatchCelebrationProps,
-} from './MatchCelebration';
+export { MatchCelebration, type MatchCelebrationProps } from './MatchCelebration';
 
 // Message animations
 export {

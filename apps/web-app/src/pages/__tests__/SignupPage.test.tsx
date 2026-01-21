@@ -154,7 +154,7 @@ describe('SignupPage', () => {
 
       // Find and click the toggle button
       const toggleButtons = screen.getAllByRole('button');
-      const toggleButton = toggleButtons.find(btn =>
+      const toggleButton = toggleButtons.find((btn) =>
         btn.parentElement?.querySelector('input[placeholder="Create a strong password"]')
       );
 
@@ -286,7 +286,9 @@ describe('SignupPage', () => {
       const continueButton = screen.getAllByRole('button', { name: /continue/i })[0];
       await user.click(continueButton);
 
-      expect(screen.getByText('You must agree to the terms and privacy policy')).toBeInTheDocument();
+      expect(
+        screen.getByText('You must agree to the terms and privacy policy')
+      ).toBeInTheDocument();
     });
 
     it('allows going back to step 1', async () => {

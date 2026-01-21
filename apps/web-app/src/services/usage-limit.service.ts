@@ -117,7 +117,9 @@ class UsageLimitService {
     return response.json();
   }
 
-  async checkLimit(action: 'like' | 'super_like' | 'message' | 'boost' | 'rewind'): Promise<LimitStatus> {
+  async checkLimit(
+    action: 'like' | 'super_like' | 'message' | 'boost' | 'rewind'
+  ): Promise<LimitStatus> {
     if (this.isMock) {
       const limits = await this.getLimits();
       const actionMap: Record<string, keyof UsageLimits> = {
@@ -153,7 +155,9 @@ class UsageLimitService {
     return response.json();
   }
 
-  async incrementUsage(action: 'like' | 'super_like' | 'message' | 'boost' | 'rewind'): Promise<LimitStatus> {
+  async incrementUsage(
+    action: 'like' | 'super_like' | 'message' | 'boost' | 'rewind'
+  ): Promise<LimitStatus> {
     if (this.isMock) {
       // In mock mode, just return updated status
       return this.checkLimit(action);

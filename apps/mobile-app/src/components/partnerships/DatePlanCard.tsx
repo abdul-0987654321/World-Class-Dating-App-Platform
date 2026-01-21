@@ -133,7 +133,9 @@ export const DatePlanCard: React.FC<DatePlanCardProps> = ({
               resizeMode="cover"
             />
           ) : (
-            <View style={[styles.compactImagePlaceholder, { backgroundColor: vibeConfig.color + '30' }]}>
+            <View
+              style={[styles.compactImagePlaceholder, { backgroundColor: vibeConfig.color + '30' }]}
+            >
               <Text style={[styles.compactImagePlaceholderText, { color: vibeConfig.color }]}>
                 {vibeConfig.icon}
               </Text>
@@ -170,11 +172,7 @@ export const DatePlanCard: React.FC<DatePlanCardProps> = ({
   }
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => onPress(plan)}
-      activeOpacity={0.95}
-    >
+    <TouchableOpacity style={styles.container} onPress={() => onPress(plan)} activeOpacity={0.95}>
       <View style={styles.header}>
         <View style={[styles.vibeBadge, { backgroundColor: vibeConfig.color }]}>
           <Text style={styles.vibeIcon}>{vibeConfig.icon}</Text>
@@ -243,9 +241,7 @@ export const DatePlanCard: React.FC<DatePlanCardProps> = ({
                       {item.description}
                     </Text>
                   )}
-                  <Text style={styles.itemPrice}>
-                    {formatPrice(item.price, item.currency)}
-                  </Text>
+                  <Text style={styles.itemPrice}>{formatPrice(item.price, item.currency)}</Text>
                 </View>
               </View>
             </View>

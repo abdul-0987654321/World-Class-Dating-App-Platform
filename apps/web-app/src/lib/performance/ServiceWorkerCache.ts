@@ -54,11 +54,7 @@ export const CACHE_CONFIG: CacheStrategies = {
 };
 
 // URLs to precache
-export const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-];
+export const PRECACHE_URLS = ['/', '/index.html', '/manifest.json'];
 
 // API routes to cache
 export const API_CACHE_PATTERNS = [
@@ -69,13 +65,7 @@ export const API_CACHE_PATTERNS = [
 ];
 
 // Static asset patterns
-export const STATIC_ASSET_PATTERNS = [
-  /\.js$/,
-  /\.css$/,
-  /\.woff2?$/,
-  /\.ttf$/,
-  /\.otf$/,
-];
+export const STATIC_ASSET_PATTERNS = [/\.js$/, /\.css$/, /\.woff2?$/, /\.ttf$/, /\.otf$/];
 
 // Image patterns
 export const IMAGE_PATTERNS = [
@@ -200,9 +190,7 @@ export const clearAllCaches = async (): Promise<boolean> => {
   }
 
   const cacheNames = await caches.keys();
-  await Promise.all(
-    cacheNames.map((cacheName) => caches.delete(cacheName))
-  );
+  await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
 
   return true;
 };

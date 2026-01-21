@@ -73,14 +73,7 @@ export function CsrfProtectedForm({
       autoComplete={autoComplete}
     >
       {/* Hidden CSRF token field */}
-      {token && (
-        <input
-          type="hidden"
-          name="_csrf"
-          value={token}
-          readOnly
-        />
-      )}
+      {token && <input type="hidden" name="_csrf" value={token} readOnly />}
 
       {/* Display loading or error state if needed */}
       {loading && (
@@ -122,14 +115,7 @@ export function CsrfTokenInput() {
     return null;
   }
 
-  return (
-    <input
-      type="hidden"
-      name="_csrf"
-      value={token}
-      readOnly
-    />
-  );
+  return <input type="hidden" name="_csrf" value={token} readOnly />;
 }
 
 export default CsrfProtectedForm;

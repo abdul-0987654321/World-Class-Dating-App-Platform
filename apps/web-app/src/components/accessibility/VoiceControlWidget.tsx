@@ -59,9 +59,10 @@ export const VoiceControlWidget: React.FC<VoiceControlWidgetProps> = ({
           onClick={() => setMinimized(false)}
           className={`
             p-3 rounded-full shadow-lg transition-all duration-300
-            ${isEnabled
-              ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white animate-pulse'
-              : 'bg-slate-800/90 text-slate-300 hover:bg-slate-700'
+            ${
+              isEnabled
+                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white animate-pulse'
+                : 'bg-slate-800/90 text-slate-300 hover:bg-slate-700'
             }
           `}
           aria-label={`Voice control ${isEnabled ? 'active' : 'inactive'}. Click to expand.`}
@@ -83,10 +84,7 @@ export const VoiceControlWidget: React.FC<VoiceControlWidgetProps> = ({
               <div
                 className={`
                   p-2 rounded-xl
-                  ${isListening
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-600'
-                    : 'bg-slate-700'
-                  }
+                  ${isListening ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-slate-700'}
                 `}
               >
                 <MicrophoneIcon listening={isListening} />
@@ -114,9 +112,10 @@ export const VoiceControlWidget: React.FC<VoiceControlWidgetProps> = ({
               onClick={toggleListening}
               className={`
                 w-full py-3 px-4 rounded-xl font-medium transition-all
-                ${isEnabled
-                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                  : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-90'
+                ${
+                  isEnabled
+                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                    : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-90'
                 }
               `}
             >
@@ -148,9 +147,7 @@ export const VoiceControlWidget: React.FC<VoiceControlWidgetProps> = ({
 
                 {lastCommand && (
                   <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3">
-                    <p className="text-xs text-green-400">
-                      Last command: "{lastCommand}"
-                    </p>
+                    <p className="text-xs text-green-400">Last command: "{lastCommand}"</p>
                   </div>
                 )}
 
@@ -177,9 +174,7 @@ export const VoiceControlWidget: React.FC<VoiceControlWidgetProps> = ({
             <div className="max-h-64 overflow-y-auto border-t border-slate-700/50">
               {Object.entries(commandsByCategory).map(([category, cmds]) => (
                 <div key={category} className="p-3 border-b border-slate-700/50 last:border-b-0">
-                  <p className="text-xs text-purple-400 uppercase font-semibold mb-2">
-                    {category}
-                  </p>
+                  <p className="text-xs text-purple-400 uppercase font-semibold mb-2">{category}</p>
                   <div className="space-y-1">
                     {cmds.map((cmd, i) => (
                       <div key={i} className="flex items-start gap-2 text-xs">
@@ -217,12 +212,15 @@ export const VoiceControlWidget: React.FC<VoiceControlWidgetProps> = ({
 
 // Helper to group commands by category
 function groupCommandsByCategory(commands: VoiceCommand[]): Record<string, VoiceCommand[]> {
-  return commands.reduce((acc, cmd) => {
-    const category = cmd.category;
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(cmd);
-    return acc;
-  }, {} as Record<string, VoiceCommand[]>);
+  return commands.reduce(
+    (acc, cmd) => {
+      const category = cmd.category;
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(cmd);
+      return acc;
+    },
+    {} as Record<string, VoiceCommand[]>
+  );
 }
 
 // Icons
@@ -239,8 +237,17 @@ const MicrophoneIcon: React.FC<{ listening: boolean }> = ({ listening }) => (
 );
 
 const MinimizeIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-    <path fillRule="evenodd" d="M5 10a.75.75 0 01.75-.75h8.5a.75.75 0 010 1.5h-8.5A.75.75 0 015 10z" clipRule="evenodd" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    className="w-5 h-5"
+  >
+    <path
+      fillRule="evenodd"
+      d="M5 10a.75.75 0 01.75-.75h8.5a.75.75 0 010 1.5h-8.5A.75.75 0 015 10z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
@@ -251,7 +258,11 @@ const ChevronIcon: React.FC<{ expanded: boolean }> = ({ expanded }) => (
     fill="currentColor"
     className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
   >
-    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+    <path
+      fillRule="evenodd"
+      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 

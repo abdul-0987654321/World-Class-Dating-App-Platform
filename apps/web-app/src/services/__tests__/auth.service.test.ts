@@ -67,16 +67,12 @@ describe('AuthService', () => {
     });
 
     it('should throw error for invalid credentials', async () => {
-      await expect(authService.login('wrong@email.com', 'wrongpassword'))
-        .rejects
-        .toBeDefined();
+      await expect(authService.login('wrong@email.com', 'wrongpassword')).rejects.toBeDefined();
     });
 
     it('should handle network errors', async () => {
       // Invalid credentials in mockApi mode throws error
-      await expect(authService.login('invalid@example.com', 'invalid'))
-        .rejects
-        .toBeDefined();
+      await expect(authService.login('invalid@example.com', 'invalid')).rejects.toBeDefined();
     });
   });
 
@@ -200,9 +196,7 @@ describe('AuthService', () => {
       // Clear any stored refresh token
       delete storageData['refreshToken'];
 
-      await expect(authService.refreshToken())
-        .rejects
-        .toThrow('No refresh token available');
+      await expect(authService.refreshToken()).rejects.toThrow('No refresh token available');
     });
   });
 
@@ -216,7 +210,9 @@ describe('AuthService', () => {
   describe('resetPassword', () => {
     it('should reset password with valid token', async () => {
       // In mock mode, resetPassword just resolves after delay
-      await expect(authService.resetPassword('valid-token', 'newPassword123')).resolves.toBeUndefined();
+      await expect(
+        authService.resetPassword('valid-token', 'newPassword123')
+      ).resolves.toBeUndefined();
     });
   });
 

@@ -47,19 +47,19 @@ export const predictChemistry = (
   const emotional_intelligence = assessEQ(conversationData);
 
   const overall_chemistry = Math.round(
-    (communication_style * 0.25 +
-      life_goals_alignment * 0.20 +
-      value_compatibility * 0.20 +
+    communication_style * 0.25 +
+      life_goals_alignment * 0.2 +
+      value_compatibility * 0.2 +
       personality_fit * 0.15 +
-      lifestyle_match * 0.10 +
-      emotional_intelligence * 0.10)
+      lifestyle_match * 0.1 +
+      emotional_intelligence * 0.1
   );
 
   const long_term_potential = Math.round(
-    (life_goals_alignment * 0.35 +
-      value_compatibility * 0.30 +
-      emotional_intelligence * 0.20 +
-      communication_style * 0.15)
+    life_goals_alignment * 0.35 +
+      value_compatibility * 0.3 +
+      emotional_intelligence * 0.2 +
+      communication_style * 0.15
   );
 
   let prediction: 'excellent' | 'strong' | 'moderate' | 'weak';
@@ -99,7 +99,10 @@ export const predictChemistry = (
 
   // Relationship forecasts
   const first_date_success = Math.min(95, overall_chemistry + 5);
-  const three_month_survival = Math.min(90, Math.round((overall_chemistry + long_term_potential) / 2));
+  const three_month_survival = Math.min(
+    90,
+    Math.round((overall_chemistry + long_term_potential) / 2)
+  );
   const long_term_forecast = Math.min(85, long_term_potential);
 
   return {
@@ -126,7 +129,8 @@ export const predictChemistry = (
 };
 
 const analyzeCommStyles = (conversationData: any): number => {
-  const { message_length_similarity, response_time_match, emoji_usage_similarity } = conversationData;
+  const { message_length_similarity, response_time_match, emoji_usage_similarity } =
+    conversationData;
   return Math.round((message_length_similarity + response_time_match + emoji_usage_similarity) / 3);
 };
 
@@ -134,7 +138,8 @@ const compareLifeGoals = (p1: any, p2: any): number => {
   let score = 60;
   if (p1.relationship_goals === p2.relationship_goals) score += 20;
   if (p1.wants_children === p2.wants_children) score += 15;
-  if (Math.abs(p1.desired_relationship_timeline - p2.desired_relationship_timeline) <= 1) score += 5;
+  if (Math.abs(p1.desired_relationship_timeline - p2.desired_relationship_timeline) <= 1)
+    score += 5;
   return Math.min(100, score);
 };
 
@@ -173,7 +178,9 @@ const ChemistryPrediction: React.FC<{ prediction: ChemistryPrediction }> = ({ pr
 
   return (
     <ScrollView style={styles.container}>
-      <View style={[styles.headerCard, { backgroundColor: getColor(prediction.overall_chemistry) }]}>
+      <View
+        style={[styles.headerCard, { backgroundColor: getColor(prediction.overall_chemistry) }]}
+      >
         <Text style={styles.headerTitle}>Chemistry Prediction</Text>
         <Text style={styles.overallScore}>{prediction.overall_chemistry}%</Text>
         <Text style={styles.predictionLabel}>{prediction.prediction.toUpperCase()}</Text>
@@ -184,10 +191,15 @@ const ChemistryPrediction: React.FC<{ prediction: ChemistryPrediction }> = ({ pr
         {Object.entries(prediction.compatibility_dimensions).map(([key, value]) => (
           <View key={key} style={styles.dimensionRow}>
             <Text style={styles.dimensionLabel}>
-              {key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              {key
+                .split('_')
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ')}
             </Text>
             <View style={styles.barContainer}>
-              <View style={[styles.bar, { width: `${value}%`, backgroundColor: getColor(value) }]} />
+              <View
+                style={[styles.bar, { width: `${value}%`, backgroundColor: getColor(value) }]}
+              />
             </View>
             <Text style={styles.dimensionValue}>{value}%</Text>
           </View>
@@ -198,15 +210,21 @@ const ChemistryPrediction: React.FC<{ prediction: ChemistryPrediction }> = ({ pr
         <Text style={styles.sectionTitle}>Relationship Forecast</Text>
         <View style={styles.forecastGrid}>
           <View style={styles.forecastCard}>
-            <Text style={styles.forecastValue}>{prediction.relationship_forecast.first_date_success}%</Text>
+            <Text style={styles.forecastValue}>
+              {prediction.relationship_forecast.first_date_success}%
+            </Text>
             <Text style={styles.forecastLabel}>First Date Success</Text>
           </View>
           <View style={styles.forecastCard}>
-            <Text style={styles.forecastValue}>{prediction.relationship_forecast.three_month_survival}%</Text>
+            <Text style={styles.forecastValue}>
+              {prediction.relationship_forecast.three_month_survival}%
+            </Text>
             <Text style={styles.forecastLabel}>3-Month Survival</Text>
           </View>
           <View style={styles.forecastCard}>
-            <Text style={styles.forecastValue}>{prediction.relationship_forecast.long_term_potential}%</Text>
+            <Text style={styles.forecastValue}>
+              {prediction.relationship_forecast.long_term_potential}%
+            </Text>
             <Text style={styles.forecastLabel}>Long-Term Potential</Text>
           </View>
         </View>
@@ -216,7 +234,9 @@ const ChemistryPrediction: React.FC<{ prediction: ChemistryPrediction }> = ({ pr
         <View style={[styles.section, styles.highlightsSection]}>
           <Text style={styles.highlightsTitle}>✨ Compatibility Highlights</Text>
           {prediction.compatibility_highlights.map((highlight, i) => (
-            <Text key={i} style={styles.highlightText}>• {highlight}</Text>
+            <Text key={i} style={styles.highlightText}>
+              • {highlight}
+            </Text>
           ))}
         </View>
       )}
@@ -225,7 +245,9 @@ const ChemistryPrediction: React.FC<{ prediction: ChemistryPrediction }> = ({ pr
         <View style={[styles.section, styles.growthSection]}>
           <Text style={styles.growthTitle}>🌱 Growth Areas</Text>
           {prediction.growth_areas.map((area, i) => (
-            <Text key={i} style={styles.growthText}>• {area}</Text>
+            <Text key={i} style={styles.growthText}>
+              • {area}
+            </Text>
           ))}
         </View>
       )}
@@ -234,7 +256,9 @@ const ChemistryPrediction: React.FC<{ prediction: ChemistryPrediction }> = ({ pr
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💡 Insights</Text>
           {prediction.insights.map((insight, i) => (
-            <Text key={i} style={styles.insightText}>• {insight}</Text>
+            <Text key={i} style={styles.insightText}>
+              • {insight}
+            </Text>
           ))}
         </View>
       )}
@@ -252,11 +276,23 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16 },
   dimensionRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   dimensionLabel: { width: 140, fontSize: 13, color: '#374151' },
-  barContainer: { flex: 1, height: 8, backgroundColor: '#e5e7eb', borderRadius: 4, marginHorizontal: 12 },
+  barContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    marginHorizontal: 12,
+  },
   bar: { height: '100%', borderRadius: 4 },
   dimensionValue: { width: 40, fontSize: 13, fontWeight: '600', textAlign: 'right' },
   forecastGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  forecastCard: { flex: 1, backgroundColor: '#f9fafb', padding: 16, borderRadius: 12, alignItems: 'center' },
+  forecastCard: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
   forecastValue: { fontSize: 24, fontWeight: '700', color: '#111827', marginBottom: 4 },
   forecastLabel: { fontSize: 11, color: '#6b7280', textAlign: 'center' },
   highlightsSection: { backgroundColor: '#ecfdf5', borderRadius: 12 },

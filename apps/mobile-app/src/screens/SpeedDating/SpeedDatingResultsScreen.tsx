@@ -42,17 +42,47 @@ interface Props {
 // Mock matches for demo
 const getMockResultMatches = (likedIds: string[]): SpeedDatingMatch[] => {
   const allParticipants = [
-    { id: 'p1', name: 'Emma', age: 28, photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', bio: 'Adventure seeker & coffee lover' },
-    { id: 'p2', name: 'Sophie', age: 26, photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400', bio: 'Art enthusiast, yoga practitioner' },
-    { id: 'p3', name: 'Olivia', age: 29, photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400', bio: 'Tech professional, loves hiking' },
-    { id: 'p4', name: 'Mia', age: 27, photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400', bio: 'Foodie, travel blogger' },
-    { id: 'p5', name: 'Charlotte', age: 30, photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400', bio: 'Book lover, wine connoisseur' },
+    {
+      id: 'p1',
+      name: 'Emma',
+      age: 28,
+      photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      bio: 'Adventure seeker & coffee lover',
+    },
+    {
+      id: 'p2',
+      name: 'Sophie',
+      age: 26,
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      bio: 'Art enthusiast, yoga practitioner',
+    },
+    {
+      id: 'p3',
+      name: 'Olivia',
+      age: 29,
+      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      bio: 'Tech professional, loves hiking',
+    },
+    {
+      id: 'p4',
+      name: 'Mia',
+      age: 27,
+      photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      bio: 'Foodie, travel blogger',
+    },
+    {
+      id: 'p5',
+      name: 'Charlotte',
+      age: 30,
+      photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
+      bio: 'Book lover, wine connoisseur',
+    },
   ];
 
   // Simulate mutual matches (50% of liked become matches)
   return allParticipants
-    .filter(p => likedIds.includes(p.id) && Math.random() > 0.5)
-    .map(p => ({
+    .filter((p) => likedIds.includes(p.id) && Math.random() > 0.5)
+    .map((p) => ({
       id: `match_${p.id}`,
       eventId: 'e1',
       eventTitle: 'Speed Dating Session',
@@ -77,11 +107,9 @@ const SpeedDatingResultsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [revealedCount, setRevealedCount] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const {
-    matchAnimation,
-    playMatchRevealAnimation,
-    resetAnimation,
-  } = useSpeedDatingMatch({ autoLoad: false });
+  const { matchAnimation, playMatchRevealAnimation, resetAnimation } = useSpeedDatingMatch({
+    autoLoad: false,
+  });
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -230,10 +258,7 @@ const SpeedDatingResultsScreen: React.FC<Props> = ({ navigation, route }) => {
           },
         ]}
       >
-        <LinearGradient
-          colors={['#FF6B6B', '#8B5CF6']}
-          style={styles.introGradient}
-        >
+        <LinearGradient colors={['#FF6B6B', '#8B5CF6']} style={styles.introGradient}>
           <Text style={styles.introEmoji}>🎉</Text>
           <Text style={styles.introTitle}>Session Complete!</Text>
           <Text style={styles.introStats}>
@@ -389,9 +414,7 @@ const SpeedDatingResultsScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
-                {likes.length > 0
-                  ? Math.round((resultMatches.length / likes.length) * 100)
-                  : 0}%
+                {likes.length > 0 ? Math.round((resultMatches.length / likes.length) * 100) : 0}%
               </Text>
               <Text style={styles.statLabel}>Match Rate</Text>
             </View>
@@ -403,13 +426,12 @@ const SpeedDatingResultsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.nextStepsTitle}>What's Next?</Text>
           {resultMatches.length > 0 ? (
             <Text style={styles.nextStepsText}>
-              Send a message to your matches while the conversation is fresh!
-              Start with something you talked about during your speed date.
+              Send a message to your matches while the conversation is fresh! Start with something
+              you talked about during your speed date.
             </Text>
           ) : (
             <Text style={styles.nextStepsText}>
-              Join more speed dating events to meet new people.
-              Each event is a new opportunity!
+              Join more speed dating events to meet new people. Each event is a new opportunity!
             </Text>
           )}
         </View>

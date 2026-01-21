@@ -35,20 +35,17 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
   const requestCameraPermission = async (): Promise<boolean> => {
     try {
-      const permission = Platform.OS === 'ios'
-        ? PERMISSIONS.IOS.CAMERA
-        : PERMISSIONS.ANDROID.CAMERA;
+      const permission =
+        Platform.OS === 'ios' ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
 
       const result = await request(permission);
 
       if (result === RESULTS.GRANTED) {
         return true;
       } else if (result === RESULTS.DENIED) {
-        Alert.alert(
-          'Camera Permission',
-          'Please grant camera permission to take photos.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Camera Permission', 'Please grant camera permission to take photos.', [
+          { text: 'OK' },
+        ]);
         return false;
       } else if (result === RESULTS.BLOCKED) {
         Alert.alert(
@@ -67,9 +64,10 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
   const requestPhotoLibraryPermission = async (): Promise<boolean> => {
     try {
-      const permission = Platform.OS === 'ios'
-        ? PERMISSIONS.IOS.PHOTO_LIBRARY
-        : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+      const permission =
+        Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.PHOTO_LIBRARY
+          : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
 
       const result = await request(permission);
 
@@ -159,8 +157,8 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
     const fileType = fileName.includes('.png')
       ? 'image/png'
       : fileName.includes('.jpg') || fileName.includes('.jpeg')
-      ? 'image/jpeg'
-      : 'image/jpg';
+        ? 'image/jpeg'
+        : 'image/jpg';
 
     onSelectImage({
       uri: selectedImage,
@@ -180,12 +178,7 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   }, [onClose]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={handleCancel}
-    >
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={handleCancel}>
       <SafeAreaView style={styles.overlay}>
         <View style={styles.container}>
           {selectedImage ? (
@@ -199,7 +192,11 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
               </View>
 
               <View style={styles.imageContainer}>
-                <Image source={{ uri: selectedImage }} style={styles.previewImage} resizeMode="contain" />
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={styles.previewImage}
+                  resizeMode="contain"
+                />
               </View>
 
               <View style={styles.previewActions}>

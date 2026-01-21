@@ -176,10 +176,7 @@ export function getGradient(name: GradientPresetName): GradientConfig {
 /**
  * Create custom gradient with opacity
  */
-export function withOpacity(
-  gradient: GradientConfig,
-  opacity: number
-): GradientConfig {
+export function withOpacity(gradient: GradientConfig, opacity: number): GradientConfig {
   return {
     ...gradient,
     colors: gradient.colors.map((color) => {
@@ -203,9 +200,7 @@ export function reverseGradient(gradient: GradientConfig): GradientConfig {
   return {
     ...gradient,
     colors: [...gradient.colors].reverse(),
-    locations: gradient.locations
-      ? gradient.locations.map((l) => 1 - l).reverse()
-      : undefined,
+    locations: gradient.locations ? gradient.locations.map((l) => 1 - l).reverse() : undefined,
   };
 }
 

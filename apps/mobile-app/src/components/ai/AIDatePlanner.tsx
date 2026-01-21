@@ -30,7 +30,7 @@ export const generateDatePlan = (
   budget: 'low' | 'medium' | 'high',
   dateType?: string
 ): DatePlan => {
-  const sharedInterests = user1Interests.filter(i => user2Interests.includes(i));
+  const sharedInterests = user1Interests.filter((i) => user2Interests.includes(i));
 
   // Determine best date type based on interests
   let type: DatePlan['type'] = 'casual';
@@ -62,7 +62,7 @@ export const generateDatePlan = (
         {
           time: '3:30 PM',
           activity: 'Browse local bookstore or market',
-          why: 'Learn about each other\'s interests, natural conversation starters',
+          why: "Learn about each other's interests, natural conversation starters",
         },
       ],
       conversation_topics: [
@@ -80,7 +80,7 @@ export const generateDatePlan = (
       pro_tips: [
         'Arrive 5 minutes early to get settled',
         'Put your phone on silent',
-        'Offer to pay, but don\'t insist',
+        "Offer to pay, but don't insist",
         'Have a graceful exit plan (90 min mark)',
       ],
       backup_plan: 'If weather is bad, replace walk with browsing a bookstore or art gallery',
@@ -160,7 +160,7 @@ export const generateDatePlan = (
       ],
       conversation_topics: [
         'Favorite cuisines and why',
-        'Best meal you\'ve ever had',
+        "Best meal you've ever had",
         'Cooking skills and disasters',
         'Dream restaurant to visit',
       ],
@@ -173,7 +173,7 @@ export const generateDatePlan = (
         'Make reservation for 2 people',
         'Check for dietary restrictions beforehand',
         'Order different dishes to share',
-        'Don\'t order messy food on first date',
+        "Don't order messy food on first date",
       ],
       backup_plan: 'Cooking class together if they prefer more activity',
       personalization_score: 88,
@@ -189,7 +189,7 @@ export const generateDatePlan = (
           time: '2:00 PM',
           activity: 'Visit art museum or gallery',
           location: 'Local museum',
-          why: 'Thought-provoking conversations, learn each other\'s perspectives',
+          why: "Thought-provoking conversations, learn each other's perspectives",
           estimated_cost: '$20-30',
         },
         {
@@ -217,11 +217,11 @@ export const generateDatePlan = (
       ],
       pro_tips: [
         'Research current exhibitions',
-        'Don\'t feel pressure to see everything',
+        "Don't feel pressure to see everything",
         'Ask open-ended questions about their interpretations',
         'Museums are quieter on weekday afternoons',
       ],
-      backup_plan: 'Live music venue or theater if museum isn\'t appealing',
+      backup_plan: "Live music venue or theater if museum isn't appealing",
       personalization_score: 85,
     },
     romantic: {
@@ -259,7 +259,7 @@ export const generateDatePlan = (
       outfit_suggestions: [
         'Dress to impress',
         'Elegant but comfortable',
-        'Consider the venue\'s dress code',
+        "Consider the venue's dress code",
       ],
       pro_tips: [
         'Make reservations well in advance',
@@ -267,7 +267,7 @@ export const generateDatePlan = (
         'Turn off phone and be fully present',
         'Plan transportation (parking or rideshare)',
       ],
-      backup_plan: 'Wine tasting room if dinner doesn\'t feel right',
+      backup_plan: "Wine tasting room if dinner doesn't feel right",
       personalization_score: 90,
     },
     adventurous: {
@@ -296,7 +296,7 @@ export const generateDatePlan = (
         },
       ],
       conversation_topics: [
-        'Craziest thing you\'ve ever done',
+        "Craziest thing you've ever done",
         'Adventure bucket list',
         'Best adrenaline rush',
         'Comfort zone challenges',
@@ -379,7 +379,9 @@ const AIDatePlanner: React.FC<{
         {expandedSection === 'topics' && (
           <View style={styles.collapsibleContent}>
             {datePlan.conversation_topics.map((topic, i) => (
-              <Text key={i} style={styles.listItem}>• {topic}</Text>
+              <Text key={i} style={styles.listItem}>
+                • {topic}
+              </Text>
             ))}
           </View>
         )}
@@ -393,7 +395,9 @@ const AIDatePlanner: React.FC<{
         {expandedSection === 'outfit' && (
           <View style={styles.collapsibleContent}>
             {datePlan.outfit_suggestions.map((outfit, i) => (
-              <Text key={i} style={styles.listItem}>• {outfit}</Text>
+              <Text key={i} style={styles.listItem}>
+                • {outfit}
+              </Text>
             ))}
           </View>
         )}
@@ -407,7 +411,9 @@ const AIDatePlanner: React.FC<{
         {expandedSection === 'tips' && (
           <View style={styles.collapsibleContent}>
             {datePlan.pro_tips.map((tip, i) => (
-              <Text key={i} style={styles.listItem}>• {tip}</Text>
+              <Text key={i} style={styles.listItem}>
+                • {tip}
+              </Text>
             ))}
           </View>
         )}
@@ -423,7 +429,12 @@ const AIDatePlanner: React.FC<{
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { backgroundColor: '#f9fafb', padding: 20, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+  header: {
+    backgroundColor: '#f9fafb',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
   title: { fontSize: 24, fontWeight: '700', color: '#111827', marginBottom: 12 },
   metaInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   badge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },

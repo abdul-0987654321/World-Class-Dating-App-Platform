@@ -35,10 +35,7 @@ export const Spark: React.FC<IconProps> = ({
           <stop offset="100%" stopColor="#FF6E35" />
         </linearGradient>
       </defs>
-      <path
-        d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"
-        fill={fill}
-      />
+      <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill={fill} />
       <circle cx="12" cy="12" r="2" fill="#FFF6EE" />
     </svg>
   );

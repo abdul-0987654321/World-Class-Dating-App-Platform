@@ -43,20 +43,71 @@ const defaultFilters: FilterSettings = {
 
 const GENDER_OPTIONS = ['male', 'female', 'non-binary', 'other'];
 const LOOKING_FOR_OPTIONS = ['relationship', 'dating', 'friends', 'not sure'];
-const EDUCATION_OPTIONS = ['High School', 'Some College', 'Bachelor\'s', 'Master\'s', 'PhD', 'Trade School'];
-const RELIGION_OPTIONS = ['Christian', 'Muslim', 'Jewish', 'Hindu', 'Buddhist', 'Agnostic', 'Atheist', 'Other', 'Prefer not to say'];
+const EDUCATION_OPTIONS = [
+  'High School',
+  'Some College',
+  "Bachelor's",
+  "Master's",
+  'PhD',
+  'Trade School',
+];
+const RELIGION_OPTIONS = [
+  'Christian',
+  'Muslim',
+  'Jewish',
+  'Hindu',
+  'Buddhist',
+  'Agnostic',
+  'Atheist',
+  'Other',
+  'Prefer not to say',
+];
 const DRINKING_OPTIONS = ['Never', 'Socially', 'Regularly', 'Prefer not to say'];
 const SMOKING_OPTIONS = ['Never', 'Sometimes', 'Regularly', 'Prefer not to say'];
-const CHILDREN_OPTIONS = ['Have and want more', 'Have and don\'t want more', 'Don\'t have and want', 'Don\'t have and don\'t want', 'Not sure'];
-const ZODIAC_OPTIONS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-const LANGUAGE_OPTIONS = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Chinese', 'Japanese', 'Korean', 'Arabic', 'Hindi', 'Russian'];
+const CHILDREN_OPTIONS = [
+  'Have and want more',
+  "Have and don't want more",
+  "Don't have and want",
+  "Don't have and don't want",
+  'Not sure',
+];
+const ZODIAC_OPTIONS = [
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
+];
+const LANGUAGE_OPTIONS = [
+  'English',
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Portuguese',
+  'Chinese',
+  'Japanese',
+  'Korean',
+  'Arabic',
+  'Hindi',
+  'Russian',
+];
 
 export const AdvancedFiltersPage: React.FC = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterSettings>(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['basic', 'preferences']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['basic', 'preferences'])
+  );
 
   useEffect(() => {
     loadFilters();
@@ -66,7 +117,7 @@ export const AdvancedFiltersPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch('/api/discovery/preferences', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -89,7 +140,7 @@ export const AdvancedFiltersPage: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(filters),
       });
@@ -118,12 +169,16 @@ export const AdvancedFiltersPage: React.FC = () => {
   const toggleArrayValue = (key: keyof FilterSettings, value: string) => {
     const current = filters[key] as string[];
     const newValues = current.includes(value)
-      ? current.filter(v => v !== value)
+      ? current.filter((v) => v !== value)
       : [...current, value];
     setFilters({ ...filters, [key]: newValues });
   };
 
-  const SectionHeader: React.FC<{ title: string; section: string; icon: React.ReactNode }> = ({ title, section, icon }) => (
+  const SectionHeader: React.FC<{ title: string; section: string; icon: React.ReactNode }> = ({
+    title,
+    section,
+    icon,
+  }) => (
     <button
       onClick={() => toggleSection(section)}
       className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
@@ -143,13 +198,13 @@ export const AdvancedFiltersPage: React.FC = () => {
     </button>
   );
 
-  const MultiSelect: React.FC<{ options: string[]; selected: string[]; onToggle: (value: string) => void }> = ({
-    options,
-    selected,
-    onToggle,
-  }) => (
+  const MultiSelect: React.FC<{
+    options: string[];
+    selected: string[];
+    onToggle: (value: string) => void;
+  }> = ({ options, selected, onToggle }) => (
     <div className="flex flex-wrap gap-2">
-      {options.map(option => (
+      {options.map((option) => (
         <button
           key={option}
           onClick={() => onToggle(option)}
@@ -199,7 +254,16 @@ export const AdvancedFiltersPage: React.FC = () => {
             <SectionHeader
               title="Basic Filters"
               section="basic"
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+              }
             />
             {expandedSections.has('basic') && (
               <div className="p-4 space-y-6">
@@ -214,10 +278,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                       min="18"
                       max="100"
                       value={filters.ageRange.min}
-                      onChange={(e) => setFilters({
-                        ...filters,
-                        ageRange: { ...filters.ageRange, min: parseInt(e.target.value) }
-                      })}
+                      onChange={(e) =>
+                        setFilters({
+                          ...filters,
+                          ageRange: { ...filters.ageRange, min: parseInt(e.target.value) },
+                        })
+                      }
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
                     />
                     <span className="text-sm text-gray-500 w-8">{filters.ageRange.min}</span>
@@ -227,10 +293,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                       min="18"
                       max="100"
                       value={filters.ageRange.max}
-                      onChange={(e) => setFilters({
-                        ...filters,
-                        ageRange: { ...filters.ageRange, max: parseInt(e.target.value) }
-                      })}
+                      onChange={(e) =>
+                        setFilters({
+                          ...filters,
+                          ageRange: { ...filters.ageRange, max: parseInt(e.target.value) },
+                        })
+                      }
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
                     />
                     <span className="text-sm text-gray-500 w-8">{filters.ageRange.max}</span>
@@ -268,7 +336,9 @@ export const AdvancedFiltersPage: React.FC = () => {
 
                 {/* Looking For */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Looking For</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Looking For
+                  </label>
                   <MultiSelect
                     options={LOOKING_FOR_OPTIONS}
                     selected={filters.lookingFor}
@@ -284,7 +354,16 @@ export const AdvancedFiltersPage: React.FC = () => {
             <SectionHeader
               title="Height Preference"
               section="height"
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                  />
+                </svg>
+              }
             />
             {expandedSections.has('height') && (
               <div className="p-4">
@@ -297,10 +376,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                     min="120"
                     max="220"
                     value={filters.height.min}
-                    onChange={(e) => setFilters({
-                      ...filters,
-                      height: { ...filters.height, min: parseInt(e.target.value) }
-                    })}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        height: { ...filters.height, min: parseInt(e.target.value) },
+                      })
+                    }
                     className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
                   />
                   <span className="text-sm text-gray-500 w-12">{filters.height.min} cm</span>
@@ -310,10 +391,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                     min="120"
                     max="220"
                     value={filters.height.max}
-                    onChange={(e) => setFilters({
-                      ...filters,
-                      height: { ...filters.height, max: parseInt(e.target.value) }
-                    })}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        height: { ...filters.height, max: parseInt(e.target.value) },
+                      })
+                    }
                     className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
                   />
                   <span className="text-sm text-gray-500 w-12">{filters.height.max} cm</span>
@@ -327,7 +410,16 @@ export const AdvancedFiltersPage: React.FC = () => {
             <SectionHeader
               title="Lifestyle"
               section="lifestyle"
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+              }
             />
             {expandedSections.has('lifestyle') && (
               <div className="p-4 space-y-6">
@@ -364,7 +456,16 @@ export const AdvancedFiltersPage: React.FC = () => {
             <SectionHeader
               title="Background"
               section="background"
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              }
             />
             {expandedSections.has('background') && (
               <div className="p-4 space-y-6">
@@ -393,12 +494,23 @@ export const AdvancedFiltersPage: React.FC = () => {
             <SectionHeader
               title="More About Them"
               section="more"
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  />
+                </svg>
+              }
             />
             {expandedSections.has('more') && (
               <div className="p-4 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Zodiac Sign</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Zodiac Sign
+                  </label>
                   <MultiSelect
                     options={ZODIAC_OPTIONS}
                     selected={filters.zodiacSign}
@@ -422,7 +534,11 @@ export const AdvancedFiltersPage: React.FC = () => {
             <SectionHeader
               title="Premium Filters"
               section="premium"
-              icon={<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>}
+              icon={
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              }
             />
             {expandedSections.has('premium') && (
               <div className="p-4 space-y-4">
@@ -435,8 +551,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                       onChange={(e) => setFilters({ ...filters, verifiedOnly: e.target.checked })}
                       className="sr-only"
                     />
-                    <div className={`w-12 h-6 rounded-full transition ${filters.verifiedOnly ? 'bg-pink-500' : 'bg-gray-300'}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.verifiedOnly ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`} />
+                    <div
+                      className={`w-12 h-6 rounded-full transition ${filters.verifiedOnly ? 'bg-pink-500' : 'bg-gray-300'}`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.verifiedOnly ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`}
+                      />
                     </div>
                   </div>
                 </label>
@@ -449,8 +569,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                       onChange={(e) => setFilters({ ...filters, withPhotosOnly: e.target.checked })}
                       className="sr-only"
                     />
-                    <div className={`w-12 h-6 rounded-full transition ${filters.withPhotosOnly ? 'bg-pink-500' : 'bg-gray-300'}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.withPhotosOnly ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`} />
+                    <div
+                      className={`w-12 h-6 rounded-full transition ${filters.withPhotosOnly ? 'bg-pink-500' : 'bg-gray-300'}`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.withPhotosOnly ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`}
+                      />
                     </div>
                   </div>
                 </label>
@@ -463,8 +587,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                       onChange={(e) => setFilters({ ...filters, activeRecently: e.target.checked })}
                       className="sr-only"
                     />
-                    <div className={`w-12 h-6 rounded-full transition ${filters.activeRecently ? 'bg-pink-500' : 'bg-gray-300'}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.activeRecently ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`} />
+                    <div
+                      className={`w-12 h-6 rounded-full transition ${filters.activeRecently ? 'bg-pink-500' : 'bg-gray-300'}`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.activeRecently ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`}
+                      />
                     </div>
                   </div>
                 </label>
@@ -477,8 +605,12 @@ export const AdvancedFiltersPage: React.FC = () => {
                       onChange={(e) => setFilters({ ...filters, hasPrompts: e.target.checked })}
                       className="sr-only"
                     />
-                    <div className={`w-12 h-6 rounded-full transition ${filters.hasPrompts ? 'bg-pink-500' : 'bg-gray-300'}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.hasPrompts ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`} />
+                    <div
+                      className={`w-12 h-6 rounded-full transition ${filters.hasPrompts ? 'bg-pink-500' : 'bg-gray-300'}`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full shadow transition transform ${filters.hasPrompts ? 'translate-x-6' : 'translate-x-0.5'} mt-0.5`}
+                      />
                     </div>
                   </div>
                 </label>

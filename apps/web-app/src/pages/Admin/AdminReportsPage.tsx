@@ -10,7 +10,14 @@ interface Report {
   reportedUserName: string;
   reportedUserEmail: string;
   reason: string;
-  category: 'harassment' | 'spam' | 'fake_profile' | 'inappropriate_content' | 'scam' | 'underage' | 'other';
+  category:
+    | 'harassment'
+    | 'spam'
+    | 'fake_profile'
+    | 'inappropriate_content'
+    | 'scam'
+    | 'underage'
+    | 'other';
   description: string;
   evidence?: string[];
   status: 'pending' | 'investigating' | 'resolved' | 'dismissed';
@@ -24,7 +31,9 @@ export const AdminReportsPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [filter, setFilter] = useState<'pending' | 'investigating' | 'resolved' | 'dismissed' | 'all'>('pending');
+  const [filter, setFilter] = useState<
+    'pending' | 'investigating' | 'resolved' | 'dismissed' | 'all'
+  >('pending');
   const [resolution, setResolution] = useState('');
   const [action, setAction] = useState<'warn' | 'suspend' | 'ban' | 'dismiss'>('warn');
 
@@ -37,7 +46,7 @@ export const AdminReportsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/reports?status=${filter}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -55,7 +64,8 @@ export const AdminReportsPage: React.FC = () => {
             reportedUserEmail: 'mike@example.com',
             reason: 'Fake Profile',
             category: 'fake_profile',
-            description: 'This profile seems to be using stock photos. The images look too professional and don\'t match the claimed location.',
+            description:
+              "This profile seems to be using stock photos. The images look too professional and don't match the claimed location.",
             evidence: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'],
             status: 'pending',
             priority: 'high',
@@ -70,7 +80,8 @@ export const AdminReportsPage: React.FC = () => {
             reportedUserEmail: 'john@example.com',
             reason: 'Harassment',
             category: 'harassment',
-            description: 'Sent multiple aggressive messages after I said I wasn\'t interested. Very uncomfortable.',
+            description:
+              "Sent multiple aggressive messages after I said I wasn't interested. Very uncomfortable.",
             status: 'pending',
             priority: 'critical',
             createdAt: new Date(Date.now() - 1800000).toISOString(),
@@ -84,7 +95,8 @@ export const AdminReportsPage: React.FC = () => {
             reportedUserEmail: 'scam@example.com',
             reason: 'Scam/Fraud',
             category: 'scam',
-            description: 'Asked for money, claimed to need help with medical bills. Typical romance scam pattern.',
+            description:
+              'Asked for money, claimed to need help with medical bills. Typical romance scam pattern.',
             status: 'investigating',
             priority: 'critical',
             createdAt: new Date(Date.now() - 7200000).toISOString(),
@@ -118,14 +130,14 @@ export const AdminReportsPage: React.FC = () => {
       await fetch(`/api/admin/reports/${reportId}/resolve`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ action, resolution }),
       });
 
       // Update local state
-      setReports(prev => prev.filter(r => r.id !== reportId));
+      setReports((prev) => prev.filter((r) => r.id !== reportId));
       setSelectedReport(null);
       setResolution('');
     } catch (err) {
@@ -173,7 +185,7 @@ export const AdminReportsPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-gray-800">User Reports</h1>
             <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
-              {reports.filter(r => r.status === 'pending').length} pending
+              {reports.filter((r) => r.status === 'pending').length} pending
             </span>
           </div>
         </div>
@@ -213,19 +225,27 @@ export const AdminReportsPage: React.FC = () => {
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="text-sm text-gray-500">Pending</div>
-            <div className="text-2xl font-bold text-orange-500">{reports.filter(r => r.status === 'pending').length}</div>
+            <div className="text-2xl font-bold text-orange-500">
+              {reports.filter((r) => r.status === 'pending').length}
+            </div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="text-sm text-gray-500">Critical</div>
-            <div className="text-2xl font-bold text-red-500">{reports.filter(r => r.priority === 'critical').length}</div>
+            <div className="text-2xl font-bold text-red-500">
+              {reports.filter((r) => r.priority === 'critical').length}
+            </div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="text-sm text-gray-500">Investigating</div>
-            <div className="text-2xl font-bold text-blue-500">{reports.filter(r => r.status === 'investigating').length}</div>
+            <div className="text-2xl font-bold text-blue-500">
+              {reports.filter((r) => r.status === 'investigating').length}
+            </div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="text-sm text-gray-500">Resolved Today</div>
-            <div className="text-2xl font-bold text-green-500">{reports.filter(r => r.status === 'resolved').length}</div>
+            <div className="text-2xl font-bold text-green-500">
+              {reports.filter((r) => r.status === 'resolved').length}
+            </div>
           </div>
         </div>
 
@@ -275,23 +295,31 @@ export const AdminReportsPage: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-800">{report.reason}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${getPriorityBadge(report.priority)}`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs ${getPriorityBadge(report.priority)}`}
+                        >
                           {report.priority}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">
-                        <span className="font-medium">{report.reportedUserName}</span> reported by {report.reporterName}
+                        <span className="font-medium">{report.reportedUserName}</span> reported by{' '}
+                        {report.reporterName}
                       </p>
                       <p className="text-sm text-gray-500 line-clamp-2">{report.description}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      report.status === 'pending' ? 'bg-orange-100 text-orange-600' :
-                      report.status === 'investigating' ? 'bg-blue-100 text-blue-600' :
-                      report.status === 'resolved' ? 'bg-green-100 text-green-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        report.status === 'pending'
+                          ? 'bg-orange-100 text-orange-600'
+                          : report.status === 'investigating'
+                            ? 'bg-blue-100 text-blue-600'
+                            : report.status === 'resolved'
+                              ? 'bg-green-100 text-green-600'
+                              : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
                       {report.status}
                     </span>
                     <p className="text-sm text-gray-400 mt-2">{formatTime(report.createdAt)}</p>
@@ -314,7 +342,9 @@ export const AdminReportsPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">{selectedReport.reason}</h3>
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${getPriorityBadge(selectedReport.priority)}`}>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs ${getPriorityBadge(selectedReport.priority)}`}
+                  >
                     {selectedReport.priority} priority
                   </span>
                 </div>
@@ -324,7 +354,12 @@ export const AdminReportsPage: React.FC = () => {
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -335,7 +370,10 @@ export const AdminReportsPage: React.FC = () => {
                 <h4 className="font-semibold text-gray-800 mb-2">Reported User</h4>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {selectedReport.reportedUserName.split(' ').map(n => n[0]).join('')}
+                    {selectedReport.reportedUserName
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')}
                   </div>
                   <div>
                     <p className="font-medium text-gray-800">{selectedReport.reportedUserName}</p>
@@ -354,7 +392,9 @@ export const AdminReportsPage: React.FC = () => {
               {/* Description */}
               <div className="mb-6">
                 <h4 className="font-semibold text-gray-800 mb-2">Description</h4>
-                <p className="text-gray-600 bg-gray-50 p-4 rounded-xl">{selectedReport.description}</p>
+                <p className="text-gray-600 bg-gray-50 p-4 rounded-xl">
+                  {selectedReport.description}
+                </p>
               </div>
 
               {/* Evidence */}
@@ -379,16 +419,38 @@ export const AdminReportsPage: React.FC = () => {
                 <h4 className="font-semibold text-gray-800 mb-3">Take Action</h4>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'warn', label: 'Send Warning', desc: 'Warn the user', color: 'bg-yellow-100 border-yellow-300' },
-                    { value: 'suspend', label: 'Suspend Account', desc: '7-day suspension', color: 'bg-orange-100 border-orange-300' },
-                    { value: 'ban', label: 'Ban User', desc: 'Permanent ban', color: 'bg-red-100 border-red-300' },
-                    { value: 'dismiss', label: 'Dismiss Report', desc: 'No action needed', color: 'bg-gray-100 border-gray-300' },
+                    {
+                      value: 'warn',
+                      label: 'Send Warning',
+                      desc: 'Warn the user',
+                      color: 'bg-yellow-100 border-yellow-300',
+                    },
+                    {
+                      value: 'suspend',
+                      label: 'Suspend Account',
+                      desc: '7-day suspension',
+                      color: 'bg-orange-100 border-orange-300',
+                    },
+                    {
+                      value: 'ban',
+                      label: 'Ban User',
+                      desc: 'Permanent ban',
+                      color: 'bg-red-100 border-red-300',
+                    },
+                    {
+                      value: 'dismiss',
+                      label: 'Dismiss Report',
+                      desc: 'No action needed',
+                      color: 'bg-gray-100 border-gray-300',
+                    },
                   ].map((opt) => (
                     <button
                       key={opt.value}
                       onClick={() => setAction(opt.value as any)}
                       className={`p-4 rounded-xl border-2 text-left transition ${
-                        action === opt.value ? opt.color : 'bg-white border-gray-200 hover:border-gray-300'
+                        action === opt.value
+                          ? opt.color
+                          : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <p className="font-semibold text-gray-800">{opt.label}</p>

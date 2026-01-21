@@ -179,13 +179,13 @@ const SpeedDatingHistoryScreen: React.FC<Props> = ({ navigation }) => {
    */
   const getThemeEmoji = (theme: string): string => {
     const themes: Record<string, string> = {
-      'Tech': '💻',
+      Tech: '💻',
       'Food & Wine': '🍷',
-      'Music': '🎵',
-      'Sports': '⚽',
-      'Art': '🎨',
-      'Travel': '✈️',
-      'General': '💕',
+      Music: '🎵',
+      Sports: '⚽',
+      Art: '🎨',
+      Travel: '✈️',
+      General: '💕',
     };
     return themes[theme] || '💕';
   };
@@ -198,13 +198,14 @@ const SpeedDatingHistoryScreen: React.FC<Props> = ({ navigation }) => {
       totalSessions: history.length,
       totalMatches: history.reduce((sum, h) => sum + h.matchCount, 0),
       totalPeopleMet: history.reduce((sum, h) => sum + h.participantCount, 0),
-      avgMatchRate: history.length > 0
-        ? Math.round(
-            (history.reduce((sum, h) => sum + (h.matchCount / h.roundsCompleted), 0) /
-              history.length) *
-              100
-          )
-        : 0,
+      avgMatchRate:
+        history.length > 0
+          ? Math.round(
+              (history.reduce((sum, h) => sum + h.matchCount / h.roundsCompleted, 0) /
+                history.length) *
+                100
+            )
+          : 0,
     };
   };
 
@@ -289,11 +290,7 @@ const SpeedDatingHistoryScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.matchBadge}>
               <Text style={styles.matchBadgeText}>{item.matchCount} matches</Text>
             </View>
-            <Icon
-              name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={20}
-              color="#999"
-            />
+            <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="#999" />
           </View>
         </View>
 
@@ -333,10 +330,7 @@ const SpeedDatingHistoryScreen: React.FC<Props> = ({ navigation }) => {
                   </Text>
                 </View>
                 <TouchableOpacity
-                  style={[
-                    styles.matchButton,
-                    match.hasMessaged && styles.matchButtonSecondary,
-                  ]}
+                  style={[styles.matchButton, match.hasMessaged && styles.matchButtonSecondary]}
                   onPress={() => handleMatchTap(match)}
                 >
                   <Icon
@@ -367,8 +361,7 @@ const SpeedDatingHistoryScreen: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.emptyIcon}>📅</Text>
       <Text style={styles.emptyTitle}>No Speed Dating History</Text>
       <Text style={styles.emptySubtitle}>
-        Your past speed dating sessions will appear here.
-        Join an event to get started!
+        Your past speed dating sessions will appear here. Join an event to get started!
       </Text>
       <TouchableOpacity
         style={styles.emptyButton}
@@ -391,10 +384,7 @@ const SpeedDatingHistoryScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Session History</Text>

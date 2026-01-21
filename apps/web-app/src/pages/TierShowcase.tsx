@@ -61,9 +61,7 @@ export const TierShowcase: React.FC = () => {
     <div className="tier-showcase">
       <div className="showcase-container">
         <h1 className="showcase-title">Subscription Tier Badges</h1>
-        <p className="showcase-subtitle">
-          Visual guide to our membership tier system
-        </p>
+        <p className="showcase-subtitle">Visual guide to our membership tier system</p>
 
         {/* Color Legend */}
         <section className="section">
@@ -73,10 +71,7 @@ export const TierShowcase: React.FC = () => {
               const config = TIER_CONFIG[tier];
               return (
                 <div key={tier} className="legend-item">
-                  <div
-                    className="color-swatch"
-                    style={{ background: config.gradient }}
-                  />
+                  <div className="color-swatch" style={{ background: config.gradient }} />
                   <div className="legend-info">
                     <span className="legend-tier">{config.label}</span>
                     <span className="legend-color">{config.color}</span>
@@ -158,15 +153,17 @@ export const TierShowcase: React.FC = () => {
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${tier}`}
                       alt={tier}
                     />
-                    <TierIcon
-                      tier={tier}
-                      size="sm"
-                      className="avatar-tier-icon"
-                    />
+                    <TierIcon tier={tier} size="sm" className="avatar-tier-icon" />
                   </div>
                   <div className="profile-info">
                     <span className="profile-name">
-                      {tier === 'FREE' ? 'Alex' : tier === 'GOLD' ? 'Jordan' : tier === 'PLATINUM' ? 'Taylor' : 'Morgan'}
+                      {tier === 'FREE'
+                        ? 'Alex'
+                        : tier === 'GOLD'
+                          ? 'Jordan'
+                          : tier === 'PLATINUM'
+                            ? 'Taylor'
+                            : 'Morgan'}
                     </span>
                     <SubscriptionBadge tier={tier} size="sm" showUpgrade={tier === 'FREE'} />
                   </div>
@@ -194,9 +191,7 @@ export const TierShowcase: React.FC = () => {
                       </span>
                       <TierIcon tier={tier} size="xs" />
                     </div>
-                    <div className="message-text">
-                      Hey! I noticed we both love hiking 🏔️
-                    </div>
+                    <div className="message-text">Hey! I noticed we both love hiking 🏔️</div>
                   </div>
                 </div>
               ))}
@@ -243,10 +238,7 @@ export const TierShowcase: React.FC = () => {
                       <td className="tier-name">{config.label}</td>
                       <td className="tier-emoji">{config.icon}</td>
                       <td>
-                        <span
-                          className="color-chip"
-                          style={{ background: config.color }}
-                        />
+                        <span className="color-chip" style={{ background: config.color }} />
                         {config.color}
                       </td>
                       <td>

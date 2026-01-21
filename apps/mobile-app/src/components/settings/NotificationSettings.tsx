@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
 import { Button } from '../common/Button';
 
 export interface NotificationPreferences {
@@ -73,10 +65,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       setHasChanges(false);
       Alert.alert('Success', 'Your notification settings have been saved.');
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to save settings. Please try again.'
-      );
+      Alert.alert('Error', error.message || 'Failed to save settings. Please try again.');
       console.error('Save preferences error:', error);
     } finally {
       setIsLoading(false);
@@ -137,9 +126,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
           <Text style={styles.settingLabel}>{label}</Text>
-          {description && (
-            <Text style={styles.settingDescription}>{description}</Text>
-          )}
+          {description && <Text style={styles.settingDescription}>{description}</Text>}
         </View>
         <Switch
           value={value}
@@ -151,11 +138,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     );
   };
 
-  const renderTimeSelector = (
-    label: string,
-    time: string,
-    onPress: () => void
-  ) => {
+  const renderTimeSelector = (label: string, time: string, onPress: () => void) => {
     return (
       <TouchableOpacity style={styles.settingRow} onPress={onPress}>
         <Text style={styles.settingLabel}>{label}</Text>
@@ -169,10 +152,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Push Notifications */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Push Notifications</Text>
@@ -191,39 +171,22 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             <View style={styles.divider} />
 
             <View
-              style={[
-                styles.subSettings,
-                !preferences.push.enabled && styles.subSettingsDisabled,
-              ]}
+              style={[styles.subSettings, !preferences.push.enabled && styles.subSettingsDisabled]}
             >
-              {renderToggle(
-                'New Matches',
-                preferences.push.newMatches,
-                () =>
-                  updatePreference('push', 'newMatches', !preferences.push.newMatches)
+              {renderToggle('New Matches', preferences.push.newMatches, () =>
+                updatePreference('push', 'newMatches', !preferences.push.newMatches)
               )}
-              {renderToggle(
-                'New Messages',
-                preferences.push.newMessages,
-                () =>
-                  updatePreference('push', 'newMessages', !preferences.push.newMessages)
+              {renderToggle('New Messages', preferences.push.newMessages, () =>
+                updatePreference('push', 'newMessages', !preferences.push.newMessages)
               )}
-              {renderToggle(
-                'Likes',
-                preferences.push.likes,
-                () => updatePreference('push', 'likes', !preferences.push.likes)
+              {renderToggle('Likes', preferences.push.likes, () =>
+                updatePreference('push', 'likes', !preferences.push.likes)
               )}
-              {renderToggle(
-                'Super Likes',
-                preferences.push.superLikes,
-                () =>
-                  updatePreference('push', 'superLikes', !preferences.push.superLikes)
+              {renderToggle('Super Likes', preferences.push.superLikes, () =>
+                updatePreference('push', 'superLikes', !preferences.push.superLikes)
               )}
-              {renderToggle(
-                'Promotions & Offers',
-                preferences.push.promotions,
-                () =>
-                  updatePreference('push', 'promotions', !preferences.push.promotions)
+              {renderToggle('Promotions & Offers', preferences.push.promotions, () =>
+                updatePreference('push', 'promotions', !preferences.push.promotions)
               )}
             </View>
           </View>
@@ -232,9 +195,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         {/* Email Notifications */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Email Notifications</Text>
-          <Text style={styles.sectionDescription}>
-            Receive updates and summaries via email
-          </Text>
+          <Text style={styles.sectionDescription}>Receive updates and summaries via email</Text>
 
           <View style={styles.settingsCard}>
             {renderToggle(
@@ -247,39 +208,25 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             <View style={styles.divider} />
 
             <View
-              style={[
-                styles.subSettings,
-                !preferences.email.enabled && styles.subSettingsDisabled,
-              ]}
+              style={[styles.subSettings, !preferences.email.enabled && styles.subSettingsDisabled]}
             >
-              {renderToggle(
-                'New Matches',
-                preferences.email.newMatches,
-                () =>
-                  updatePreference('email', 'newMatches', !preferences.email.newMatches)
+              {renderToggle('New Matches', preferences.email.newMatches, () =>
+                updatePreference('email', 'newMatches', !preferences.email.newMatches)
               )}
               {renderToggle(
                 'Weekly Digest',
                 preferences.email.weeklyDigest,
-                () =>
-                  updatePreference('email', 'weeklyDigest', !preferences.email.weeklyDigest),
+                () => updatePreference('email', 'weeklyDigest', !preferences.email.weeklyDigest),
                 'Summary of your week on Flamoral'
               )}
-              {renderToggle(
-                'Promotions & Offers',
-                preferences.email.promotions,
-                () =>
-                  updatePreference('email', 'promotions', !preferences.email.promotions)
+              {renderToggle('Promotions & Offers', preferences.email.promotions, () =>
+                updatePreference('email', 'promotions', !preferences.email.promotions)
               )}
               {renderToggle(
                 'Product Updates',
                 preferences.email.productUpdates,
                 () =>
-                  updatePreference(
-                    'email',
-                    'productUpdates',
-                    !preferences.email.productUpdates
-                  ),
+                  updatePreference('email', 'productUpdates', !preferences.email.productUpdates),
                 'New features and improvements'
               )}
             </View>
@@ -289,9 +236,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         {/* SMS Notifications */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>SMS Notifications</Text>
-          <Text style={styles.sectionDescription}>
-            Receive text messages for critical updates
-          </Text>
+          <Text style={styles.sectionDescription}>Receive text messages for critical updates</Text>
 
           <View style={styles.settingsCard}>
             {renderToggle(
@@ -304,26 +249,16 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             <View style={styles.divider} />
 
             <View
-              style={[
-                styles.subSettings,
-                !preferences.sms.enabled && styles.subSettingsDisabled,
-              ]}
+              style={[styles.subSettings, !preferences.sms.enabled && styles.subSettingsDisabled]}
             >
-              {renderToggle(
-                'New Matches',
-                preferences.sms.newMatches,
-                () =>
-                  updatePreference('sms', 'newMatches', !preferences.sms.newMatches)
+              {renderToggle('New Matches', preferences.sms.newMatches, () =>
+                updatePreference('sms', 'newMatches', !preferences.sms.newMatches)
               )}
               {renderToggle(
                 'Important Updates',
                 preferences.sms.importantUpdates,
                 () =>
-                  updatePreference(
-                    'sms',
-                    'importantUpdates',
-                    !preferences.sms.importantUpdates
-                  ),
+                  updatePreference('sms', 'importantUpdates', !preferences.sms.importantUpdates),
                 'Security alerts and account changes'
               )}
             </View>
@@ -333,20 +268,13 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         {/* Do Not Disturb */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Do Not Disturb</Text>
-          <Text style={styles.sectionDescription}>
-            Pause notifications during specific hours
-          </Text>
+          <Text style={styles.sectionDescription}>Pause notifications during specific hours</Text>
 
           <View style={styles.settingsCard}>
             {renderToggle(
               'Enable Do Not Disturb',
               preferences.doNotDisturb.enabled,
-              () =>
-                updatePreference(
-                  'doNotDisturb',
-                  'enabled',
-                  !preferences.doNotDisturb.enabled
-                ),
+              () => updatePreference('doNotDisturb', 'enabled', !preferences.doNotDisturb.enabled),
               'No notifications during set hours'
             )}
 
@@ -358,27 +286,19 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 !preferences.doNotDisturb.enabled && styles.subSettingsDisabled,
               ]}
             >
-              {renderTimeSelector(
-                'Start Time',
-                preferences.doNotDisturb.startTime,
-                () => {
-                  // Open time picker (would integrate with native picker)
-                  Alert.alert(
-                    'Time Picker',
-                    'Time picker would open here. Integration with native DateTimePicker required.'
-                  );
-                }
-              )}
-              {renderTimeSelector(
-                'End Time',
-                preferences.doNotDisturb.endTime,
-                () => {
-                  Alert.alert(
-                    'Time Picker',
-                    'Time picker would open here. Integration with native DateTimePicker required.'
-                  );
-                }
-              )}
+              {renderTimeSelector('Start Time', preferences.doNotDisturb.startTime, () => {
+                // Open time picker (would integrate with native picker)
+                Alert.alert(
+                  'Time Picker',
+                  'Time picker would open here. Integration with native DateTimePicker required.'
+                );
+              })}
+              {renderTimeSelector('End Time', preferences.doNotDisturb.endTime, () => {
+                Alert.alert(
+                  'Time Picker',
+                  'Time picker would open here. Integration with native DateTimePicker required.'
+                );
+              })}
             </View>
           </View>
         </View>

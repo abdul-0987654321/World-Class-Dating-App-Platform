@@ -43,7 +43,7 @@ const WhoViewedMeScreen: React.FC = () => {
         if (pageNum === 1 || refresh) {
           setViews(newViews);
         } else {
-          setViews(prev => [...prev, ...newViews]);
+          setViews((prev) => [...prev, ...newViews]);
         }
         setHasMore(response.data.hasMore);
         setPage(pageNum);
@@ -178,9 +178,7 @@ const WhoViewedMeScreen: React.FC = () => {
     <View style={styles.emptyContainer}>
       <Icon name="eye-outline" size={80} color="#E5E5EA" />
       <Text style={styles.emptyTitle}>No Profile Views Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        Make your profile stand out to get more views!
-      </Text>
+      <Text style={styles.emptySubtitle}>Make your profile stand out to get more views!</Text>
     </View>
   );
 

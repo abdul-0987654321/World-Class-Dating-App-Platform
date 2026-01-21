@@ -88,7 +88,6 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const handleImageSelected = async (source: 'camera' | 'gallery') => {
     // This is a placeholder - in production, this would handle the actual image selection
     // using react-native-image-picker and react-native-image-crop-picker
-
     // Example implementation:
     /*
     import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -154,9 +153,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
         isUploading: false,
       };
 
-      const finalPhotos = updatedPhotos.map((p) =>
-        p.id === tempId ? finalPhoto : p
-      );
+      const finalPhotos = updatedPhotos.map((p) => (p.id === tempId ? finalPhoto : p));
 
       onPhotosChange(finalPhotos);
       setUploadingPhotos((prev) => {
@@ -180,29 +177,25 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   };
 
   const handleDeletePhoto = async (photoId: string) => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to delete this photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await onPhotoDelete(photoId);
-              const filteredPhotos = photos
-                .filter((p) => p.id !== photoId)
-                .map((p, index) => ({ ...p, order: index }));
-              onPhotosChange(filteredPhotos);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete photo. Please try again.');
-              console.error('Photo delete error:', error);
-            }
-          },
+    Alert.alert('Delete Photo', 'Are you sure you want to delete this photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await onPhotoDelete(photoId);
+            const filteredPhotos = photos
+              .filter((p) => p.id !== photoId)
+              .map((p, index) => ({ ...p, order: index }));
+            onPhotosChange(filteredPhotos);
+          } catch (error) {
+            Alert.alert('Error', 'Failed to delete photo. Please try again.');
+            console.error('Photo delete error:', error);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleReorderStart = (photoId: string) => {
@@ -309,24 +302,20 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   };
 
   const showPickerOptions = () => {
-    Alert.alert(
-      'Add Photo',
-      'Choose a source',
-      [
-        {
-          text: 'Take Photo',
-          onPress: () => handlePickImage('camera'),
-        },
-        {
-          text: 'Choose from Gallery',
-          onPress: () => handlePickImage('gallery'),
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ]
-    );
+    Alert.alert('Add Photo', 'Choose a source', [
+      {
+        text: 'Take Photo',
+        onPress: () => handlePickImage('camera'),
+      },
+      {
+        text: 'Choose from Gallery',
+        onPress: () => handlePickImage('gallery'),
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
   };
 
   const showPhotoOptions = (photo: ProfilePhoto) => {
@@ -390,14 +379,11 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       </View>
 
       <Text style={styles.infoText}>
-        Add at least 2 photos to get started. Your first photo is your main profile
-        photo. Tap and hold to reorder.
+        Add at least 2 photos to get started. Your first photo is your main profile photo. Tap and
+        hold to reorder.
       </Text>
 
-      <ScrollView
-        contentContainerStyle={styles.photosGrid}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.photosGrid} showsVerticalScrollIndicator={false}>
         {sortedPhotos.map((photo, index) => renderPhotoSlot(photo, index))}
         {[...Array(emptySlots)].map((_, index) => renderPhotoSlot(undefined, index))}
       </ScrollView>

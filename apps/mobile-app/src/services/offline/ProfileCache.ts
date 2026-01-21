@@ -110,10 +110,7 @@ class ProfileCache {
   private async persist(): Promise<void> {
     try {
       const cacheArray = Array.from(this.cache.values());
-      await AsyncStorage.setItem(
-        CACHED_PROFILES_KEY,
-        JSON.stringify(cacheArray)
-      );
+      await AsyncStorage.setItem(CACHED_PROFILES_KEY, JSON.stringify(cacheArray));
     } catch (error) {
       console.error('Failed to persist profile cache:', error);
     }

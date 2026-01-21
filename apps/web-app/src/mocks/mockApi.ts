@@ -1,8 +1,15 @@
 // Mock API for development without backend
-import { mockUsers, mockProfiles, mockMatches, mockConversations, mockLikes, mockStats } from './mockData';
+import {
+  mockUsers,
+  mockProfiles,
+  mockMatches,
+  mockConversations,
+  mockLikes,
+  mockStats,
+} from './mockData';
 
 // Simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Current logged in user
 let currentUser: any = null;
@@ -68,13 +75,13 @@ export const mockApi = {
     await delay(400);
 
     // Remove from recommendations
-    profiles = profiles.filter(p => p.userId !== targetUserId);
+    profiles = profiles.filter((p) => p.userId !== targetUserId);
 
     // Simulate match (30% chance on like)
     const isMatch = action !== 'pass' && Math.random() > 0.7;
 
     if (isMatch) {
-      const matchedProfile = mockProfiles.find(p => p.userId === targetUserId);
+      const matchedProfile = mockProfiles.find((p) => p.userId === targetUserId);
       const newMatch = {
         id: `match-${Date.now()}`,
         matchedUser: {
@@ -89,14 +96,15 @@ export const mockApi = {
         lastMessageAt: null as string | null,
         hasUnread: false,
       };
-      matches.unshift(newMatch as typeof matches[0]);
+      matches.unshift(newMatch as (typeof matches)[0]);
     }
 
     return {
       isMatch,
       match: isMatch ? matches[0] : null,
       remainingLikes: mockStats.remainingLikes - 1,
-      remainingSuperLikes: action === 'super_like' ? mockStats.remainingSuperLikes - 1 : mockStats.remainingSuperLikes,
+      remainingSuperLikes:
+        action === 'super_like' ? mockStats.remainingSuperLikes - 1 : mockStats.remainingSuperLikes,
     };
   },
 
@@ -125,13 +133,19 @@ export const mockApi = {
   async getConversations() {
     await delay(400);
     return {
-      conversations: conversations.map(c => ({
+      conversations: conversations.map((c) => ({
         id: c.id,
         participant: c.participant,
-        lastMessage: c.messages[c.messages.length - 1] ? {
-          ...c.messages[c.messages.length - 1],
-          status: c.messages[c.messages.length - 1].status as 'sending' | 'sent' | 'delivered' | 'read',
-        } : undefined,
+        lastMessage: c.messages[c.messages.length - 1]
+          ? {
+              ...c.messages[c.messages.length - 1],
+              status: c.messages[c.messages.length - 1].status as
+                | 'sending'
+                | 'sent'
+                | 'delivered'
+                | 'read',
+            }
+          : undefined,
         unreadCount: c.unreadCount,
         createdAt: new Date().toISOString(),
       })),
@@ -142,9 +156,9 @@ export const mockApi = {
 
   async getMessages(conversationId: string) {
     await delay(300);
-    const conv = conversations.find(c => c.id === conversationId);
+    const conv = conversations.find((c) => c.id === conversationId);
     return {
-      messages: (conv?.messages || []).map(m => ({
+      messages: (conv?.messages || []).map((m) => ({
         ...m,
         status: m.status as 'sending' | 'sent' | 'delivered' | 'read',
       })),
@@ -154,7 +168,7 @@ export const mockApi = {
 
   async sendMessage(conversationId: string, content: string) {
     await delay(300);
-    const conv = conversations.find(c => c.id === conversationId);
+    const conv = conversations.find((c) => c.id === conversationId);
     if (!conv) throw new Error('Conversation not found');
 
     const newMessage = {

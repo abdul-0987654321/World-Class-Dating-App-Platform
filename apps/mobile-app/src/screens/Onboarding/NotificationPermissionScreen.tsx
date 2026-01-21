@@ -18,8 +18,14 @@ import { RouteProp } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import { OnboardingStackParamList } from './OnboardingNavigator';
 
-type NotificationPermissionScreenNavigationProp = StackNavigationProp<OnboardingStackParamList, 'NotificationPermission'>;
-type NotificationPermissionScreenRouteProp = RouteProp<OnboardingStackParamList, 'NotificationPermission'>;
+type NotificationPermissionScreenNavigationProp = StackNavigationProp<
+  OnboardingStackParamList,
+  'NotificationPermission'
+>;
+type NotificationPermissionScreenRouteProp = RouteProp<
+  OnboardingStackParamList,
+  'NotificationPermission'
+>;
 
 interface Props {
   navigation: NotificationPermissionScreenNavigationProp;
@@ -41,7 +47,7 @@ const NOTIFICATION_BENEFITS: NotificationBenefit[] = [
   {
     emoji: '❤️',
     title: 'New matches',
-    description: "Get excited when you match with someone new",
+    description: 'Get excited when you match with someone new',
   },
   {
     emoji: '👀',
@@ -110,10 +116,7 @@ const NotificationPermissionScreen: React.FC<Props> = ({ navigation, route }) =>
           <Text style={styles.progressText}>11 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
@@ -143,17 +146,11 @@ const NotificationPermissionScreen: React.FC<Props> = ({ navigation, route }) =>
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={requestPermission}
-          >
+          <TouchableOpacity style={styles.button} onPress={requestPermission}>
             <Text style={styles.buttonText}>Enable Notifications</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={handleContinue}
-          >
+          <TouchableOpacity style={styles.skipButton} onPress={handleContinue}>
             <Text style={styles.skipButtonText}>Not now</Text>
           </TouchableOpacity>
         </View>

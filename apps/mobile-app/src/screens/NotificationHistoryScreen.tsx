@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { apiClient } from '../services/api/apiClient';
+import { httpClient as apiClient } from '../services/api/apiClient';
 import { useNotifications } from '../services/notifications/NotificationHandler';
 
 interface Notification {
@@ -50,17 +50,18 @@ const NotificationHistoryScreen: React.FC = () => {
         setLoading(true);
       }
 
-      const response = await apiClient.get('/notifications', {
-        params: {
-          page: pageNum,
-          limit: 20,
-        },
-      });
+      const response = await apiClient.get<{ notifications: Notification[]; unreadCount: number }>(
+        `/notifications?page=${pageNum}&limit=20`
+      );
+
+      if (!response.success || !response.data) {
+        throw new Error(response.error?.message || 'Failed to load notifications');
+      }
 
       const newNotifications = response.data.notifications || [];
 
       if (append) {
-        setNotifications(prev => [...prev, ...newNotifications]);
+        setNotifications((prev) => [...prev, ...newNotifications]);
       } else {
         setNotifications(newNotifications);
       }
@@ -94,10 +95,10 @@ const NotificationHistoryScreen: React.FC = () => {
         await apiClient.put(`/notifications/${notification.id}/read`);
 
         // Update local state
-        setNotifications(prev =>
-          prev.map(n => (n.id === notification.id ? { ...n, read: true } : n))
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
         );
-        setTotalUnread(prev => Math.max(0, prev - 1));
+        setTotalUnread((prev) => Math.max(0, prev - 1));
         await updateBadgeCount();
       } catch (error) {
         console.error('Failed to mark notification as read:', error);
@@ -142,7 +143,7 @@ const NotificationHistoryScreen: React.FC = () => {
     try {
       await apiClient.put('/notifications/mark-all-read');
 
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setTotalUnread(0);
       await updateBadgeCount();
     } catch (error) {
@@ -194,18 +195,14 @@ const NotificationHistoryScreen: React.FC = () => {
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={[styles.title, !item.read && styles.unreadText]}>
-          {item.title}
-        </Text>
+        <Text style={[styles.title, !item.read && styles.unreadText]}>{item.title}</Text>
         <Text style={styles.body} numberOfLines={2}>
           {item.body}
         </Text>
         <Text style={styles.time}>{formatTime(item.createdAt)}</Text>
       </View>
 
-      {item.imageUrl && (
-        <Image source={{ uri: item.imageUrl }} style={styles.image} />
-      )}
+      {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.image} />}
     </TouchableOpacity>
   );
 
@@ -224,9 +221,7 @@ const NotificationHistoryScreen: React.FC = () => {
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>🔔</Text>
       <Text style={styles.emptyTitle}>No notifications yet</Text>
-      <Text style={styles.emptyText}>
-        We'll notify you when something interesting happens
-      </Text>
+      <Text style={styles.emptyText}>We'll notify you when something interesting happens</Text>
     </View>
   );
 
@@ -245,16 +240,12 @@ const NotificationHistoryScreen: React.FC = () => {
       <FlatList
         data={notifications}
         renderItem={renderNotification}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={!loading ? renderEmpty : null}
         ListFooterComponent={renderFooter}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#FF6B6B"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF6B6B" />
         }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}

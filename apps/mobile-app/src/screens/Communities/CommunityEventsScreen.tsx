@@ -69,54 +69,62 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [eventId, events, fetchEventDetail]);
 
-  const handleEventPress = useCallback(async (event: CommunityEvent) => {
-    setSelectedEvent(event);
-    setShowEventDetail(true);
-    await fetchEventAttendees(event.id);
-  }, [fetchEventAttendees]);
+  const handleEventPress = useCallback(
+    async (event: CommunityEvent) => {
+      setSelectedEvent(event);
+      setShowEventDetail(true);
+      await fetchEventAttendees(event.id);
+    },
+    [fetchEventAttendees]
+  );
 
-  const handleRsvp = useCallback(async (event: CommunityEvent) => {
-    const newStatus = event.isAttending ? 'not_going' : 'going';
-    const success = await rsvpEvent(event.id, newStatus);
+  const handleRsvp = useCallback(
+    async (event: CommunityEvent) => {
+      const newStatus = event.isAttending ? 'not_going' : 'going';
+      const success = await rsvpEvent(event.id, newStatus);
 
-    if (success && selectedEvent?.id === event.id) {
-      setSelectedEvent((prev) =>
-        prev
-          ? {
-              ...prev,
-              isAttending: !prev.isAttending,
-              attendees: prev.isAttending
-                ? Math.max(0, prev.attendees - 1)
-                : prev.attendees + 1,
-            }
-          : null
-      );
-    }
-  }, [rsvpEvent, selectedEvent]);
-
-  const handleBookmark = useCallback(async (event: CommunityEvent) => {
-    await bookmarkEvent(event.id);
-    if (selectedEvent?.id === event.id) {
-      setSelectedEvent((prev) =>
-        prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null
-      );
-    }
-  }, [bookmarkEvent, selectedEvent]);
-
-  const handleShare = useCallback(async (event: CommunityEvent) => {
-    try {
-      const result = await shareEvent(event.id);
-      if (result) {
-        await Share.share({
-          title: event.title,
-          message: `Check out this event: ${event.title}\n\n${result.shareUrl}`,
-          url: result.shareUrl,
-        });
+      if (success && selectedEvent?.id === event.id) {
+        setSelectedEvent((prev) =>
+          prev
+            ? {
+                ...prev,
+                isAttending: !prev.isAttending,
+                attendees: prev.isAttending ? Math.max(0, prev.attendees - 1) : prev.attendees + 1,
+              }
+            : null
+        );
       }
-    } catch (error) {
-      console.error('Error sharing event:', error);
-    }
-  }, [shareEvent]);
+    },
+    [rsvpEvent, selectedEvent]
+  );
+
+  const handleBookmark = useCallback(
+    async (event: CommunityEvent) => {
+      await bookmarkEvent(event.id);
+      if (selectedEvent?.id === event.id) {
+        setSelectedEvent((prev) => (prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null));
+      }
+    },
+    [bookmarkEvent, selectedEvent]
+  );
+
+  const handleShare = useCallback(
+    async (event: CommunityEvent) => {
+      try {
+        const result = await shareEvent(event.id);
+        if (result) {
+          await Share.share({
+            title: event.title,
+            message: `Check out this event: ${event.title}\n\n${result.shareUrl}`,
+            url: result.shareUrl,
+          });
+        }
+      } catch (error) {
+        console.error('Error sharing event:', error);
+      }
+    },
+    [shareEvent]
+  );
 
   const handleOpenMap = useCallback((event: CommunityEvent) => {
     if (event.isVirtual) {
@@ -184,13 +192,8 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
       onPress={() => handleEventPress(item)}
       activeOpacity={0.9}
     >
-      {item.imageUrl && (
-        <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
-      )}
-      <TouchableOpacity
-        style={styles.bookmarkButton}
-        onPress={() => handleBookmark(item)}
-      >
+      {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />}
+      <TouchableOpacity style={styles.bookmarkButton} onPress={() => handleBookmark(item)}>
         <Icon
           name={item.isBookmarked ? 'heart' : 'heart-outline'}
           size={20}
@@ -237,10 +240,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.attendeesInfo}>
             <View style={styles.attendeeAvatars}>
               {[1, 2, 3].map((i) => (
-                <View
-                  key={i}
-                  style={[styles.attendeeAvatar, { marginLeft: i > 1 ? -8 : 0 }]}
-                >
+                <View key={i} style={[styles.attendeeAvatar, { marginLeft: i > 1 ? -8 : 0 }]}>
                   <Icon name="person" size={10} color="#999" />
                 </View>
               ))}
@@ -251,9 +251,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.priceTag}>
-            <Text style={styles.priceText}>
-              {item.price === 0 ? 'Free' : `$${item.price}`}
-            </Text>
+            <Text style={styles.priceText}>{item.price === 0 ? 'Free' : `$${item.price}`}</Text>
           </View>
         </View>
       </View>
@@ -317,19 +315,14 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {selectedEvent.imageUrl && (
-              <Image
-                source={{ uri: selectedEvent.imageUrl }}
-                style={styles.detailImage}
-              />
+              <Image source={{ uri: selectedEvent.imageUrl }} style={styles.detailImage} />
             )}
 
             <View style={styles.detailContent}>
               {selectedEvent.status === 'cancelled' && (
                 <View style={styles.cancelledBanner}>
                   <Icon name="alert-circle" size={20} color="#FF3B30" />
-                  <Text style={styles.cancelledBannerText}>
-                    This event has been cancelled
-                  </Text>
+                  <Text style={styles.cancelledBannerText}>This event has been cancelled</Text>
                 </View>
               )}
 
@@ -363,9 +356,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
                       {selectedEvent.isVirtual ? 'Virtual Event' : 'Location'}
                     </Text>
                     <Text style={styles.detailMetaValue}>
-                      {selectedEvent.isVirtual
-                        ? 'Join Online'
-                        : selectedEvent.location.name}
+                      {selectedEvent.isVirtual ? 'Join Online' : selectedEvent.location.name}
                     </Text>
                     {!selectedEvent.isVirtual && (
                       <Text style={styles.detailMetaSubvalue}>
@@ -379,9 +370,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.detailSection}>
                 <Text style={styles.detailSectionTitle}>About</Text>
-                <Text style={styles.detailDescription}>
-                  {selectedEvent.description}
-                </Text>
+                <Text style={styles.detailDescription}>{selectedEvent.description}</Text>
               </View>
 
               <View style={styles.detailSection}>
@@ -437,10 +426,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
               <TouchableOpacity
-                style={[
-                  styles.rsvpButton,
-                  selectedEvent.isAttending && styles.rsvpButtonAttending,
-                ]}
+                style={[styles.rsvpButton, selectedEvent.isAttending && styles.rsvpButtonAttending]}
                 onPress={() => handleRsvp(selectedEvent)}
               >
                 <Text
@@ -463,10 +449,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Events</Text>
@@ -483,9 +466,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
             style={[styles.tab, activeTab === tab && styles.tabActive]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text
-              style={[styles.tabText, activeTab === tab && styles.tabTextActive]}
-            >
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -515,7 +496,7 @@ const CommunityEventsScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.emptyTitle}>No events found</Text>
               <Text style={styles.emptySubtitle}>
                 {activeTab === 'attending'
-                  ? 'You have not RSVP\'d to any events yet'
+                  ? "You have not RSVP'd to any events yet"
                   : 'Check back later for upcoming events'}
               </Text>
             </View>

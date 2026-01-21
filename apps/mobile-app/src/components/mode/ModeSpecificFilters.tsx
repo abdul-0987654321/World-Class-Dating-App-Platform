@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Slider from '@react-native-community/slider';
 
@@ -126,10 +119,7 @@ export const ModeSpecificFilters: React.FC<ModeSpecificFiltersProps> = ({
                 onPress={() => updateFilters('show_me', option)}
               >
                 <Text
-                  style={[
-                    styles.optionText,
-                    filters.show_me === option && styles.optionTextActive,
-                  ]}
+                  style={[styles.optionText, filters.show_me === option && styles.optionTextActive]}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </Text>
@@ -147,8 +137,7 @@ export const ModeSpecificFilters: React.FC<ModeSpecificFiltersProps> = ({
                 key={goal}
                 style={[
                   styles.tag,
-                  filters.relationship_goals?.includes(goal.toLowerCase()) &&
-                    styles.tagActive,
+                  filters.relationship_goals?.includes(goal.toLowerCase()) && styles.tagActive,
                 ]}
                 onPress={() => {
                   const current = filters.relationship_goals || [];
@@ -253,7 +242,9 @@ export const ModeSpecificFilters: React.FC<ModeSpecificFiltersProps> = ({
                     filters.gender_preference === option && styles.optionTextActive,
                   ]}
                 >
-                  {option === 'same-gender' ? 'Same gender' : option.charAt(0).toUpperCase() + option.slice(1)}
+                  {option === 'same-gender'
+                    ? 'Same gender'
+                    : option.charAt(0).toUpperCase() + option.slice(1)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -359,35 +350,31 @@ export const ModeSpecificFilters: React.FC<ModeSpecificFiltersProps> = ({
         <View style={styles.filterSection}>
           <Text style={styles.filterLabel}>Connection Type</Text>
           <View style={styles.tagsContainer}>
-            {['Mentor', 'Mentee', 'Peer', 'Collaborator', 'Co-founder', 'Investor'].map(
-              (type) => (
-                <TouchableOpacity
-                  key={type}
+            {['Mentor', 'Mentee', 'Peer', 'Collaborator', 'Co-founder', 'Investor'].map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.tag,
+                  filters.connection_type?.includes(type.toLowerCase()) && styles.tagActive,
+                ]}
+                onPress={() => {
+                  const current = filters.connection_type || [];
+                  const updated = current.includes(type.toLowerCase())
+                    ? current.filter((t) => t !== type.toLowerCase())
+                    : [...current, type.toLowerCase()];
+                  updateFilters('connection_type', updated);
+                }}
+              >
+                <Text
                   style={[
-                    styles.tag,
-                    filters.connection_type?.includes(type.toLowerCase()) &&
-                      styles.tagActive,
+                    styles.tagText,
+                    filters.connection_type?.includes(type.toLowerCase()) && styles.tagTextActive,
                   ]}
-                  onPress={() => {
-                    const current = filters.connection_type || [];
-                    const updated = current.includes(type.toLowerCase())
-                      ? current.filter((t) => t !== type.toLowerCase())
-                      : [...current, type.toLowerCase()];
-                    updateFilters('connection_type', updated);
-                  }}
                 >
-                  <Text
-                    style={[
-                      styles.tagText,
-                      filters.connection_type?.includes(type.toLowerCase()) &&
-                        styles.tagTextActive,
-                    ]}
-                  >
-                    {type}
-                  </Text>
-                </TouchableOpacity>
-              )
-            )}
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -414,8 +401,7 @@ export const ModeSpecificFilters: React.FC<ModeSpecificFiltersProps> = ({
                   <Text
                     style={[
                       styles.tagText,
-                      filters.industries?.includes(industry.toLowerCase()) &&
-                        styles.tagTextActive,
+                      filters.industries?.includes(industry.toLowerCase()) && styles.tagTextActive,
                     ]}
                   >
                     {industry}

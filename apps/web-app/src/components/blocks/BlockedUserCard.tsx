@@ -37,9 +37,7 @@ export const BlockedUserCard: React.FC<BlockedUserCardProps> = ({
         {photoUrl ? (
           <img src={photoUrl} alt={displayName} />
         ) : (
-          <div className="avatar-placeholder">
-            {getInitials(displayName, lastName)}
-          </div>
+          <div className="avatar-placeholder">{getInitials(displayName, lastName)}</div>
         )}
       </div>
 

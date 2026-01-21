@@ -52,9 +52,7 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
           onClick={onToggleMute}
           title={isMuted ? 'Unmute' : 'Mute'}
         >
-          <div className="icon-wrapper">
-            {isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
-          </div>
+          <div className="icon-wrapper">{isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}</div>
           <span className="control-label">{isMuted ? 'Unmute' : 'Mute'}</span>
         </button>
 
@@ -65,21 +63,13 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
             onClick={onToggleVideo}
             title={isVideoEnabled ? 'Stop Video' : 'Start Video'}
           >
-            <div className="icon-wrapper">
-              {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
-            </div>
-            <span className="control-label">
-              {isVideoEnabled ? 'Stop Video' : 'Start Video'}
-            </span>
+            <div className="icon-wrapper">{isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}</div>
+            <span className="control-label">{isVideoEnabled ? 'Stop Video' : 'Start Video'}</span>
           </button>
         )}
 
         {/* End Call */}
-        <button
-          className="control-button end-call"
-          onClick={onEndCall}
-          title="End Call"
-        >
+        <button className="control-button end-call" onClick={onEndCall} title="End Call">
           <div className="icon-wrapper">
             <FaPhoneSlash />
           </div>
@@ -88,11 +78,7 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
 
         {/* Switch Camera (only for video calls) */}
         {callType === 'video' && isVideoEnabled && (
-          <button
-            className="control-button"
-            onClick={onSwitchCamera}
-            title="Switch Camera"
-          >
+          <button className="control-button" onClick={onSwitchCamera} title="Switch Camera">
             <div className="icon-wrapper">
               <FaCameraRotate />
             </div>
@@ -110,9 +96,7 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
             <div className="icon-wrapper">
               <FaDesktop />
             </div>
-            <span className="control-label">
-              {isScreenSharing ? 'Stop Share' : 'Share'}
-            </span>
+            <span className="control-label">{isScreenSharing ? 'Stop Share' : 'Share'}</span>
           </button>
         )}
       </div>

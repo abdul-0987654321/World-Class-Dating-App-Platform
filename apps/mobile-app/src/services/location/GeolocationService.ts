@@ -121,10 +121,7 @@ class GeolocationServiceClass {
                 'Unable to determine your location. Please check your device settings.'
               );
             } else if (error.code === 3) {
-              Alert.alert(
-                'Location Timeout',
-                'Location request timed out. Please try again.'
-              );
+              Alert.alert('Location Timeout', 'Location request timed out. Please try again.');
             }
 
             reject(error);
@@ -211,12 +208,7 @@ class GeolocationServiceClass {
   /**
    * Calculate distance between two coordinates in kilometers
    */
-  calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Radius of the Earth in kilometers
     const dLat = this.toRadians(lat2 - lat1);
     const dLon = this.toRadians(lon2 - lon1);
@@ -237,12 +229,7 @@ class GeolocationServiceClass {
   /**
    * Calculate distance in miles
    */
-  calculateDistanceInMiles(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const distanceInKm = this.calculateDistance(lat1, lon1, lat2, lon2);
     return Math.round(distanceInKm * 0.621371 * 10) / 10; // Convert to miles
   }
@@ -314,9 +301,7 @@ class GeolocationServiceClass {
     const y = Math.sin(dLon) * Math.cos(this.toRadians(lat2));
     const x =
       Math.cos(this.toRadians(lat1)) * Math.sin(this.toRadians(lat2)) -
-      Math.sin(this.toRadians(lat1)) *
-        Math.cos(this.toRadians(lat2)) *
-        Math.cos(dLon);
+      Math.sin(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) * Math.cos(dLon);
 
     let bearing = Math.atan2(y, x);
     bearing = (bearing * 180) / Math.PI;

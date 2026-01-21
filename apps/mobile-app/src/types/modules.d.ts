@@ -69,13 +69,25 @@ declare module 'react-native-iap' {
   export function endConnection(): Promise<void>;
   export function getProducts(skus: string[]): Promise<Product[]>;
   export function getSubscriptions(skus: string[]): Promise<Subscription[]>;
-  export function requestPurchase(sku: string, andDangerouslyFinishTransactionAutomaticallyIOS?: boolean): Promise<Purchase>;
-  export function requestSubscription(sku: string, andDangerouslyFinishTransactionAutomaticallyIOS?: boolean): Promise<Purchase>;
+  export function requestPurchase(
+    sku: string,
+    andDangerouslyFinishTransactionAutomaticallyIOS?: boolean
+  ): Promise<Purchase>;
+  export function requestSubscription(
+    sku: string,
+    andDangerouslyFinishTransactionAutomaticallyIOS?: boolean
+  ): Promise<Purchase>;
   export function finishTransaction(purchase: Purchase, isConsumable?: boolean): Promise<string>;
   export function getAvailablePurchases(): Promise<Purchase[]>;
   export function getPurchaseHistory(): Promise<Purchase[]>;
   export function validateReceiptIos(receiptBody: object, isTest?: boolean): Promise<object>;
-  export function validateReceiptAndroid(packageName: string, productId: string, productToken: string, accessToken: string, isSub?: boolean): Promise<object>;
+  export function validateReceiptAndroid(
+    packageName: string,
+    productId: string,
+    productToken: string,
+    accessToken: string,
+    isSub?: boolean
+  ): Promise<object>;
   export function clearTransactionIOS(): Promise<void>;
   export function clearProductsIOS(): Promise<void>;
 

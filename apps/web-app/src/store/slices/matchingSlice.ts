@@ -26,7 +26,7 @@ const matchingSlice = createSlice({
       state.matches.unshift(action.payload);
     },
     removeMatch: (state, action: PayloadAction<string>) => {
-      state.matches = state.matches.filter(match => match.id !== action.payload);
+      state.matches = state.matches.filter((match) => match.id !== action.payload);
     },
     setCurrentMatch: (state, action: PayloadAction<Match | null>) => {
       state.currentMatch = action.payload;

@@ -48,7 +48,7 @@ export const AdminSystemHealthPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch('/api/admin/health', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -59,11 +59,36 @@ export const AdminSystemHealthPage: React.FC = () => {
         setHealth({
           status: 'healthy',
           services: [
-            { name: 'user-service', status: 'up', responseTime: 45, lastCheck: new Date().toISOString() },
-            { name: 'payment-service', status: 'up', responseTime: 67, lastCheck: new Date().toISOString() },
-            { name: 'moderation-service', status: 'up', responseTime: 123, lastCheck: new Date().toISOString() },
-            { name: 'analytics-service', status: 'degraded', responseTime: 456, lastCheck: new Date().toISOString() },
-            { name: 'messaging-service', status: 'up', responseTime: 89, lastCheck: new Date().toISOString() },
+            {
+              name: 'user-service',
+              status: 'up',
+              responseTime: 45,
+              lastCheck: new Date().toISOString(),
+            },
+            {
+              name: 'payment-service',
+              status: 'up',
+              responseTime: 67,
+              lastCheck: new Date().toISOString(),
+            },
+            {
+              name: 'moderation-service',
+              status: 'up',
+              responseTime: 123,
+              lastCheck: new Date().toISOString(),
+            },
+            {
+              name: 'analytics-service',
+              status: 'degraded',
+              responseTime: 456,
+              lastCheck: new Date().toISOString(),
+            },
+            {
+              name: 'messaging-service',
+              status: 'up',
+              responseTime: 89,
+              lastCheck: new Date().toISOString(),
+            },
           ],
           database: {
             status: 'up',
@@ -122,7 +147,7 @@ export const AdminSystemHealthPage: React.FC = () => {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   if (loading) {
@@ -140,7 +165,9 @@ export const AdminSystemHealthPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-gray-800">System Health</h1>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBg(health?.status || '')} ${getStatusColor(health?.status || '')}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBg(health?.status || '')} ${getStatusColor(health?.status || '')}`}
+            >
               {health?.status.toUpperCase()}
             </span>
           </div>
@@ -259,7 +286,9 @@ export const AdminSystemHealthPage: React.FC = () => {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Database</h3>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBg(health?.database.status || '')} ${getStatusColor(health?.database.status || '')}`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBg(health?.database.status || '')} ${getStatusColor(health?.database.status || '')}`}
+              >
                 {health?.database.status.toUpperCase()}
               </span>
             </div>
@@ -278,7 +307,9 @@ export const AdminSystemHealthPage: React.FC = () => {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Redis Cache</h3>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBg(health?.redis.status || '')} ${getStatusColor(health?.redis.status || '')}`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBg(health?.redis.status || '')} ${getStatusColor(health?.redis.status || '')}`}
+              >
                 {health?.redis.status.toUpperCase()}
               </span>
             </div>
@@ -305,20 +336,22 @@ export const AdminSystemHealthPage: React.FC = () => {
               <div key={service.name} className="p-6 hover:bg-gray-50 transition">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`w-3 h-3 rounded-full ${service.status === 'up' ? 'bg-green-500' : service.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                    <div
+                      className={`w-3 h-3 rounded-full ${service.status === 'up' ? 'bg-green-500' : service.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'}`}
+                    />
                     <div>
                       <h4 className="font-semibold text-gray-800 capitalize">
                         {service.name.replace('-', ' ')}
                       </h4>
-                      {service.error && (
-                        <p className="text-sm text-red-500">{service.error}</p>
-                      )}
+                      {service.error && <p className="text-sm text-red-500">{service.error}</p>}
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Response Time</p>
-                      <p className={`font-semibold ${service.responseTime > 500 ? 'text-red-500' : service.responseTime > 200 ? 'text-yellow-500' : 'text-green-500'}`}>
+                      <p
+                        className={`font-semibold ${service.responseTime > 500 ? 'text-red-500' : service.responseTime > 200 ? 'text-yellow-500' : 'text-green-500'}`}
+                      >
                         {service.responseTime}ms
                       </p>
                     </div>

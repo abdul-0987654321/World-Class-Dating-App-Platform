@@ -18,12 +18,14 @@ describe('Messaging System', () => {
     });
 
     it('should show conversation preview', () => {
-      cy.get('[data-testid^="conversation-"]').first().within(() => {
-        cy.get('[data-testid="match-photo"]').should('be.visible');
-        cy.get('[data-testid="match-name"]').should('be.visible');
-        cy.get('[data-testid="last-message"]').should('be.visible');
-        cy.get('[data-testid="timestamp"]').should('be.visible');
-      });
+      cy.get('[data-testid^="conversation-"]')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="match-photo"]').should('be.visible');
+          cy.get('[data-testid="match-name"]').should('be.visible');
+          cy.get('[data-testid="last-message"]').should('be.visible');
+          cy.get('[data-testid="timestamp"]').should('be.visible');
+        });
     });
 
     it('should show unread message indicator', () => {
@@ -49,9 +51,7 @@ describe('Messaging System', () => {
       cy.get('[data-testid="search-conversations"]').type(searchTerm);
 
       cy.get('[data-testid^="conversation-"]').each(($el) => {
-        cy.wrap($el)
-          .find('[data-testid="match-name"]')
-          .should('contain', searchTerm);
+        cy.wrap($el).find('[data-testid="match-name"]').should('contain', searchTerm);
       });
     });
   });
@@ -82,10 +82,12 @@ describe('Messaging System', () => {
     });
 
     it('should show message status indicators', () => {
-      cy.get('[data-testid="message-item"]').last().within(() => {
-        cy.get('[data-testid="message-status"]').should('exist');
-        // Status can be: sent, delivered, read
-      });
+      cy.get('[data-testid="message-item"]')
+        .last()
+        .within(() => {
+          cy.get('[data-testid="message-status"]').should('exist');
+          // Status can be: sent, delivered, read
+        });
     });
 
     it('should scroll to bottom on load', () => {
@@ -107,17 +109,21 @@ describe('Messaging System', () => {
     it('should send text message', () => {
       const messageText = 'Hello! How are you?';
 
-      cy.interceptAPI('POST', '**/api/v1/messages', {
-        id: 'msg-123',
-        text: messageText,
-        timestamp: new Date().toISOString(),
-      }, 'sendMessage');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/messages',
+        {
+          id: 'msg-123',
+          text: messageText,
+          timestamp: new Date().toISOString(),
+        },
+        'sendMessage'
+      );
 
       cy.sendMessage('test-conversation', messageText);
 
       cy.wait('@sendMessage');
-      cy.get('[data-testid="message-list"]')
-        .should('contain', messageText);
+      cy.get('[data-testid="message-list"]').should('contain', messageText);
     });
 
     it('should disable send button for empty messages', () => {
@@ -128,7 +134,9 @@ describe('Messaging System', () => {
     it('should handle multi-line messages', () => {
       const multiLineMessage = 'Line 1\nLine 2\nLine 3';
 
-      cy.get('[data-testid="message-input"]').type(multiLineMessage.replace(/\n/g, '{shift}{enter}'));
+      cy.get('[data-testid="message-input"]').type(
+        multiLineMessage.replace(/\n/g, '{shift}{enter}')
+      );
       cy.get('[data-testid="send-button"]').click();
 
       cy.get('[data-testid="message-list"]')
@@ -161,9 +169,14 @@ describe('Messaging System', () => {
     });
 
     it('should handle send failures gracefully', () => {
-      cy.interceptAPI('POST', '**/api/v1/messages', {
-        statusCode: 500,
-      }, 'failedSend');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/messages',
+        {
+          statusCode: 500,
+        },
+        'failedSend'
+      );
 
       cy.get('[data-testid="message-input"]').type('Failed message');
       cy.get('[data-testid="send-button"]').click();
@@ -174,19 +187,29 @@ describe('Messaging System', () => {
     });
 
     it('should retry failed messages', () => {
-      cy.interceptAPI('POST', '**/api/v1/messages', {
-        statusCode: 500,
-      }, 'firstAttempt');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/messages',
+        {
+          statusCode: 500,
+        },
+        'firstAttempt'
+      );
 
       cy.get('[data-testid="message-input"]').type('Retry message');
       cy.get('[data-testid="send-button"]').click();
 
       cy.wait('@firstAttempt');
 
-      cy.interceptAPI('POST', '**/api/v1/messages', {
-        id: 'msg-retry',
-        text: 'Retry message',
-      }, 'retryAttempt');
+      cy.interceptAPI(
+        'POST',
+        '**/api/v1/messages',
+        {
+          id: 'msg-retry',
+          text: 'Retry message',
+        },
+        'retryAttempt'
+      );
 
       cy.get('[data-testid="retry-send"]').click();
       cy.wait('@retryAttempt');
@@ -205,11 +228,14 @@ describe('Messaging System', () => {
       cy.get('[data-testid="photo-option"]').click();
 
       cy.fixture('test-photo.jpg').then((fileContent) => {
-        cy.get('[data-testid="photo-upload"]').selectFile({
-          contents: fileContent,
-          fileName: 'test-photo.jpg',
-          mimeType: 'image/jpeg',
-        }, { force: true });
+        cy.get('[data-testid="photo-upload"]').selectFile(
+          {
+            contents: fileContent,
+            fileName: 'test-photo.jpg',
+            mimeType: 'image/jpeg',
+          },
+          { force: true }
+        );
       });
 
       cy.get('[data-testid="send-photo-button"]').click();
@@ -221,10 +247,13 @@ describe('Messaging System', () => {
       cy.get('[data-testid="photo-option"]').click();
 
       cy.fixture('test-photo.jpg').then((fileContent) => {
-        cy.get('[data-testid="photo-upload"]').selectFile({
-          contents: fileContent,
-          fileName: 'test-photo.jpg',
-        }, { force: true });
+        cy.get('[data-testid="photo-upload"]').selectFile(
+          {
+            contents: fileContent,
+            fileName: 'test-photo.jpg',
+          },
+          { force: true }
+        );
       });
 
       cy.get('[data-testid="photo-preview"]').should('be.visible');
@@ -275,8 +304,7 @@ describe('Messaging System', () => {
         win.dispatchEvent(event);
       });
 
-      cy.get('[data-testid="message-list"]')
-        .should('contain', 'Real-time message');
+      cy.get('[data-testid="message-list"]').should('contain', 'Real-time message');
     });
 
     it('should update message read status', () => {

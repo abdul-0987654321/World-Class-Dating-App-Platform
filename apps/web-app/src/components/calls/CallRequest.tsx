@@ -39,54 +39,57 @@ const CallRequest: React.FC<CallRequestProps> = ({
   const [callType, setCallType] = useState<'audio' | 'video' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const initiateCall = useCallback(async (type: 'audio' | 'video') => {
-    try {
-      setIsInitiating(true);
-      setCallType(type);
-      setError(null);
+  const initiateCall = useCallback(
+    async (type: 'audio' | 'video') => {
+      try {
+        setIsInitiating(true);
+        setCallType(type);
+        setError(null);
 
-      const response = await apiClient.post<{ success: boolean; data: CallSession }>(
-        '/api/calls/initiate',
-        {
-          matchId,
-          recipientId,
-          callType: type,
-        }
-      );
-
-      if (response.success && response.data) {
-        onCallInitiated(response.data);
-      } else {
-        throw new Error('Failed to initiate call');
-      }
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 402) {
-          // Subscription required
-          if (onUpgradeRequired) {
-            onUpgradeRequired();
-          } else {
-            setError('Video calls require a premium subscription');
+        const response = await apiClient.post<{ success: boolean; data: CallSession }>(
+          '/api/calls/initiate',
+          {
+            matchId,
+            recipientId,
+            callType: type,
           }
-        } else if (err.status === 403) {
-          setError('You cannot call this user');
-        } else if (err.status === 409) {
-          setError('User is currently in another call');
-        } else {
-          setError(err.message || 'Failed to initiate call');
-        }
-      } else {
-        setError('Failed to initiate call. Please try again.');
-      }
+        );
 
-      if (onError) {
-        onError(err instanceof Error ? err.message : 'Call failed');
+        if (response.success && response.data) {
+          onCallInitiated(response.data);
+        } else {
+          throw new Error('Failed to initiate call');
+        }
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.status === 402) {
+            // Subscription required
+            if (onUpgradeRequired) {
+              onUpgradeRequired();
+            } else {
+              setError('Video calls require a premium subscription');
+            }
+          } else if (err.status === 403) {
+            setError('You cannot call this user');
+          } else if (err.status === 409) {
+            setError('User is currently in another call');
+          } else {
+            setError(err.message || 'Failed to initiate call');
+          }
+        } else {
+          setError('Failed to initiate call. Please try again.');
+        }
+
+        if (onError) {
+          onError(err instanceof Error ? err.message : 'Call failed');
+        }
+      } finally {
+        setIsInitiating(false);
+        setCallType(null);
       }
-    } finally {
-      setIsInitiating(false);
-      setCallType(null);
-    }
-  }, [matchId, recipientId, onCallInitiated, onError, onUpgradeRequired]);
+    },
+    [matchId, recipientId, onCallInitiated, onError, onUpgradeRequired]
+  );
 
   const handleAudioCall = () => initiateCall('audio');
   const handleVideoCall = () => initiateCall('video');
@@ -97,9 +100,7 @@ const CallRequest: React.FC<CallRequestProps> = ({
         {recipientAvatar ? (
           <Avatar src={recipientAvatar} alt={recipientName} />
         ) : (
-          <AvatarPlaceholder>
-            {recipientName[0]?.toUpperCase()}
-          </AvatarPlaceholder>
+          <AvatarPlaceholder>{recipientName[0]?.toUpperCase()}</AvatarPlaceholder>
         )}
         <RecipientName>{recipientName}</RecipientName>
       </RecipientInfo>
@@ -111,11 +112,7 @@ const CallRequest: React.FC<CallRequestProps> = ({
           $type="audio"
           aria-label="Start audio call"
         >
-          {isInitiating && callType === 'audio' ? (
-            <FaSpinner className="spin" />
-          ) : (
-            <FaPhone />
-          )}
+          {isInitiating && callType === 'audio' ? <FaSpinner className="spin" /> : <FaPhone />}
           <span>Audio Call</span>
         </CallButton>
 
@@ -125,11 +122,7 @@ const CallRequest: React.FC<CallRequestProps> = ({
           $type="video"
           aria-label="Start video call"
         >
-          {isInitiating && callType === 'video' ? (
-            <FaSpinner className="spin" />
-          ) : (
-            <FaVideo />
-          )}
+          {isInitiating && callType === 'video' ? <FaSpinner className="spin" /> : <FaVideo />}
           <span>Video Call</span>
         </CallButton>
       </CallButtons>
@@ -141,9 +134,7 @@ const CallRequest: React.FC<CallRequestProps> = ({
         </ErrorMessage>
       )}
 
-      <InfoText>
-        Calls are end-to-end encrypted for your privacy.
-      </InfoText>
+      <InfoText>Calls are end-to-end encrypted for your privacy.</InfoText>
     </Container>
   );
 };
@@ -213,14 +204,14 @@ const CallButton = styled.button<{ $type: 'audio' | 'video' }>`
   font-size: 14px;
   font-weight: 600;
 
-  background-color: ${props => props.$type === 'video' ? '#3b82f6' : '#10b981'};
+  background-color: ${(props) => (props.$type === 'video' ? '#3b82f6' : '#10b981')};
   color: white;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px ${props =>
-      props.$type === 'video' ? 'rgba(59, 130, 246, 0.4)' : 'rgba(16, 185, 129, 0.4)'
-    };
+    box-shadow: 0 4px 12px
+      ${(props) =>
+        props.$type === 'video' ? 'rgba(59, 130, 246, 0.4)' : 'rgba(16, 185, 129, 0.4)'};
   }
 
   &:disabled {
@@ -237,8 +228,12 @@ const CallButton = styled.button<{ $type: 'audio' | 'video' }>`
   }
 
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 

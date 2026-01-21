@@ -9,11 +9,7 @@ interface BoostCardProps {
   loading?: boolean;
 }
 
-export const BoostCard: React.FC<BoostCardProps> = ({
-  product,
-  onPurchase,
-  loading = false,
-}) => {
+export const BoostCard: React.FC<BoostCardProps> = ({ product, onPurchase, loading = false }) => {
   const formatDuration = (minutes: number): string => {
     if (minutes < 60) {
       return `${minutes} min`;
@@ -57,9 +53,7 @@ export const BoostCard: React.FC<BoostCardProps> = ({
 
       <h3 className="product-name">{product.name}</h3>
 
-      {product.description && (
-        <p className="product-description">{product.description}</p>
-      )}
+      {product.description && <p className="product-description">{product.description}</p>}
 
       <div className="boost-details">
         <div className="detail-item">

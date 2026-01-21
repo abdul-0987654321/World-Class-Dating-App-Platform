@@ -48,7 +48,9 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
     const badge = badges[status] || badges.pending;
 
     return (
-      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>
+      <span
+        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}
+      >
         {badge.icon}
         {badge.label}
       </span>
@@ -72,11 +74,7 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
     const color = colors[category] || colors.other;
     const label = category.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${color}`}>
-        {label}
-      </span>
-    );
+    return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${color}`}>{label}</span>;
   };
 
   if (isLoading) {
@@ -108,12 +106,10 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          User Reports ({reports.length})
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">User Reports ({reports.length})</h3>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <FaFlag className="text-red-500" />
-          <span>{reports.filter(r => r.status === 'pending').length} pending</span>
+          <span>{reports.filter((r) => r.status === 'pending').length} pending</span>
         </div>
       </div>
 
@@ -133,7 +129,8 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white font-semibold text-sm">
-                    {report.reporter.firstName[0]}{report.reporter.lastName[0]}
+                    {report.reporter.firstName[0]}
+                    {report.reporter.lastName[0]}
                   </div>
                 )}
                 <div>
@@ -156,9 +153,7 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
 
               <div>
                 <p className="text-sm text-gray-600 mb-1">Description:</p>
-                <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded">
-                  {report.description}
-                </p>
+                <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded">{report.description}</p>
               </div>
 
               {report.actionTaken && (
@@ -185,8 +180,8 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
                 {report.status === 'pending'
                   ? 'Awaiting review'
                   : report.status === 'investigating'
-                  ? 'Under investigation'
-                  : `Closed: ${report.status}`}
+                    ? 'Under investigation'
+                    : `Closed: ${report.status}`}
               </span>
             </div>
           </div>
@@ -203,19 +198,19 @@ export const UserReportsView: React.FC<UserReportsViewProps> = ({ userId }) => {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-yellow-600">
-              {reports.filter(r => r.status === 'pending').length}
+              {reports.filter((r) => r.status === 'pending').length}
             </p>
             <p className="text-xs text-gray-600">Pending</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-green-600">
-              {reports.filter(r => r.status === 'resolved' || r.status === 'action_taken').length}
+              {reports.filter((r) => r.status === 'resolved' || r.status === 'action_taken').length}
             </p>
             <p className="text-xs text-gray-600">Resolved</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-gray-600">
-              {reports.filter(r => r.status === 'dismissed').length}
+              {reports.filter((r) => r.status === 'dismissed').length}
             </p>
             <p className="text-xs text-gray-600">Dismissed</p>
           </div>

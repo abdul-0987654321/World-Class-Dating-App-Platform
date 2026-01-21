@@ -6,11 +6,7 @@ interface PullToRefreshProps extends Partial<RefreshControlProps> {
   onRefresh: () => void;
 }
 
-const PullToRefresh: React.FC<PullToRefreshProps> = ({
-  refreshing,
-  onRefresh,
-  ...props
-}) => {
+const PullToRefresh: React.FC<PullToRefreshProps> = ({ refreshing, onRefresh, ...props }) => {
   return (
     <RefreshControl
       refreshing={refreshing}

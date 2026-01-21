@@ -78,12 +78,14 @@ export class TestHelpers {
   /**
    * Wait for API request to complete
    */
-  async waitForApiResponse(url: string | RegExp, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET') {
+  async waitForApiResponse(
+    url: string | RegExp,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET'
+  ) {
     return this.page.waitForResponse(
       (response) => {
-        const matchesUrl = typeof url === 'string'
-          ? response.url().includes(url)
-          : url.test(response.url());
+        const matchesUrl =
+          typeof url === 'string' ? response.url().includes(url) : url.test(response.url());
         return matchesUrl && response.request().method() === method;
       },
       { timeout: 10000 }
@@ -164,7 +166,7 @@ export class TestHelpers {
   async waitForLoadingComplete() {
     await this.page.waitForSelector('[data-testid="loading-spinner"]', {
       state: 'hidden',
-      timeout: 10000
+      timeout: 10000,
     });
   }
 

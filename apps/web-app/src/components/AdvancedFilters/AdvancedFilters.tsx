@@ -63,15 +63,27 @@ const relationshipGoalOptions = [
 ];
 
 const commonInterests = [
-  'Travel', 'Photography', 'Cooking', 'Music', 'Art', 'Sports',
-  'Fitness', 'Reading', 'Movies', 'Gaming', 'Hiking', 'Dancing',
-  'Yoga', 'Running', 'Swimming', 'Cycling', 'Camping', 'Foodie',
+  'Travel',
+  'Photography',
+  'Cooking',
+  'Music',
+  'Art',
+  'Sports',
+  'Fitness',
+  'Reading',
+  'Movies',
+  'Gaming',
+  'Hiking',
+  'Dancing',
+  'Yoga',
+  'Running',
+  'Swimming',
+  'Cycling',
+  'Camping',
+  'Foodie',
 ];
 
-export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
-  onApply,
-  onClose,
-}) => {
+export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ onApply, onClose }) => {
   const [filters, setFilters] = useState<SearchFilters>({
     minAge: 18,
     maxAge: 100,
@@ -181,12 +193,8 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <PresetGrid>
                 {savedPresets.map((preset) => (
                   <Preset key={preset.id}>
-                    <PresetName onClick={() => handleLoadPreset(preset)}>
-                      {preset.name}
-                    </PresetName>
-                    <DeleteButton onClick={() => handleDeletePreset(preset.id)}>
-                      ✕
-                    </DeleteButton>
+                    <PresetName onClick={() => handleLoadPreset(preset)}>{preset.name}</PresetName>
+                    <DeleteButton onClick={() => handleDeletePreset(preset.id)}>✕</DeleteButton>
                   </Preset>
                 ))}
               </PresetGrid>
@@ -204,9 +212,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   min="18"
                   max="100"
                   value={filters.minAge}
-                  onChange={(e) =>
-                    setFilters({ ...filters, minAge: parseInt(e.target.value) })
-                  }
+                  onChange={(e) => setFilters({ ...filters, minAge: parseInt(e.target.value) })}
                 />
               </RangeInput>
               <RangeInput>
@@ -216,9 +222,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   min="18"
                   max="100"
                   value={filters.maxAge}
-                  onChange={(e) =>
-                    setFilters({ ...filters, maxAge: parseInt(e.target.value) })
-                  }
+                  onChange={(e) => setFilters({ ...filters, maxAge: parseInt(e.target.value) })}
                 />
               </RangeInput>
             </RangeContainer>
@@ -232,9 +236,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               min="1"
               max="500"
               value={filters.maxDistance}
-              onChange={(e) =>
-                setFilters({ ...filters, maxDistance: parseInt(e.target.value) })
-              }
+              onChange={(e) => setFilters({ ...filters, maxDistance: parseInt(e.target.value) })}
             />
           </Section>
 
@@ -412,9 +414,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <input
                 type="checkbox"
                 checked={filters.verifiedOnly || false}
-                onChange={(e) =>
-                  setFilters({ ...filters, verifiedOnly: e.target.checked })
-                }
+                onChange={(e) => setFilters({ ...filters, verifiedOnly: e.target.checked })}
               />
               <span>Show only verified users</span>
             </CheckboxLabel>
@@ -431,12 +431,8 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 onChange={(e) => setPresetName(e.target.value)}
               />
               <ButtonRow>
-                <SecondaryButton onClick={() => setShowSavePreset(false)}>
-                  Cancel
-                </SecondaryButton>
-                <PrimaryButton onClick={handleSavePreset}>
-                  Save Preset
-                </PrimaryButton>
+                <SecondaryButton onClick={() => setShowSavePreset(false)}>Cancel</SecondaryButton>
+                <PrimaryButton onClick={handleSavePreset}>Save Preset</PrimaryButton>
               </ButtonRow>
             </Section>
           ) : (
@@ -604,16 +600,16 @@ const ChipGrid = styled.div`
 const Chip = styled.button<{ selected?: boolean }>`
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid ${props => props.selected ? '#ff6b6b' : '#e0e0e0'};
-  background: ${props => props.selected ? '#ff6b6b' : 'white'};
-  color: ${props => props.selected ? 'white' : '#333'};
+  border: 1px solid ${(props) => (props.selected ? '#ff6b6b' : '#e0e0e0')};
+  background: ${(props) => (props.selected ? '#ff6b6b' : 'white')};
+  color: ${(props) => (props.selected ? 'white' : '#333')};
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
     border-color: #ff6b6b;
-    background: ${props => props.selected ? '#ff5555' : '#fff5f5'};
+    background: ${(props) => (props.selected ? '#ff5555' : '#fff5f5')};
   }
 `;
 

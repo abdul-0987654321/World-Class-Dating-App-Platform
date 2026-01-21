@@ -321,7 +321,9 @@ export const SubscriptionPlansScreen: React.FC<{ navigation: any; route: any }> 
             <LinearGradient colors={['#EC4899', '#9333EA']} style={styles.currentBannerGradient}>
               <Ionicons name="checkmark-circle" size={24} color="#FFF" />
               <View style={styles.currentBannerText}>
-                <Text style={styles.currentBannerTitle}>Current Plan: {currentSubscription.tier}</Text>
+                <Text style={styles.currentBannerTitle}>
+                  Current Plan: {currentSubscription.tier}
+                </Text>
                 {currentSubscription.expiresAt && (
                   <Text style={styles.currentBannerSubtitle}>
                     Expires {new Date(currentSubscription.expiresAt).toLocaleDateString()}
@@ -334,10 +336,7 @@ export const SubscriptionPlansScreen: React.FC<{ navigation: any; route: any }> 
 
         {/* Plans */}
         {PLANS.map((plan) => (
-          <View
-            key={plan.id}
-            style={[styles.planCard, plan.popular && styles.planCardPopular]}
-          >
+          <View key={plan.id} style={[styles.planCard, plan.popular && styles.planCardPopular]}>
             {plan.popular && (
               <View style={styles.popularBadge}>
                 <Text style={styles.popularBadgeText}>MOST POPULAR</Text>

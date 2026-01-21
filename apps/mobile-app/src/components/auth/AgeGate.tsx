@@ -24,11 +24,7 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified }) => {
     const age = calculateAge(new Date(birthDate));
 
     if (age < 18) {
-      Alert.alert(
-        'Age Requirement',
-        'You must be 18 or older to use Flamoral.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Age Requirement', 'You must be 18 or older to use Flamoral.', [{ text: 'OK' }]);
       return;
     }
 
@@ -69,16 +65,9 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified }) => {
         />
       </View>
 
-      <Button
-        title="Continue"
-        onPress={handleSubmit}
-        fullWidth
-        style={styles.button}
-      />
+      <Button title="Continue" onPress={handleSubmit} fullWidth style={styles.button} />
 
-      <Text style={styles.disclaimer}>
-        Your age will be public. Your birthday will not.
-      </Text>
+      <Text style={styles.disclaimer}>Your age will be public. Your birthday will not.</Text>
     </View>
   );
 };

@@ -72,17 +72,14 @@ class SecureTokenStorage {
       const options: Keychain.Options = {
         service: 'com.flamoral.auth',
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-        ...(biometricAvailable && Platform.OS === 'ios' && {
-          accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
-        }),
+        ...(biometricAvailable &&
+          Platform.OS === 'ios' && {
+            accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+          }),
       };
 
       // Store tokens in secure keychain/keystore
-      await Keychain.setGenericPassword(
-        this.TOKEN_DATA_KEY,
-        JSON.stringify(tokenData),
-        options
-      );
+      await Keychain.setGenericPassword(this.TOKEN_DATA_KEY, JSON.stringify(tokenData), options);
 
       return true;
     } catch (error) {

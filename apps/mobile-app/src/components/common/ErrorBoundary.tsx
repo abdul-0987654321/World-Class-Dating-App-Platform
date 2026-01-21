@@ -84,13 +84,9 @@ class ErrorBoundary extends Component<Props, State> {
               <View style={styles.debugContainer}>
                 <Text style={styles.debugTitle}>Debug Information:</Text>
                 <ScrollView style={styles.debugScroll}>
-                  <Text style={styles.debugText}>
-                    {this.state.error.toString()}
-                  </Text>
+                  <Text style={styles.debugText}>{this.state.error.toString()}</Text>
                   {this.state.errorInfo && (
-                    <Text style={styles.debugText}>
-                      {this.state.errorInfo.componentStack}
-                    </Text>
+                    <Text style={styles.debugText}>{this.state.errorInfo.componentStack}</Text>
                   )}
                 </ScrollView>
               </View>

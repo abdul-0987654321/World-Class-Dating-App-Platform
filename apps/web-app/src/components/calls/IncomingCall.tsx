@@ -115,9 +115,7 @@ const IncomingCall: React.FC<IncomingCallProps> = ({
             {callerAvatar ? (
               <Avatar src={callerAvatar} alt={callerName} />
             ) : (
-              <AvatarPlaceholder>
-                {callerName[0]?.toUpperCase()}
-              </AvatarPlaceholder>
+              <AvatarPlaceholder>{callerName[0]?.toUpperCase()}</AvatarPlaceholder>
             )}
             <AvatarRing />
           </AvatarContainer>
@@ -343,12 +341,11 @@ const ButtonIcon = styled.div<{ $type: 'accept' | 'reject' }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${props => props.$type === 'accept' ? '#10b981' : '#ef4444'};
+  background-color: ${(props) => (props.$type === 'accept' ? '#10b981' : '#ef4444')};
   color: white;
   font-size: 24px;
-  box-shadow: 0 4px 16px ${props =>
-    props.$type === 'accept' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'
-  };
+  box-shadow: 0 4px 16px
+    ${(props) => (props.$type === 'accept' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)')};
 `;
 
 const ButtonLabel = styled.span`

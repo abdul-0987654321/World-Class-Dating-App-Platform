@@ -29,22 +29,43 @@ interface ProfileData {
 }
 
 const INTERESTS = [
-  'Travel', 'Music', 'Movies', 'Reading', 'Gaming', 'Fitness', 'Cooking', 'Photography',
-  'Art', 'Dancing', 'Hiking', 'Yoga', 'Running', 'Swimming', 'Coffee', 'Wine',
-  'Dogs', 'Cats', 'Beach', 'Mountains', 'Sports', 'Fashion', 'Technology', 'Nature'
+  'Travel',
+  'Music',
+  'Movies',
+  'Reading',
+  'Gaming',
+  'Fitness',
+  'Cooking',
+  'Photography',
+  'Art',
+  'Dancing',
+  'Hiking',
+  'Yoga',
+  'Running',
+  'Swimming',
+  'Coffee',
+  'Wine',
+  'Dogs',
+  'Cats',
+  'Beach',
+  'Mountains',
+  'Sports',
+  'Fashion',
+  'Technology',
+  'Nature',
 ];
 
 const PROMPTS = [
   'My ideal first date would be...',
   'Two truths and a lie...',
-  'I\'m looking for someone who...',
+  "I'm looking for someone who...",
   'My most controversial opinion is...',
   'The way to win me over is...',
-  'I\'m known for...',
+  "I'm known for...",
   'My simple pleasures are...',
-  'I\'ll know it\'s love when...',
+  "I'll know it's love when...",
   'Together we could...',
-  'I guarantee you that...'
+  'I guarantee you that...',
 ];
 
 export const ProfileEditPage: React.FC = () => {
@@ -78,7 +99,9 @@ export const ProfileEditPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState<'photos' | 'basics' | 'about' | 'lifestyle' | 'prompts'>('photos');
+  const [activeSection, setActiveSection] = useState<
+    'photos' | 'basics' | 'about' | 'lifestyle' | 'prompts'
+  >('photos');
   const [showAddPrompt, setShowAddPrompt] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -90,7 +113,7 @@ export const ProfileEditPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch('/api/profiles/me', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -103,7 +126,7 @@ export const ProfileEditPage: React.FC = () => {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        setProfile(prev => ({
+        setProfile((prev) => ({
           ...prev,
           firstName: userData.firstName || prev.firstName,
           bio: userData.bio || prev.bio,
@@ -126,7 +149,7 @@ export const ProfileEditPage: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(profile),
       });
@@ -135,13 +158,16 @@ export const ProfileEditPage: React.FC = () => {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        localStorage.setItem('currentUser', JSON.stringify({
-          ...userData,
-          firstName: profile.firstName,
-          bio: profile.bio,
-          photos: profile.photos,
-          interests: profile.interests,
-        }));
+        localStorage.setItem(
+          'currentUser',
+          JSON.stringify({
+            ...userData,
+            firstName: profile.firstName,
+            bio: profile.bio,
+            photos: profile.photos,
+            interests: profile.interests,
+          })
+        );
       }
 
       navigate('/profile');
@@ -164,14 +190,14 @@ export const ProfileEditPage: React.FC = () => {
       const token = authTokenService.getToken();
       const res = await fetch('/api/profiles/photos', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
       if (res.ok) {
         const data = await res.json();
         if (data.data?.url) {
-          setProfile(prev => ({
+          setProfile((prev) => ({
             ...prev,
             photos: [...prev.photos, data.data.url],
           }));
@@ -179,7 +205,7 @@ export const ProfileEditPage: React.FC = () => {
       } else {
         // Fallback: use local URL for demo
         const url = URL.createObjectURL(files[0]);
-        setProfile(prev => ({
+        setProfile((prev) => ({
           ...prev,
           photos: [...prev.photos, url],
         }));
@@ -189,7 +215,7 @@ export const ProfileEditPage: React.FC = () => {
       // Fallback: use local URL for demo
       if (files[0]) {
         const url = URL.createObjectURL(files[0]);
-        setProfile(prev => ({
+        setProfile((prev) => ({
           ...prev,
           photos: [...prev.photos, url],
         }));
@@ -200,7 +226,7 @@ export const ProfileEditPage: React.FC = () => {
   };
 
   const handleRemovePhoto = (index: number) => {
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index),
     }));
@@ -210,21 +236,21 @@ export const ProfileEditPage: React.FC = () => {
     const newPhotos = [...profile.photos];
     const [removed] = newPhotos.splice(fromIndex, 1);
     newPhotos.splice(toIndex, 0, removed);
-    setProfile(prev => ({ ...prev, photos: newPhotos }));
+    setProfile((prev) => ({ ...prev, photos: newPhotos }));
   };
 
   const toggleInterest = (interest: string) => {
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
       interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
+        ? prev.interests.filter((i) => i !== interest)
         : [...prev.interests, interest],
     }));
   };
 
   const addPrompt = (question: string) => {
     if (profile.prompts.length >= 3) return;
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
       prompts: [...prev.prompts, { question, answer: '' }],
     }));
@@ -234,11 +260,11 @@ export const ProfileEditPage: React.FC = () => {
   const updatePromptAnswer = (index: number, answer: string) => {
     const newPrompts = [...profile.prompts];
     newPrompts[index].answer = answer;
-    setProfile(prev => ({ ...prev, prompts: newPrompts }));
+    setProfile((prev) => ({ ...prev, prompts: newPrompts }));
   };
 
   const removePrompt = (index: number) => {
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
       prompts: prev.prompts.filter((_, i) => i !== index),
     }));
@@ -270,7 +296,7 @@ export const ProfileEditPage: React.FC = () => {
 
         {/* Section Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {(['photos', 'basics', 'about', 'lifestyle', 'prompts'] as const).map(section => (
+          {(['photos', 'basics', 'about', 'lifestyle', 'prompts'] as const).map((section) => (
             <button
               key={section}
               onClick={() => setActiveSection(section)}
@@ -292,7 +318,7 @@ export const ProfileEditPage: React.FC = () => {
             <p className="text-gray-500 text-sm mb-4">Add up to 6 photos. Drag to reorder.</p>
 
             <div className="grid grid-cols-3 gap-3">
-              {[0, 1, 2, 3, 4, 5].map(index => (
+              {[0, 1, 2, 3, 4, 5].map((index) => (
                 <div
                   key={index}
                   className={`aspect-[3/4] rounded-xl border-2 border-dashed ${
@@ -316,8 +342,18 @@ export const ProfileEditPage: React.FC = () => {
                         }}
                         className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                       {index === 0 && (
@@ -328,8 +364,18 @@ export const ProfileEditPage: React.FC = () => {
                     </>
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                      <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <svg
+                        className="w-8 h-8 mb-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       <span className="text-xs">Add Photo</span>
                     </div>
@@ -460,7 +506,7 @@ export const ProfileEditPage: React.FC = () => {
             <p className="text-gray-500 text-sm mb-4">Select up to 10 interests</p>
 
             <div className="flex flex-wrap gap-2">
-              {INTERESTS.map(interest => (
+              {INTERESTS.map((interest) => (
                 <button
                   key={interest}
                   onClick={() => toggleInterest(interest)}
@@ -484,7 +530,9 @@ export const ProfileEditPage: React.FC = () => {
         {activeSection === 'lifestyle' && (
           <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Relationship Goal</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Relationship Goal
+              </label>
               <select
                 value={profile.relationshipGoal}
                 onChange={(e) => setProfile({ ...profile, relationshipGoal: e.target.value })}
@@ -572,8 +620,23 @@ export const ProfileEditPage: React.FC = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
                 <option value="">Select your sign</option>
-                {['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'].map(sign => (
-                  <option key={sign} value={sign.toLowerCase()}>{sign}</option>
+                {[
+                  'Aries',
+                  'Taurus',
+                  'Gemini',
+                  'Cancer',
+                  'Leo',
+                  'Virgo',
+                  'Libra',
+                  'Scorpio',
+                  'Sagittarius',
+                  'Capricorn',
+                  'Aquarius',
+                  'Pisces',
+                ].map((sign) => (
+                  <option key={sign} value={sign.toLowerCase()}>
+                    {sign}
+                  </option>
                 ))}
               </select>
             </div>
@@ -585,7 +648,9 @@ export const ProfileEditPage: React.FC = () => {
           <div className="space-y-4">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-2">Prompts</h2>
-              <p className="text-gray-500 text-sm mb-4">Add up to 3 prompts to show your personality</p>
+              <p className="text-gray-500 text-sm mb-4">
+                Add up to 3 prompts to show your personality
+              </p>
 
               {profile.prompts.map((prompt, index) => (
                 <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
@@ -595,8 +660,18 @@ export const ProfileEditPage: React.FC = () => {
                       onClick={() => removePrompt(index)}
                       className="text-gray-400 hover:text-red-500"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -640,9 +715,17 @@ export const ProfileEditPage: React.FC = () => {
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-800">Choose a Prompt</h3>
-              <button onClick={() => setShowAddPrompt(false)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setShowAddPrompt(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -651,7 +734,7 @@ export const ProfileEditPage: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => addPrompt(prompt)}
-                  disabled={profile.prompts.some(p => p.question === prompt)}
+                  disabled={profile.prompts.some((p) => p.question === prompt)}
                   className="w-full p-4 text-left hover:bg-gray-50 transition border-b disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {prompt}

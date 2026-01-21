@@ -57,12 +57,7 @@ export const PremiumPaywall: React.FC<PremiumPaywallProps> = ({
   const tierInfo = TIER_INFO[requiredTier];
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         {/* @ts-expect-error BlurView has JSX element type incompatibility with React 18 types */}
         <BlurView intensity={20} style={styles.blurView}>
@@ -76,10 +71,7 @@ export const PremiumPaywall: React.FC<PremiumPaywallProps> = ({
               <Ionicons name="close" size={28} color="#1F2937" />
             </TouchableOpacity>
 
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.content}
-            >
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
               {/* Header */}
               <LinearGradient
                 colors={tierInfo.gradient}
@@ -91,9 +83,7 @@ export const PremiumPaywall: React.FC<PremiumPaywallProps> = ({
                   <Ionicons name="lock-closed" size={48} color="#FFF" />
                 </View>
                 <Text style={styles.headerTitle}>Premium Feature</Text>
-                <Text style={styles.headerSubtitle}>
-                  Upgrade to unlock {feature}
-                </Text>
+                <Text style={styles.headerSubtitle}>Upgrade to unlock {feature}</Text>
               </LinearGradient>
 
               {/* Feature Info */}
@@ -118,9 +108,7 @@ export const PremiumPaywall: React.FC<PremiumPaywallProps> = ({
 
               {/* Benefits */}
               <View style={styles.benefitsSection}>
-                <Text style={styles.benefitsTitle}>
-                  What you get with {tierInfo.name}
-                </Text>
+                <Text style={styles.benefitsTitle}>What you get with {tierInfo.name}</Text>
                 <View style={styles.benefitsList}>
                   {getBenefitsForTier(requiredTier).map((benefit, index) => (
                     <View key={index} style={styles.benefitItem}>
@@ -144,9 +132,7 @@ export const PremiumPaywall: React.FC<PremiumPaywallProps> = ({
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <Text style={styles.upgradeButtonText}>
-                      Upgrade to {tierInfo.name}
-                    </Text>
+                    <Text style={styles.upgradeButtonText}>Upgrade to {tierInfo.name}</Text>
                     <Ionicons name="arrow-forward" size={20} color="#FFF" />
                   </LinearGradient>
                 </TouchableOpacity>

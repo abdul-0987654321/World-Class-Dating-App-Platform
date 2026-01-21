@@ -20,7 +20,9 @@ export const RefundPolicy: React.FC = () => {
 
         <Section>
           <Paragraph>
-            This Refund and Cancellation Policy applies to all purchases made through the Flamoral platform, including subscriptions, virtual currency (Flamoral Coins), and in-app purchases. Please read this policy carefully before making any purchase.
+            This Refund and Cancellation Policy applies to all purchases made through the Flamoral
+            platform, including subscriptions, virtual currency (Flamoral Coins), and in-app
+            purchases. Please read this policy carefully before making any purchase.
           </Paragraph>
         </Section>
 
@@ -29,62 +31,74 @@ export const RefundPolicy: React.FC = () => {
 
           <SubsectionTitle>1.1 Subscription Plans</SubsectionTitle>
           <Paragraph>
-            Flamoral offers the following subscription tiers: Basic, Plus, Premium, Premium+, and Elite. All subscriptions are billed in advance on a recurring basis (monthly or annually, depending on your selection).
+            Flamoral offers the following subscription tiers: Basic, Plus, Premium, Premium+, and
+            Elite. All subscriptions are billed in advance on a recurring basis (monthly or
+            annually, depending on your selection).
           </Paragraph>
 
           <SubsectionTitle>1.2 Free Trial</SubsectionTitle>
           <Paragraph>
-            If you signed up for a free trial, you will not be charged until the trial period ends. You may cancel at any time during the trial to avoid being charged. Once the trial period ends, your payment method will be automatically charged for the first subscription period.
+            If you signed up for a free trial, you will not be charged until the trial period ends.
+            You may cancel at any time during the trial to avoid being charged. Once the trial
+            period ends, your payment method will be automatically charged for the first
+            subscription period.
           </Paragraph>
 
           <SubsectionTitle>1.3 Cancellation</SubsectionTitle>
-          <Paragraph>
-            You may cancel your subscription at any time through:
-          </Paragraph>
+          <Paragraph>You may cancel your subscription at any time through:</Paragraph>
           <List>
             <ListItem>The Flamoral app: Profile → Settings → Subscription → Cancel</ListItem>
             <ListItem>The Flamoral website: Account Settings → Subscription → Cancel</ListItem>
             <ListItem>Email: support@flamoral.com with subject "Cancel Subscription"</ListItem>
           </List>
           <Paragraph>
-            When you cancel, your subscription will remain active until the end of your current billing period. You will not be charged for any subsequent periods, and you will continue to have access to premium features until your subscription expires.
+            When you cancel, your subscription will remain active until the end of your current
+            billing period. You will not be charged for any subsequent periods, and you will
+            continue to have access to premium features until your subscription expires.
           </Paragraph>
 
           <SubsectionTitle>1.4 Subscription Refunds</SubsectionTitle>
           <HighlightBox type="info">
-            <Strong>Within 14 days of purchase:</Strong> You may request a full refund if you have not used any premium features. Partial refunds may be available if features were used minimally.
+            <Strong>Within 14 days of purchase:</Strong> You may request a full refund if you have
+            not used any premium features. Partial refunds may be available if features were used
+            minimally.
           </HighlightBox>
           <HighlightBox type="warning">
-            <Strong>After 14 days:</Strong> Subscriptions are generally non-refundable. However, we may consider refunds on a case-by-case basis for exceptional circumstances.
+            <Strong>After 14 days:</Strong> Subscriptions are generally non-refundable. However, we
+            may consider refunds on a case-by-case basis for exceptional circumstances.
           </HighlightBox>
           <Paragraph>
-            To request a refund, contact our support team at billing@flamoral.com with your account email and reason for the refund request.
+            To request a refund, contact our support team at billing@flamoral.com with your account
+            email and reason for the refund request.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>2. Flamoral Coins & Virtual Currency</SectionTitle>
           <Paragraph>
-            Flamoral Coins are virtual currency used to purchase in-app items such as Super Likes, Profile Boosts, and virtual gifts.
+            Flamoral Coins are virtual currency used to purchase in-app items such as Super Likes,
+            Profile Boosts, and virtual gifts.
           </Paragraph>
 
           <SubsectionTitle>2.1 No Cash Value</SubsectionTitle>
           <Paragraph>
-            Flamoral Coins have no real-world monetary value and cannot be exchanged for cash. They are licensed to you, not sold, and remain the property of Flamoral.
+            Flamoral Coins have no real-world monetary value and cannot be exchanged for cash. They
+            are licensed to you, not sold, and remain the property of Flamoral.
           </Paragraph>
 
           <SubsectionTitle>2.2 Non-Refundable</SubsectionTitle>
           <HighlightBox type="warning">
-            <Strong>Virtual currency purchases are generally non-refundable.</Strong> Once coins are purchased, they cannot be refunded except as required by applicable law.
+            <Strong>Virtual currency purchases are generally non-refundable.</Strong> Once coins are
+            purchased, they cannot be refunded except as required by applicable law.
           </HighlightBox>
 
           <SubsectionTitle>2.3 Exceptions</SubsectionTitle>
-          <Paragraph>
-            Refunds for coin purchases may be considered if:
-          </Paragraph>
+          <Paragraph>Refunds for coin purchases may be considered if:</Paragraph>
           <List>
             <ListItem>You were charged due to a technical error</ListItem>
-            <ListItem>Unauthorized purchases were made on your account (with documentation)</ListItem>
+            <ListItem>
+              Unauthorized purchases were made on your account (with documentation)
+            </ListItem>
             <ListItem>The coins were not credited to your account</ListItem>
           </List>
         </Section>
@@ -92,28 +106,38 @@ export const RefundPolicy: React.FC = () => {
         <Section>
           <SectionTitle>3. In-App Purchases</SectionTitle>
           <Paragraph>
-            Individual feature purchases (Super Likes, Boosts, etc.) are non-refundable once used. If you purchased a feature but it failed to work due to a technical issue on our end, please contact support for assistance.
+            Individual feature purchases (Super Likes, Boosts, etc.) are non-refundable once used.
+            If you purchased a feature but it failed to work due to a technical issue on our end,
+            please contact support for assistance.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>4. App Store & Play Store Purchases</SectionTitle>
           <Paragraph>
-            If you made your purchase through the Apple App Store or Google Play Store, refund requests must be submitted through the respective platform:
+            If you made your purchase through the Apple App Store or Google Play Store, refund
+            requests must be submitted through the respective platform:
           </Paragraph>
           <List>
-            <ListItem><Strong>Apple App Store:</Strong> Request refunds at reportaproblem.apple.com</ListItem>
-            <ListItem><Strong>Google Play Store:</Strong> Request refunds through play.google.com/store/account</ListItem>
+            <ListItem>
+              <Strong>Apple App Store:</Strong> Request refunds at reportaproblem.apple.com
+            </ListItem>
+            <ListItem>
+              <Strong>Google Play Store:</Strong> Request refunds through
+              play.google.com/store/account
+            </ListItem>
           </List>
           <Paragraph>
-            Apple and Google have their own refund policies and timelines. Flamoral cannot process refunds for purchases made through these platforms.
+            Apple and Google have their own refund policies and timelines. Flamoral cannot process
+            refunds for purchases made through these platforms.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>5. Account Termination</SectionTitle>
           <Paragraph>
-            If your account is terminated by Flamoral due to a violation of our Terms of Service or Community Guidelines:
+            If your account is terminated by Flamoral due to a violation of our Terms of Service or
+            Community Guidelines:
           </Paragraph>
           <List>
             <ListItem>No refund will be provided for any remaining subscription period</ListItem>
@@ -125,15 +149,15 @@ export const RefundPolicy: React.FC = () => {
         <Section>
           <SectionTitle>6. Price Changes</SectionTitle>
           <Paragraph>
-            Flamoral reserves the right to change subscription prices at any time. Price changes will not affect your current subscription period. You will be notified at least 30 days before any price increase takes effect for renewal periods.
+            Flamoral reserves the right to change subscription prices at any time. Price changes
+            will not affect your current subscription period. You will be notified at least 30 days
+            before any price increase takes effect for renewal periods.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>7. How to Request a Refund</SectionTitle>
-          <Paragraph>
-            To request a refund, please provide the following information:
-          </Paragraph>
+          <Paragraph>To request a refund, please provide the following information:</Paragraph>
           <List>
             <ListItem>Your account email address</ListItem>
             <ListItem>Date of purchase</ListItem>
@@ -151,17 +175,23 @@ export const RefundPolicy: React.FC = () => {
         <Section>
           <SectionTitle>8. Regional Rights</SectionTitle>
           <Paragraph>
-            If you are located in the European Union, United Kingdom, or other jurisdictions with consumer protection laws, you may have additional rights regarding refunds and cancellations. These rights are not affected by this policy.
+            If you are located in the European Union, United Kingdom, or other jurisdictions with
+            consumer protection laws, you may have additional rights regarding refunds and
+            cancellations. These rights are not affected by this policy.
           </Paragraph>
           <Paragraph>
-            EU residents may exercise their right of withdrawal within 14 days of purchase. Note that this right may be waived if you begin using digital content or services during the withdrawal period.
+            EU residents may exercise their right of withdrawal within 14 days of purchase. Note
+            that this right may be waived if you begin using digital content or services during the
+            withdrawal period.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>9. Changes to This Policy</SectionTitle>
           <Paragraph>
-            We may update this Refund and Cancellation Policy from time to time. Changes will be posted on this page with an updated "Last Updated" date. Material changes will be communicated via email or in-app notification.
+            We may update this Refund and Cancellation Policy from time to time. Changes will be
+            posted on this page with an updated "Last Updated" date. Material changes will be
+            communicated via email or in-app notification.
           </Paragraph>
         </Section>
 
@@ -228,7 +258,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #EC4899 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -288,13 +318,11 @@ const Strong = styled.strong`
 `;
 
 const HighlightBox = styled.div<{ type: 'info' | 'warning' }>`
-  background: ${props => props.type === 'info'
-    ? 'rgba(34, 197, 94, 0.1)'
-    : 'rgba(245, 158, 11, 0.1)'};
-  border: 1px solid ${props => props.type === 'info'
-    ? 'rgba(34, 197, 94, 0.2)'
-    : 'rgba(245, 158, 11, 0.2)'};
-  border-left: 4px solid ${props => props.type === 'info' ? '#22C55E' : '#F59E0B'};
+  background: ${(props) =>
+    props.type === 'info' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)'};
+  border: 1px solid
+    ${(props) => (props.type === 'info' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)')};
+  border-left: 4px solid ${(props) => (props.type === 'info' ? '#22C55E' : '#F59E0B')};
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin: 1rem 0;
@@ -307,7 +335,7 @@ const ContactInfo = styled.div`
   background: rgba(59, 130, 246, 0.1);
   padding: 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #3b82f6;
   margin-top: 1rem;
 
   div {

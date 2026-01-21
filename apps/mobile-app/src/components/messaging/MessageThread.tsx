@@ -116,9 +116,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
     return (
       <View style={styles.messageWrapper}>
         {showTimestamp && (
-          <Text style={styles.timestampSeparator}>
-            {formatTimestamp(item.createdAt)}
-          </Text>
+          <Text style={styles.timestampSeparator}>{formatTimestamp(item.createdAt)}</Text>
         )}
         <View
           style={[
@@ -126,9 +124,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
             isSentByMe ? styles.sentMessageContainer : styles.receivedMessageContainer,
           ]}
         >
-          {!isSentByMe && (
-            <Image source={{ uri: otherUserPhoto }} style={styles.messageAvatar} />
-          )}
+          {!isSentByMe && <Image source={{ uri: otherUserPhoto }} style={styles.messageAvatar} />}
 
           <View style={styles.messageContent}>
             {item.type === 'text' && (
@@ -139,19 +135,13 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
                 ]}
               >
                 <Text
-                  style={[
-                    styles.messageText,
-                    isSentByMe ? styles.sentText : styles.receivedText,
-                  ]}
+                  style={[styles.messageText, isSentByMe ? styles.sentText : styles.receivedText]}
                 >
                   {item.content}
                 </Text>
                 <View style={styles.messageFooter}>
                   <Text
-                    style={[
-                      styles.messageTime,
-                      isSentByMe ? styles.sentTime : styles.receivedTime,
-                    ]}
+                    style={[styles.messageTime, isSentByMe ? styles.sentTime : styles.receivedTime]}
                   >
                     {formatMessageTime(item.createdAt)}
                   </Text>
@@ -161,19 +151,10 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
             )}
 
             {item.type === 'image' && item.mediaUrl && (
-              <TouchableOpacity
-                onPress={() => onImagePress && onImagePress(item.mediaUrl!)}
-              >
+              <TouchableOpacity onPress={() => onImagePress && onImagePress(item.mediaUrl!)}>
                 <Image source={{ uri: item.mediaUrl }} style={styles.messageImage} />
-                <View
-                  style={[
-                    styles.imageMessageFooter,
-                    isSentByMe && styles.sentImageFooter,
-                  ]}
-                >
-                  <Text style={styles.imageMessageTime}>
-                    {formatMessageTime(item.createdAt)}
-                  </Text>
+                <View style={[styles.imageMessageFooter, isSentByMe && styles.sentImageFooter]}>
+                  <Text style={styles.imageMessageTime}>{formatMessageTime(item.createdAt)}</Text>
                   {isSentByMe && renderMessageStatus(item.status)}
                 </View>
               </TouchableOpacity>
@@ -195,19 +176,13 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
                   ))}
                 </View>
                 <Text
-                  style={[
-                    styles.voiceDuration,
-                    isSentByMe ? styles.sentText : styles.receivedText,
-                  ]}
+                  style={[styles.voiceDuration, isSentByMe ? styles.sentText : styles.receivedText]}
                 >
                   {formatDuration(item.voiceDuration || 0)}
                 </Text>
                 <View style={styles.messageFooter}>
                   <Text
-                    style={[
-                      styles.messageTime,
-                      isSentByMe ? styles.sentTime : styles.receivedTime,
-                    ]}
+                    style={[styles.messageTime, isSentByMe ? styles.sentTime : styles.receivedTime]}
                   >
                     {formatMessageTime(item.createdAt)}
                   </Text>
@@ -219,15 +194,8 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
             {item.type === 'gif' && item.mediaUrl && (
               <TouchableOpacity>
                 <Image source={{ uri: item.mediaUrl }} style={styles.messageGif} />
-                <View
-                  style={[
-                    styles.imageMessageFooter,
-                    isSentByMe && styles.sentImageFooter,
-                  ]}
-                >
-                  <Text style={styles.imageMessageTime}>
-                    {formatMessageTime(item.createdAt)}
-                  </Text>
+                <View style={[styles.imageMessageFooter, isSentByMe && styles.sentImageFooter]}>
+                  <Text style={styles.imageMessageTime}>{formatMessageTime(item.createdAt)}</Text>
                   {isSentByMe && renderMessageStatus(item.status)}
                 </View>
               </TouchableOpacity>
@@ -342,10 +310,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
       <View style={styles.inputContainer}>
         <TouchableOpacity
-          style={[
-            styles.attachmentButton,
-            !canSendMessage && styles.disabledButton,
-          ]}
+          style={[styles.attachmentButton, !canSendMessage && styles.disabledButton]}
           onPress={onAttachmentPress}
           disabled={!canSendMessage}
         >
@@ -353,14 +318,9 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
         </TouchableOpacity>
 
         <TextInput
-          style={[
-            styles.input,
-            !canSendMessage && styles.disabledInput,
-          ]}
+          style={[styles.input, !canSendMessage && styles.disabledInput]}
           placeholder={
-            canSendMessage
-              ? `Message ${otherUserName}...`
-              : 'Waiting for her to message first...'
+            canSendMessage ? `Message ${otherUserName}...` : 'Waiting for her to message first...'
           }
           placeholderTextColor="#999"
           value={inputText}
@@ -373,20 +333,14 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
         {inputText.trim().length === 0 ? (
           <View style={styles.mediaButtons}>
             <TouchableOpacity
-              style={[
-                styles.mediaButton,
-                !canSendMessage && styles.disabledButton,
-              ]}
+              style={[styles.mediaButton, !canSendMessage && styles.disabledButton]}
               onPress={onVoiceNotePress}
               disabled={!canSendMessage}
             >
               <Text style={styles.mediaIcon}>🎤</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.mediaButton,
-                !canSendMessage && styles.disabledButton,
-              ]}
+              style={[styles.mediaButton, !canSendMessage && styles.disabledButton]}
               onPress={onGifPress}
               disabled={!canSendMessage}
             >
@@ -395,10 +349,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
           </View>
         ) : (
           <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (!canSendMessage || isSending) && styles.disabledSendButton,
-            ]}
+            style={[styles.sendButton, (!canSendMessage || isSending) && styles.disabledSendButton]}
             onPress={handleSend}
             disabled={!canSendMessage || isSending}
           >

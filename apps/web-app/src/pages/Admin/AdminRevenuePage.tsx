@@ -78,14 +78,15 @@ export const AdminRevenuePage: React.FC = () => {
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Load all data in parallel
-      const [revenueRes, providersRes, plansRes, regionsRes, dailyRes, transactionsRes] = await Promise.all([
-        fetch(`/api/admin/revenue/summary?range=${dateRange}`, { headers }),
-        fetch(`/api/admin/revenue/by-provider?range=${dateRange}`, { headers }),
-        fetch(`/api/admin/revenue/by-plan?range=${dateRange}`, { headers }),
-        fetch(`/api/admin/revenue/by-region?range=${dateRange}`, { headers }),
-        fetch(`/api/admin/revenue/daily?range=${dateRange}`, { headers }),
-        fetch(`/api/admin/transactions?limit=20`, { headers }),
-      ]);
+      const [revenueRes, providersRes, plansRes, regionsRes, dailyRes, transactionsRes] =
+        await Promise.all([
+          fetch(`/api/admin/revenue/summary?range=${dateRange}`, { headers }),
+          fetch(`/api/admin/revenue/by-provider?range=${dateRange}`, { headers }),
+          fetch(`/api/admin/revenue/by-plan?range=${dateRange}`, { headers }),
+          fetch(`/api/admin/revenue/by-region?range=${dateRange}`, { headers }),
+          fetch(`/api/admin/revenue/daily?range=${dateRange}`, { headers }),
+          fetch(`/api/admin/transactions?limit=20`, { headers }),
+        ]);
 
       if (revenueRes.ok) {
         const data = await revenueRes.json();
@@ -213,7 +214,10 @@ export const AdminRevenuePage: React.FC = () => {
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/admin')} className="text-gray-500 hover:text-gray-700">
+            <button
+              onClick={() => navigate('/admin')}
+              className="text-gray-500 hover:text-gray-700"
+            >
               ← Back
             </button>
             <h1 className="text-2xl font-bold text-gray-800">Revenue Dashboard</h1>
@@ -231,7 +235,13 @@ export const AdminRevenuePage: React.FC = () => {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : range === '90d' ? '90 Days' : '1 Year'}
+                  {range === '7d'
+                    ? '7 Days'
+                    : range === '30d'
+                      ? '30 Days'
+                      : range === '90d'
+                        ? '90 Days'
+                        : '1 Year'}
                 </button>
               ))}
             </div>
@@ -289,7 +299,7 @@ export const AdminRevenuePage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Daily Revenue</h3>
             <div className="h-64 flex items-end gap-1">
               {dailyRevenue.map((day, idx) => {
-                const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue));
+                const maxRevenue = Math.max(...dailyRevenue.map((d) => d.revenue));
                 const height = (day.revenue / maxRevenue) * 100;
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center">
@@ -361,11 +371,17 @@ export const AdminRevenuePage: React.FC = () => {
                 {planBreakdown.map((plan) => (
                   <tr key={plan.plan}>
                     <td className="py-3">
-                      <span className={`font-medium ${
-                        plan.plan === 'Diamond' ? 'text-cyan-600' :
-                        plan.plan === 'Platinum' ? 'text-purple-600' :
-                        plan.plan === 'Gold' ? 'text-yellow-600' : 'text-gray-600'
-                      }`}>
+                      <span
+                        className={`font-medium ${
+                          plan.plan === 'Diamond'
+                            ? 'text-cyan-600'
+                            : plan.plan === 'Platinum'
+                              ? 'text-purple-600'
+                              : plan.plan === 'Gold'
+                                ? 'text-yellow-600'
+                                : 'text-gray-600'
+                        }`}
+                      >
                         {plan.plan}
                       </span>
                     </td>
@@ -444,19 +460,26 @@ export const AdminRevenuePage: React.FC = () => {
                     <td className="py-3">
                       <span className="flex items-center gap-1">
                         {getProviderIcon(tx.provider)}
-                        <span className="text-gray-600 capitalize">{tx.provider.replace('_', ' ')}</span>
+                        <span className="text-gray-600 capitalize">
+                          {tx.provider.replace('_', ' ')}
+                        </span>
                       </span>
                     </td>
                     <td className="py-3">
                       <span className="text-gray-600 capitalize">{tx.type.replace('_', ' ')}</span>
                     </td>
                     <td className="py-3">
-                      <span className={`font-medium ${tx.type === 'refund' ? 'text-red-500' : 'text-gray-800'}`}>
-                        {tx.type === 'refund' ? '-' : ''}{formatCurrency(tx.amount, tx.currency)}
+                      <span
+                        className={`font-medium ${tx.type === 'refund' ? 'text-red-500' : 'text-gray-800'}`}
+                      >
+                        {tx.type === 'refund' ? '-' : ''}
+                        {formatCurrency(tx.amount, tx.currency)}
                       </span>
                     </td>
                     <td className="py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tx.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tx.status)}`}
+                      >
                         {tx.status}
                       </span>
                     </td>
@@ -517,13 +540,83 @@ const mockDailyRevenue: DailyRevenue[] = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 const mockTransactions: Transaction[] = [
-  { id: 'txn_1234567890', userId: 'usr_001', userName: 'John D.', provider: 'stripe', type: 'subscription', amount: 2499, currency: 'USD', status: 'completed', createdAt: new Date().toISOString() },
-  { id: 'txn_2345678901', userId: 'usr_002', userName: 'Sarah M.', provider: 'apple_iap', type: 'subscription', amount: 3999, currency: 'USD', status: 'completed', createdAt: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'txn_3456789012', userId: 'usr_003', userName: 'Mike R.', provider: 'google_play', type: 'coin_purchase', amount: 1999, currency: 'USD', status: 'completed', createdAt: new Date(Date.now() - 7200000).toISOString() },
-  { id: 'txn_4567890123', userId: 'usr_004', userName: 'Emily K.', provider: 'paypal', type: 'subscription', amount: 1499, currency: 'USD', status: 'completed', createdAt: new Date(Date.now() - 10800000).toISOString() },
-  { id: 'txn_5678901234', userId: 'usr_005', userName: 'David L.', provider: 'stripe', type: 'refund', amount: 2499, currency: 'USD', status: 'refunded', createdAt: new Date(Date.now() - 14400000).toISOString() },
-  { id: 'txn_6789012345', userId: 'usr_006', userName: 'Amara O.', provider: 'flutterwave', type: 'subscription', amount: 1499, currency: 'USD', status: 'completed', createdAt: new Date(Date.now() - 18000000).toISOString() },
-  { id: 'txn_7890123456', userId: 'usr_007', userName: 'Chidi N.', provider: 'paystack', type: 'coin_purchase', amount: 499, currency: 'USD', status: 'pending', createdAt: new Date(Date.now() - 21600000).toISOString() },
+  {
+    id: 'txn_1234567890',
+    userId: 'usr_001',
+    userName: 'John D.',
+    provider: 'stripe',
+    type: 'subscription',
+    amount: 2499,
+    currency: 'USD',
+    status: 'completed',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'txn_2345678901',
+    userId: 'usr_002',
+    userName: 'Sarah M.',
+    provider: 'apple_iap',
+    type: 'subscription',
+    amount: 3999,
+    currency: 'USD',
+    status: 'completed',
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'txn_3456789012',
+    userId: 'usr_003',
+    userName: 'Mike R.',
+    provider: 'google_play',
+    type: 'coin_purchase',
+    amount: 1999,
+    currency: 'USD',
+    status: 'completed',
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+  },
+  {
+    id: 'txn_4567890123',
+    userId: 'usr_004',
+    userName: 'Emily K.',
+    provider: 'paypal',
+    type: 'subscription',
+    amount: 1499,
+    currency: 'USD',
+    status: 'completed',
+    createdAt: new Date(Date.now() - 10800000).toISOString(),
+  },
+  {
+    id: 'txn_5678901234',
+    userId: 'usr_005',
+    userName: 'David L.',
+    provider: 'stripe',
+    type: 'refund',
+    amount: 2499,
+    currency: 'USD',
+    status: 'refunded',
+    createdAt: new Date(Date.now() - 14400000).toISOString(),
+  },
+  {
+    id: 'txn_6789012345',
+    userId: 'usr_006',
+    userName: 'Amara O.',
+    provider: 'flutterwave',
+    type: 'subscription',
+    amount: 1499,
+    currency: 'USD',
+    status: 'completed',
+    createdAt: new Date(Date.now() - 18000000).toISOString(),
+  },
+  {
+    id: 'txn_7890123456',
+    userId: 'usr_007',
+    userName: 'Chidi N.',
+    provider: 'paystack',
+    type: 'coin_purchase',
+    amount: 499,
+    currency: 'USD',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 21600000).toISOString(),
+  },
 ];
 
 export default AdminRevenuePage;

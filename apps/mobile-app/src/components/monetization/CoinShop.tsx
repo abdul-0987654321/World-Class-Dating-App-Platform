@@ -81,11 +81,7 @@ export const CoinShop: React.FC<CoinShopProps> = ({
       const pkg = COIN_PACKAGES.find((p) => p.id === packageId);
       const totalCoins = pkg ? pkg.coins + (pkg.bonus || 0) : 0;
 
-      Alert.alert(
-        'Purchase Successful!',
-        `You've received ${totalCoins} coins!`,
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Purchase Successful!', `You've received ${totalCoins} coins!`, [{ text: 'OK' }]);
     } catch (error: any) {
       Alert.alert(
         'Purchase Failed',
@@ -172,9 +168,7 @@ export const CoinShop: React.FC<CoinShopProps> = ({
 
         <View style={styles.packageDetails}>
           <Text style={styles.totalCoins}>{totalCoins} Total Coins</Text>
-          {savings > 0 && (
-            <Text style={styles.savingsText}>{savings}% more value</Text>
-          )}
+          {savings > 0 && <Text style={styles.savingsText}>{savings}% more value</Text>}
         </View>
 
         <View style={styles.packageFooter}>
@@ -195,7 +189,7 @@ export const CoinShop: React.FC<CoinShopProps> = ({
     );
   };
 
-  const renderCoinUse = (use: typeof COIN_USES[0]) => {
+  const renderCoinUse = (use: (typeof COIN_USES)[0]) => {
     return (
       <View key={use.name} style={styles.useCard}>
         <View style={styles.useIcon}>
@@ -226,10 +220,7 @@ export const CoinShop: React.FC<CoinShopProps> = ({
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Buy Coins</Text>
           <Text style={styles.sectionSubtitle}>
@@ -243,9 +234,7 @@ export const CoinShop: React.FC<CoinShopProps> = ({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What can you do with coins?</Text>
-          <View style={styles.usesList}>
-            {COIN_USES.map((use) => renderCoinUse(use))}
-          </View>
+          <View style={styles.usesList}>{COIN_USES.map((use) => renderCoinUse(use))}</View>
         </View>
 
         <TouchableOpacity
@@ -261,12 +250,8 @@ export const CoinShop: React.FC<CoinShopProps> = ({
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            • Coins are virtual currency used within the app
-          </Text>
-          <Text style={styles.footerText}>
-            • Coins do not expire and remain in your account
-          </Text>
+          <Text style={styles.footerText}>• Coins are virtual currency used within the app</Text>
+          <Text style={styles.footerText}>• Coins do not expire and remain in your account</Text>
           <Text style={styles.footerText}>
             • Unused coins cannot be refunded or exchanged for cash
           </Text>

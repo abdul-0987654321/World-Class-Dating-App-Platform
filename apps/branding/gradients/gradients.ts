@@ -239,13 +239,8 @@ export function getRNGradient(name: keyof typeof rnGradients): RNGradientConfig 
 /**
  * Create gradient with custom angle
  */
-export function withAngle(
-  gradient: LinearGradientConfig,
-  angle: number
-): LinearGradientConfig {
-  const stopsCSS = gradient.stops
-    .map((s) => `${s.color} ${s.position * 100}%`)
-    .join(', ');
+export function withAngle(gradient: LinearGradientConfig, angle: number): LinearGradientConfig {
+  const stopsCSS = gradient.stops.map((s) => `${s.color} ${s.position * 100}%`).join(', ');
 
   return {
     ...gradient,
@@ -257,10 +252,7 @@ export function withAngle(
 /**
  * Create gradient with opacity applied to all colors
  */
-export function withOpacity(
-  gradient: LinearGradientConfig,
-  opacity: number
-): LinearGradientConfig {
+export function withOpacity(gradient: LinearGradientConfig, opacity: number): LinearGradientConfig {
   const newStops = gradient.stops.map((stop) => {
     const hex = stop.color.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16);
@@ -272,9 +264,7 @@ export function withOpacity(
     };
   });
 
-  const stopsCSS = newStops
-    .map((s) => `${s.color} ${s.position * 100}%`)
-    .join(', ');
+  const stopsCSS = newStops.map((s) => `${s.color} ${s.position * 100}%`).join(', ');
 
   return {
     ...gradient,
@@ -286,7 +276,10 @@ export function withOpacity(
 /**
  * Convert angle to React Native start/end points
  */
-export function angleToRN(angle: number): { start: { x: number; y: number }; end: { x: number; y: number } } {
+export function angleToRN(angle: number): {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+} {
   const radians = (angle * Math.PI) / 180;
   return {
     start: {

@@ -135,10 +135,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
             </Text>
             <View style={styles.progressBar}>
               <View
-                style={[
-                  styles.progressFill,
-                  { width: `${getProgressPercentage(currentStreak)}%` },
-                ]}
+                style={[styles.progressFill, { width: `${getProgressPercentage(currentStreak)}%` }]}
               />
             </View>
           </View>

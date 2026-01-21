@@ -91,13 +91,9 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
         return;
       }
 
-      const response = await axios.patch(
-        '/api/settings/notifications',
-        updates,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.patch('/api/settings/notifications', updates, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.data.success) {
         setPreferences((prev) => ({ ...prev, ...updates }));
@@ -157,9 +153,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
         <Subtitle>Choose how you want to be notified</Subtitle>
       </Header>
 
-      {(error || pushError) && (
-        <ErrorMessage>{error || pushError}</ErrorMessage>
-      )}
+      {(error || pushError) && <ErrorMessage>{error || pushError}</ErrorMessage>}
 
       {success && <SuccessMessage>{success}</SuccessMessage>}
 
@@ -167,16 +161,12 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       <Section>
         <SectionTitle>Push Notifications</SectionTitle>
         {!isSupported && (
-          <WarningMessage>
-            Push notifications are not supported in this browser
-          </WarningMessage>
+          <WarningMessage>Push notifications are not supported in this browser</WarningMessage>
         )}
         <SettingRow>
           <SettingInfo>
             <SettingLabel>Enable Push Notifications</SettingLabel>
-            <SettingDescription>
-              Receive real-time notifications on this device
-            </SettingDescription>
+            <SettingDescription>Receive real-time notifications on this device</SettingDescription>
           </SettingInfo>
           <Toggle
             checked={preferences.pushNotificationsEnabled}
@@ -194,9 +184,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
           </PermissionNote>
         )}
 
-        {isRegistered && (
-          <StatusBadge>Device registered for notifications</StatusBadge>
-        )}
+        {isRegistered && <StatusBadge>Device registered for notifications</StatusBadge>}
       </Section>
 
       {/* Email Notifications */}
@@ -205,9 +193,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
         <SettingRow>
           <SettingInfo>
             <SettingLabel>Enable Email Notifications</SettingLabel>
-            <SettingDescription>
-              Receive notifications via email
-            </SettingDescription>
+            <SettingDescription>Receive notifications via email</SettingDescription>
           </SettingInfo>
           <Toggle
             checked={preferences.emailNotificationsEnabled}
@@ -223,9 +209,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
         <SettingRow>
           <SettingInfo>
             <SettingLabel>Enable SMS Notifications</SettingLabel>
-            <SettingDescription>
-              Receive important notifications via SMS
-            </SettingDescription>
+            <SettingDescription>Receive important notifications via SMS</SettingDescription>
           </SettingInfo>
           <Toggle
             checked={preferences.smsNotificationsEnabled}

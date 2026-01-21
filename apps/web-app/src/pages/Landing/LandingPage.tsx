@@ -162,10 +162,17 @@ const LandingPage: React.FC = () => {
       `}</style>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="gradient-hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <section
+        ref={heroRef}
+        className="gradient-hero"
+        style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      >
         {/* Navigation */}
         <nav style={{ padding: '1.5rem 0' }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            className="container"
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
             <Link
               to="/"
               style={{
@@ -184,12 +191,16 @@ const LandingPage: React.FC = () => {
                   color: 'var(--color-text-muted)',
                   textDecoration: 'none',
                   fontSize: '0.9rem',
-                  transition: 'color 0.2s'
+                  transition: 'color 0.2s',
                 }}
               >
                 Log in
               </Link>
-              <Link to="/signup" className="cta-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>
+              <Link
+                to="/signup"
+                className="cta-primary"
+                style={{ padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}
+              >
                 Get Started
               </Link>
             </div>
@@ -206,31 +217,48 @@ const LandingPage: React.FC = () => {
                 fontWeight: 400,
                 lineHeight: 1.1,
                 marginBottom: '1.5rem',
-                letterSpacing: '-0.03em'
+                letterSpacing: '-0.03em',
               }}
             >
-              Real connections.<br />
+              Real connections.
+              <br />
               <span style={{ fontStyle: 'italic' }}>No noise.</span>
             </h1>
 
-            <p style={{
-              fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-              color: 'var(--color-text-muted)',
-              maxWidth: '540px',
-              margin: '0 auto 3rem',
-              lineHeight: 1.7
-            }}>
-              Flamoral is a modern dating platform built for people who value clarity, privacy, and meaningful connection.
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+                color: 'var(--color-text-muted)',
+                maxWidth: '540px',
+                margin: '0 auto 3rem',
+                lineHeight: 1.7,
+              }}
+            >
+              Flamoral is a modern dating platform built for people who value clarity, privacy, and
+              meaningful connection.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1.5rem',
+              }}
+            >
               <Link to="/signup" className="cta-primary">
                 Get Started
               </Link>
               <a href="#how" className="cta-secondary">
                 See how it works
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M3 8h10M9 4l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </a>
             </div>
@@ -249,7 +277,7 @@ const LandingPage: React.FC = () => {
                 fontStyle: 'italic',
                 fontWeight: 400,
                 marginBottom: '1.5rem',
-                lineHeight: 1.5
+                lineHeight: 1.5,
               }}
             >
               "Flamoral feels intentional. It's the first dating app that doesn't feel chaotic."
@@ -264,24 +292,27 @@ const LandingPage: React.FC = () => {
       {/* Value Propositions */}
       <section style={{ padding: '6rem 0', background: 'var(--color-bg-elevated)' }}>
         <div className="container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '4rem'
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '4rem',
+            }}
+          >
             {[
               {
                 title: 'Intentional Matching',
-                description: 'No endless swiping. Matches are designed around compatibility and intent.'
+                description:
+                  'No endless swiping. Matches are designed around compatibility and intent.',
               },
               {
                 title: 'Privacy First',
-                description: 'Your data, conversations, and presence are protected by default.'
+                description: 'Your data, conversations, and presence are protected by default.',
               },
               {
                 title: 'Real Conversations',
-                description: 'No bots. No spam. Just genuine people and meaningful dialogue.'
-              }
+                description: 'No bots. No spam. Just genuine people and meaningful dialogue.',
+              },
             ].map((item, index) => (
               <div key={index}>
                 <h3
@@ -290,16 +321,18 @@ const LandingPage: React.FC = () => {
                     fontSize: '1.5rem',
                     fontWeight: 400,
                     marginBottom: '1rem',
-                    letterSpacing: '-0.01em'
+                    letterSpacing: '-0.01em',
                   }}
                 >
                   {item.title}
                 </h3>
-                <p style={{
-                  color: 'var(--color-text-muted)',
-                  fontSize: '1rem',
-                  lineHeight: 1.7
-                }}>
+                <p
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    fontSize: '1rem',
+                    lineHeight: 1.7,
+                  }}
+                >
                   {item.description}
                 </p>
               </div>
@@ -309,7 +342,10 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how" style={{ padding: '6rem 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <section
+        id="how"
+        style={{ padding: '6rem 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}
+      >
         <div className="container-narrow">
           <h2
             className="serif"
@@ -318,7 +354,7 @@ const LandingPage: React.FC = () => {
               fontWeight: 400,
               marginBottom: '3rem',
               textAlign: 'center',
-              letterSpacing: '-0.02em'
+              letterSpacing: '-0.02em',
             }}
           >
             How it works
@@ -328,7 +364,7 @@ const LandingPage: React.FC = () => {
             {[
               { step: '01', text: 'Create your profile in minutes' },
               { step: '02', text: 'Get matched intentionally' },
-              { step: '03', text: 'Start real conversations' }
+              { step: '03', text: 'Start real conversations' },
             ].map((item, index) => (
               <div
                 key={index}
@@ -337,21 +373,25 @@ const LandingPage: React.FC = () => {
                   alignItems: 'baseline',
                   gap: '2rem',
                   paddingBottom: index < 2 ? '2.5rem' : 0,
-                  borderBottom: index < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none'
+                  borderBottom: index < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                 }}
               >
-                <span style={{
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.875rem',
-                  fontFamily: 'monospace',
-                  minWidth: '2rem'
-                }}>
+                <span
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    fontSize: '0.875rem',
+                    fontFamily: 'monospace',
+                    minWidth: '2rem',
+                  }}
+                >
                   {item.step}
                 </span>
-                <p style={{
-                  fontSize: 'clamp(1.125rem, 2.5vw, 1.375rem)',
-                  margin: 0
-                }}>
+                <p
+                  style={{
+                    fontSize: 'clamp(1.125rem, 2.5vw, 1.375rem)',
+                    margin: 0,
+                  }}
+                >
                   {item.text}
                 </p>
               </div>
@@ -370,19 +410,22 @@ const LandingPage: React.FC = () => {
               fontWeight: 400,
               marginBottom: '1.5rem',
               lineHeight: 1.2,
-              letterSpacing: '-0.02em'
+              letterSpacing: '-0.02em',
             }}
           >
-            Dating shouldn't feel<br />
+            Dating shouldn't feel
+            <br />
             <span style={{ fontStyle: 'italic' }}>exhausting.</span>
           </h2>
-          <p style={{
-            color: 'var(--color-text-muted)',
-            fontSize: 'clamp(1rem, 2vw, 1.125rem)',
-            maxWidth: '480px',
-            margin: '0 auto',
-            lineHeight: 1.7
-          }}>
+          <p
+            style={{
+              color: 'var(--color-text-muted)',
+              fontSize: 'clamp(1rem, 2vw, 1.125rem)',
+              maxWidth: '480px',
+              margin: '0 auto',
+              lineHeight: 1.7,
+            }}
+          >
             Flamoral is built for people who are done with noise and ready for something genuine.
           </p>
         </div>
@@ -398,7 +441,7 @@ const LandingPage: React.FC = () => {
               fontWeight: 400,
               marginBottom: '2rem',
               fontStyle: 'italic',
-              letterSpacing: '-0.02em'
+              letterSpacing: '-0.02em',
             }}
           >
             Connect differently.
@@ -408,34 +451,42 @@ const LandingPage: React.FC = () => {
             Get Started
           </Link>
 
-          <p style={{
-            color: 'var(--color-text-muted)',
-            fontSize: '0.875rem',
-            marginTop: '1.5rem'
-          }}>
+          <p
+            style={{
+              color: 'var(--color-text-muted)',
+              fontSize: '0.875rem',
+              marginTop: '1.5rem',
+            }}
+          >
             Free to join. Upgrade when you're ready.
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{
-        padding: '3rem 0',
-        borderTop: '1px solid rgba(255,255,255,0.06)'
-      }}>
+      <footer
+        style={{
+          padding: '3rem 0',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
         <div className="container">
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1rem'
-          }}>
-            <div style={{
+          <div
+            style={{
               display: 'flex',
-              gap: '2rem',
-              fontSize: '0.875rem'
-            }}>
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '1rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                gap: '2rem',
+                fontSize: '0.875rem',
+              }}
+            >
               <Link
                 to="/privacy-policy"
                 style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
@@ -455,13 +506,15 @@ const LandingPage: React.FC = () => {
                 Contact
               </Link>
             </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.875rem'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--color-text-muted)',
+                fontSize: '0.875rem',
+              }}
+            >
               <FlamoralLogo variant="icon-only" size="sm" />
               <span>&copy; {new Date().getFullYear()} Flamoral</span>
             </div>

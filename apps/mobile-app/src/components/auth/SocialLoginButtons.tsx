@@ -7,8 +7,12 @@ import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import { useSocialAuth } from '@hooks/useSocialAuth';
 
 // Get Google client IDs from app config
-const GOOGLE_WEB_CLIENT_ID = Constants.expoConfig?.extra?.googleWebClientId || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '';
-const GOOGLE_IOS_CLIENT_ID = Constants.expoConfig?.extra?.googleIosClientId || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const GOOGLE_WEB_CLIENT_ID =
+  Constants.expoConfig?.extra?.googleWebClientId ||
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+  '';
+const GOOGLE_IOS_CLIENT_ID =
+  Constants.expoConfig?.extra?.googleIosClientId || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
 interface SocialLoginButtonsProps {
   onSuccess?: (isNewUser: boolean, needsProfileSetup: boolean) => void;
@@ -16,11 +20,7 @@ interface SocialLoginButtonsProps {
   style?: any;
 }
 
-const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
-  onSuccess,
-  onError,
-  style,
-}) => {
+const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess, onError, style }) => {
   const { loginWithGoogle, loginWithApple, loginWithFacebook } = useSocialAuth();
   const [loading, setLoading] = useState<string | null>(null);
 

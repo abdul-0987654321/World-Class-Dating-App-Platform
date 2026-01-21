@@ -34,14 +34,46 @@ interface Prompt {
 }
 
 const PROMPTS: Prompt[] = [
-  { id: 'ideal-sunday', text: 'My ideal Sunday looks like...', placeholder: 'Sleeping in, brunch with friends, evening walk in the park...' },
-  { id: 'looking-for', text: "I'm looking for someone who...", placeholder: 'Loves to laugh, enjoys deep conversations, adventurous...' },
-  { id: 'passionate-about', text: "I'm passionate about...", placeholder: 'Music, traveling, cooking, helping others...' },
-  { id: 'fun-fact', text: 'A fun fact about me...', placeholder: 'I can speak 3 languages, I once skydived...' },
-  { id: 'best-quality', text: 'My best quality is...', placeholder: 'My sense of humor, my empathy, my cooking skills...' },
-  { id: 'perfect-date', text: 'My perfect first date would be...', placeholder: 'Coffee and a walk, a museum visit, dinner at a cozy restaurant...' },
-  { id: 'deal-breaker', text: "The way to my heart is...", placeholder: 'Making me laugh, thoughtful gestures, good food...' },
-  { id: 'unpopular-opinion', text: 'An unpopular opinion I have...', placeholder: 'Pineapple belongs on pizza, mornings are the best...' },
+  {
+    id: 'ideal-sunday',
+    text: 'My ideal Sunday looks like...',
+    placeholder: 'Sleeping in, brunch with friends, evening walk in the park...',
+  },
+  {
+    id: 'looking-for',
+    text: "I'm looking for someone who...",
+    placeholder: 'Loves to laugh, enjoys deep conversations, adventurous...',
+  },
+  {
+    id: 'passionate-about',
+    text: "I'm passionate about...",
+    placeholder: 'Music, traveling, cooking, helping others...',
+  },
+  {
+    id: 'fun-fact',
+    text: 'A fun fact about me...',
+    placeholder: 'I can speak 3 languages, I once skydived...',
+  },
+  {
+    id: 'best-quality',
+    text: 'My best quality is...',
+    placeholder: 'My sense of humor, my empathy, my cooking skills...',
+  },
+  {
+    id: 'perfect-date',
+    text: 'My perfect first date would be...',
+    placeholder: 'Coffee and a walk, a museum visit, dinner at a cozy restaurant...',
+  },
+  {
+    id: 'deal-breaker',
+    text: 'The way to my heart is...',
+    placeholder: 'Making me laugh, thoughtful gestures, good food...',
+  },
+  {
+    id: 'unpopular-opinion',
+    text: 'An unpopular opinion I have...',
+    placeholder: 'Pineapple belongs on pizza, mornings are the best...',
+  },
 ];
 
 const MIN_PROMPTS = 3;
@@ -51,12 +83,14 @@ const MAX_ANSWER_LENGTH = 250;
 
 const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { name, birthday, gender, interestedIn, photos, location, interests } = route.params;
-  const [selectedPrompts, setSelectedPrompts] = useState<{ promptId: string; answer: string }[]>([]);
+  const [selectedPrompts, setSelectedPrompts] = useState<{ promptId: string; answer: string }[]>(
+    []
+  );
   const [activePrompt, setActivePrompt] = useState<string | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState('');
 
   const getAnswer = (promptId: string) => {
-    return selectedPrompts.find(p => p.promptId === promptId)?.answer || '';
+    return selectedPrompts.find((p) => p.promptId === promptId)?.answer || '';
   };
 
   const selectPrompt = (promptId: string) => {
@@ -68,14 +102,14 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
   const saveAnswer = () => {
     if (!activePrompt || currentAnswer.trim().length < MIN_ANSWER_LENGTH) return;
 
-    const existing = selectedPrompts.filter(p => p.promptId !== activePrompt);
+    const existing = selectedPrompts.filter((p) => p.promptId !== activePrompt);
     setSelectedPrompts([...existing, { promptId: activePrompt, answer: currentAnswer.trim() }]);
     setActivePrompt(null);
     setCurrentAnswer('');
   };
 
   const removePrompt = (promptId: string) => {
-    setSelectedPrompts(selectedPrompts.filter(p => p.promptId !== promptId));
+    setSelectedPrompts(selectedPrompts.filter((p) => p.promptId !== promptId));
   };
 
   const handleContinue = () => {
@@ -93,11 +127,11 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
     });
   };
 
-  const answeredPromptIds = selectedPrompts.map(p => p.promptId);
+  const answeredPromptIds = selectedPrompts.map((p) => p.promptId);
   const canAddMore = selectedPrompts.length < MAX_PROMPTS;
 
   if (activePrompt) {
-    const prompt = PROMPTS.find(p => p.id === activePrompt)!;
+    const prompt = PROMPTS.find((p) => p.id === activePrompt)!;
     return (
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
@@ -128,16 +162,16 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
           />
 
           <View style={styles.charCountContainer}>
-            <Text style={[
-              styles.charCount,
-              currentAnswer.length < MIN_ANSWER_LENGTH && styles.charCountWarning
-            ]}>
+            <Text
+              style={[
+                styles.charCount,
+                currentAnswer.length < MIN_ANSWER_LENGTH && styles.charCountWarning,
+              ]}
+            >
               {currentAnswer.length} / {MAX_ANSWER_LENGTH}
             </Text>
             {currentAnswer.length < MIN_ANSWER_LENGTH && (
-              <Text style={styles.minCharsText}>
-                Minimum {MIN_ANSWER_LENGTH} characters
-              </Text>
+              <Text style={styles.minCharsText}>Minimum {MIN_ANSWER_LENGTH} characters</Text>
             )}
           </View>
 
@@ -145,15 +179,17 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
             <TouchableOpacity
               style={[
                 styles.button,
-                currentAnswer.trim().length < MIN_ANSWER_LENGTH && styles.buttonDisabled
+                currentAnswer.trim().length < MIN_ANSWER_LENGTH && styles.buttonDisabled,
               ]}
               onPress={saveAnswer}
               disabled={currentAnswer.trim().length < MIN_ANSWER_LENGTH}
             >
-              <Text style={[
-                styles.buttonText,
-                currentAnswer.trim().length < MIN_ANSWER_LENGTH && styles.buttonTextDisabled
-              ]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  currentAnswer.trim().length < MIN_ANSWER_LENGTH && styles.buttonTextDisabled,
+                ]}
+              >
                 Save Answer
               </Text>
             </TouchableOpacity>
@@ -173,23 +209,20 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>8 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Tell us about yourself</Text>
-        <Text style={styles.subtitle}>
-          Answer {MIN_PROMPTS} prompts to show your personality
-        </Text>
+        <Text style={styles.subtitle}>Answer {MIN_PROMPTS} prompts to show your personality</Text>
 
         <View style={styles.counterContainer}>
-          <Text style={[
-            styles.counterText,
-            selectedPrompts.length >= MIN_PROMPTS && styles.counterTextValid
-          ]}>
+          <Text
+            style={[
+              styles.counterText,
+              selectedPrompts.length >= MIN_PROMPTS && styles.counterTextValid,
+            ]}
+          >
             {selectedPrompts.length} / {MAX_PROMPTS} prompts answered
           </Text>
         </View>
@@ -200,7 +233,7 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Your answers</Text>
               {selectedPrompts.map((item) => {
-                const prompt = PROMPTS.find(p => p.id === item.promptId)!;
+                const prompt = PROMPTS.find((p) => p.id === item.promptId)!;
                 return (
                   <View key={item.promptId} style={styles.answeredCard}>
                     <Text style={styles.answeredPrompt}>{prompt.text}</Text>
@@ -229,7 +262,7 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
           {canAddMore && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Choose a prompt</Text>
-              {PROMPTS.filter(p => !answeredPromptIds.includes(p.id)).map((prompt) => (
+              {PROMPTS.filter((p) => !answeredPromptIds.includes(p.id)).map((prompt) => (
                 <TouchableOpacity
                   key={prompt.id}
                   style={styles.promptCard}
@@ -249,7 +282,12 @@ const PromptsScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={handleContinue}
             disabled={selectedPrompts.length < MIN_PROMPTS}
           >
-            <Text style={[styles.buttonText, selectedPrompts.length < MIN_PROMPTS && styles.buttonTextDisabled]}>
+            <Text
+              style={[
+                styles.buttonText,
+                selectedPrompts.length < MIN_PROMPTS && styles.buttonTextDisabled,
+              ]}
+            >
               Continue
             </Text>
           </TouchableOpacity>

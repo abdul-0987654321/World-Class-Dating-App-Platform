@@ -49,28 +49,26 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
   /**
    * Handle event registration
    */
-  const handleRegister = useCallback(async (event: SpeedDatingEvent) => {
-    if (event.isRegistered) {
-      Alert.alert(
-        'Cancel Registration',
-        `Are you sure you want to cancel your registration for "${event.title}"?`,
-        [
-          { text: 'No', style: 'cancel' },
-          {
-            text: 'Yes, Cancel',
-            style: 'destructive',
-            onPress: async () => {
-              await unregisterFromEvent(event.id);
-            },
-          },
-        ]
-      );
-    } else {
-      if (event.price > 0) {
+  const handleRegister = useCallback(
+    async (event: SpeedDatingEvent) => {
+      if (event.isRegistered) {
         Alert.alert(
-          'Registration',
-          `Register for "${event.title}" for $${event.price}?`,
+          'Cancel Registration',
+          `Are you sure you want to cancel your registration for "${event.title}"?`,
           [
+            { text: 'No', style: 'cancel' },
+            {
+              text: 'Yes, Cancel',
+              style: 'destructive',
+              onPress: async () => {
+                await unregisterFromEvent(event.id);
+              },
+            },
+          ]
+        );
+      } else {
+        if (event.price > 0) {
+          Alert.alert('Registration', `Register for "${event.title}" for $${event.price}?`, [
             { text: 'Cancel', style: 'cancel' },
             {
               text: 'Register',
@@ -83,44 +81,51 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
                 }
               },
             },
-          ]
-        );
-      } else {
-        try {
-          await registerForEvent(event.id);
-          Alert.alert('Success', 'You have been registered for the event!');
-        } catch (error) {
-          Alert.alert('Error', 'Failed to register. Please try again.');
+          ]);
+        } else {
+          try {
+            await registerForEvent(event.id);
+            Alert.alert('Success', 'You have been registered for the event!');
+          } catch (error) {
+            Alert.alert('Error', 'Failed to register. Please try again.');
+          }
         }
       }
-    }
-  }, [registerForEvent, unregisterFromEvent]);
+    },
+    [registerForEvent, unregisterFromEvent]
+  );
 
   /**
    * Handle joining live event
    */
-  const handleJoinLive = useCallback(async (event: SpeedDatingEvent) => {
-    const success = await joinLiveEvent(event.id);
-    if (success) {
-      navigation.navigate('SpeedDatingLobby', {
-        eventId: event.id,
-        eventTitle: event.title,
-        roundDuration: event.roundDuration,
-      });
-    } else {
-      Alert.alert('Error', 'Failed to join the event. Please try again.');
-    }
-  }, [joinLiveEvent, navigation]);
+  const handleJoinLive = useCallback(
+    async (event: SpeedDatingEvent) => {
+      const success = await joinLiveEvent(event.id);
+      if (success) {
+        navigation.navigate('SpeedDatingLobby', {
+          eventId: event.id,
+          eventTitle: event.title,
+          roundDuration: event.roundDuration,
+        });
+      } else {
+        Alert.alert('Error', 'Failed to join the event. Please try again.');
+      }
+    },
+    [joinLiveEvent, navigation]
+  );
 
   /**
    * Handle match tap
    */
-  const handleMatchTap = useCallback((match: SpeedDatingMatch) => {
-    navigation.navigate('Chat', {
-      matchId: match.id,
-      matchName: match.user.name,
-    });
-  }, [navigation]);
+  const handleMatchTap = useCallback(
+    (match: SpeedDatingMatch) => {
+      navigation.navigate('Chat', {
+        matchId: match.id,
+        matchName: match.user.name,
+      });
+    },
+    [navigation]
+  );
 
   /**
    * Format date string
@@ -156,13 +161,13 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
    */
   const getThemeEmoji = (theme: string): string => {
     const themes: Record<string, string> = {
-      'Tech': '💻',
+      Tech: '💻',
       'Food & Wine': '🍷',
-      'Music': '🎵',
-      'Sports': '⚽',
-      'Art': '🎨',
-      'Travel': '✈️',
-      'General': '💕',
+      Music: '🎵',
+      Sports: '⚽',
+      Art: '🎨',
+      Travel: '✈️',
+      General: '💕',
     };
     return themes[theme] || '💕';
   };
@@ -175,7 +180,7 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
       key={event.id}
       style={[styles.eventCard, isLive && styles.liveEventCard]}
       activeOpacity={0.8}
-      onPress={() => isLive ? handleJoinLive(event) : null}
+      onPress={() => (isLive ? handleJoinLive(event) : null)}
     >
       {isLive && (
         <LinearGradient
@@ -197,9 +202,7 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.themeEmoji}>{getThemeEmoji(event.theme)}</Text>
           </View>
           <View style={styles.eventInfo}>
-            <Text style={[styles.eventTitle, isLive && styles.liveEventTitle]}>
-              {event.title}
-            </Text>
+            <Text style={[styles.eventTitle, isLive && styles.liveEventTitle]}>{event.title}</Text>
             <Text style={[styles.eventDescription, isLive && styles.liveEventDescription]}>
               {event.description}
             </Text>
@@ -254,19 +257,13 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           {isLive ? (
-            <TouchableOpacity
-              style={styles.joinButton}
-              onPress={() => handleJoinLive(event)}
-            >
+            <TouchableOpacity style={styles.joinButton} onPress={() => handleJoinLive(event)}>
               <Icon name="play" size={18} color="#8B5CF6" />
               <Text style={styles.joinButtonText}>Join Now</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={[
-                styles.registerButton,
-                event.isRegistered && styles.registeredButton,
-              ]}
+              style={[styles.registerButton, event.isRegistered && styles.registeredButton]}
               onPress={() => handleRegister(event)}
             >
               <Text
@@ -278,8 +275,8 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
                 {event.isRegistered
                   ? 'Registered ✓'
                   : event.price > 0
-                  ? `Register ($${event.price})`
-                  : 'Register Free'}
+                    ? `Register ($${event.price})`
+                    : 'Register Free'}
               </Text>
             </TouchableOpacity>
           )}
@@ -346,10 +343,7 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.emptyTitle}>{title}</Text>
         <Text style={styles.emptySubtitle}>{subtitle}</Text>
         {type !== 'upcoming' && (
-          <TouchableOpacity
-            style={styles.emptyButton}
-            onPress={() => setActiveTab('upcoming')}
-          >
+          <TouchableOpacity style={styles.emptyButton} onPress={() => setActiveTab('upcoming')}>
             <Text style={styles.emptyButtonText}>View Upcoming Events</Text>
           </TouchableOpacity>
         )}
@@ -428,9 +422,7 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
             style={[styles.tab, activeTab === tab && styles.activeTab]}
             onPress={() => setActiveTab(tab)}
           >
-            {tab === 'live' && liveEvents.length > 0 && (
-              <View style={styles.tabDot} />
-            )}
+            {tab === 'live' && liveEvents.length > 0 && <View style={styles.tabDot} />}
             <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === 'matches' && ` (${matches.length})`}
@@ -444,30 +436,22 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={refreshData}
-            tintColor="#FF6B6B"
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={refreshData} tintColor="#FF6B6B" />
         }
       >
         {activeTab === 'upcoming' && (
           <>
-            {upcomingEvents.length === 0 ? (
-              renderEmptyState('upcoming')
-            ) : (
-              upcomingEvents.map((event) => renderEventCard(event))
-            )}
+            {upcomingEvents.length === 0
+              ? renderEmptyState('upcoming')
+              : upcomingEvents.map((event) => renderEventCard(event))}
           </>
         )}
 
         {activeTab === 'live' && (
           <>
-            {liveEvents.length === 0 ? (
-              renderEmptyState('live')
-            ) : (
-              liveEvents.map((event) => renderEventCard(event, true))
-            )}
+            {liveEvents.length === 0
+              ? renderEmptyState('live')
+              : liveEvents.map((event) => renderEventCard(event, true))}
           </>
         )}
 
@@ -485,9 +469,21 @@ const SpeedDatingScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.howItWorksTitle}>How Speed Dating Matches Work</Text>
                   <View style={styles.steps}>
                     {[
-                      { step: '1', title: 'Video Date', desc: 'Have a quick video chat with each participant' },
-                      { step: '2', title: 'Express Interest', desc: "Mark who you'd like to connect with" },
-                      { step: '3', title: 'Get Matched', desc: "If mutual interest, you're matched!" },
+                      {
+                        step: '1',
+                        title: 'Video Date',
+                        desc: 'Have a quick video chat with each participant',
+                      },
+                      {
+                        step: '2',
+                        title: 'Express Interest',
+                        desc: "Mark who you'd like to connect with",
+                      },
+                      {
+                        step: '3',
+                        title: 'Get Matched',
+                        desc: "If mutual interest, you're matched!",
+                      },
                     ].map((item) => (
                       <View key={item.step} style={styles.step}>
                         <View style={styles.stepNumber}>

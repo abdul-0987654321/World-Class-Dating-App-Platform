@@ -28,13 +28,7 @@ export const Card: React.FC<CardProps> = ({
   const paddingClass = `flamoral-card--padding-${padding}`;
   const hoverableClass = hoverable ? 'flamoral-card--hoverable' : '';
 
-  const combinedClassName = [
-    baseClass,
-    variantClass,
-    paddingClass,
-    hoverableClass,
-    className,
-  ]
+  const combinedClassName = [baseClass, variantClass, paddingClass, hoverableClass, className]
     .filter(Boolean)
     .join(' ');
 
@@ -64,11 +58,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   const glowClass = `flamoral-card--glow-${glowColor}`;
 
   return (
-    <Card
-      variant="premium"
-      className={`${glowClass} ${className}`}
-      {...props}
-    >
+    <Card variant="premium" className={`${glowClass} ${className}`} {...props}>
       {badge && (
         <div className="flamoral-card__badge">
           <span className="flamoral-card__badge-text">{badge}</span>
@@ -118,19 +108,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
     <div className={`flamoral-profile-card ${className}`}>
       {/* Image Container */}
       <div className="flamoral-profile-card__image-container">
-        <img
-          src={imageUrl}
-          alt={`${name}'s profile`}
-          className="flamoral-profile-card__image"
-        />
+        <img src={imageUrl} alt={`${name}'s profile`} className="flamoral-profile-card__image" />
 
         {/* Gradient Overlay */}
         <div className="flamoral-profile-card__overlay" />
 
         {/* Online Indicator */}
-        {isOnline && (
-          <div className="flamoral-profile-card__online-indicator" />
-        )}
+        {isOnline && <div className="flamoral-profile-card__online-indicator" />}
 
         {/* Profile Info Overlay */}
         <div className="flamoral-profile-card__info">
@@ -173,9 +157,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             </p>
           )}
 
-          {bio && (
-            <p className="flamoral-profile-card__bio">{bio}</p>
-          )}
+          {bio && <p className="flamoral-profile-card__bio">{bio}</p>}
 
           {interests.length > 0 && (
             <div className="flamoral-profile-card__interests">
@@ -270,14 +252,14 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
       hoverable
       className={`flamoral-feature-card ${className}`}
     >
-      <div className={`flamoral-feature-card__icon ${premium ? 'flamoral-feature-card__icon--premium' : ''}`}>
+      <div
+        className={`flamoral-feature-card__icon ${premium ? 'flamoral-feature-card__icon--premium' : ''}`}
+      >
         {icon}
       </div>
       <h4 className="flamoral-feature-card__title">{title}</h4>
       <p className="flamoral-feature-card__description">{description}</p>
-      {premium && (
-        <span className="flamoral-feature-card__premium-badge">Premium</span>
-      )}
+      {premium && <span className="flamoral-feature-card__premium-badge">Premium</span>}
     </Card>
   );
 };

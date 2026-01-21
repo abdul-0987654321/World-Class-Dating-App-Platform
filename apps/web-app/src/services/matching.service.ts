@@ -68,7 +68,9 @@ class MatchingService {
             isOnline: m.matchedUser.isOnline,
           },
           matchedAt: m.matchedAt,
-          lastMessage: m.lastMessage ? { content: m.lastMessage, sentAt: m.lastMessageAt || new Date().toISOString() } : undefined,
+          lastMessage: m.lastMessage
+            ? { content: m.lastMessage, sentAt: m.lastMessageAt || new Date().toISOString() }
+            : undefined,
           lastMessageAt: m.lastMessageAt,
           hasUnread: m.hasUnread,
         })),
@@ -77,9 +79,7 @@ class MatchingService {
       };
     }
 
-    const url = cursor
-      ? `/api/matching/matches?cursor=${cursor}`
-      : '/api/matching/matches';
+    const url = cursor ? `/api/matching/matches?cursor=${cursor}` : '/api/matching/matches';
 
     return apiClient.get<MatchesResponse>(url);
   }
@@ -93,18 +93,20 @@ class MatchingService {
       return {
         likes: result.likes.map((l: any) => ({
           id: l.id,
-          user: l.fromUser ? {
-            id: l.id,
-            name: l.fromUser.name || 'Hidden',
-            photoUrl: l.fromUser.blurredPhotoUrl || '',
-            isOnline: false,
-            age: l.fromUser.age,
-          } : {
-            id: l.id,
-            name: 'Hidden',
-            photoUrl: '',
-            isOnline: false,
-          },
+          user: l.fromUser
+            ? {
+                id: l.id,
+                name: l.fromUser.name || 'Hidden',
+                photoUrl: l.fromUser.blurredPhotoUrl || '',
+                isOnline: false,
+                age: l.fromUser.age,
+              }
+            : {
+                id: l.id,
+                name: 'Hidden',
+                photoUrl: '',
+                isOnline: false,
+              },
           likedAt: l.likedAt,
           isSuperLike: l.isSuperLike,
           isBlurred: !l.isRevealed,
@@ -115,9 +117,7 @@ class MatchingService {
       };
     }
 
-    const url = cursor
-      ? `/api/matching/likes?cursor=${cursor}`
-      : '/api/matching/likes';
+    const url = cursor ? `/api/matching/likes?cursor=${cursor}` : '/api/matching/likes';
 
     return apiClient.get<LikesResponse>(url);
   }

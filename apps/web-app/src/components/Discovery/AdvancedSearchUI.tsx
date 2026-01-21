@@ -88,8 +88,8 @@ const Overlay = styled.div<{ isOpen: boolean }>`
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   z-index: 1000;
-  opacity: ${props => props.isOpen ? 1 : 0};
-  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+  opacity: ${(props) => (props.isOpen ? 1 : 0)};
+  visibility: ${(props) => (props.isOpen ? 'visible' : 'hidden')};
   transition: all 0.3s ease;
 `;
 
@@ -104,7 +104,7 @@ const Panel = styled.div<{ isOpen: boolean }>`
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(100%)'};
+  transform: ${(props) => (props.isOpen ? 'translateX(0)' : 'translateX(100%)')};
   transition: transform 0.3s ease;
   box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
 
@@ -131,7 +131,7 @@ const Title = styled.h2`
   gap: 10px;
 
   svg {
-    color: #FF6B6B;
+    color: #ff6b6b;
   }
 `;
 
@@ -209,11 +209,11 @@ const PresetChip = styled.button<{ active?: boolean }>`
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  background: ${props => props.active
-    ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
-    : 'rgba(255, 255, 255, 0.1)'
-  };
-  border: 1px solid ${props => props.active ? 'transparent' : 'rgba(255, 255, 255, 0.1)'};
+  background: ${(props) =>
+    props.active
+      ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
+      : 'rgba(255, 255, 255, 0.1)'};
+  border: 1px solid ${(props) => (props.active ? 'transparent' : 'rgba(255, 255, 255, 0.1)')};
   border-radius: 20px;
   color: white;
   font-size: 14px;
@@ -221,10 +221,10 @@ const PresetChip = styled.button<{ active?: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.active
-      ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
-      : 'rgba(255, 255, 255, 0.15)'
-    };
+    background: ${(props) =>
+      props.active
+        ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
+        : 'rgba(255, 255, 255, 0.15)'};
   }
 
   svg {
@@ -267,7 +267,7 @@ const FilterHeader = styled.button`
     svg {
       width: 18px;
       height: 18px;
-      color: #4ECDC4;
+      color: #4ecdc4;
     }
   }
 
@@ -282,8 +282,8 @@ const FilterHeader = styled.button`
 `;
 
 const FilterContent = styled.div<{ expanded: boolean }>`
-  padding: ${props => props.expanded ? '0 16px 16px' : '0'};
-  max-height: ${props => props.expanded ? '500px' : '0'};
+  padding: ${(props) => (props.expanded ? '0 16px 16px' : '0')};
+  max-height: ${(props) => (props.expanded ? '500px' : '0')};
   overflow: hidden;
   transition: all 0.3s ease;
 `;
@@ -300,11 +300,11 @@ const RangeSlider = styled.div`
   }
 
   .value {
-    color: #FF6B6B;
+    color: #ff6b6b;
     font-weight: 600;
   }
 
-  input[type="range"] {
+  input[type='range'] {
     width: 100%;
     height: 6px;
     background: rgba(255, 255, 255, 0.1);
@@ -316,7 +316,7 @@ const RangeSlider = styled.div`
       -webkit-appearance: none;
       width: 20px;
       height: 20px;
-      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
       border-radius: 50%;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
@@ -364,16 +364,19 @@ const ChipsGrid = styled.div`
 
 const Chip = styled.button<{ selected?: boolean }>`
   padding: 8px 14px;
-  background: ${props => props.selected ? 'rgba(78, 205, 196, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
-  border: 1px solid ${props => props.selected ? 'rgba(78, 205, 196, 0.4)' : 'rgba(255, 255, 255, 0.1)'};
+  background: ${(props) =>
+    props.selected ? 'rgba(78, 205, 196, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
+  border: 1px solid
+    ${(props) => (props.selected ? 'rgba(78, 205, 196, 0.4)' : 'rgba(255, 255, 255, 0.1)')};
   border-radius: 20px;
-  color: ${props => props.selected ? '#4ECDC4' : 'rgba(255, 255, 255, 0.7)'};
+  color: ${(props) => (props.selected ? '#4ECDC4' : 'rgba(255, 255, 255, 0.7)')};
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.selected ? 'rgba(78, 205, 196, 0.25)' : 'rgba(255, 255, 255, 0.1)'};
+    background: ${(props) =>
+      props.selected ? 'rgba(78, 205, 196, 0.25)' : 'rgba(255, 255, 255, 0.1)'};
   }
 `;
 
@@ -397,7 +400,7 @@ const ToggleRow = styled.div`
 const Toggle = styled.button<{ active: boolean }>`
   width: 48px;
   height: 26px;
-  background: ${props => props.active ? '#4ECDC4' : 'rgba(255, 255, 255, 0.1)'};
+  background: ${(props) => (props.active ? '#4ECDC4' : 'rgba(255, 255, 255, 0.1)')};
   border: none;
   border-radius: 13px;
   cursor: pointer;
@@ -408,7 +411,7 @@ const Toggle = styled.button<{ active: boolean }>`
     content: '';
     position: absolute;
     top: 3px;
-    left: ${props => props.active ? '25px' : '3px'};
+    left: ${(props) => (props.active ? '25px' : '3px')};
     width: 20px;
     height: 20px;
     background: white;
@@ -431,10 +434,10 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   justify-content: center;
   gap: 8px;
   padding: 14px 20px;
-  background: ${props => props.variant === 'primary'
-    ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
-    : 'rgba(255, 255, 255, 0.1)'
-  };
+  background: ${(props) =>
+    props.variant === 'primary'
+      ? 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
+      : 'rgba(255, 255, 255, 0.1)'};
   border: none;
   border-radius: 12px;
   color: white;
@@ -445,10 +448,8 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: ${props => props.variant === 'primary'
-      ? '0 8px 24px rgba(255, 107, 107, 0.3)'
-      : 'none'
-    };
+    box-shadow: ${(props) =>
+      props.variant === 'primary' ? '0 8px 24px rgba(255, 107, 107, 0.3)' : 'none'};
   }
 
   &:disabled {
@@ -515,7 +516,7 @@ const SavePresetModal = styled.div`
       }
 
       &.save {
-        background: #FF6B6B;
+        background: #ff6b6b;
         border: none;
         color: white;
       }
@@ -525,20 +526,51 @@ const SavePresetModal = styled.div`
 
 // Filter options
 const educationOptions = [
-  'High School', 'Some College', 'Bachelor\'s', 'Master\'s', 'PhD', 'Trade School'
+  'High School',
+  'Some College',
+  "Bachelor's",
+  "Master's",
+  'PhD',
+  'Trade School',
 ];
 
 const religionOptions = [
-  'Christian', 'Muslim', 'Jewish', 'Hindu', 'Buddhist', 'Atheist', 'Agnostic', 'Spiritual', 'Other'
+  'Christian',
+  'Muslim',
+  'Jewish',
+  'Hindu',
+  'Buddhist',
+  'Atheist',
+  'Agnostic',
+  'Spiritual',
+  'Other',
 ];
 
 const relationshipGoalOptions = [
-  'Casual Dating', 'Long-term', 'Marriage', 'Friendship', 'Not Sure'
+  'Casual Dating',
+  'Long-term',
+  'Marriage',
+  'Friendship',
+  'Not Sure',
 ];
 
 const interestOptions = [
-  'Travel', 'Photography', 'Cooking', 'Music', 'Art', 'Sports', 'Fitness', 'Reading',
-  'Movies', 'Gaming', 'Hiking', 'Dancing', 'Yoga', 'Running', 'Swimming', 'Foodie'
+  'Travel',
+  'Photography',
+  'Cooking',
+  'Music',
+  'Art',
+  'Sports',
+  'Fitness',
+  'Reading',
+  'Movies',
+  'Gaming',
+  'Hiking',
+  'Dancing',
+  'Yoga',
+  'Running',
+  'Swimming',
+  'Foodie',
 ];
 
 const defaultFilters: SearchFilters = {
@@ -569,7 +601,7 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
   const [saving, setSaving] = useState(false);
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => {
+    setExpandedSections((prev) => {
       const next = new Set(prev);
       if (next.has(section)) {
         next.delete(section);
@@ -581,14 +613,14 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
   };
 
   const updateFilter = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
     setActivePresetId(null);
   };
 
   const toggleArrayValue = (key: keyof SearchFilters, value: string) => {
     const currentValues = (filters[key] as string[]) || [];
     const newValues = currentValues.includes(value)
-      ? currentValues.filter(v => v !== value)
+      ? currentValues.filter((v) => v !== value)
       : [...currentValues, value];
     updateFilter(key, newValues as any);
   };
@@ -646,7 +678,7 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
                 Saved Presets
               </SectionTitle>
               <PresetsList>
-                {presets.map(preset => (
+                {presets.map((preset) => (
                   <PresetChip
                     key={preset.id}
                     active={activePresetId === preset.id}
@@ -675,13 +707,17 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
               <RangeSlider>
                 <div className="label">
                   <span>Age Range</span>
-                  <span className="value">{filters.minAge} - {filters.maxAge}</span>
+                  <span className="value">
+                    {filters.minAge} - {filters.maxAge}
+                  </span>
                 </div>
                 <DualRangeContainer>
                   <input
                     type="number"
                     value={filters.minAge}
-                    onChange={(e) => updateFilter('minAge', Math.max(18, parseInt(e.target.value) || 18))}
+                    onChange={(e) =>
+                      updateFilter('minAge', Math.max(18, parseInt(e.target.value) || 18))
+                    }
                     min={18}
                     max={99}
                   />
@@ -689,7 +725,9 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
                   <input
                     type="number"
                     value={filters.maxAge}
-                    onChange={(e) => updateFilter('maxAge', Math.min(99, parseInt(e.target.value) || 99))}
+                    onChange={(e) =>
+                      updateFilter('maxAge', Math.min(99, parseInt(e.target.value) || 99))
+                    }
                     min={18}
                     max={99}
                   />
@@ -722,7 +760,12 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
                     type="number"
                     placeholder="Min"
                     value={filters.minHeight || ''}
-                    onChange={(e) => updateFilter('minHeight', e.target.value ? parseInt(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      updateFilter(
+                        'minHeight',
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     min={120}
                     max={220}
                   />
@@ -731,7 +774,12 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
                     type="number"
                     placeholder="Max"
                     value={filters.maxHeight || ''}
-                    onChange={(e) => updateFilter('maxHeight', e.target.value ? parseInt(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      updateFilter(
+                        'maxHeight',
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     min={120}
                     max={220}
                   />
@@ -753,7 +801,7 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
             </FilterHeader>
             <FilterContent expanded={expandedSections.has('interests')}>
               <ChipsGrid>
-                {interestOptions.map(interest => (
+                {interestOptions.map((interest) => (
                   <Chip
                     key={interest}
                     selected={filters.interests?.includes(interest)}
@@ -780,7 +828,7 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
             <FilterContent expanded={expandedSections.has('background')}>
               <SectionTitle style={{ marginTop: 8 }}>Education</SectionTitle>
               <ChipsGrid>
-                {educationOptions.map(edu => (
+                {educationOptions.map((edu) => (
                   <Chip
                     key={edu}
                     selected={filters.education?.includes(edu)}
@@ -793,7 +841,7 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
 
               <SectionTitle style={{ marginTop: 16 }}>Religion</SectionTitle>
               <ChipsGrid>
-                {religionOptions.map(religion => (
+                {religionOptions.map((religion) => (
                   <Chip
                     key={religion}
                     selected={filters.religion?.includes(religion)}
@@ -819,7 +867,7 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
             </FilterHeader>
             <FilterContent expanded={expandedSections.has('goals')}>
               <ChipsGrid>
-                {relationshipGoalOptions.map(goal => (
+                {relationshipGoalOptions.map((goal) => (
                   <Chip
                     key={goal}
                     selected={filters.relationshipGoals?.includes(goal)}
@@ -891,40 +939,48 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
                 <span className="label">No smokers</span>
                 <Toggle
                   active={filters.dealbreakers?.noSmokers || false}
-                  onClick={() => updateFilter('dealbreakers', {
-                    ...filters.dealbreakers,
-                    noSmokers: !filters.dealbreakers?.noSmokers
-                  })}
+                  onClick={() =>
+                    updateFilter('dealbreakers', {
+                      ...filters.dealbreakers,
+                      noSmokers: !filters.dealbreakers?.noSmokers,
+                    })
+                  }
                 />
               </ToggleRow>
               <ToggleRow>
                 <span className="label">No drinkers</span>
                 <Toggle
                   active={filters.dealbreakers?.noDrinkers || false}
-                  onClick={() => updateFilter('dealbreakers', {
-                    ...filters.dealbreakers,
-                    noDrinkers: !filters.dealbreakers?.noDrinkers
-                  })}
+                  onClick={() =>
+                    updateFilter('dealbreakers', {
+                      ...filters.dealbreakers,
+                      noDrinkers: !filters.dealbreakers?.noDrinkers,
+                    })
+                  }
                 />
               </ToggleRow>
               <ToggleRow>
                 <span className="label">No children</span>
                 <Toggle
                   active={filters.dealbreakers?.noChildren || false}
-                  onClick={() => updateFilter('dealbreakers', {
-                    ...filters.dealbreakers,
-                    noChildren: !filters.dealbreakers?.noChildren
-                  })}
+                  onClick={() =>
+                    updateFilter('dealbreakers', {
+                      ...filters.dealbreakers,
+                      noChildren: !filters.dealbreakers?.noChildren,
+                    })
+                  }
                 />
               </ToggleRow>
               <ToggleRow>
                 <span className="label">No pets</span>
                 <Toggle
                   active={filters.dealbreakers?.noPets || false}
-                  onClick={() => updateFilter('dealbreakers', {
-                    ...filters.dealbreakers,
-                    noPets: !filters.dealbreakers?.noPets
-                  })}
+                  onClick={() =>
+                    updateFilter('dealbreakers', {
+                      ...filters.dealbreakers,
+                      noPets: !filters.dealbreakers?.noPets,
+                    })
+                  }
                 />
               </ToggleRow>
             </FilterContent>
@@ -961,7 +1017,11 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
               <button className="cancel" onClick={() => setShowSaveModal(false)}>
                 Cancel
               </button>
-              <button className="save" onClick={handleSavePreset} disabled={saving || !presetName.trim()}>
+              <button
+                className="save"
+                onClick={handleSavePreset}
+                disabled={saving || !presetName.trim()}
+              >
                 {saving ? 'Saving...' : 'Save'}
               </button>
             </div>

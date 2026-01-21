@@ -4,14 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { OnboardingStackParamList } from './OnboardingNavigator';
@@ -90,7 +83,7 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const toggleInterest = (id: string) => {
     if (selectedInterests.includes(id)) {
-      setSelectedInterests(selectedInterests.filter(i => i !== id));
+      setSelectedInterests(selectedInterests.filter((i) => i !== id));
     } else if (selectedInterests.length < MAX_INTERESTS) {
       setSelectedInterests([...selectedInterests, id]);
     }
@@ -120,10 +113,7 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>7 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
@@ -133,10 +123,12 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
         </Text>
 
         <View style={styles.counterContainer}>
-          <Text style={[
-            styles.counterText,
-            selectedInterests.length >= MIN_INTERESTS && styles.counterTextValid
-          ]}>
+          <Text
+            style={[
+              styles.counterText,
+              selectedInterests.length >= MIN_INTERESTS && styles.counterTextValid,
+            ]}
+          >
             {selectedInterests.length} / {MAX_INTERESTS} selected
           </Text>
         </View>
@@ -152,19 +144,11 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
               return (
                 <TouchableOpacity
                   key={interest.id}
-                  style={[
-                    styles.interestChip,
-                    isSelected && styles.interestChipSelected,
-                  ]}
+                  style={[styles.interestChip, isSelected && styles.interestChipSelected]}
                   onPress={() => toggleInterest(interest.id)}
                 >
                   <Text style={styles.interestEmoji}>{interest.emoji}</Text>
-                  <Text
-                    style={[
-                      styles.interestLabel,
-                      isSelected && styles.interestLabelSelected,
-                    ]}
-                  >
+                  <Text style={[styles.interestLabel, isSelected && styles.interestLabelSelected]}>
                     {interest.label}
                   </Text>
                 </TouchableOpacity>
@@ -175,11 +159,19 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.button, selectedInterests.length < MIN_INTERESTS && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              selectedInterests.length < MIN_INTERESTS && styles.buttonDisabled,
+            ]}
             onPress={handleContinue}
             disabled={selectedInterests.length < MIN_INTERESTS}
           >
-            <Text style={[styles.buttonText, selectedInterests.length < MIN_INTERESTS && styles.buttonTextDisabled]}>
+            <Text
+              style={[
+                styles.buttonText,
+                selectedInterests.length < MIN_INTERESTS && styles.buttonTextDisabled,
+              ]}
+            >
               Continue
             </Text>
           </TouchableOpacity>

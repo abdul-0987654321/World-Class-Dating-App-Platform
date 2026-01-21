@@ -76,7 +76,7 @@ const REPORT_CATEGORIES: ReportCategory[] = [
   {
     id: 'fake_profile',
     label: 'Fake Profile',
-    description: 'Using someone else\'s photos or false information',
+    description: "Using someone else's photos or false information",
     icon: '👤',
     severity: 'high',
   },
@@ -193,9 +193,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
             <Text style={styles.categoryIconText}>{category.icon}</Text>
           </View>
           <View style={styles.categoryInfo}>
-            <Text
-              style={[styles.categoryLabel, isSelected && styles.categoryLabelSelected]}
-            >
+            <Text style={[styles.categoryLabel, isSelected && styles.categoryLabelSelected]}>
               {category.label}
             </Text>
             <Text style={styles.categoryDescription}>{category.description}</Text>
@@ -227,12 +225,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -252,18 +245,14 @@ export const ReportUser: React.FC<ReportUserProps> = ({
             </View>
             <Text style={styles.warningTitle}>Report {userName}</Text>
             <Text style={styles.warningMessage}>
-              Help us keep Flamoral safe. Your report is anonymous and will be
-              reviewed by our moderation team.
+              Help us keep Flamoral safe. Your report is anonymous and will be reviewed by our
+              moderation team.
             </Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              What's wrong with this {getReportTypeLabel()}?
-            </Text>
-            <Text style={styles.sectionSubtitle}>
-              Select the most relevant violation
-            </Text>
+            <Text style={styles.sectionTitle}>What's wrong with this {getReportTypeLabel()}?</Text>
+            <Text style={styles.sectionSubtitle}>Select the most relevant violation</Text>
 
             <View style={styles.categoriesList}>
               {REPORT_CATEGORIES.map((category) => renderCategory(category))}
@@ -276,8 +265,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
               <Text style={styles.sectionSubtitle}>
                 {REPORT_CATEGORIES.find((c) => c.id === selectedCategory)?.severity ===
                   'critical' ||
-                REPORT_CATEGORIES.find((c) => c.id === selectedCategory)?.severity ===
-                  'high'
+                REPORT_CATEGORIES.find((c) => c.id === selectedCategory)?.severity === 'high'
                   ? 'Required - Please provide specific details'
                   : 'Optional - Helps us review faster'}
               </Text>
@@ -293,9 +281,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
                 maxLength={500}
                 textAlignVertical="top"
               />
-              <Text style={styles.characterCount}>
-                {details.length}/500 characters
-              </Text>
+              <Text style={styles.characterCount}>{details.length}/500 characters</Text>
             </View>
           )}
 
@@ -309,9 +295,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoBullet}>2.</Text>
-              <Text style={styles.infoText}>
-                We investigate within 24-48 hours
-              </Text>
+              <Text style={styles.infoText}>We investigate within 24-48 hours</Text>
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoBullet}>3.</Text>
@@ -335,10 +319,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
           </View>
 
           {onBlockInstead && (
-            <TouchableOpacity
-              style={styles.blockButton}
-              onPress={handleBlockInstead}
-            >
+            <TouchableOpacity style={styles.blockButton} onPress={handleBlockInstead}>
               <Text style={styles.blockButtonText}>Block this user instead</Text>
             </TouchableOpacity>
           )}

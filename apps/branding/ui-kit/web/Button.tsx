@@ -51,11 +51,7 @@ export const Button: React.FC<ButtonProps> = ({
     .join(' ');
 
   return (
-    <button
-      className={combinedClassName}
-      disabled={disabled || loading}
-      {...props}
-    >
+    <button className={combinedClassName} disabled={disabled || loading} {...props}>
       {loading && (
         <span className="flamoral-btn__spinner">
           <svg
@@ -77,15 +73,11 @@ export const Button: React.FC<ButtonProps> = ({
         </span>
       )}
       {!loading && leftIcon && (
-        <span className="flamoral-btn__icon flamoral-btn__icon--left">
-          {leftIcon}
-        </span>
+        <span className="flamoral-btn__icon flamoral-btn__icon--left">{leftIcon}</span>
       )}
       <span className="flamoral-btn__text">{children}</span>
       {!loading && rightIcon && (
-        <span className="flamoral-btn__icon flamoral-btn__icon--right">
-          {rightIcon}
-        </span>
+        <span className="flamoral-btn__icon flamoral-btn__icon--right">{rightIcon}</span>
       )}
     </button>
   );

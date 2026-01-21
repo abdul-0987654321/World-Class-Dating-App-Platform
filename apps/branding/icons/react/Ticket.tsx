@@ -39,11 +39,7 @@ export const Ticket: React.FC<IconProps> = ({
         d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"
         fill={fill}
       />
-      <path
-        d="M10 7v2h4V7h-4zm0 4v2h4v-2h-4zm0 4v2h4v-2h-4z"
-        fill="#FFF6EE"
-        opacity="0.7"
-      />
+      <path d="M10 7v2h4V7h-4zm0 4v2h4v-2h-4zm0 4v2h4v-2h-4z" fill="#FFF6EE" opacity="0.7" />
     </svg>
   );
 };

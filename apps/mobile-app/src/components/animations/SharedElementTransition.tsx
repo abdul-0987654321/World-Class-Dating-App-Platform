@@ -11,14 +11,7 @@
  */
 
 import React, { useCallback, memo, useEffect, useRef } from 'react';
-import {
-  View,
-  Image,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, Image, StyleSheet, Dimensions, TouchableOpacity, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -114,96 +107,79 @@ export const fadingSharedTransition = SharedTransition.custom((values) => {
 // PROFILE CARD TO DETAIL TRANSITION
 // ============================================================================
 
-export const ProfileTransitionOverlay = memo<ProfileTransitionProps>(({
-  profile,
-  source,
-  onTransitionComplete,
-}) => {
-  const progress = useSharedValue(0);
-  const imageScale = useSharedValue(1);
+export const ProfileTransitionOverlay = memo<ProfileTransitionProps>(
+  ({ profile, source, onTransitionComplete }) => {
+    const progress = useSharedValue(0);
+    const imageScale = useSharedValue(1);
 
-  // Target dimensions (full screen)
-  const targetWidth = SCREEN_WIDTH;
-  const targetHeight = SCREEN_HEIGHT * 0.6;
-  const targetX = 0;
-  const targetY = 0;
+    // Target dimensions (full screen)
+    const targetWidth = SCREEN_WIDTH;
+    const targetHeight = SCREEN_HEIGHT * 0.6;
+    const targetX = 0;
+    const targetY = 0;
 
-  useEffect(() => {
-    // Start transition
-    progress.value = withTiming(1, { duration: TRANSITION_DURATION }, (finished) => {
-      if (finished && onTransitionComplete) {
-        runOnJS(onTransitionComplete)();
-      }
+    useEffect(() => {
+      // Start transition
+      progress.value = withTiming(1, { duration: TRANSITION_DURATION }, (finished) => {
+        if (finished && onTransitionComplete) {
+          runOnJS(onTransitionComplete)();
+        }
+      });
+    }, [progress, onTransitionComplete]);
+
+    const animatedContainerStyle = useAnimatedStyle(() => {
+      const width = interpolate(
+        progress.value,
+        [0, 1],
+        [source.width, targetWidth],
+        Extrapolate.CLAMP
+      );
+
+      const height = interpolate(
+        progress.value,
+        [0, 1],
+        [source.height, targetHeight],
+        Extrapolate.CLAMP
+      );
+
+      const x = interpolate(progress.value, [0, 1], [source.x, targetX], Extrapolate.CLAMP);
+
+      const y = interpolate(progress.value, [0, 1], [source.y, targetY], Extrapolate.CLAMP);
+
+      const borderRadius = interpolate(progress.value, [0, 1], [20, 0], Extrapolate.CLAMP);
+
+      return {
+        position: 'absolute',
+        left: x,
+        top: y,
+        width,
+        height,
+        borderRadius,
+        overflow: 'hidden',
+      };
     });
-  }, [progress, onTransitionComplete]);
 
-  const animatedContainerStyle = useAnimatedStyle(() => {
-    const width = interpolate(
-      progress.value,
-      [0, 1],
-      [source.width, targetWidth],
-      Extrapolate.CLAMP
+    const overlayStyle = useAnimatedStyle(() => ({
+      opacity: progress.value,
+    }));
+
+    return (
+      <View style={StyleSheet.absoluteFill}>
+        {/* Background overlay */}
+        <Animated.View style={[styles.overlay, overlayStyle]} />
+
+        {/* Transitioning image */}
+        <Animated.View style={animatedContainerStyle}>
+          <Image
+            source={{ uri: profile.photo }}
+            style={styles.transitionImage}
+            resizeMode="cover"
+          />
+        </Animated.View>
+      </View>
     );
-
-    const height = interpolate(
-      progress.value,
-      [0, 1],
-      [source.height, targetHeight],
-      Extrapolate.CLAMP
-    );
-
-    const x = interpolate(
-      progress.value,
-      [0, 1],
-      [source.x, targetX],
-      Extrapolate.CLAMP
-    );
-
-    const y = interpolate(
-      progress.value,
-      [0, 1],
-      [source.y, targetY],
-      Extrapolate.CLAMP
-    );
-
-    const borderRadius = interpolate(
-      progress.value,
-      [0, 1],
-      [20, 0],
-      Extrapolate.CLAMP
-    );
-
-    return {
-      position: 'absolute',
-      left: x,
-      top: y,
-      width,
-      height,
-      borderRadius,
-      overflow: 'hidden',
-    };
-  });
-
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-  }));
-
-  return (
-    <View style={StyleSheet.absoluteFill}>
-      {/* Background overlay */}
-      <Animated.View style={[styles.overlay, overlayStyle]} />
-
-      {/* Transitioning image */}
-      <Animated.View style={animatedContainerStyle}>
-        <Image
-          source={{ uri: profile.photo }}
-          style={styles.transitionImage}
-          resizeMode="cover"
-        />
-      </Animated.View>
-    </View>
-  );
-});
+  }
+);
 
 ProfileTransitionOverlay.displayName = 'ProfileTransitionOverlay';
 
@@ -211,12 +187,7 @@ ProfileTransitionOverlay.displayName = 'ProfileTransitionOverlay';
 // PHOTO ZOOM TRANSITION
 // ============================================================================
 
-export const PhotoZoomModal = memo<PhotoZoomProps>(({
-  photo,
-  thumbnailRef,
-  visible,
-  onClose,
-}) => {
+export const PhotoZoomModal = memo<PhotoZoomProps>(({ photo, thumbnailRef, visible, onClose }) => {
   const progress = useSharedValue(0);
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -260,19 +231,9 @@ export const PhotoZoomModal = memo<PhotoZoomProps>(({
       Extrapolate.CLAMP
     );
 
-    const imageX = interpolate(
-      progress.value,
-      [0, 1],
-      [x, 0],
-      Extrapolate.CLAMP
-    );
+    const imageX = interpolate(progress.value, [0, 1], [x, 0], Extrapolate.CLAMP);
 
-    const imageY = interpolate(
-      progress.value,
-      [0, 1],
-      [y, 0],
-      Extrapolate.CLAMP
-    );
+    const imageY = interpolate(progress.value, [0, 1], [y, 0], Extrapolate.CLAMP);
 
     return {
       position: 'absolute',
@@ -297,20 +258,12 @@ export const PhotoZoomModal = memo<PhotoZoomProps>(({
     <View style={StyleSheet.absoluteFill} pointerEvents={visible ? 'auto' : 'none'}>
       {/* Dark overlay */}
       <Animated.View style={[StyleSheet.absoluteFill, overlayStyle]}>
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          onPress={handleClose}
-          activeOpacity={1}
-        />
+        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={handleClose} activeOpacity={1} />
       </Animated.View>
 
       {/* Zoomed image */}
       <Animated.View style={containerStyle}>
-        <Image
-          source={{ uri: photo }}
-          style={styles.zoomedImage}
-          resizeMode="contain"
-        />
+        <Image source={{ uri: photo }} style={styles.zoomedImage} resizeMode="contain" />
       </Animated.View>
 
       {/* Close button */}
@@ -338,86 +291,83 @@ export interface MatchTransitionProps {
   onAnimationComplete?: () => void;
 }
 
-export const MatchTransitionOverlay = memo<MatchTransitionProps>(({
-  userPhoto,
-  matchPhoto,
-  visible,
-  onAnimationComplete,
-}) => {
-  const progress = useSharedValue(0);
-  const heartScale = useSharedValue(0);
-  const leftImageX = useSharedValue(-SCREEN_WIDTH);
-  const rightImageX = useSharedValue(SCREEN_WIDTH);
+export const MatchTransitionOverlay = memo<MatchTransitionProps>(
+  ({ userPhoto, matchPhoto, visible, onAnimationComplete }) => {
+    const progress = useSharedValue(0);
+    const heartScale = useSharedValue(0);
+    const leftImageX = useSharedValue(-SCREEN_WIDTH);
+    const rightImageX = useSharedValue(SCREEN_WIDTH);
 
-  useEffect(() => {
-    if (visible) {
-      // Animate images in from sides
-      leftImageX.value = withSpring(SCREEN_WIDTH * 0.15, SPRING_CONFIG);
-      rightImageX.value = withSpring(SCREEN_WIDTH * 0.55, SPRING_CONFIG);
+    useEffect(() => {
+      if (visible) {
+        // Animate images in from sides
+        leftImageX.value = withSpring(SCREEN_WIDTH * 0.15, SPRING_CONFIG);
+        rightImageX.value = withSpring(SCREEN_WIDTH * 0.55, SPRING_CONFIG);
 
-      // Fade in overlay
-      progress.value = withTiming(1, { duration: 300 });
+        // Fade in overlay
+        progress.value = withTiming(1, { duration: 300 });
 
-      // Pop heart after images arrive
-      setTimeout(() => {
-        heartScale.value = withSpring(1, {
-          damping: 8,
-          stiffness: 100,
-        });
-      }, 200);
+        // Pop heart after images arrive
+        setTimeout(() => {
+          heartScale.value = withSpring(1, {
+            damping: 8,
+            stiffness: 100,
+          });
+        }, 200);
 
-      // Notify completion
-      setTimeout(() => {
-        onAnimationComplete?.();
-      }, 600);
-    } else {
-      progress.value = withTiming(0, { duration: 200 });
-      heartScale.value = 0;
-      leftImageX.value = -SCREEN_WIDTH;
-      rightImageX.value = SCREEN_WIDTH;
+        // Notify completion
+        setTimeout(() => {
+          onAnimationComplete?.();
+        }, 600);
+      } else {
+        progress.value = withTiming(0, { duration: 200 });
+        heartScale.value = 0;
+        leftImageX.value = -SCREEN_WIDTH;
+        rightImageX.value = SCREEN_WIDTH;
+      }
+    }, [visible, progress, heartScale, leftImageX, rightImageX, onAnimationComplete]);
+
+    const overlayStyle = useAnimatedStyle(() => ({
+      opacity: progress.value,
+    }));
+
+    const leftImageStyle = useAnimatedStyle(() => ({
+      transform: [{ translateX: leftImageX.value }],
+    }));
+
+    const rightImageStyle = useAnimatedStyle(() => ({
+      transform: [{ translateX: rightImageX.value - SCREEN_WIDTH * 0.55 }],
+    }));
+
+    const heartStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: heartScale.value }],
+      opacity: heartScale.value,
+    }));
+
+    if (!visible && progress.value === 0) {
+      return null;
     }
-  }, [visible, progress, heartScale, leftImageX, rightImageX, onAnimationComplete]);
 
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-  }));
+    return (
+      <Animated.View style={[StyleSheet.absoluteFill, styles.matchOverlay, overlayStyle]}>
+        {/* User image */}
+        <Animated.View style={[styles.matchImageContainer, leftImageStyle]}>
+          <Image source={{ uri: userPhoto }} style={styles.matchImage} />
+        </Animated.View>
 
-  const leftImageStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: leftImageX.value }],
-  }));
+        {/* Heart */}
+        <Animated.View style={[styles.heartContainer, heartStyle]}>
+          <Animated.Text style={styles.heartEmoji}>&#128149;</Animated.Text>
+        </Animated.View>
 
-  const rightImageStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: rightImageX.value - SCREEN_WIDTH * 0.55 }],
-  }));
-
-  const heartStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: heartScale.value }],
-    opacity: heartScale.value,
-  }));
-
-  if (!visible && progress.value === 0) {
-    return null;
+        {/* Match image */}
+        <Animated.View style={[styles.matchImageContainer, rightImageStyle]}>
+          <Image source={{ uri: matchPhoto }} style={styles.matchImage} />
+        </Animated.View>
+      </Animated.View>
+    );
   }
-
-  return (
-    <Animated.View style={[StyleSheet.absoluteFill, styles.matchOverlay, overlayStyle]}>
-      {/* User image */}
-      <Animated.View style={[styles.matchImageContainer, leftImageStyle]}>
-        <Image source={{ uri: userPhoto }} style={styles.matchImage} />
-      </Animated.View>
-
-      {/* Heart */}
-      <Animated.View style={[styles.heartContainer, heartStyle]}>
-        <Animated.Text style={styles.heartEmoji}>&#128149;</Animated.Text>
-      </Animated.View>
-
-      {/* Match image */}
-      <Animated.View style={[styles.matchImageContainer, rightImageStyle]}>
-        <Image source={{ uri: matchPhoto }} style={styles.matchImage} />
-      </Animated.View>
-    </Animated.View>
-  );
-});
+);
 
 MatchTransitionOverlay.displayName = 'MatchTransitionOverlay';
 
@@ -428,7 +378,12 @@ MatchTransitionOverlay.displayName = 'MatchTransitionOverlay';
 export const useMeasure = () => {
   const ref = useRef<View>(null);
 
-  const measure = useCallback((): Promise<{ x: number; y: number; width: number; height: number }> => {
+  const measure = useCallback((): Promise<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }> => {
     return new Promise((resolve) => {
       if (ref.current) {
         ref.current.measure((x, y, width, height, pageX, pageY) => {

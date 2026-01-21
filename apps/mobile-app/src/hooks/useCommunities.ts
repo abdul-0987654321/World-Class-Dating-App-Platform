@@ -57,16 +57,136 @@ interface UseCommunitiesReturn extends CommunitiesState {
 }
 
 const DEFAULT_COMMUNITIES: Community[] = [
-  { id: '1', name: 'Travel Lovers', description: 'Share your travel adventures and find companions', icon: 'airplane', memberCount: 15420, isJoined: true, category: 'Lifestyle', color: '#3B82F6', isPrivate: false, createdAt: '2024-01-15T00:00:00Z', createdBy: { id: 'u1', name: 'Admin', photoUrl: '' } },
-  { id: '2', name: 'Foodies Unite', description: 'Discover restaurants and share recipes', icon: 'restaurant', memberCount: 12890, isJoined: true, category: 'Food', color: '#F97316', isPrivate: false, createdAt: '2024-01-10T00:00:00Z', createdBy: { id: 'u2', name: 'Admin', photoUrl: '' } },
-  { id: '3', name: 'Fitness Fanatics', description: 'Workout buddies and fitness tips', icon: 'fitness', memberCount: 9870, isJoined: false, category: 'Health', color: '#22C55E', isPrivate: false, createdAt: '2024-01-08T00:00:00Z', createdBy: { id: 'u3', name: 'Admin', photoUrl: '' } },
-  { id: '4', name: 'Book Club', description: 'Discuss your favorite reads', icon: 'book', memberCount: 7650, isJoined: false, category: 'Culture', color: '#A855F7', isPrivate: false, createdAt: '2024-01-05T00:00:00Z', createdBy: { id: 'u4', name: 'Admin', photoUrl: '' } },
-  { id: '5', name: 'Pet Parents', description: 'Share your furry friends', icon: 'paw', memberCount: 11230, isJoined: true, category: 'Pets', color: '#EAB308', isPrivate: false, createdAt: '2024-01-12T00:00:00Z', createdBy: { id: 'u5', name: 'Admin', photoUrl: '' } },
-  { id: '6', name: 'Movie Buffs', description: 'Film discussions and recommendations', icon: 'film', memberCount: 8900, isJoined: false, category: 'Entertainment', color: '#EF4444', isPrivate: false, createdAt: '2024-01-03T00:00:00Z', createdBy: { id: 'u6', name: 'Admin', photoUrl: '' } },
-  { id: '7', name: 'Music Lovers', description: 'Share playlists and concert experiences', icon: 'musical-notes', memberCount: 10450, isJoined: false, category: 'Music', color: '#8B5CF6', isPrivate: false, createdAt: '2024-01-01T00:00:00Z', createdBy: { id: 'u7', name: 'Admin', photoUrl: '' } },
-  { id: '8', name: 'Outdoor Adventures', description: 'Hiking, camping, and nature exploration', icon: 'leaf', memberCount: 6780, isJoined: false, category: 'Adventure', color: '#14B8A6', isPrivate: false, createdAt: '2024-02-01T00:00:00Z', createdBy: { id: 'u8', name: 'Admin', photoUrl: '' } },
-  { id: '9', name: 'Tech Enthusiasts', description: 'Latest gadgets and tech discussions', icon: 'hardware-chip', memberCount: 5430, isJoined: false, category: 'Technology', color: '#6366F1', isPrivate: false, createdAt: '2024-02-05T00:00:00Z', createdBy: { id: 'u9', name: 'Admin', photoUrl: '' } },
-  { id: '10', name: 'Art & Design', description: 'Creative inspiration and art sharing', icon: 'color-palette', memberCount: 4560, isJoined: false, category: 'Art', color: '#EC4899', isPrivate: false, createdAt: '2024-02-10T00:00:00Z', createdBy: { id: 'u10', name: 'Admin', photoUrl: '' } },
+  {
+    id: '1',
+    name: 'Travel Lovers',
+    description: 'Share your travel adventures and find companions',
+    icon: 'airplane',
+    memberCount: 15420,
+    isJoined: true,
+    category: 'Lifestyle',
+    color: '#3B82F6',
+    isPrivate: false,
+    createdAt: '2024-01-15T00:00:00Z',
+    createdBy: { id: 'u1', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '2',
+    name: 'Foodies Unite',
+    description: 'Discover restaurants and share recipes',
+    icon: 'restaurant',
+    memberCount: 12890,
+    isJoined: true,
+    category: 'Food',
+    color: '#F97316',
+    isPrivate: false,
+    createdAt: '2024-01-10T00:00:00Z',
+    createdBy: { id: 'u2', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '3',
+    name: 'Fitness Fanatics',
+    description: 'Workout buddies and fitness tips',
+    icon: 'fitness',
+    memberCount: 9870,
+    isJoined: false,
+    category: 'Health',
+    color: '#22C55E',
+    isPrivate: false,
+    createdAt: '2024-01-08T00:00:00Z',
+    createdBy: { id: 'u3', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '4',
+    name: 'Book Club',
+    description: 'Discuss your favorite reads',
+    icon: 'book',
+    memberCount: 7650,
+    isJoined: false,
+    category: 'Culture',
+    color: '#A855F7',
+    isPrivate: false,
+    createdAt: '2024-01-05T00:00:00Z',
+    createdBy: { id: 'u4', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '5',
+    name: 'Pet Parents',
+    description: 'Share your furry friends',
+    icon: 'paw',
+    memberCount: 11230,
+    isJoined: true,
+    category: 'Pets',
+    color: '#EAB308',
+    isPrivate: false,
+    createdAt: '2024-01-12T00:00:00Z',
+    createdBy: { id: 'u5', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '6',
+    name: 'Movie Buffs',
+    description: 'Film discussions and recommendations',
+    icon: 'film',
+    memberCount: 8900,
+    isJoined: false,
+    category: 'Entertainment',
+    color: '#EF4444',
+    isPrivate: false,
+    createdAt: '2024-01-03T00:00:00Z',
+    createdBy: { id: 'u6', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '7',
+    name: 'Music Lovers',
+    description: 'Share playlists and concert experiences',
+    icon: 'musical-notes',
+    memberCount: 10450,
+    isJoined: false,
+    category: 'Music',
+    color: '#8B5CF6',
+    isPrivate: false,
+    createdAt: '2024-01-01T00:00:00Z',
+    createdBy: { id: 'u7', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '8',
+    name: 'Outdoor Adventures',
+    description: 'Hiking, camping, and nature exploration',
+    icon: 'leaf',
+    memberCount: 6780,
+    isJoined: false,
+    category: 'Adventure',
+    color: '#14B8A6',
+    isPrivate: false,
+    createdAt: '2024-02-01T00:00:00Z',
+    createdBy: { id: 'u8', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '9',
+    name: 'Tech Enthusiasts',
+    description: 'Latest gadgets and tech discussions',
+    icon: 'hardware-chip',
+    memberCount: 5430,
+    isJoined: false,
+    category: 'Technology',
+    color: '#6366F1',
+    isPrivate: false,
+    createdAt: '2024-02-05T00:00:00Z',
+    createdBy: { id: 'u9', name: 'Admin', photoUrl: '' },
+  },
+  {
+    id: '10',
+    name: 'Art & Design',
+    description: 'Creative inspiration and art sharing',
+    icon: 'color-palette',
+    memberCount: 4560,
+    isJoined: false,
+    category: 'Art',
+    color: '#EC4899',
+    isPrivate: false,
+    createdAt: '2024-02-10T00:00:00Z',
+    createdBy: { id: 'u10', name: 'Admin', photoUrl: '' },
+  },
 ];
 
 const DEFAULT_CATEGORIES: CommunityCategory[] = [
@@ -94,62 +214,65 @@ export function useCommunities(): UseCommunitiesReturn {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const fetchCommunities = useCallback(async (reset = false) => {
-    const currentPage = reset ? 1 : state.page;
+  const fetchCommunities = useCallback(
+    async (reset = false) => {
+      const currentPage = reset ? 1 : state.page;
 
-    if (!reset && state.loading) return;
+      if (!reset && state.loading) return;
 
-    setState((prev) => ({
-      ...prev,
-      loading: true,
-      error: null,
-      page: currentPage,
-    }));
+      setState((prev) => ({
+        ...prev,
+        loading: true,
+        error: null,
+        page: currentPage,
+      }));
 
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '20',
-      });
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '20',
+        });
 
-      if (selectedCategory) {
-        params.append('category', selectedCategory);
-      }
+        if (selectedCategory) {
+          params.append('category', selectedCategory);
+        }
 
-      const response = await httpClient.get<{ communities: Community[]; hasMore: boolean }>(
-        `/api/communities?${params.toString()}`
-      );
+        const response = await httpClient.get<{ communities: Community[]; hasMore: boolean }>(
+          `/api/communities?${params.toString()}`
+        );
 
-      if (response.success && response.data) {
-        setState((prev) => ({
-          ...prev,
-          communities: reset
-            ? response.data!.communities
-            : [...prev.communities, ...response.data!.communities],
-          hasMore: response.data!.hasMore,
-          loading: false,
-          page: currentPage + 1,
-        }));
-      } else {
-        // Use default data if API fails
+        if (response.success && response.data) {
+          setState((prev) => ({
+            ...prev,
+            communities: reset
+              ? response.data!.communities
+              : [...prev.communities, ...response.data!.communities],
+            hasMore: response.data!.hasMore,
+            loading: false,
+            page: currentPage + 1,
+          }));
+        } else {
+          // Use default data if API fails
+          setState((prev) => ({
+            ...prev,
+            communities: DEFAULT_COMMUNITIES,
+            hasMore: false,
+            loading: false,
+          }));
+        }
+      } catch (error: any) {
+        console.error('Error fetching communities:', error);
         setState((prev) => ({
           ...prev,
           communities: DEFAULT_COMMUNITIES,
-          hasMore: false,
           loading: false,
+          error: error.message || 'Failed to fetch communities',
+          hasMore: false,
         }));
       }
-    } catch (error: any) {
-      console.error('Error fetching communities:', error);
-      setState((prev) => ({
-        ...prev,
-        communities: DEFAULT_COMMUNITIES,
-        loading: false,
-        error: error.message || 'Failed to fetch communities',
-        hasMore: false,
-      }));
-    }
-  }, [state.page, state.loading, selectedCategory]);
+    },
+    [state.page, state.loading, selectedCategory]
+  );
 
   const fetchJoinedCommunities = useCallback(async () => {
     try {
@@ -203,39 +326,42 @@ export function useCommunities(): UseCommunitiesReturn {
     }
   }, []);
 
-  const searchCommunities = useCallback(async (query: string): Promise<Community[]> => {
-    if (!query.trim()) {
-      return state.communities;
-    }
-
-    try {
-      const response = await httpClient.get<{ communities: Community[] }>(
-        `/api/communities/search?q=${encodeURIComponent(query)}`
-      );
-
-      if (response.success && response.data) {
-        return response.data.communities;
+  const searchCommunities = useCallback(
+    async (query: string): Promise<Community[]> => {
+      if (!query.trim()) {
+        return state.communities;
       }
 
-      // Fallback to local search
-      const lowerQuery = query.toLowerCase();
-      return state.communities.filter(
-        (c) =>
-          c.name.toLowerCase().includes(lowerQuery) ||
-          c.description.toLowerCase().includes(lowerQuery) ||
-          c.category.toLowerCase().includes(lowerQuery)
-      );
-    } catch (error) {
-      // Fallback to local search
-      const lowerQuery = query.toLowerCase();
-      return state.communities.filter(
-        (c) =>
-          c.name.toLowerCase().includes(lowerQuery) ||
-          c.description.toLowerCase().includes(lowerQuery) ||
-          c.category.toLowerCase().includes(lowerQuery)
-      );
-    }
-  }, [state.communities]);
+      try {
+        const response = await httpClient.get<{ communities: Community[] }>(
+          `/api/communities/search?q=${encodeURIComponent(query)}`
+        );
+
+        if (response.success && response.data) {
+          return response.data.communities;
+        }
+
+        // Fallback to local search
+        const lowerQuery = query.toLowerCase();
+        return state.communities.filter(
+          (c) =>
+            c.name.toLowerCase().includes(lowerQuery) ||
+            c.description.toLowerCase().includes(lowerQuery) ||
+            c.category.toLowerCase().includes(lowerQuery)
+        );
+      } catch (error) {
+        // Fallback to local search
+        const lowerQuery = query.toLowerCase();
+        return state.communities.filter(
+          (c) =>
+            c.name.toLowerCase().includes(lowerQuery) ||
+            c.description.toLowerCase().includes(lowerQuery) ||
+            c.category.toLowerCase().includes(lowerQuery)
+        );
+      }
+    },
+    [state.communities]
+  );
 
   const joinCommunity = useCallback(async (communityId: string): Promise<boolean> => {
     try {
@@ -245,9 +371,7 @@ export function useCommunities(): UseCommunitiesReturn {
         setState((prev) => ({
           ...prev,
           communities: prev.communities.map((c) =>
-            c.id === communityId
-              ? { ...c, isJoined: true, memberCount: c.memberCount + 1 }
-              : c
+            c.id === communityId ? { ...c, isJoined: true, memberCount: c.memberCount + 1 } : c
           ),
           joinedCommunities: [
             ...prev.joinedCommunities,
@@ -261,9 +385,7 @@ export function useCommunities(): UseCommunitiesReturn {
       setState((prev) => ({
         ...prev,
         communities: prev.communities.map((c) =>
-          c.id === communityId
-            ? { ...c, isJoined: true, memberCount: c.memberCount + 1 }
-            : c
+          c.id === communityId ? { ...c, isJoined: true, memberCount: c.memberCount + 1 } : c
         ),
       }));
       return true;
@@ -273,9 +395,7 @@ export function useCommunities(): UseCommunitiesReturn {
       setState((prev) => ({
         ...prev,
         communities: prev.communities.map((c) =>
-          c.id === communityId
-            ? { ...c, isJoined: true, memberCount: c.memberCount + 1 }
-            : c
+          c.id === communityId ? { ...c, isJoined: true, memberCount: c.memberCount + 1 } : c
         ),
       }));
       return true;

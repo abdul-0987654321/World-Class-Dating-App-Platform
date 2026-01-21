@@ -5,7 +5,8 @@ import axios from 'axios';
 
 // SECURITY: Use API gateway URL in production, localhost only in development
 // In production, all API calls route through the main API gateway
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL ||
+const USER_SERVICE_URL =
+  import.meta.env.VITE_USER_SERVICE_URL ||
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? 'http://localhost:3001' : '');
 
@@ -144,8 +145,8 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-        err.response?.data?.message ||
-        'Failed to send verification code'
+          err.response?.data?.message ||
+          'Failed to send verification code'
       );
     } finally {
       setLoading(false);
@@ -184,11 +185,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
         setError(response.data.error || 'Invalid verification code');
       }
     } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        'Failed to verify code'
-      );
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to verify code');
     } finally {
       setLoading(false);
     }
@@ -219,11 +216,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
         setError(response.data.error || 'Failed to resend code');
       }
     } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        'Failed to resend code'
-      );
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to resend code');
     } finally {
       setLoading(false);
     }
@@ -309,7 +302,10 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
           )}
 
           <ButtonGroup>
-            <PrimaryButton onClick={verifyCode} disabled={loading || !verificationCode || verificationCode.length !== 6}>
+            <PrimaryButton
+              onClick={verifyCode}
+              disabled={loading || !verificationCode || verificationCode.length !== 6}
+            >
               {loading ? 'Verifying...' : 'Verify Code'}
             </PrimaryButton>
 
@@ -318,9 +314,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
             </SecondaryButton>
           </ButtonGroup>
 
-          <ChangeNumberLink onClick={handleChangeNumber}>
-            Change phone number
-          </ChangeNumberLink>
+          <ChangeNumberLink onClick={handleChangeNumber}>Change phone number</ChangeNumberLink>
         </VerifyStep>
       )}
 

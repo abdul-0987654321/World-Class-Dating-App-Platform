@@ -30,14 +30,14 @@ const faqData: FAQItem[] = [
     id: '2',
     question: 'How does matching work?',
     answer:
-      'Matching works by swiping right on profiles you like. If they also swipe right on you, it\'s a match! You\'ll then be able to start messaging each other.',
+      "Matching works by swiping right on profiles you like. If they also swipe right on you, it's a match! You'll then be able to start messaging each other.",
     category: 'Matching',
   },
   {
     id: '3',
     question: 'What is Photo Verification?',
     answer:
-      'Photo Verification helps ensure profiles are authentic. Take a selfie following the on-screen instructions, and we\'ll verify it matches your profile photos. Verified profiles get a blue checkmark badge.',
+      "Photo Verification helps ensure profiles are authentic. Take a selfie following the on-screen instructions, and we'll verify it matches your profile photos. Verified profiles get a blue checkmark badge.",
     category: 'Safety',
   },
   {
@@ -51,7 +51,7 @@ const faqData: FAQItem[] = [
     id: '5',
     question: 'What are Super Likes?',
     answer:
-      'A Super Like lets someone know you\'re really interested in them before they make a decision about you. They\'ll see a blue star on your profile. Free users get 1 Super Like per day.',
+      "A Super Like lets someone know you're really interested in them before they make a decision about you. They'll see a blue star on your profile. Free users get 1 Super Like per day.",
     category: 'Features',
   },
   {
@@ -63,16 +63,16 @@ const faqData: FAQItem[] = [
   },
   {
     id: '7',
-    question: 'Why can\'t I see my matches?',
+    question: "Why can't I see my matches?",
     answer:
-      'If you can\'t see your matches, try refreshing the app or logging out and back in. If the issue persists, contact our support team.',
+      "If you can't see your matches, try refreshing the app or logging out and back in. If the issue persists, contact our support team.",
     category: 'Troubleshooting',
   },
   {
     id: '8',
     question: 'How do I change my location?',
     answer:
-      'Your location updates automatically based on your device\'s GPS. Premium users can use Travel Mode to change their location to anywhere in the world.',
+      "Your location updates automatically based on your device's GPS. Premium users can use Travel Mode to change their location to anywhere in the world.",
     category: 'Features',
   },
 ];
@@ -93,11 +93,7 @@ interface AccordionItemProps {
   onPress: () => void;
 }
 
-const AccordionItem: React.FC<AccordionItemProps> = ({
-  item,
-  isExpanded,
-  onPress,
-}) => {
+const AccordionItem: React.FC<AccordionItemProps> = ({ item, isExpanded, onPress }) => {
   return (
     <View style={styles.accordionItem}>
       <TouchableOpacity
@@ -108,11 +104,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
         accessibilityState={{ expanded: isExpanded }}
       >
         <Text style={styles.accordionQuestion}>{item.question}</Text>
-        <Icon
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={20}
-          color="#8E8E93"
-        />
+        <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="#8E8E93" />
       </TouchableOpacity>
       {isExpanded && (
         <View style={styles.accordionContent}>
@@ -134,8 +126,7 @@ const HelpCenterScreen: React.FC = () => {
       searchQuery === '' ||
       faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'All' || faq.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || faq.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -264,9 +255,7 @@ const HelpCenterScreen: React.FC = () => {
                 key={faq.id}
                 item={faq}
                 isExpanded={expandedId === faq.id}
-                onPress={() =>
-                  setExpandedId(expandedId === faq.id ? null : faq.id)
-                }
+                onPress={() => setExpandedId(expandedId === faq.id ? null : faq.id)}
               />
             ))}
           </View>
@@ -276,17 +265,13 @@ const HelpCenterScreen: React.FC = () => {
           <View style={styles.emptyContainer}>
             <Icon name="search-outline" size={60} color="#E5E5EA" />
             <Text style={styles.emptyTitle}>No results found</Text>
-            <Text style={styles.emptySubtitle}>
-              Try different keywords or contact support
-            </Text>
+            <Text style={styles.emptySubtitle}>Try different keywords or contact support</Text>
           </View>
         )}
 
         <View style={styles.contactContainer}>
           <Text style={styles.contactTitle}>Still need help?</Text>
-          <Text style={styles.contactSubtitle}>
-            Our support team is here to help you 24/7
-          </Text>
+          <Text style={styles.contactSubtitle}>Our support team is here to help you 24/7</Text>
           <TouchableOpacity
             style={styles.contactButton}
             onPress={handleContactSupport}

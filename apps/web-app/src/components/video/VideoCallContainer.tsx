@@ -6,7 +6,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import AgoraService, { CallOptions, NetworkQuality, CallStatistics } from '../../services/agora.service';
+import AgoraService, {
+  CallOptions,
+  NetworkQuality,
+  CallStatistics,
+} from '../../services/agora.service';
 import CallSignalingService from '../../services/call-signaling.service';
 import VideoCallControls from './VideoCallControls';
 import NetworkQualityIndicator from './NetworkQualityIndicator';
@@ -15,7 +19,7 @@ import {
   setCallState,
   updateCallDuration,
   setNetworkQuality,
-  clearCall
+  clearCall,
 } from '../../store/slices/callSlice';
 import './VideoCall.css';
 
@@ -156,12 +160,7 @@ const VideoCallContainer: React.FC<VideoCallContainerProps> = ({
           enableEchoCancellation: true,
         };
 
-        await agoraService.joinChannel(
-          channelName,
-          agoraToken,
-          parseInt(currentUser.id),
-          options
-        );
+        await agoraService.joinChannel(channelName, agoraToken, parseInt(currentUser.id), options);
 
         dispatch(setCallState('connected'));
         startDurationTimer();
@@ -322,11 +321,7 @@ const VideoCallContainer: React.FC<VideoCallContainerProps> = ({
         ) : (
           <div className="remote-video-placeholder">
             {participantAvatar ? (
-              <img
-                src={participantAvatar}
-                alt={participantName}
-                className="participant-avatar"
-              />
+              <img src={participantAvatar} alt={participantName} className="participant-avatar" />
             ) : (
               <div className="participant-avatar-placeholder">
                 <span>{participantName[0]?.toUpperCase()}</span>
@@ -399,10 +394,7 @@ const VideoCallContainer: React.FC<VideoCallContainerProps> = ({
       {/* Statistics Overlay */}
       <AnimatePresence>
         {showStats && callStats && (
-          <CallStatisticsOverlay
-            stats={callStats}
-            onClose={() => setShowStats(false)}
-          />
+          <CallStatisticsOverlay stats={callStats} onClose={() => setShowStats(false)} />
         )}
       </AnimatePresence>
     </div>

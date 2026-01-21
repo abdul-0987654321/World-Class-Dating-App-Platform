@@ -40,9 +40,7 @@ const BoostScreen: React.FC = () => {
       await InAppPurchaseService.initialize();
       const availableProducts = await InAppPurchaseService.getConsumableProducts();
 
-      const boostProducts = availableProducts.filter(p =>
-        p.productId.includes('boosts')
-      );
+      const boostProducts = availableProducts.filter((p) => p.productId.includes('boosts'));
       setProducts(boostProducts);
 
       await loadBalance();
@@ -56,7 +54,7 @@ const BoostScreen: React.FC = () => {
 
   const loadBalance = async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/api/users/balance`);
+      const response = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/balance`);
       setBoostsBalance(response.data.boosts || 0);
     } catch (error) {
       console.error('Failed to load balance:', error);
@@ -65,7 +63,9 @@ const BoostScreen: React.FC = () => {
 
   const checkActiveBoost = async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/api/users/active-boost`);
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/active-boost`
+      );
       setActiveBoost(response.data);
     } catch (error) {
       console.error('Failed to check active boost:', error);
@@ -78,11 +78,9 @@ const BoostScreen: React.FC = () => {
       const result = await InAppPurchaseService.purchaseProduct(productId);
 
       if (result.success) {
-        Alert.alert(
-          'Purchase Successful',
-          'Boosts have been added to your account!',
-          [{ text: 'OK', onPress: () => loadBalance() }]
-        );
+        Alert.alert('Purchase Successful', 'Boosts have been added to your account!', [
+          { text: 'OK', onPress: () => loadBalance() },
+        ]);
       } else if (result.error && !result.error.includes('cancelled')) {
         Alert.alert('Purchase Failed', result.error);
       }
@@ -96,19 +94,15 @@ const BoostScreen: React.FC = () => {
 
   const handleActivateBoost = async () => {
     if (boostsBalance <= 0) {
-      Alert.alert(
-        'No Boosts Available',
-        'Purchase Boosts to activate one.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('No Boosts Available', 'Purchase Boosts to activate one.', [{ text: 'OK' }]);
       return;
     }
 
     try {
       setPurchasing(true);
-      await axios.post(`${process.env.API_URL}/api/users/activate-boost`);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/activate-boost`);
 
-      setBoostsBalance(prev => prev - 1);
+      setBoostsBalance((prev) => prev - 1);
       await checkActiveBoost();
 
       Alert.alert(
@@ -150,10 +144,7 @@ const BoostScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
           <Icon name="close" size={28} color="#1A1A1A" />
         </TouchableOpacity>
       </View>
@@ -175,9 +166,7 @@ const BoostScreen: React.FC = () => {
             <Icon name="rocket-launch" size={32} color="#9C27B0" />
             <View style={styles.activeBoostText}>
               <Text style={styles.activeBoostTitle}>Boost Active!</Text>
-              <Text style={styles.activeBoostTime}>
-                Time remaining: {getRemainingTime()}
-              </Text>
+              <Text style={styles.activeBoostTime}>Time remaining: {getRemainingTime()}</Text>
             </View>
           </View>
         ) : (
@@ -211,30 +200,22 @@ const BoostScreen: React.FC = () => {
 
           <View style={styles.benefitRow}>
             <Icon name="account-multiple" size={24} color="#9C27B0" />
-            <Text style={styles.benefitText}>
-              Your profile appears first to people nearby
-            </Text>
+            <Text style={styles.benefitText}>Your profile appears first to people nearby</Text>
           </View>
 
           <View style={styles.benefitRow}>
             <Icon name="clock-outline" size={24} color="#9C27B0" />
-            <Text style={styles.benefitText}>
-              Lasts for 30 minutes
-            </Text>
+            <Text style={styles.benefitText}>Lasts for 30 minutes</Text>
           </View>
 
           <View style={styles.benefitRow}>
             <Icon name="eye" size={24} color="#9C27B0" />
-            <Text style={styles.benefitText}>
-              Get up to 10x more profile views
-            </Text>
+            <Text style={styles.benefitText}>Get up to 10x more profile views</Text>
           </View>
 
           <View style={styles.benefitRow}>
             <Icon name="heart-multiple" size={24} color="#9C27B0" />
-            <Text style={styles.benefitText}>
-              Increase your chances of matching
-            </Text>
+            <Text style={styles.benefitText}>Increase your chances of matching</Text>
           </View>
         </View>
 
@@ -243,15 +224,18 @@ const BoostScreen: React.FC = () => {
 
           {[
             { sku: CONSUMABLE_SKUS.BOOSTS_1, count: 1, price: '$3.99' },
-            { sku: CONSUMABLE_SKUS.BOOSTS_5, count: 5, price: '$14.99', popular: true, savings: 'Save 25%' },
+            {
+              sku: CONSUMABLE_SKUS.BOOSTS_5,
+              count: 5,
+              price: '$14.99',
+              popular: true,
+              savings: 'Save 25%',
+            },
             { sku: CONSUMABLE_SKUS.BOOSTS_10, count: 10, price: '$24.99', savings: 'Save 37%' },
           ].map((pack) => (
             <TouchableOpacity
               key={pack.sku}
-              style={[
-                styles.packCard,
-                pack.popular && styles.packCardPopular,
-              ]}
+              style={[styles.packCard, pack.popular && styles.packCardPopular]}
               onPress={() => handlePurchase(pack.sku)}
               disabled={purchasing}
             >
@@ -268,9 +252,7 @@ const BoostScreen: React.FC = () => {
                     <Text style={styles.packCount}>
                       {pack.count} {pack.count === 1 ? 'Boost' : 'Boosts'}
                     </Text>
-                    {pack.savings && (
-                      <Text style={styles.packSavings}>{pack.savings}</Text>
-                    )}
+                    {pack.savings && <Text style={styles.packSavings}>{pack.savings}</Text>}
                   </View>
                 </View>
 
@@ -288,9 +270,7 @@ const BoostScreen: React.FC = () => {
         </View>
 
         <View style={styles.premiumCta}>
-          <Text style={styles.premiumCtaText}>
-            Get monthly Boosts with Flamoral Premium
-          </Text>
+          <Text style={styles.premiumCtaText}>Get monthly Boosts with Flamoral Premium</Text>
           <TouchableOpacity
             style={styles.premiumButton}
             onPress={() => navigation.navigate('Subscription' as never)}
@@ -304,12 +284,8 @@ const BoostScreen: React.FC = () => {
           <Text style={styles.tipText}>
             • Activate Boost during peak hours (7-10 PM) for maximum visibility
           </Text>
-          <Text style={styles.tipText}>
-            • Make sure your profile is complete with great photos
-          </Text>
-          <Text style={styles.tipText}>
-            • Combine with Super Likes for even better results
-          </Text>
+          <Text style={styles.tipText}>• Make sure your profile is complete with great photos</Text>
+          <Text style={styles.tipText}>• Combine with Super Likes for even better results</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

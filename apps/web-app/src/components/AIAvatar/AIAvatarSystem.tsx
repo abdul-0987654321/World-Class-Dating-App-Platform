@@ -75,7 +75,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'welcome-2',
-      text: "At FLAMORAL, we believe in authentic connections. Every profile is verified for your safety.",
+      text: 'At FLAMORAL, we believe in authentic connections. Every profile is verified for your safety.',
       context: 'welcome',
       priority: 'medium',
     },
@@ -100,13 +100,13 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'onboarding-2',
-      text: "Be yourself! Authentic profiles get 40% more meaningful matches.",
+      text: 'Be yourself! Authentic profiles get 40% more meaningful matches.',
       context: 'onboarding',
       priority: 'medium',
     },
     {
       id: 'onboarding-3',
-      text: "Your privacy matters. You control who sees your profile and how your data is used.",
+      text: 'Your privacy matters. You control who sees your profile and how your data is used.',
       context: 'onboarding',
       priority: 'medium',
     },
@@ -121,13 +121,13 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'profile-2',
-      text: "Profiles with 4+ photos get 2x more matches. Show different sides of your personality!",
+      text: 'Profiles with 4+ photos get 2x more matches. Show different sides of your personality!',
       context: 'profile_creation',
       priority: 'medium',
     },
     {
       id: 'profile-3',
-      text: "The prompts help others understand you better. Answer honestly - compatibility matters!",
+      text: 'The prompts help others understand you better. Answer honestly - compatibility matters!',
       context: 'profile_creation',
       priority: 'medium',
     },
@@ -136,7 +136,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   photo_upload: [
     {
       id: 'photo-1',
-      text: "Great photos make all the difference! Use recent photos that clearly show your face.",
+      text: 'Great photos make all the difference! Use recent photos that clearly show your face.',
       context: 'photo_upload',
       priority: 'high',
     },
@@ -157,7 +157,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   verification: [
     {
       id: 'verify-1',
-      text: "Verification helps build trust. Take a quick selfie matching the pose shown - it only takes seconds.",
+      text: 'Verification helps build trust. Take a quick selfie matching the pose shown - it only takes seconds.',
       context: 'verification',
       priority: 'high',
     },
@@ -169,7 +169,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'verify-3',
-      text: "Your verification photo is only used to confirm your identity and is never shown publicly.",
+      text: 'Your verification photo is only used to confirm your identity and is never shown publicly.',
       context: 'verification',
       priority: 'medium',
     },
@@ -178,19 +178,19 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   discovery: [
     {
       id: 'discovery-1',
-      text: "Welcome to Discovery! Our AI has found people who match your preferences and values.",
+      text: 'Welcome to Discovery! Our AI has found people who match your preferences and values.',
       context: 'discovery',
       priority: 'high',
     },
     {
       id: 'discovery-2',
-      text: "The compatibility score shows how well you might connect based on interests and preferences.",
+      text: 'The compatibility score shows how well you might connect based on interests and preferences.',
       context: 'discovery',
       priority: 'medium',
     },
     {
       id: 'discovery-3',
-      text: "Take your time! Read profiles carefully - quality connections matter more than quantity.",
+      text: 'Take your time! Read profiles carefully - quality connections matter more than quantity.',
       context: 'discovery',
       priority: 'low',
     },
@@ -199,19 +199,19 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   matching: [
     {
       id: 'match-1',
-      text: "Congratulations on your match! This means you both liked each other. Time to start a conversation!",
+      text: 'Congratulations on your match! This means you both liked each other. Time to start a conversation!',
       context: 'matching',
       priority: 'high',
     },
     {
       id: 'match-2',
-      text: "Check their profile for conversation starters. Ask about something specific they mentioned!",
+      text: 'Check their profile for conversation starters. Ask about something specific they mentioned!',
       context: 'matching',
       priority: 'medium',
     },
     {
       id: 'match-3',
-      text: "Be genuine and respectful in your first message. Personalized openers get 3x more responses.",
+      text: 'Be genuine and respectful in your first message. Personalized openers get 3x more responses.',
       context: 'matching',
       priority: 'medium',
     },
@@ -220,13 +220,13 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   messaging: [
     {
       id: 'message-1',
-      text: "Great conversations lead to great connections. Ask open-ended questions to keep things flowing.",
+      text: 'Great conversations lead to great connections. Ask open-ended questions to keep things flowing.',
       context: 'messaging',
       priority: 'medium',
     },
     {
       id: 'message-2',
-      text: "If you feel uncomfortable at any point, you can block or report. Your safety comes first.",
+      text: 'If you feel uncomfortable at any point, you can block or report. Your safety comes first.',
       context: 'messaging',
       priority: 'high',
       action: {
@@ -245,13 +245,13 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   video_call: [
     {
       id: 'video-1',
-      text: "Video calls are a great way to connect before meeting in person. Find a quiet, well-lit spot.",
+      text: 'Video calls are a great way to connect before meeting in person. Find a quiet, well-lit spot.',
       context: 'video_call',
       priority: 'high',
     },
     {
       id: 'video-2',
-      text: "Be yourself! Nervousness is normal. The other person is probably feeling the same way.",
+      text: 'Be yourself! Nervousness is normal. The other person is probably feeling the same way.',
       context: 'video_call',
       priority: 'medium',
     },
@@ -266,7 +266,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   safety_tips: [
     {
       id: 'safety-1',
-      text: "Your safety is our top priority. Never share personal information like your address or financial details.",
+      text: 'Your safety is our top priority. Never share personal information like your address or financial details.',
       context: 'safety_tips',
       priority: 'high',
     },
@@ -278,7 +278,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'safety-3',
-      text: "Trust your instincts. If something feels off, it probably is. Report suspicious behavior.",
+      text: 'Trust your instincts. If something feels off, it probably is. Report suspicious behavior.',
       context: 'safety_tips',
       priority: 'high',
       action: {
@@ -288,7 +288,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'safety-4',
-      text: "Be wary of anyone who refuses to video chat or makes excuses to avoid meeting safely.",
+      text: 'Be wary of anyone who refuses to video chat or makes excuses to avoid meeting safely.',
       context: 'safety_tips',
       priority: 'medium',
     },
@@ -297,19 +297,19 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   subscription: [
     {
       id: 'sub-1',
-      text: "Premium features can help you find your match faster. See who likes you and get unlimited swipes!",
+      text: 'Premium features can help you find your match faster. See who likes you and get unlimited swipes!',
       context: 'subscription',
       priority: 'medium',
     },
     {
       id: 'sub-2',
-      text: "Your subscription directly supports our safety team and platform improvements. Thank you!",
+      text: 'Your subscription directly supports our safety team and platform improvements. Thank you!',
       context: 'subscription',
       priority: 'low',
     },
     {
       id: 'sub-3',
-      text: "Not sure? Start with a free trial to experience all Premium features.",
+      text: 'Not sure? Start with a free trial to experience all Premium features.',
       context: 'subscription',
       priority: 'medium',
     },
@@ -330,7 +330,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'privacy-3',
-      text: "You can download or delete your data at any time. Your privacy rights are protected.",
+      text: 'You can download or delete your data at any time. Your privacy rights are protected.',
       context: 'privacy_settings',
       priority: 'medium',
     },
@@ -351,7 +351,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'report-3',
-      text: "Your report helps keep FLAMORAL safe for everyone. Our team reviews all reports within 24 hours.",
+      text: 'Your report helps keep FLAMORAL safe for everyone. Our team reviews all reports within 24 hours.',
       context: 'report_block',
       priority: 'medium',
     },
@@ -360,7 +360,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
   help_center: [
     {
       id: 'help-1',
-      text: "How can I help you today? Browse our FAQ or contact our support team.",
+      text: 'How can I help you today? Browse our FAQ or contact our support team.',
       context: 'help_center',
       priority: 'high',
       action: {
@@ -370,7 +370,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'help-2',
-      text: "For urgent safety concerns, use the emergency report feature for priority handling.",
+      text: 'For urgent safety concerns, use the emergency report feature for priority handling.',
       context: 'help_center',
       priority: 'high',
     },
@@ -385,7 +385,7 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
     },
     {
       id: 'idle-2',
-      text: "Remember to check your matches! Someone special might be waiting.",
+      text: 'Remember to check your matches! Someone special might be waiting.',
       context: 'idle',
       priority: 'low',
     },
@@ -399,12 +399,12 @@ export const avatarScripts: Record<AvatarContext, AvatarMessage[]> = {
 export const avatarGuardrails = {
   prohibited: [
     'relationship_advice', // No dating/relationship counseling
-    'legal_advice',        // No legal guidance
-    'medical_advice',      // No health/medical recommendations
-    'financial_advice',    // No financial guidance
-    'personal_opinions',   // No subjective opinions
-    'third_party_apps',    // No recommendations for other apps
-    'risky_behavior',      // Never encourage unsafe meetings
+    'legal_advice', // No legal guidance
+    'medical_advice', // No health/medical recommendations
+    'financial_advice', // No financial guidance
+    'personal_opinions', // No subjective opinions
+    'third_party_apps', // No recommendations for other apps
+    'risky_behavior', // Never encourage unsafe meetings
   ],
 
   escalationTriggers: [
@@ -418,8 +418,10 @@ export const avatarGuardrails = {
   ],
 
   escalationResponse: {
-    default: "I understand you're dealing with something serious. Let me connect you with our Safety Hub where our team can help.",
-    emergency: "If you're in immediate danger, please contact local emergency services. Our Safety team is also available 24/7.",
+    default:
+      "I understand you're dealing with something serious. Let me connect you with our Safety Hub where our team can help.",
+    emergency:
+      "If you're in immediate danger, please contact local emergency services. Our Safety team is also available 24/7.",
   },
 };
 
@@ -475,17 +477,27 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [state.currentMessageIndex, state.isPaused, state.isMuted, state.isMinimized, currentMessage, currentMessages.length]);
+  }, [
+    state.currentMessageIndex,
+    state.isPaused,
+    state.isMuted,
+    state.isMinimized,
+    currentMessage,
+    currentMessages.length,
+  ]);
 
   // Context change handler
-  const changeContext = useCallback((newContext: AvatarContext) => {
-    setState((prev) => ({
-      ...prev,
-      currentContext: newContext,
-      currentMessageIndex: 0,
-    }));
-    onContextChange?.(newContext);
-  }, [onContextChange]);
+  const changeContext = useCallback(
+    (newContext: AvatarContext) => {
+      setState((prev) => ({
+        ...prev,
+        currentContext: newContext,
+        currentMessageIndex: 0,
+      }));
+      onContextChange?.(newContext);
+    },
+    [onContextChange]
+  );
 
   // Control handlers
   const toggleMute = useCallback(() => {
@@ -535,7 +547,12 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
           aria-label="Expand guide assistant"
         >
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+            />
           </svg>
           {/* Notification dot */}
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-base-deep-black" />
@@ -553,8 +570,18 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                       !reducedMotion && !state.isPaused ? 'animate-avatar-pulse' : ''
                     }`}
                   >
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+                      />
                     </svg>
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-base-charcoal" />
@@ -573,7 +600,12 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                   aria-label="Minimize"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
                 <button
@@ -582,7 +614,12 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                   aria-label="Close"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -598,9 +635,7 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: reducedMotion ? 0 : 0.3 }}
                 >
-                  <p className="text-sm text-gray-200 leading-relaxed">
-                    {currentMessage?.text}
-                  </p>
+                  <p className="text-sm text-gray-200 leading-relaxed">{currentMessage?.text}</p>
 
                   {/* Action Button */}
                   {currentMessage?.action && (
@@ -611,8 +646,18 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                           className="inline-flex items-center text-sm font-medium text-pink-400 hover:text-pink-300 transition-colors"
                         >
                           {currentMessage.action.label}
-                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          <svg
+                            className="w-4 h-4 ml-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
                           </svg>
                         </a>
                       ) : (
@@ -621,8 +666,18 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                           className="inline-flex items-center text-sm font-medium text-pink-400 hover:text-pink-300 transition-colors"
                         >
                           {currentMessage.action.label}
-                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          <svg
+                            className="w-4 h-4 ml-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
                           </svg>
                         </button>
                       )}
@@ -661,12 +716,27 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                 >
                   {state.isMuted ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+                      />
                     </svg>
                   ) : (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                      />
                     </svg>
                   )}
                 </button>
@@ -683,12 +753,27 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                 >
                   {state.isPaused ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   ) : (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   )}
                 </button>
@@ -701,14 +786,20 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                     setState((prev) => ({
                       ...prev,
                       currentMessageIndex:
-                        (prev.currentMessageIndex - 1 + currentMessages.length) % currentMessages.length,
+                        (prev.currentMessageIndex - 1 + currentMessages.length) %
+                        currentMessages.length,
                     }))
                   }
                   className="p-2 rounded-lg bg-base-dark-gray text-gray-400 hover:text-white transition-colors"
                   aria-label="Previous message"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <button
@@ -722,7 +813,12 @@ export const AIAvatarSystem: React.FC<AIAvatarProps> = ({
                   aria-label="Next message"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>

@@ -39,12 +39,48 @@ interface Props {
 
 // Mock participants for preview
 const getMockParticipants = (): SpeedDatingParticipant[] => [
-  { id: 'p1', name: 'Emma', age: 28, photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', bio: 'Adventure seeker & coffee lover' },
-  { id: 'p2', name: 'Sophie', age: 26, photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400', bio: 'Art enthusiast, yoga practitioner' },
-  { id: 'p3', name: 'Olivia', age: 29, photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400', bio: 'Tech professional, loves hiking' },
-  { id: 'p4', name: 'Mia', age: 27, photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400', bio: 'Foodie, travel blogger' },
-  { id: 'p5', name: 'Charlotte', age: 30, photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400', bio: 'Book lover, wine connoisseur' },
-  { id: 'p6', name: 'Isabella', age: 25, photoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400', bio: 'Music lover, concert enthusiast' },
+  {
+    id: 'p1',
+    name: 'Emma',
+    age: 28,
+    photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    bio: 'Adventure seeker & coffee lover',
+  },
+  {
+    id: 'p2',
+    name: 'Sophie',
+    age: 26,
+    photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    bio: 'Art enthusiast, yoga practitioner',
+  },
+  {
+    id: 'p3',
+    name: 'Olivia',
+    age: 29,
+    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    bio: 'Tech professional, loves hiking',
+  },
+  {
+    id: 'p4',
+    name: 'Mia',
+    age: 27,
+    photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    bio: 'Foodie, travel blogger',
+  },
+  {
+    id: 'p5',
+    name: 'Charlotte',
+    age: 30,
+    photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
+    bio: 'Book lover, wine connoisseur',
+  },
+  {
+    id: 'p6',
+    name: 'Isabella',
+    age: 25,
+    photoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    bio: 'Music lover, concert enthusiast',
+  },
 ];
 
 type LobbyState = 'joining' | 'waiting' | 'matching' | 'ready';
@@ -255,26 +291,17 @@ const SpeedDatingLobbyScreen: React.FC<Props> = ({ navigation, route }) => {
             lobbyState === 'ready'
               ? ['#4CAF50', '#66BB6A']
               : lobbyState === 'matching'
-              ? ['#8B5CF6', '#A78BFA']
-              : ['#FF6B6B', '#FF8E8E']
+                ? ['#8B5CF6', '#A78BFA']
+                : ['#FF6B6B', '#FF8E8E']
           }
           style={styles.statusCard}
         >
           <Animated.View
-            style={[
-              styles.statusIconContainer,
-              { transform: [{ scale: pulseAnim }] },
-            ]}
+            style={[styles.statusIconContainer, { transform: [{ scale: pulseAnim }] }]}
           >
-            {lobbyState === 'waiting' && (
-              <Text style={styles.statusIcon}>⏳</Text>
-            )}
-            {lobbyState === 'matching' && (
-              <Text style={styles.statusIcon}>💫</Text>
-            )}
-            {lobbyState === 'ready' && (
-              <Text style={styles.statusIcon}>🎉</Text>
-            )}
+            {lobbyState === 'waiting' && <Text style={styles.statusIcon}>⏳</Text>}
+            {lobbyState === 'matching' && <Text style={styles.statusIcon}>💫</Text>}
+            {lobbyState === 'ready' && <Text style={styles.statusIcon}>🎉</Text>}
           </Animated.View>
 
           <Text style={styles.statusTitle}>
@@ -307,17 +334,13 @@ const SpeedDatingLobbyScreen: React.FC<Props> = ({ navigation, route }) => {
                 ]}
               />
             </View>
-            <Text style={styles.estimatedTime}>
-              Estimated wait: ~{queuePosition * 15}s
-            </Text>
+            <Text style={styles.estimatedTime}>Estimated wait: ~{queuePosition * 15}s</Text>
           </View>
         )}
 
         {/* Participants Preview */}
         <View style={styles.participantsSection}>
-          <Text style={styles.sectionTitle}>
-            Participants ({participants.length})
-          </Text>
+          <Text style={styles.sectionTitle}>Participants ({participants.length})</Text>
           <FlatList
             data={participants}
             renderItem={renderParticipant}

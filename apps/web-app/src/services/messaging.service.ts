@@ -85,16 +85,20 @@ class MessagingService {
     return apiClient.get<MessagesResponse>(url);
   }
 
-  async sendMessage(conversationId: string, content: string, type: string = 'text'): Promise<Message> {
+  async sendMessage(
+    conversationId: string,
+    content: string,
+    type: string = 'text'
+  ): Promise<Message> {
     if (this.isMock) {
       const { mockApi } = await import('../mocks/mockApi');
       return mockApi.sendMessage(conversationId, content);
     }
 
-    return apiClient.post<Message>(
-      `/api/messaging/conversations/${conversationId}/messages`,
-      { content, type }
-    );
+    return apiClient.post<Message>(`/api/messaging/conversations/${conversationId}/messages`, {
+      content,
+      type,
+    });
   }
 
   async markAsRead(conversationId: string, messageIds: string[]): Promise<void> {
@@ -103,10 +107,7 @@ class MessagingService {
       return;
     }
 
-    await apiClient.post(
-      `/api/messaging/conversations/${conversationId}/read`,
-      { messageIds }
-    );
+    await apiClient.post(`/api/messaging/conversations/${conversationId}/read`, { messageIds });
   }
 
   async startConversation(matchId: string, initialMessage?: string): Promise<Conversation> {

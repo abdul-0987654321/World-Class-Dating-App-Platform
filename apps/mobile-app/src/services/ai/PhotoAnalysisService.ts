@@ -70,7 +70,14 @@ export interface QualityAnalysisResult {
 }
 
 export interface QualityIssue {
-  type: 'low_resolution' | 'too_dark' | 'too_bright' | 'blurry' | 'grainy' | 'face_obscured' | 'bad_crop';
+  type:
+    | 'low_resolution'
+    | 'too_dark'
+    | 'too_bright'
+    | 'blurry'
+    | 'grainy'
+    | 'face_obscured'
+    | 'bad_crop';
   severity: 'low' | 'medium' | 'high';
   description: string;
   suggestion: string;
@@ -141,11 +148,9 @@ class PhotoAnalysisService {
    * Comprehensive photo analysis
    */
   async analyzePhoto(request: PhotoAnalysisRequest): Promise<ApiResponse<PhotoAnalysisResult>> {
-    return httpClient.post<PhotoAnalysisResult>(
-      `${this.baseUrl}/analyze`,
-      request,
-      { timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS }
-    );
+    return httpClient.post<PhotoAnalysisResult>(`${this.baseUrl}/analyze`, request, {
+      timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS,
+    });
   }
 
   /**
@@ -168,10 +173,7 @@ class PhotoAnalysisService {
    * Moderate a photo for content policy compliance
    */
   async moderatePhoto(photoUrl: string): Promise<ApiResponse<ModerationResult>> {
-    return httpClient.post<ModerationResult>(
-      `${this.baseUrl}/moderate`,
-      { photo_url: photoUrl }
-    );
+    return httpClient.post<ModerationResult>(`${this.baseUrl}/moderate`, { photo_url: photoUrl });
   }
 
   /**
@@ -196,12 +198,14 @@ class PhotoAnalysisService {
   async checkLiveness(
     userId: string,
     videoFile: { uri: string; type: string; name: string }
-  ): Promise<ApiResponse<{
-    is_live: boolean;
-    confidence: number;
-    checks_passed: string[];
-    checks_failed: string[];
-  }>> {
+  ): Promise<
+    ApiResponse<{
+      is_live: boolean;
+      confidence: number;
+      checks_passed: string[];
+      checks_failed: string[];
+    }>
+  > {
     return httpClient.uploadFile(
       `${this.baseUrl}/verify/liveness`,
       videoFile,
@@ -213,14 +217,11 @@ class PhotoAnalysisService {
   /**
    * Rank user's photos by quality and appeal
    */
-  async rankPhotos(
-    userId: string,
-    photoUrls: string[]
-  ): Promise<ApiResponse<PhotoRankingResult>> {
-    return httpClient.post<PhotoRankingResult>(
-      `${this.baseUrl}/rank`,
-      { user_id: userId, photo_urls: photoUrls }
-    );
+  async rankPhotos(userId: string, photoUrls: string[]): Promise<ApiResponse<PhotoRankingResult>> {
+    return httpClient.post<PhotoRankingResult>(`${this.baseUrl}/rank`, {
+      user_id: userId,
+      photo_urls: photoUrls,
+    });
   }
 
   /**
@@ -230,10 +231,10 @@ class PhotoAnalysisService {
     photo1Url: string,
     photo2Url: string
   ): Promise<ApiResponse<PhotoComparisonResult>> {
-    return httpClient.post<PhotoComparisonResult>(
-      `${this.baseUrl}/compare`,
-      { photo1_url: photo1Url, photo2_url: photo2Url }
-    );
+    return httpClient.post<PhotoComparisonResult>(`${this.baseUrl}/compare`, {
+      photo1_url: photo1Url,
+      photo2_url: photo2Url,
+    });
   }
 
   /**
@@ -243,55 +244,50 @@ class PhotoAnalysisService {
     userId: string,
     currentPhotoUrls: string[]
   ): Promise<ApiResponse<ProfilePhotoSuggestions>> {
-    return httpClient.post<ProfilePhotoSuggestions>(
-      `${this.baseUrl}/suggestions`,
-      { user_id: userId, photo_urls: currentPhotoUrls }
-    );
+    return httpClient.post<ProfilePhotoSuggestions>(`${this.baseUrl}/suggestions`, {
+      user_id: userId,
+      photo_urls: currentPhotoUrls,
+    });
   }
 
   /**
    * Detect if photo is AI-generated or fake
    */
-  async detectFakePhoto(photoUrl: string): Promise<ApiResponse<{
-    is_fake: boolean;
-    confidence: number;
-    detection_type: 'ai_generated' | 'manipulated' | 'stock_photo' | 'genuine';
-    indicators: string[];
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/detect-fake`,
-      { photo_url: photoUrl }
-    );
+  async detectFakePhoto(photoUrl: string): Promise<
+    ApiResponse<{
+      is_fake: boolean;
+      confidence: number;
+      detection_type: 'ai_generated' | 'manipulated' | 'stock_photo' | 'genuine';
+      indicators: string[];
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/detect-fake`, { photo_url: photoUrl });
   }
 
   /**
    * Extract face embedding for matching
    */
-  async extractFaceEmbedding(
-    photoUrl: string
-  ): Promise<ApiResponse<{
-    embedding: number[];
-    face_detected: boolean;
-    quality_sufficient: boolean;
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/embedding`,
-      { photo_url: photoUrl }
-    );
+  async extractFaceEmbedding(photoUrl: string): Promise<
+    ApiResponse<{
+      embedding: number[];
+      face_detected: boolean;
+      quality_sufficient: boolean;
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/embedding`, { photo_url: photoUrl });
   }
 
   /**
    * Check photo against blocklist (revenge porn, stolen images)
    */
-  async checkBlocklist(photoUrl: string): Promise<ApiResponse<{
-    is_blocked: boolean;
-    reason?: string;
-    action: 'allow' | 'block' | 'review';
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/blocklist/check`,
-      { photo_url: photoUrl }
-    );
+  async checkBlocklist(photoUrl: string): Promise<
+    ApiResponse<{
+      is_blocked: boolean;
+      reason?: string;
+      action: 'allow' | 'block' | 'review';
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/blocklist/check`, { photo_url: photoUrl });
   }
 
   /**
@@ -304,14 +300,13 @@ class PhotoAnalysisService {
       brightness_adjust?: boolean;
       face_center?: boolean;
     }
-  ): Promise<ApiResponse<{
-    enhanced_url: string;
-    changes_made: string[];
-  }>> {
-    return httpClient.post(
-      `${this.baseUrl}/enhance`,
-      { photo_url: photoUrl, options }
-    );
+  ): Promise<
+    ApiResponse<{
+      enhanced_url: string;
+      changes_made: string[];
+    }>
+  > {
+    return httpClient.post(`${this.baseUrl}/enhance`, { photo_url: photoUrl, options });
   }
 }
 

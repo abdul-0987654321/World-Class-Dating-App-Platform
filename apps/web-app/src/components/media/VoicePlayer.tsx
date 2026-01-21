@@ -124,9 +124,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
           )}
         </CompactWaveform>
 
-        <CompactTime>
-          {isPlaying ? formatTime(currentTime) : formatTime(duration)}
-        </CompactTime>
+        <CompactTime>{isPlaying ? formatTime(currentTime) : formatTime(duration)}</CompactTime>
       </CompactContainer>
     );
   }
@@ -147,11 +145,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
               const isActive = barProgress <= progress;
 
               return (
-                <WaveformBar
-                  key={index}
-                  height={Math.max(4, amplitude / 2)}
-                  isActive={isActive}
-                />
+                <WaveformBar key={index} height={Math.max(4, amplitude / 2)} isActive={isActive} />
               );
             })}
           </WaveformContainer>

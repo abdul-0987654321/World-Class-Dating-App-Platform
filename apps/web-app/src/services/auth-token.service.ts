@@ -64,7 +64,9 @@ class AuthTokenService {
     }
 
     // Production: tokens are in httpOnly cookies, not accessible to JS
-    console.warn('getToken() called in production mode - tokens are in httpOnly cookies and not accessible');
+    console.warn(
+      'getToken() called in production mode - tokens are in httpOnly cookies and not accessible'
+    );
     return null;
   }
 

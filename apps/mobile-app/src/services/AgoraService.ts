@@ -102,13 +102,10 @@ export class AgoraService extends EventEmitter {
     );
 
     // Local video state changed
-    this.engine.addListener(
-      'onLocalVideoStateChanged',
-      (source, state, error) => {
-        console.log('Local video state changed:', state, error);
-        this.emit('local-video-state-changed', state, error);
-      }
-    );
+    this.engine.addListener('onLocalVideoStateChanged', (source, state, error) => {
+      console.log('Local video state changed:', state, error);
+      this.emit('local-video-state-changed', state, error);
+    });
 
     // Network quality
     this.engine.addListener('onNetworkQuality', (connection, remoteUid, txQuality, rxQuality) => {

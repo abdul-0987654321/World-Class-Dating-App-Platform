@@ -21,7 +21,9 @@ export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'verified' | 'premium' | 'banned' | 'reported'>('all');
+  const [filter, setFilter] = useState<'all' | 'verified' | 'premium' | 'banned' | 'reported'>(
+    'all'
+  );
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [page, setPage] = useState(1);
@@ -36,7 +38,7 @@ export const AdminUsersPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/users?page=${page}&filter=${filter}&search=${search}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -46,11 +48,71 @@ export const AdminUsersPage: React.FC = () => {
       } else {
         // Mock data for demo
         setUsers([
-          { id: '1', email: 'alex@example.com', firstName: 'Alex', lastName: 'Johnson', subscription: 'GOLD', isVerified: true, isActive: true, isBanned: false, createdAt: '2024-01-15', lastActive: new Date().toISOString(), reportCount: 0 },
-          { id: '2', email: 'sarah@example.com', firstName: 'Sarah', lastName: 'Williams', subscription: 'PLATINUM', isVerified: true, isActive: true, isBanned: false, createdAt: '2024-02-20', lastActive: new Date(Date.now() - 3600000).toISOString(), reportCount: 0 },
-          { id: '3', email: 'mike@example.com', firstName: 'Mike', lastName: 'Brown', subscription: 'FREE', isVerified: false, isActive: true, isBanned: false, createdAt: '2024-03-10', lastActive: new Date(Date.now() - 86400000).toISOString(), reportCount: 2 },
-          { id: '4', email: 'emma@example.com', firstName: 'Emma', lastName: 'Davis', subscription: 'DIAMOND', isVerified: true, isActive: true, isBanned: false, createdAt: '2024-01-05', lastActive: new Date().toISOString(), reportCount: 0 },
-          { id: '5', email: 'john@example.com', firstName: 'John', lastName: 'Smith', subscription: 'FREE', isVerified: false, isActive: false, isBanned: true, createdAt: '2024-02-01', lastActive: new Date(Date.now() - 604800000).toISOString(), reportCount: 5 },
+          {
+            id: '1',
+            email: 'alex@example.com',
+            firstName: 'Alex',
+            lastName: 'Johnson',
+            subscription: 'GOLD',
+            isVerified: true,
+            isActive: true,
+            isBanned: false,
+            createdAt: '2024-01-15',
+            lastActive: new Date().toISOString(),
+            reportCount: 0,
+          },
+          {
+            id: '2',
+            email: 'sarah@example.com',
+            firstName: 'Sarah',
+            lastName: 'Williams',
+            subscription: 'PLATINUM',
+            isVerified: true,
+            isActive: true,
+            isBanned: false,
+            createdAt: '2024-02-20',
+            lastActive: new Date(Date.now() - 3600000).toISOString(),
+            reportCount: 0,
+          },
+          {
+            id: '3',
+            email: 'mike@example.com',
+            firstName: 'Mike',
+            lastName: 'Brown',
+            subscription: 'FREE',
+            isVerified: false,
+            isActive: true,
+            isBanned: false,
+            createdAt: '2024-03-10',
+            lastActive: new Date(Date.now() - 86400000).toISOString(),
+            reportCount: 2,
+          },
+          {
+            id: '4',
+            email: 'emma@example.com',
+            firstName: 'Emma',
+            lastName: 'Davis',
+            subscription: 'DIAMOND',
+            isVerified: true,
+            isActive: true,
+            isBanned: false,
+            createdAt: '2024-01-05',
+            lastActive: new Date().toISOString(),
+            reportCount: 0,
+          },
+          {
+            id: '5',
+            email: 'john@example.com',
+            firstName: 'John',
+            lastName: 'Smith',
+            subscription: 'FREE',
+            isVerified: false,
+            isActive: false,
+            isBanned: true,
+            createdAt: '2024-02-01',
+            lastActive: new Date(Date.now() - 604800000).toISOString(),
+            reportCount: 5,
+          },
         ]);
         setTotalPages(5);
       }
@@ -61,12 +123,15 @@ export const AdminUsersPage: React.FC = () => {
     }
   };
 
-  const handleAction = async (userId: string, action: 'ban' | 'unban' | 'verify' | 'delete' | 'reset_password') => {
+  const handleAction = async (
+    userId: string,
+    action: 'ban' | 'unban' | 'verify' | 'delete' | 'reset_password'
+  ) => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/users/${userId}/${action}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -89,7 +154,11 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   const formatLastActive = (date: string) => {
@@ -156,8 +225,18 @@ export const AdminUsersPage: React.FC = () => {
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500"
                 />
-                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
             </div>
@@ -193,7 +272,9 @@ export const AdminUsersPage: React.FC = () => {
                     <tr>
                       <th className="text-left py-4 px-6 font-medium text-gray-500">User</th>
                       <th className="text-left py-4 px-6 font-medium text-gray-500">Status</th>
-                      <th className="text-left py-4 px-6 font-medium text-gray-500">Subscription</th>
+                      <th className="text-left py-4 px-6 font-medium text-gray-500">
+                        Subscription
+                      </th>
                       <th className="text-left py-4 px-6 font-medium text-gray-500">Joined</th>
                       <th className="text-left py-4 px-6 font-medium text-gray-500">Last Active</th>
                       <th className="text-left py-4 px-6 font-medium text-gray-500">Reports</th>
@@ -206,14 +287,23 @@ export const AdminUsersPage: React.FC = () => {
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                              {user.firstName[0]}{user.lastName[0]}
+                              {user.firstName[0]}
+                              {user.lastName[0]}
                             </div>
                             <div>
                               <div className="font-medium text-gray-800 flex items-center gap-2">
                                 {user.firstName} {user.lastName}
                                 {user.isVerified && (
-                                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  <svg
+                                    className="w-4 h-4 text-blue-500"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
                                 )}
                               </div>
@@ -223,21 +313,35 @@ export const AdminUsersPage: React.FC = () => {
                         </td>
                         <td className="py-4 px-6">
                           {user.isBanned ? (
-                            <span className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-sm">Banned</span>
+                            <span className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-sm">
+                              Banned
+                            </span>
                           ) : user.isActive ? (
-                            <span className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-sm">Active</span>
+                            <span className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-sm">
+                              Active
+                            </span>
                           ) : (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">Inactive</span>
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                              Inactive
+                            </span>
                           )}
                         </td>
                         <td className="py-4 px-6">
-                          <span className={`px-2 py-1 rounded-full text-sm ${getSubscriptionBadge(user.subscription)}`}>
+                          <span
+                            className={`px-2 py-1 rounded-full text-sm ${getSubscriptionBadge(user.subscription)}`}
+                          >
                             {user.subscription}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-gray-600">{formatDate(user.createdAt)}</td>
                         <td className="py-4 px-6">
-                          <span className={formatLastActive(user.lastActive) === 'Online' ? 'text-green-600' : 'text-gray-600'}>
+                          <span
+                            className={
+                              formatLastActive(user.lastActive) === 'Online'
+                                ? 'text-green-600'
+                                : 'text-gray-600'
+                            }
+                          >
                             {formatLastActive(user.lastActive)}
                           </span>
                         </td>
@@ -269,17 +373,19 @@ export const AdminUsersPage: React.FC = () => {
 
               {/* Pagination */}
               <div className="p-4 border-t flex items-center justify-between">
-                <p className="text-gray-500">Page {page} of {totalPages}</p>
+                <p className="text-gray-500">
+                  Page {page} of {totalPages}
+                </p>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                     className="px-4 py-2 border rounded-lg disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                     className="px-4 py-2 border rounded-lg disabled:opacity-50"
                   >
@@ -298,19 +404,30 @@ export const AdminUsersPage: React.FC = () => {
           <div className="bg-white rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-800">Manage User</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
 
             <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
               <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-semibold">
-                {selectedUser.firstName[0]}{selectedUser.lastName[0]}
+                {selectedUser.firstName[0]}
+                {selectedUser.lastName[0]}
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">{selectedUser.firstName} {selectedUser.lastName}</h4>
+                <h4 className="font-semibold text-gray-800">
+                  {selectedUser.firstName} {selectedUser.lastName}
+                </h4>
                 <p className="text-gray-500">{selectedUser.email}</p>
                 <p className="text-sm text-gray-400">ID: {selectedUser.id}</p>
               </div>
@@ -351,7 +468,11 @@ export const AdminUsersPage: React.FC = () => {
 
               <button
                 onClick={() => {
-                  if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                  if (
+                    confirm(
+                      'Are you sure you want to delete this user? This action cannot be undone.'
+                    )
+                  ) {
                     handleAction(selectedUser.id, 'delete');
                   }
                 }}

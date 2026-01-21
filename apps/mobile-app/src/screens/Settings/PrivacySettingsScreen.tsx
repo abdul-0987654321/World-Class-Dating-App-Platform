@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -168,17 +160,9 @@ const PrivacySettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>READ RECEIPTS</Text>
           <View style={styles.sectionContent}>
-            <TouchableOpacity
-              style={styles.selectableItem}
-              accessibilityRole="button"
-            >
+            <TouchableOpacity style={styles.selectableItem} accessibilityRole="button">
               <View style={styles.radioContainer}>
-                <Icon
-                  name="checkmark-circle"
-                  size={24}
-                  color="#FF6B6B"
-                  style={styles.radioIcon}
-                />
+                <Icon name="checkmark-circle" size={24} color="#FF6B6B" style={styles.radioIcon} />
                 <View style={styles.radioText}>
                   <Text style={styles.radioTitle}>Everyone</Text>
                   <Text style={styles.radioSubtitle}>
@@ -188,42 +172,22 @@ const PrivacySettingsScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.selectableItem}
-              accessibilityRole="button"
-            >
+            <TouchableOpacity style={styles.selectableItem} accessibilityRole="button">
               <View style={styles.radioContainer}>
-                <Icon
-                  name="ellipse-outline"
-                  size={24}
-                  color="#C7C7CC"
-                  style={styles.radioIcon}
-                />
+                <Icon name="ellipse-outline" size={24} color="#C7C7CC" style={styles.radioIcon} />
                 <View style={styles.radioText}>
                   <Text style={styles.radioTitle}>Matches Only</Text>
-                  <Text style={styles.radioSubtitle}>
-                    Only people you've matched with can see
-                  </Text>
+                  <Text style={styles.radioSubtitle}>Only people you've matched with can see</Text>
                 </View>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.selectableItem}
-              accessibilityRole="button"
-            >
+            <TouchableOpacity style={styles.selectableItem} accessibilityRole="button">
               <View style={styles.radioContainer}>
-                <Icon
-                  name="ellipse-outline"
-                  size={24}
-                  color="#C7C7CC"
-                  style={styles.radioIcon}
-                />
+                <Icon name="ellipse-outline" size={24} color="#C7C7CC" style={styles.radioIcon} />
                 <View style={styles.radioText}>
                   <Text style={styles.radioTitle}>No One</Text>
-                  <Text style={styles.radioSubtitle}>
-                    Hide read receipts from everyone
-                  </Text>
+                  <Text style={styles.radioSubtitle}>Hide read receipts from everyone</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -299,8 +263,8 @@ const PrivacySettingsScreen: React.FC = () => {
         <View style={styles.infoBox}>
           <Icon name="information-circle" size={24} color="#007AFF" />
           <Text style={styles.infoText}>
-            We take your privacy seriously. Learn more about how we protect your
-            data in our Privacy Policy.
+            We take your privacy seriously. Learn more about how we protect your data in our Privacy
+            Policy.
           </Text>
         </View>
       </ScrollView>

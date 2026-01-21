@@ -85,9 +85,7 @@ const VerificationStart: React.FC<VerificationStartProps> = ({
         </HeaderIcon>
         <HeaderText>
           <Title>Get Verified</Title>
-          <Subtitle>
-            Verify your profile to build trust and get more matches
-          </Subtitle>
+          <Subtitle>Verify your profile to build trust and get more matches</Subtitle>
         </HeaderText>
       </Header>
 
@@ -121,9 +119,7 @@ const VerificationStart: React.FC<VerificationStartProps> = ({
           </OptionIcon>
           <OptionContent>
             <OptionTitle>Photo Verification</OptionTitle>
-            <OptionDescription>
-              Verify your photos with selfie matching
-            </OptionDescription>
+            <OptionDescription>Verify your photos with selfie matching</OptionDescription>
             {status?.photoVerification.status === 'verified' && (
               <OptionStatus $verified>Verified</OptionStatus>
             )}
@@ -150,9 +146,7 @@ const VerificationStart: React.FC<VerificationStartProps> = ({
             </OptionIcon>
             <OptionContent>
               <OptionTitle>ID Verification</OptionTitle>
-              <OptionDescription>
-                Verify your identity with government ID
-              </OptionDescription>
+              <OptionDescription>Verify your identity with government ID</OptionDescription>
               {status?.idVerification.status === 'verified' && (
                 <OptionStatus $verified>Verified</OptionStatus>
               )}
@@ -172,8 +166,8 @@ const VerificationStart: React.FC<VerificationStartProps> = ({
       </VerificationOptions>
 
       <InfoNote>
-        <strong>Privacy First:</strong> Your verification photos and documents are securely processed
-        and never shared with other users or third parties.
+        <strong>Privacy First:</strong> Your verification photos and documents are securely
+        processed and never shared with other users or third parties.
       </InfoNote>
     </Container>
   );
@@ -270,14 +264,10 @@ const VerificationOption = styled.div<{ $completed?: boolean; $pending?: boolean
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background-color: ${props =>
-    props.$completed ? '#f0fdf4' :
-    props.$pending ? '#fffbeb' :
-    'white'};
-  border: 1px solid ${props =>
-    props.$completed ? '#bbf7d0' :
-    props.$pending ? '#fde68a' :
-    '#e5e7eb'};
+  background-color: ${(props) =>
+    props.$completed ? '#f0fdf4' : props.$pending ? '#fffbeb' : 'white'};
+  border: 1px solid
+    ${(props) => (props.$completed ? '#bbf7d0' : props.$pending ? '#fde68a' : '#e5e7eb')};
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
@@ -291,7 +281,7 @@ const VerificationOption = styled.div<{ $completed?: boolean; $pending?: boolean
 const OptionIcon = styled.div<{ $completed?: boolean }>`
   width: 48px;
   height: 48px;
-  background-color: ${props => props.$completed ? '#22c55e' : '#3b82f6'};
+  background-color: ${(props) => (props.$completed ? '#22c55e' : '#3b82f6')};
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -324,16 +314,22 @@ const OptionStatus = styled.div<{ $verified?: boolean; $pending?: boolean; $reje
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
-  background-color: ${props =>
-    props.$verified ? '#dcfce7' :
-    props.$pending ? '#fef3c7' :
-    props.$rejected ? '#fee2e2' :
-    '#f3f4f6'};
-  color: ${props =>
-    props.$verified ? '#166534' :
-    props.$pending ? '#92400e' :
-    props.$rejected ? '#991b1b' :
-    '#6b7280'};
+  background-color: ${(props) =>
+    props.$verified
+      ? '#dcfce7'
+      : props.$pending
+        ? '#fef3c7'
+        : props.$rejected
+          ? '#fee2e2'
+          : '#f3f4f6'};
+  color: ${(props) =>
+    props.$verified
+      ? '#166534'
+      : props.$pending
+        ? '#92400e'
+        : props.$rejected
+          ? '#991b1b'
+          : '#6b7280'};
 `;
 
 const PremiumBadge = styled.span`

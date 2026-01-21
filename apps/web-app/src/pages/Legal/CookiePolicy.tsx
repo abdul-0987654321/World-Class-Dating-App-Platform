@@ -20,23 +20,36 @@ export const CookiePolicy: React.FC = () => {
 
         <Section>
           <Paragraph>
-            This Cookie Policy explains how Flamoral, Inc. ("Flamoral," "we," "us," or "our") uses cookies and similar technologies when you visit our website or use our mobile application (the "Service"). This policy should be read in conjunction with our Privacy Policy.
+            This Cookie Policy explains how Flamoral, Inc. ("Flamoral," "we," "us," or "our") uses
+            cookies and similar technologies when you visit our website or use our mobile
+            application (the "Service"). This policy should be read in conjunction with our Privacy
+            Policy.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>1. What Are Cookies?</SectionTitle>
           <Paragraph>
-            Cookies are small text files that are placed on your device (computer, smartphone, or tablet) when you visit a website. They are widely used to make websites work more efficiently and to provide information to the website owners.
+            Cookies are small text files that are placed on your device (computer, smartphone, or
+            tablet) when you visit a website. They are widely used to make websites work more
+            efficiently and to provide information to the website owners.
           </Paragraph>
-          <Paragraph>
-            We also use similar technologies such as:
-          </Paragraph>
+          <Paragraph>We also use similar technologies such as:</Paragraph>
           <List>
-            <ListItem><Strong>Local Storage:</Strong> Stores data locally in your browser without an expiration date</ListItem>
-            <ListItem><Strong>Session Storage:</Strong> Similar to local storage but data is cleared when the session ends</ListItem>
-            <ListItem><Strong>Pixels/Web Beacons:</Strong> Small graphic images that track user behavior</ListItem>
-            <ListItem><Strong>Device Fingerprinting:</Strong> Collecting device attributes to identify users</ListItem>
+            <ListItem>
+              <Strong>Local Storage:</Strong> Stores data locally in your browser without an
+              expiration date
+            </ListItem>
+            <ListItem>
+              <Strong>Session Storage:</Strong> Similar to local storage but data is cleared when
+              the session ends
+            </ListItem>
+            <ListItem>
+              <Strong>Pixels/Web Beacons:</Strong> Small graphic images that track user behavior
+            </ListItem>
+            <ListItem>
+              <Strong>Device Fingerprinting:</Strong> Collecting device attributes to identify users
+            </ListItem>
           </List>
         </Section>
 
@@ -45,7 +58,9 @@ export const CookiePolicy: React.FC = () => {
 
           <SubsectionTitle>2.1 Essential Cookies</SubsectionTitle>
           <Paragraph>
-            These cookies are strictly necessary for the Service to function. They enable core functionality such as security, authentication, and accessibility. You cannot opt out of these cookies.
+            These cookies are strictly necessary for the Service to function. They enable core
+            functionality such as security, authentication, and accessibility. You cannot opt out of
+            these cookies.
           </Paragraph>
           <CookieTable>
             <thead>
@@ -107,7 +122,8 @@ export const CookiePolicy: React.FC = () => {
 
           <SubsectionTitle>2.3 Analytics Cookies</SubsectionTitle>
           <Paragraph>
-            These cookies help us understand how visitors interact with the Service by collecting and reporting information anonymously.
+            These cookies help us understand how visitors interact with the Service by collecting
+            and reporting information anonymously.
           </Paragraph>
           <CookieTable>
             <thead>
@@ -166,12 +182,14 @@ export const CookiePolicy: React.FC = () => {
 
           <SubsectionTitle>3.1 Cookie Consent Banner</SubsectionTitle>
           <Paragraph>
-            When you first visit our Service, you'll see a cookie consent banner allowing you to accept or customize which types of cookies you allow.
+            When you first visit our Service, you'll see a cookie consent banner allowing you to
+            accept or customize which types of cookies you allow.
           </Paragraph>
 
           <SubsectionTitle>3.2 Browser Settings</SubsectionTitle>
           <Paragraph>
-            Most web browsers allow you to control cookies through their settings. You can typically:
+            Most web browsers allow you to control cookies through their settings. You can
+            typically:
           </Paragraph>
           <List>
             <ListItem>View what cookies are stored on your device</ListItem>
@@ -182,37 +200,61 @@ export const CookiePolicy: React.FC = () => {
           </List>
 
           <SubsectionTitle>3.3 Opt-Out Links</SubsectionTitle>
-          <Paragraph>
-            You can opt out of specific third-party cookies:
-          </Paragraph>
+          <Paragraph>You can opt out of specific third-party cookies:</Paragraph>
           <List>
-            <ListItem>Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Google Analytics Opt-out</a></ListItem>
-            <ListItem>Facebook: <a href="https://www.facebook.com/settings?tab=ads" target="_blank" rel="noopener noreferrer">Facebook Ad Settings</a></ListItem>
-            <ListItem>Industry opt-out: <a href="https://optout.aboutads.info" target="_blank" rel="noopener noreferrer">Digital Advertising Alliance</a></ListItem>
+            <ListItem>
+              Google Analytics:{' '}
+              <a
+                href="https://tools.google.com/dlpage/gaoptout"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google Analytics Opt-out
+              </a>
+            </ListItem>
+            <ListItem>
+              Facebook:{' '}
+              <a
+                href="https://www.facebook.com/settings?tab=ads"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Facebook Ad Settings
+              </a>
+            </ListItem>
+            <ListItem>
+              Industry opt-out:{' '}
+              <a href="https://optout.aboutads.info" target="_blank" rel="noopener noreferrer">
+                Digital Advertising Alliance
+              </a>
+            </ListItem>
           </List>
         </Section>
 
         <Section>
           <SectionTitle>4. International Users</SectionTitle>
           <Paragraph>
-            If you are located in the European Economic Area (EEA), United Kingdom, or other regions with privacy laws, we will only use non-essential cookies with your consent. You can withdraw your consent at any time.
+            If you are located in the European Economic Area (EEA), United Kingdom, or other regions
+            with privacy laws, we will only use non-essential cookies with your consent. You can
+            withdraw your consent at any time.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>5. Updates to This Policy</SectionTitle>
           <Paragraph>
-            We may update this Cookie Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last Updated" date.
+            We may update this Cookie Policy from time to time. We will notify you of any material
+            changes by posting the new policy on this page and updating the "Last Updated" date.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>Contact Us</SectionTitle>
-          <Paragraph>
-            If you have questions about our use of cookies, please contact us:
-          </Paragraph>
+          <Paragraph>If you have questions about our use of cookies, please contact us:</Paragraph>
           <ContactInfo>
-            <div><Strong>Flamoral, Inc.</Strong></div>
+            <div>
+              <Strong>Flamoral, Inc.</Strong>
+            </div>
             <div>Email: privacy@flamoral.com</div>
             <div>Data Protection Officer: dpo@flamoral.com</div>
           </ContactInfo>
@@ -273,7 +315,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #EC4899 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -356,7 +398,8 @@ const CookieTable = styled.table`
   margin: 1rem 0 1.5rem;
   font-size: 0.9rem;
 
-  th, td {
+  th,
+  td {
     padding: 0.75rem;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -381,7 +424,7 @@ const ContactInfo = styled.div`
   background: rgba(59, 130, 246, 0.1);
   padding: 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #3b82f6;
   margin-top: 1rem;
 
   div {

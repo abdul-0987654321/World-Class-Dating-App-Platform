@@ -76,40 +76,40 @@ const initialState: NotificationState = {
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetch',
   async ({ page = 1, limit = 20 }: { page?: number; limit?: number } = {}) => {
-    const response = await axios.get(`${process.env.API_URL}/api/notifications`, {
+    const response = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications`, {
       params: { page, limit },
     });
     return response.data;
   }
 );
 
-export const fetchUnreadCount = createAsyncThunk(
-  'notifications/fetchUnreadCount',
-  async () => {
-    const response = await axios.get(`${process.env.API_URL}/api/notifications/unread-count`);
-    return response.data.count;
-  }
-);
+export const fetchUnreadCount = createAsyncThunk('notifications/fetchUnreadCount', async () => {
+  const response = await axios.get(
+    `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/unread-count`
+  );
+  return response.data.count;
+});
 
 export const markAsRead = createAsyncThunk(
   'notifications/markAsRead',
   async (notificationId: string) => {
-    await axios.put(`${process.env.API_URL}/api/notifications/${notificationId}/read`);
+    await axios.put(
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/${notificationId}/read`
+    );
     return notificationId;
   }
 );
 
-export const markAllAsRead = createAsyncThunk(
-  'notifications/markAllAsRead',
-  async () => {
-    await axios.put(`${process.env.API_URL}/api/notifications/mark-all-read`);
-  }
-);
+export const markAllAsRead = createAsyncThunk('notifications/markAllAsRead', async () => {
+  await axios.put(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/mark-all-read`);
+});
 
 export const deleteNotification = createAsyncThunk(
   'notifications/delete',
   async (notificationId: string) => {
-    await axios.delete(`${process.env.API_URL}/api/notifications/${notificationId}`);
+    await axios.delete(
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/${notificationId}`
+    );
     return notificationId;
   }
 );
@@ -118,7 +118,7 @@ export const updatePreferences = createAsyncThunk(
   'notifications/updatePreferences',
   async (preferences: Partial<NotificationPreferences>) => {
     const response = await axios.put(
-      `${process.env.API_URL}/api/notifications/preferences`,
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/preferences`,
       preferences
     );
     await AsyncStorage.setItem('notificationPreferences', JSON.stringify(response.data));
@@ -129,33 +129,35 @@ export const updatePreferences = createAsyncThunk(
 export const registerDeviceToken = createAsyncThunk(
   'notifications/registerToken',
   async ({ token, platform }: { token: string; platform: 'ios' | 'android' }) => {
-    const response = await axios.post(`${process.env.API_URL}/api/notifications/register`, {
-      token,
-      platform,
-    });
+    const response = await axios.post(
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/register`,
+      {
+        token,
+        platform,
+      }
+    );
     await AsyncStorage.setItem('deviceToken', token);
     return { token, platform };
   }
 );
 
-export const loadPreferences = createAsyncThunk(
-  'notifications/loadPreferences',
-  async () => {
-    try {
-      const stored = await AsyncStorage.getItem('notificationPreferences');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-
-      // Fetch from server if not cached
-      const response = await axios.get(`${process.env.API_URL}/api/notifications/preferences`);
-      await AsyncStorage.setItem('notificationPreferences', JSON.stringify(response.data));
-      return response.data;
-    } catch (error) {
-      return null;
+export const loadPreferences = createAsyncThunk('notifications/loadPreferences', async () => {
+  try {
+    const stored = await AsyncStorage.getItem('notificationPreferences');
+    if (stored) {
+      return JSON.parse(stored);
     }
+
+    // Fetch from server if not cached
+    const response = await axios.get(
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/notifications/preferences`
+    );
+    await AsyncStorage.setItem('notificationPreferences', JSON.stringify(response.data));
+    return response.data;
+  } catch (error) {
+    return null;
   }
-);
+});
 
 const notificationSlice = createSlice({
   name: 'notifications',
@@ -207,7 +209,7 @@ const notificationSlice = createSlice({
 
       // Mark as read
       .addCase(markAsRead.fulfilled, (state, action) => {
-        const notification = state.notifications.find(n => n.id === action.payload);
+        const notification = state.notifications.find((n) => n.id === action.payload);
         if (notification && !notification.read) {
           notification.read = true;
           state.unreadCount = Math.max(0, state.unreadCount - 1);
@@ -216,7 +218,7 @@ const notificationSlice = createSlice({
 
       // Mark all as read
       .addCase(markAllAsRead.fulfilled, (state) => {
-        state.notifications.forEach(notification => {
+        state.notifications.forEach((notification) => {
           notification.read = true;
         });
         state.unreadCount = 0;
@@ -224,7 +226,7 @@ const notificationSlice = createSlice({
 
       // Delete notification
       .addCase(deleteNotification.fulfilled, (state, action) => {
-        const index = state.notifications.findIndex(n => n.id === action.payload);
+        const index = state.notifications.findIndex((n) => n.id === action.payload);
         if (index !== -1) {
           const wasUnread = !state.notifications[index].read;
           state.notifications.splice(index, 1);

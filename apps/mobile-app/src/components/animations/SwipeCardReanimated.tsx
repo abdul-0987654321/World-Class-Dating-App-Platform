@@ -174,7 +174,10 @@ const SwipeOverlay = memo<OverlayProps>(({ opacity, label, color, rotation, posi
 
 export const SwipeCardReanimated = memo(
   forwardRef<SwipeCardRef, SwipeCardReanimatedProps>(
-    ({ profile, onSwipeLeft, onSwipeRight, onSwipeUp, onTap, isTopCard = true, stackIndex = 0 }, ref) => {
+    (
+      { profile, onSwipeLeft, onSwipeRight, onSwipeUp, onTap, isTopCard = true, stackIndex = 0 },
+      ref
+    ) => {
       // Animation values
       const translateX = useSharedValue(0);
       const translateY = useSharedValue(0);
@@ -225,11 +228,15 @@ export const SwipeCardReanimated = memo(
       }, [translateY, onSwipeUp, profile]);
 
       // Expose methods via ref
-      useImperativeHandle(ref, () => ({
-        swipeLeft,
-        swipeRight,
-        swipeUp,
-      }), [swipeLeft, swipeRight, swipeUp]);
+      useImperativeHandle(
+        ref,
+        () => ({
+          swipeLeft,
+          swipeRight,
+          swipeUp,
+        }),
+        [swipeLeft, swipeRight, swipeUp]
+      );
 
       // Gesture handler
       const gestureHandler = useAnimatedGestureHandler<
@@ -373,11 +380,7 @@ export const SwipeCardReanimated = memo(
             {/* Photo */}
             <TapGestureHandler onActivated={() => onTap?.(profile)}>
               <Animated.View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: primaryPhoto }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: primaryPhoto }} style={styles.image} resizeMode="cover" />
                 <View style={styles.gradient} />
               </Animated.View>
             </TapGestureHandler>
@@ -395,9 +398,7 @@ export const SwipeCardReanimated = memo(
                 )}
               </View>
 
-              {profile.occupation && (
-                <Text style={styles.occupation}>{profile.occupation}</Text>
-              )}
+              {profile.occupation && <Text style={styles.occupation}>{profile.occupation}</Text>}
 
               {profile.distance !== undefined && (
                 <Text style={styles.distance}>{Math.round(profile.distance)} km away</Text>

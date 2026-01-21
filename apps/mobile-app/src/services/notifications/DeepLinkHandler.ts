@@ -80,55 +80,58 @@ export class DeepLinkHandler {
       const queryParams = this.parseQueryParams(queryString);
 
       // Route mapping
-      const routes: Record<string, { screen: string; parseParams?: (parts: string[], query: any) => any }> = {
-        'chat': {
+      const routes: Record<
+        string,
+        { screen: string; parseParams?: (parts: string[], query: any) => any }
+      > = {
+        chat: {
           screen: 'Chat',
           parseParams: (parts, query) => ({
             userId: parts[1] || query.userId,
             chatId: query.chatId,
           }),
         },
-        'profile': {
+        profile: {
           screen: 'Profile',
           parseParams: (parts, query) => ({
             userId: parts[1] || query.userId,
           }),
         },
-        'match': {
+        match: {
           screen: 'Match',
           parseParams: (parts, query) => ({
             matchId: parts[1] || query.matchId,
           }),
         },
-        'discover': {
+        discover: {
           screen: 'Discover',
         },
-        'likes': {
+        likes: {
           screen: 'Likes',
         },
-        'matches': {
+        matches: {
           screen: 'Matches',
         },
-        'settings': {
+        settings: {
           screen: 'Settings',
           parseParams: (parts) => ({
             section: parts[1],
           }),
         },
-        'subscription': {
+        subscription: {
           screen: 'Subscription',
           parseParams: (parts, query) => ({
             plan: query.plan,
           }),
         },
-        'call': {
+        call: {
           screen: 'VideoCall',
           parseParams: (parts, query) => ({
             callId: parts[1] || query.callId,
             userId: query.userId,
           }),
         },
-        'verify': {
+        verify: {
           screen: 'Verification',
           parseParams: (parts, query) => ({
             token: query.token,
@@ -144,9 +147,7 @@ export class DeepLinkHandler {
         return null;
       }
 
-      const params = route.parseParams
-        ? route.parseParams(pathParts, queryParams)
-        : queryParams;
+      const params = route.parseParams ? route.parseParams(pathParts, queryParams) : queryParams;
 
       return {
         screen: route.screen,
@@ -166,7 +167,7 @@ export class DeepLinkHandler {
 
     const params: Record<string, any> = {};
 
-    queryString.split('&').forEach(param => {
+    queryString.split('&').forEach((param) => {
       const [key, value] = param.split('=');
       if (key && value) {
         params[decodeURIComponent(key)] = decodeURIComponent(value);

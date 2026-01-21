@@ -106,11 +106,9 @@ class FraudDetectionService {
    * Perform comprehensive fraud check on user activity
    */
   async checkFraud(request: FraudCheckRequest): Promise<ApiResponse<FraudCheckResult>> {
-    return httpClient.post<FraudCheckResult>(
-      `${this.baseUrl}/check`,
-      request,
-      { timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS }
-    );
+    return httpClient.post<FraudCheckResult>(`${this.baseUrl}/check`, request, {
+      timeout: API_CONFIG.TIMEOUTS.AI_ANALYSIS,
+    });
   }
 
   /**
@@ -120,10 +118,10 @@ class FraudDetectionService {
     userId: string,
     location: { latitude: number; longitude: number; ip_address?: string }
   ): Promise<ApiResponse<LocationAnomalyResult>> {
-    return httpClient.post<LocationAnomalyResult>(
-      `${this.baseUrl}/location/check`,
-      { user_id: userId, ...location }
-    );
+    return httpClient.post<LocationAnomalyResult>(`${this.baseUrl}/location/check`, {
+      user_id: userId,
+      ...location,
+    });
   }
 
   /**
@@ -133,10 +131,10 @@ class FraudDetectionService {
     userId: string,
     device: FraudCheckRequest['device']
   ): Promise<ApiResponse<DeviceCheckResult>> {
-    return httpClient.post<DeviceCheckResult>(
-      `${this.baseUrl}/device/check`,
-      { user_id: userId, device }
-    );
+    return httpClient.post<DeviceCheckResult>(`${this.baseUrl}/device/check`, {
+      user_id: userId,
+      device,
+    });
   }
 
   /**
@@ -146,10 +144,7 @@ class FraudDetectionService {
     userId: string,
     device: FraudCheckRequest['device']
   ): Promise<ApiResponse<{ device_id: string; registered: boolean }>> {
-    return httpClient.post(
-      `${this.baseUrl}/device/register`,
-      { user_id: userId, device }
-    );
+    return httpClient.post(`${this.baseUrl}/device/register`, { user_id: userId, device });
   }
 
   /**
@@ -159,19 +154,17 @@ class FraudDetectionService {
     userId: string,
     activityType: string
   ): Promise<ApiResponse<VelocityCheckResult>> {
-    return httpClient.post<VelocityCheckResult>(
-      `${this.baseUrl}/velocity/check`,
-      { user_id: userId, activity_type: activityType }
-    );
+    return httpClient.post<VelocityCheckResult>(`${this.baseUrl}/velocity/check`, {
+      user_id: userId,
+      activity_type: activityType,
+    });
   }
 
   /**
    * Get full fraud analysis for a user profile
    */
   async analyzeProfile(userId: string): Promise<ApiResponse<ProfileFraudAnalysis>> {
-    return httpClient.get<ProfileFraudAnalysis>(
-      `${this.baseUrl}/profile/${userId}/analysis`
-    );
+    return httpClient.get<ProfileFraudAnalysis>(`${this.baseUrl}/profile/${userId}/analysis`);
   }
 
   /**
@@ -183,21 +176,20 @@ class FraudDetectionService {
     reason: string,
     evidence?: string[]
   ): Promise<ApiResponse<{ report_id: string; status: string }>> {
-    return httpClient.post(
-      `${this.baseUrl}/report`,
-      {
-        reporter_id: reporterId,
-        target_user_id: targetUserId,
-        reason,
-        evidence,
-      }
-    );
+    return httpClient.post(`${this.baseUrl}/report`, {
+      reporter_id: reporterId,
+      target_user_id: targetUserId,
+      reason,
+      evidence,
+    });
   }
 
   /**
    * Check if user should be blocked based on fraud score
    */
-  async shouldBlockUser(userId: string): Promise<ApiResponse<{ should_block: boolean; reason?: string }>> {
+  async shouldBlockUser(
+    userId: string
+  ): Promise<ApiResponse<{ should_block: boolean; reason?: string }>> {
     return httpClient.get(`${this.baseUrl}/user/${userId}/block-status`);
   }
 

@@ -30,10 +30,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     const timeAgo = getTimeAgo(item.lastMessage.sentAt);
 
     return (
-      <TouchableOpacity
-        style={styles.conversationItem}
-        onPress={() => onConversationPress(item)}
-      >
+      <TouchableOpacity style={styles.conversationItem} onPress={() => onConversationPress(item)}>
         <Image source={{ uri: item.otherUser.photo }} style={styles.avatar} />
         <View style={styles.conversationInfo}>
           <View style={styles.topRow}>
@@ -42,10 +39,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           </View>
           <View style={styles.bottomRow}>
             <Text
-              style={[
-                styles.lastMessage,
-                item.unreadCount > 0 && styles.unreadMessage,
-              ]}
+              style={[styles.lastMessage, item.unreadCount > 0 && styles.unreadMessage]}
               numberOfLines={1}
             >
               {item.lastMessage.content}

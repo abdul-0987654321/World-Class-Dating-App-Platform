@@ -110,9 +110,7 @@ describe('LoginPage', () => {
 
       const passwordInput = screen.getByPlaceholderText('Enter your password');
       const toggleButtons = screen.getAllByRole('button');
-      const toggleButton = toggleButtons.find(btn =>
-        btn.querySelector('svg')
-      );
+      const toggleButton = toggleButtons.find((btn) => btn.querySelector('svg'));
 
       // Initially hidden
       expect(passwordInput).toHaveAttribute('type', 'password');
@@ -179,9 +177,11 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       // Create a promise that doesn't resolve immediately
       let resolveLogin: (value: unknown) => void;
-      mockLogin.mockReturnValue(new Promise((resolve) => {
-        resolveLogin = resolve;
-      }));
+      mockLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        })
+      );
 
       renderWithProviders(<LoginPage />);
 

@@ -82,11 +82,9 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Simulate successful API response
-      Alert.alert(
-        'Code Sent',
-        `A verification code has been sent to ${email}`,
-        [{ text: 'OK', onPress: () => setStep('verify') }]
-      );
+      Alert.alert('Code Sent', `A verification code has been sent to ${email}`, [
+        { text: 'OK', onPress: () => setStep('verify') },
+      ]);
       setResendTimer(60); // 60 seconds cooldown
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to send verification code');
@@ -226,10 +224,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Back to Login</Text>
         </TouchableOpacity>
       </View>
@@ -239,9 +234,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
   const renderVerifyStep = () => (
     <>
       <Text style={styles.title}>Verify Your Email</Text>
-      <Text style={styles.subtitle}>
-        Enter the 6-digit code we sent to {email}
-      </Text>
+      <Text style={styles.subtitle}>Enter the 6-digit code we sent to {email}</Text>
 
       <View style={styles.form}>
         <View style={styles.codeContainer}>
@@ -249,15 +242,10 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
             <TextInput
               key={index}
               ref={(ref) => (codeInputRefs.current[index] = ref)}
-              style={[
-                styles.codeInput,
-                digit && styles.codeInputFilled,
-              ]}
+              style={[styles.codeInput, digit && styles.codeInputFilled]}
               value={digit}
               onChangeText={(text) => handleCodeChange(text, index)}
-              onKeyPress={({ nativeEvent }) =>
-                handleCodeKeyPress(nativeEvent.key, index)
-              }
+              onKeyPress={({ nativeEvent }) => handleCodeKeyPress(nativeEvent.key, index)}
               keyboardType="number-pad"
               maxLength={1}
               selectTextOnFocus
@@ -279,25 +267,14 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Didn't receive the code?</Text>
-          <TouchableOpacity
-            onPress={handleResendCode}
-            disabled={resendTimer > 0 || loading}
-          >
-            <Text
-              style={[
-                styles.resendLink,
-                resendTimer > 0 && styles.resendLinkDisabled,
-              ]}
-            >
+          <TouchableOpacity onPress={handleResendCode} disabled={resendTimer > 0 || loading}>
+            <Text style={[styles.resendLink, resendTimer > 0 && styles.resendLinkDisabled]}>
               {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend Code'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setStep('email')}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => setStep('email')}>
           <Text style={styles.backButtonText}>Change Email</Text>
         </TouchableOpacity>
       </View>
@@ -335,36 +312,16 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
         <View style={styles.passwordRequirements}>
           <Text style={styles.requirementsTitle}>Password must contain:</Text>
-          <Text
-            style={[
-              styles.requirement,
-              newPassword.length >= 8 && styles.requirementMet,
-            ]}
-          >
+          <Text style={[styles.requirement, newPassword.length >= 8 && styles.requirementMet]}>
             {newPassword.length >= 8 ? '✓' : '○'} At least 8 characters
           </Text>
-          <Text
-            style={[
-              styles.requirement,
-              /[A-Z]/.test(newPassword) && styles.requirementMet,
-            ]}
-          >
+          <Text style={[styles.requirement, /[A-Z]/.test(newPassword) && styles.requirementMet]}>
             {/[A-Z]/.test(newPassword) ? '✓' : '○'} One uppercase letter
           </Text>
-          <Text
-            style={[
-              styles.requirement,
-              /[a-z]/.test(newPassword) && styles.requirementMet,
-            ]}
-          >
+          <Text style={[styles.requirement, /[a-z]/.test(newPassword) && styles.requirementMet]}>
             {/[a-z]/.test(newPassword) ? '✓' : '○'} One lowercase letter
           </Text>
-          <Text
-            style={[
-              styles.requirement,
-              /[0-9]/.test(newPassword) && styles.requirementMet,
-            ]}
-          >
+          <Text style={[styles.requirement, /[0-9]/.test(newPassword) && styles.requirementMet]}>
             {/[0-9]/.test(newPassword) ? '✓' : '○'} One number
           </Text>
           <Text
@@ -392,14 +349,10 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
             <Text
               style={[
                 styles.matchIndicator,
-                newPassword === confirmPassword
-                  ? styles.matchSuccess
-                  : styles.matchError,
+                newPassword === confirmPassword ? styles.matchSuccess : styles.matchError,
               ]}
             >
-              {newPassword === confirmPassword
-                ? '✓ Passwords match'
-                : '✗ Passwords do not match'}
+              {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
             </Text>
           )}
         </View>
@@ -443,12 +396,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
             ]}
           />
           <View style={styles.progressLine} />
-          <View
-            style={[
-              styles.progressDot,
-              step === 'reset' && styles.progressDotActive,
-            ]}
-          />
+          <View style={[styles.progressDot, step === 'reset' && styles.progressDotActive]} />
         </View>
 
         <View style={styles.content}>

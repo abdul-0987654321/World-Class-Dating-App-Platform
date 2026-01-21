@@ -100,9 +100,7 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified, onUnderage }) => {
         </LogoWrapper>
 
         <Title>Age Verification Required</Title>
-        <Subtitle>
-          You must be at least {MINIMUM_AGE} years old to use Flamoral
-        </Subtitle>
+        <Subtitle>You must be at least {MINIMUM_AGE} years old to use Flamoral</Subtitle>
 
         <Form onSubmit={handleSubmit}>
           <Label>Enter your date of birth:</Label>
@@ -142,17 +140,20 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified, onUnderage }) => {
 
           {error && <ErrorMessage>{error}</ErrorMessage>}
 
-          <SubmitButton type="submit">
-            Continue
-          </SubmitButton>
+          <SubmitButton type="submit">Continue</SubmitButton>
         </Form>
 
         <PrivacyNote>
-          We use your date of birth to verify your age and personalize your experience.
-          By continuing, you agree to our{' '}
-          <PrivacyLink href="/terms" target="_blank">Terms of Service</PrivacyLink>
-          {' '}and{' '}
-          <PrivacyLink href="/privacy" target="_blank">Privacy Policy</PrivacyLink>.
+          We use your date of birth to verify your age and personalize your experience. By
+          continuing, you agree to our{' '}
+          <PrivacyLink href="/terms" target="_blank">
+            Terms of Service
+          </PrivacyLink>{' '}
+          and{' '}
+          <PrivacyLink href="/privacy" target="_blank">
+            Privacy Policy
+          </PrivacyLink>
+          .
         </PrivacyNote>
       </Modal>
     </Overlay>
@@ -288,7 +289,9 @@ const SubmitButton = styled.button`
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 
   &:hover {
     transform: translateY(-2px);

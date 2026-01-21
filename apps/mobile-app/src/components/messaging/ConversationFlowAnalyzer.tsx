@@ -44,8 +44,8 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
 
   const analyzeConversation = () => {
     // Calculate message statistics
-    const userMessages = messages.filter(m => m.senderId === currentUserId);
-    const partnerMessages = messages.filter(m => m.senderId !== currentUserId);
+    const userMessages = messages.filter((m) => m.senderId === currentUserId);
+    const partnerMessages = messages.filter((m) => m.senderId !== currentUserId);
 
     // Balance score
     const balance_score = calculateBalanceScore(userMessages.length, partnerMessages.length);
@@ -114,16 +114,18 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
     if (messages.length < 5) return 'low';
 
     const avgMessageLength = messages.reduce((sum, m) => sum + m.text.length, 0) / messages.length;
-    const hasQuestions = messages.some(m => m.text.includes('?'));
+    const hasQuestions = messages.some((m) => m.text.includes('?'));
 
     // Check recent trend
     const recentMessages = messages.slice(-10);
     const olderMessages = messages.slice(Math.max(0, messages.length - 20), -10);
 
-    const recentAvg = recentMessages.reduce((sum, m) => sum + m.text.length, 0) / recentMessages.length;
-    const olderAvg = olderMessages.length > 0
-      ? olderMessages.reduce((sum, m) => sum + m.text.length, 0) / olderMessages.length
-      : recentAvg;
+    const recentAvg =
+      recentMessages.reduce((sum, m) => sum + m.text.length, 0) / recentMessages.length;
+    const olderAvg =
+      olderMessages.length > 0
+        ? olderMessages.reduce((sum, m) => sum + m.text.length, 0) / olderMessages.length
+        : recentAvg;
 
     if (recentAvg < olderAvg * 0.7) return 'declining';
     if (avgMessageLength > 100 && hasQuestions) return 'high';
@@ -131,7 +133,9 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
     return 'low';
   };
 
-  const calculateMomentum = (messages: Message[]): 'building' | 'stable' | 'slowing' | 'stalled' => {
+  const calculateMomentum = (
+    messages: Message[]
+  ): 'building' | 'stable' | 'slowing' | 'stalled' => {
     if (messages.length < 3) return 'building';
 
     const now = new Date().getTime();
@@ -158,13 +162,14 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
     messages: Message[],
     userId: string
   ): 'excellent' | 'good' | 'fair' | 'poor' => {
-    const partnerMessages = messages.filter(m => m.senderId !== userId);
+    const partnerMessages = messages.filter((m) => m.senderId !== userId);
 
     if (partnerMessages.length === 0) return 'poor';
 
-    const avgLength = partnerMessages.reduce((sum, m) => sum + m.text.length, 0) / partnerMessages.length;
-    const hasQuestions = partnerMessages.some(m => m.text.includes('?'));
-    const oneWordReplies = partnerMessages.filter(m => m.text.split(' ').length <= 2).length;
+    const avgLength =
+      partnerMessages.reduce((sum, m) => sum + m.text.length, 0) / partnerMessages.length;
+    const hasQuestions = partnerMessages.some((m) => m.text.includes('?'));
+    const oneWordReplies = partnerMessages.filter((m) => m.text.split(' ').length <= 2).length;
     const oneWordRatio = oneWordReplies / partnerMessages.length;
 
     if (avgLength > 80 && hasQuestions && oneWordRatio < 0.2) return 'excellent';
@@ -176,32 +181,35 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
   const detectRedFlags = (messages: Message[], userId: string): string[] => {
     const flags: string[] = [];
 
-    const userMessages = messages.filter(m => m.senderId === userId);
-    const partnerMessages = messages.filter(m => m.senderId !== userId);
+    const userMessages = messages.filter((m) => m.senderId === userId);
+    const partnerMessages = messages.filter((m) => m.senderId !== userId);
 
     // One-sided conversation
     if (userMessages.length > partnerMessages.length * 2) {
-      flags.push('You\'re sending significantly more messages');
+      flags.push("You're sending significantly more messages");
     }
 
     // Short responses
-    const partnerAvgLength = partnerMessages.length > 0
-      ? partnerMessages.reduce((sum, m) => sum + m.text.length, 0) / partnerMessages.length
-      : 0;
+    const partnerAvgLength =
+      partnerMessages.length > 0
+        ? partnerMessages.reduce((sum, m) => sum + m.text.length, 0) / partnerMessages.length
+        : 0;
 
     if (partnerAvgLength < 20 && partnerMessages.length > 5) {
-      flags.push('They\'re giving very short responses');
+      flags.push("They're giving very short responses");
     }
 
     // No questions from partner
-    const partnerQuestions = partnerMessages.filter(m => m.text.includes('?')).length;
+    const partnerQuestions = partnerMessages.filter((m) => m.text.includes('?')).length;
     if (partnerQuestions === 0 && partnerMessages.length > 10) {
-      flags.push('They haven\'t asked you any questions');
+      flags.push("They haven't asked you any questions");
     }
 
     // Conversation stalled
     if (messages.length > 0) {
-      const hoursSinceLastMessage = (new Date().getTime() - messages[messages.length - 1].timestamp.getTime()) / (1000 * 60 * 60);
+      const hoursSinceLastMessage =
+        (new Date().getTime() - messages[messages.length - 1].timestamp.getTime()) /
+        (1000 * 60 * 60);
       if (hoursSinceLastMessage > 48) {
         flags.push('Conversation has been inactive for 2+ days');
       }
@@ -213,42 +221,48 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
   const detectGreenFlags = (messages: Message[], userId: string): string[] => {
     const flags: string[] = [];
 
-    const partnerMessages = messages.filter(m => m.senderId !== userId);
+    const partnerMessages = messages.filter((m) => m.senderId !== userId);
 
     // Asks questions
-    const questionCount = partnerMessages.filter(m => m.text.includes('?')).length;
+    const questionCount = partnerMessages.filter((m) => m.text.includes('?')).length;
     if (questionCount >= 3) {
-      flags.push('They\'re actively asking you questions');
+      flags.push("They're actively asking you questions");
     }
 
     // Thoughtful responses
-    const avgLength = partnerMessages.length > 0
-      ? partnerMessages.reduce((sum, m) => sum + m.text.length, 0) / partnerMessages.length
-      : 0;
+    const avgLength =
+      partnerMessages.length > 0
+        ? partnerMessages.reduce((sum, m) => sum + m.text.length, 0) / partnerMessages.length
+        : 0;
 
     if (avgLength > 80) {
-      flags.push('They\'re giving detailed, thoughtful responses');
+      flags.push("They're giving detailed, thoughtful responses");
     }
 
     // Quick responses
-    const responseGaps = messages.slice(1).map((m, i) => {
-      const prevMessage = messages[i];
-      if (prevMessage.senderId !== m.senderId) {
-        return m.timestamp.getTime() - prevMessage.timestamp.getTime();
-      }
-      return null;
-    }).filter(g => g !== null);
+    const responseGaps = messages
+      .slice(1)
+      .map((m, i) => {
+        const prevMessage = messages[i];
+        if (prevMessage.senderId !== m.senderId) {
+          return m.timestamp.getTime() - prevMessage.timestamp.getTime();
+        }
+        return null;
+      })
+      .filter((g) => g !== null);
 
-    const avgResponseTime = responseGaps.length > 0
-      ? responseGaps.reduce((sum: number, g) => sum + (g as number), 0) / responseGaps.length
-      : Infinity;
+    const avgResponseTime =
+      responseGaps.length > 0
+        ? responseGaps.reduce((sum: number, g) => sum + (g as number), 0) / responseGaps.length
+        : Infinity;
 
-    if (avgResponseTime < 1000 * 60 * 30) { // < 30 min
+    if (avgResponseTime < 1000 * 60 * 30) {
+      // < 30 min
       flags.push('They respond quickly (within 30 minutes)');
     }
 
     // Uses emojis/shows emotion
-    const hasEmojis = partnerMessages.some(m => /[\u{1F600}-\u{1F64F}]/u.test(m.text));
+    const hasEmojis = partnerMessages.some((m) => /[\u{1F600}-\u{1F64F}]/u.test(m.text));
     if (hasEmojis) {
       flags.push('They use emojis and show personality');
     }
@@ -350,7 +364,11 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
   };
 
   if (!health) {
-    return <View style={styles.container}><Text>Analyzing conversation...</Text></View>;
+    return (
+      <View style={styles.container}>
+        <Text>Analyzing conversation...</Text>
+      </View>
+    );
   }
 
   return (
@@ -404,7 +422,9 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
         <View style={styles.flagsSection}>
           <Text style={styles.flagsTitle}>✅ Green Flags</Text>
           {health.green_flags.map((flag, index) => (
-            <Text key={index} style={styles.greenFlag}>• {flag}</Text>
+            <Text key={index} style={styles.greenFlag}>
+              • {flag}
+            </Text>
           ))}
         </View>
       )}
@@ -413,7 +433,9 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
         <View style={styles.flagsSection}>
           <Text style={styles.flagsTitle}>⚠️ Red Flags</Text>
           {health.red_flags.map((flag, index) => (
-            <Text key={index} style={styles.redFlag}>• {flag}</Text>
+            <Text key={index} style={styles.redFlag}>
+              • {flag}
+            </Text>
           ))}
         </View>
       )}
@@ -429,10 +451,7 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
         </View>
       )}
 
-      <TouchableOpacity
-        style={styles.detailsToggle}
-        onPress={() => setShowDetails(!showDetails)}
-      >
+      <TouchableOpacity style={styles.detailsToggle} onPress={() => setShowDetails(!showDetails)}>
         <Text style={styles.detailsToggleText}>
           {showDetails ? 'Hide' : 'Show'} Analysis Details
         </Text>
@@ -441,9 +460,11 @@ const ConversationFlowAnalyzer: React.FC<ConversationFlowAnalyzerProps> = ({
       {showDetails && (
         <View style={styles.detailsContainer}>
           <Text style={styles.detailsText}>
-            Messages analyzed: {messages.length}{'\n'}
-            Your messages: {messages.filter(m => m.senderId === currentUserId).length}{'\n'}
-            Their messages: {messages.filter(m => m.senderId !== currentUserId).length}
+            Messages analyzed: {messages.length}
+            {'\n'}
+            Your messages: {messages.filter((m) => m.senderId === currentUserId).length}
+            {'\n'}
+            Their messages: {messages.filter((m) => m.senderId !== currentUserId).length}
           </Text>
         </View>
       )}

@@ -40,9 +40,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64">
-        {children}
-      </main>
+      <main className="ml-64">{children}</main>
     </div>
   );
 };
@@ -62,10 +60,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
  */
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <RequireAdmin
-      loginRedirect="/login"
-      unauthorizedRedirect="/unauthorized"
-    >
+    <RequireAdmin loginRedirect="/login" unauthorizedRedirect="/unauthorized">
       {children}
     </RequireAdmin>
   );

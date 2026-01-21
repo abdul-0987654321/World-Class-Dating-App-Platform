@@ -20,20 +20,34 @@
  * Valid gender values - consistent across frontend and backend
  */
 export const VALID_GENDERS = ['male', 'female', 'non-binary', 'other'] as const;
-export type Gender = typeof VALID_GENDERS[number];
+export type Gender = (typeof VALID_GENDERS)[number];
 
 /**
  * Subscription tier enum - normalized to lowercase
  * Backend uses lowercase, some frontend code uses uppercase
  */
-export const SUBSCRIPTION_TIERS = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'] as const;
-export type SubscriptionTier = typeof SUBSCRIPTION_TIERS[number];
+export const SUBSCRIPTION_TIERS = [
+  'free',
+  'basic',
+  'plus',
+  'premium',
+  'premium_plus',
+  'elite',
+] as const;
+export type SubscriptionTier = (typeof SUBSCRIPTION_TIERS)[number];
 
 /**
  * Subscription status - normalized spelling ('cancelled' -> 'canceled')
  */
-export const SUBSCRIPTION_STATUSES = ['active', 'canceled', 'expired', 'past_due', 'trialing', 'grace_period'] as const;
-export type SubscriptionStatus = typeof SUBSCRIPTION_STATUSES[number];
+export const SUBSCRIPTION_STATUSES = [
+  'active',
+  'canceled',
+  'expired',
+  'past_due',
+  'trialing',
+  'grace_period',
+] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
 /**
  * Backend User response format (snake_case)
@@ -229,7 +243,7 @@ export function snakeToCamel(str: string): string {
  * Converts a camelCase string to snake_case
  */
 export function camelToSnake(str: string): string {
-  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
 /**
@@ -333,7 +347,9 @@ export function normalizeSubscriptionStatus(value: unknown): SubscriptionStatus 
  * Transforms backend user response to frontend format
  * Handles all field name differences and provides safe defaults
  */
-export function transformUserResponse(data: BackendUserResponse | null | undefined): FrontendUser | null {
+export function transformUserResponse(
+  data: BackendUserResponse | null | undefined
+): FrontendUser | null {
   if (!data) return null;
 
   // Handle both snake_case and camelCase from backend (transitional support)
@@ -342,7 +358,9 @@ export function transformUserResponse(data: BackendUserResponse | null | undefin
   const isEmailVerified = toBoolean(data.is_email_verified);
   const isPhoneVerified = toBoolean(data.is_phone_verified);
   const coinBalance = toNumber(data.coin_balance || data.coinBalance, 0);
-  const premiumTier = normalizeSubscriptionTier(data.premium_tier || data.premiumTier || data.subscription_tier);
+  const premiumTier = normalizeSubscriptionTier(
+    data.premium_tier || data.premiumTier || data.subscription_tier
+  );
   const profileCompletion = toNumber(data.profile_completion || data.profileCompletion, 0);
 
   return {
@@ -369,14 +387,19 @@ export function transformUserResponse(data: BackendUserResponse | null | undefin
 /**
  * Transforms backend profile response to frontend format
  */
-export function transformProfileResponse(data: BackendProfileResponse | null | undefined): FrontendProfile | null {
+export function transformProfileResponse(
+  data: BackendProfileResponse | null | undefined
+): FrontendProfile | null {
   if (!data) return null;
 
   const photos = toArray(data.photos).map((photo, index) => ({
     id: photo.id || `photo-${index}`,
     url: photo.url,
     isPrimary: toBoolean(photo.is_primary ?? photo.isPrimary),
-    moderationStatus: (photo.moderation_status || photo.moderationStatus || 'pending') as 'pending' | 'approved' | 'rejected',
+    moderationStatus: (photo.moderation_status || photo.moderationStatus || 'pending') as
+      | 'pending'
+      | 'approved'
+      | 'rejected',
     order: toNumber(photo.order, index),
   }));
 
@@ -417,7 +440,9 @@ export function transformProfileResponse(data: BackendProfileResponse | null | u
 /**
  * Transforms backend subscription response to frontend format
  */
-export function transformSubscriptionResponse(data: BackendSubscriptionResponse | null | undefined): FrontendSubscription | null {
+export function transformSubscriptionResponse(
+  data: BackendSubscriptionResponse | null | undefined
+): FrontendSubscription | null {
   if (!data) return null;
 
   return {
@@ -425,7 +450,10 @@ export function transformSubscriptionResponse(data: BackendSubscriptionResponse 
     userId: toString(data.user_id || data.userId),
     tier: normalizeSubscriptionTier(data.tier),
     status: normalizeSubscriptionStatus(data.status),
-    billingCycle: (toString(data.billing_cycle || data.billingCycle, 'monthly') as FrontendSubscription['billingCycle']),
+    billingCycle: toString(
+      data.billing_cycle || data.billingCycle,
+      'monthly'
+    ) as FrontendSubscription['billingCycle'],
     startDate: toDateString(data.start_date || data.startDate) || new Date().toISOString(),
     endDate: toDateString(data.end_date || data.endDate) || null,
     gracePeriodEnd: toDateString(data.grace_period_end || data.gracePeriodEnd) || null,
@@ -461,9 +489,10 @@ export function unwrapApiResponse<T, R>(
   if (response && typeof response === 'object' && 'success' in response) {
     const wrapped = response as BackendApiResponse<T>;
     if (wrapped.success === false) {
-      const errorMsg = typeof wrapped.error === 'string'
-        ? wrapped.error
-        : wrapped.error?.message || 'Unknown error';
+      const errorMsg =
+        typeof wrapped.error === 'string'
+          ? wrapped.error
+          : wrapped.error?.message || 'Unknown error';
       throw new Error(errorMsg);
     }
     const data = wrapped.data;
@@ -490,14 +519,11 @@ export function validateRequiredFields<T extends object>(
   entityName: string = 'Response'
 ): void {
   const missingFields = requiredFields.filter(
-    field => data[field] === undefined || data[field] === null
+    (field) => data[field] === undefined || data[field] === null
   );
 
   if (missingFields.length > 0) {
-    console.warn(
-      `${entityName} missing required fields: ${missingFields.join(', ')}`,
-      data
-    );
+    console.warn(`${entityName} missing required fields: ${missingFields.join(', ')}`, data);
   }
 }
 
@@ -518,10 +544,8 @@ export function transformToSnakeCase<T extends object>(obj: T): Record<string, u
       if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
         result[snakeKey] = transformToSnakeCase(value as object);
       } else if (Array.isArray(value)) {
-        result[snakeKey] = value.map(item =>
-          typeof item === 'object' && item !== null
-            ? transformToSnakeCase(item as object)
-            : item
+        result[snakeKey] = value.map((item) =>
+          typeof item === 'object' && item !== null ? transformToSnakeCase(item as object) : item
         );
       } else {
         result[snakeKey] = value;

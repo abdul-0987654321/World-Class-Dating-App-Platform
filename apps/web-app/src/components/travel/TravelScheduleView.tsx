@@ -1,16 +1,6 @@
 import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
-import {
-  Calendar,
-  MapPin,
-  Clock,
-  Eye,
-  Heart,
-  Plus,
-  Plane,
-  X,
-  Edit,
-} from 'lucide-react';
+import { Calendar, MapPin, Clock, Eye, Heart, Plus, Plane, X, Edit } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 
 interface TravelDestination {
@@ -74,15 +64,12 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
     }
 
     try {
-      const response = await fetch(
-        `/api/travel-mode/destinations/${destinationId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${await getAuthToken()}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/travel-mode/destinations/${destinationId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${await getAuthToken()}`,
+        },
+      });
 
       if (response.ok) {
         fetchDestinations();
@@ -128,12 +115,9 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <Plane className="w-10 h-10 text-gray-400" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
-          No Travel Plans Yet
-        </h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">No Travel Plans Yet</h3>
         <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          Add your first destination to start matching with people in different
-          cities
+          Add your first destination to start matching with people in different cities
         </p>
         <button
           onClick={onAddDestination}
@@ -196,8 +180,7 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
                     destination.status
                   )}`}
                 >
-                  {destination.status.charAt(0).toUpperCase() +
-                    destination.status.slice(1)}
+                  {destination.status.charAt(0).toUpperCase() + destination.status.slice(1)}
                 </span>
               </div>
             </div>
@@ -208,9 +191,7 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
                 <Calendar className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Check-in</p>
-                  <p className="font-semibold text-gray-900">
-                    {format(startDate, 'MMM dd, yyyy')}
-                  </p>
+                  <p className="font-semibold text-gray-900">{format(startDate, 'MMM dd, yyyy')}</p>
                 </div>
               </div>
               <div className="text-gray-300">→</div>
@@ -218,9 +199,7 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
                 <Calendar className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Check-out</p>
-                  <p className="font-semibold text-gray-900">
-                    {format(endDate, 'MMM dd, yyyy')}
-                  </p>
+                  <p className="font-semibold text-gray-900">{format(endDate, 'MMM dd, yyyy')}</p>
                 </div>
               </div>
             </div>
@@ -242,22 +221,17 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
                   </div>
                 )}
 
-              {destination.days_remaining !== undefined &&
-                destination.days_remaining > 0 && (
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-sm">
-                      {destination.days_remaining} days remaining
-                    </span>
-                  </div>
-                )}
+              {destination.days_remaining !== undefined && destination.days_remaining > 0 && (
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-sm">{destination.days_remaining} days remaining</span>
+                </div>
+              )}
             </div>
 
             {/* Notes */}
             {destination.travel_notes && (
-              <p className="text-gray-600 italic mb-4">
-                "{destination.travel_notes}"
-              </p>
+              <p className="text-gray-600 italic mb-4">"{destination.travel_notes}"</p>
             )}
 
             {/* Badges and Actions */}

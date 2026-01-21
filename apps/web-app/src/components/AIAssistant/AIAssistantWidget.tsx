@@ -57,11 +57,13 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
   // Add welcome message when opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        content: `Hi${userName ? ` ${userName}` : ''}! 👋 I'm your FLAMORAL Guide. I can help with profile tips, dating advice, safety guidance, or any questions about the app. What would you like help with?`,
-      }]);
+      setMessages([
+        {
+          id: 'welcome',
+          role: 'assistant',
+          content: `Hi${userName ? ` ${userName}` : ''}! 👋 I'm your FLAMORAL Guide. I can help with profile tips, dating advice, safety guidance, or any questions about the app. What would you like help with?`,
+        },
+      ]);
     }
   }, [isOpen, userName]);
 
@@ -79,17 +81,21 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
       role: 'user',
       content: inputValue.trim(),
     };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInputValue('');
     setIsLoading(true);
 
     // Simulate response (backend needs to be deployed for real responses)
     setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: "I'm here to help! The AI backend is being set up. Once it's ready, I'll be able to give you personalized advice about your profile, dating tips, safety guidance, and more. In the meantime, feel free to explore FLAMORAL!",
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content:
+            "I'm here to help! The AI backend is being set up. Once it's ready, I'll be able to give you personalized advice about your profile, dating tips, safety guidance, and more. In the meantime, feel free to explore FLAMORAL!",
+        },
+      ]);
       setIsLoading(false);
     }, 1000);
   };
@@ -106,7 +112,12 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
         style={{ zIndex: 9999 }}
       >
         <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+          />
         </svg>
         <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
       </button>
@@ -123,8 +134,18 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-pink-500/20 to-blue-500/20 border-b border-gray-700">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
             </svg>
           </div>
           <span className="text-white font-semibold text-sm">FLAMORAL Guide</span>
@@ -134,7 +155,12 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
           className="p-1 text-gray-400 hover:text-white rounded"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -174,8 +200,14 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
                 <div className="bg-gray-800 rounded-xl px-3 py-2">
                   <div className="flex gap-1">
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <span
+                      className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.1s' }}
+                    />
+                    <span
+                      className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -208,7 +240,12 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
               className="px-3 py-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg disabled:opacity-50"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
               </svg>
             </button>
           </form>

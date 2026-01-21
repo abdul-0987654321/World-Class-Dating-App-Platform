@@ -71,7 +71,9 @@ class MessagingService {
   /**
    * Get all conversations for the current user
    */
-  async getConversations(params: ConversationListParams = {}): Promise<ApiResponse<Conversation[]>> {
+  async getConversations(
+    params: ConversationListParams = {}
+  ): Promise<ApiResponse<Conversation[]>> {
     const queryParams = new URLSearchParams();
 
     if (params.page) queryParams.append('page', params.page.toString());
@@ -147,14 +149,11 @@ class MessagingService {
    * Send a GIF message
    */
   async sendGif(conversationId: string, gifUrl: string): Promise<ApiResponse<Message>> {
-    return httpClient.post<Message>(
-      `${this.baseUrl}/conversations/${conversationId}/messages`,
-      {
-        type: 'gif',
-        mediaUrl: gifUrl,
-        content: 'GIF',
-      }
-    );
+    return httpClient.post<Message>(`${this.baseUrl}/conversations/${conversationId}/messages`, {
+      type: 'gif',
+      mediaUrl: gifUrl,
+      content: 'GIF',
+    });
   }
 
   /**
@@ -176,20 +175,16 @@ class MessagingService {
    * Mark messages as read
    */
   async markAsRead(conversationId: string, messageIds: string[]): Promise<ApiResponse<void>> {
-    return httpClient.post<void>(
-      `${this.baseUrl}/conversations/${conversationId}/read`,
-      { messageIds }
-    );
+    return httpClient.post<void>(`${this.baseUrl}/conversations/${conversationId}/read`, {
+      messageIds,
+    });
   }
 
   /**
    * Mark conversation as read
    */
   async markConversationAsRead(conversationId: string): Promise<ApiResponse<void>> {
-    return httpClient.post<void>(
-      `${this.baseUrl}/conversations/${conversationId}/read-all`,
-      {}
-    );
+    return httpClient.post<void>(`${this.baseUrl}/conversations/${conversationId}/read-all`, {});
   }
 
   /**
@@ -227,16 +222,17 @@ class MessagingService {
    * Block a user from a conversation
    */
   async blockUser(conversationId: string, userId: string): Promise<ApiResponse<void>> {
-    return httpClient.post<void>(
-      `${this.baseUrl}/conversations/${conversationId}/block`,
-      { userId }
-    );
+    return httpClient.post<void>(`${this.baseUrl}/conversations/${conversationId}/block`, {
+      userId,
+    });
   }
 
   /**
    * Get unread message count
    */
-  async getUnreadCount(): Promise<ApiResponse<{ total: number; byConversation: Record<string, number> }>> {
+  async getUnreadCount(): Promise<
+    ApiResponse<{ total: number; byConversation: Record<string, number> }>
+  > {
     return httpClient.get<{ total: number; byConversation: Record<string, number> }>(
       `${this.baseUrl}/unread-count`
     );

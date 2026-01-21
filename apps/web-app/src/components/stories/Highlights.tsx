@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import {
-  FiPlus,
-  FiEdit2,
-  FiTrash2,
-  FiMoreVertical,
-  FiImage,
-} from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiMoreVertical, FiImage } from 'react-icons/fi';
 
 interface Highlight {
   id: string;
@@ -126,7 +120,7 @@ const AddHighlightCover = styled.div`
   transition: all 0.2s;
 
   &:hover {
-    border-color: #4ECDC4;
+    border-color: #4ecdc4;
     background: rgba(78, 205, 196, 0.1);
   }
 `;
@@ -188,7 +182,7 @@ const MenuItem = styled.button`
   }
 
   &.danger {
-    color: #FF6B6B;
+    color: #ff6b6b;
   }
 `;
 
@@ -196,7 +190,7 @@ const StoryCount = styled.span`
   position: absolute;
   bottom: -4px;
   right: -4px;
-  background: #4ECDC4;
+  background: #4ecdc4;
   color: white;
   font-size: 10px;
   font-weight: 600;
@@ -244,8 +238,7 @@ const CoverPreview = styled.div<{ imageUrl?: string }>`
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: ${({ imageUrl }) =>
-    imageUrl ? `url(${imageUrl})` : '#f0f0f0'};
+  background: ${({ imageUrl }) => (imageUrl ? `url(${imageUrl})` : '#f0f0f0')};
   background-size: cover;
   background-position: center;
   display: flex;
@@ -256,7 +249,7 @@ const CoverPreview = styled.div<{ imageUrl?: string }>`
   border: 3px solid #e0e0e0;
 
   &:hover {
-    border-color: #4ECDC4;
+    border-color: #4ecdc4;
   }
 `;
 
@@ -296,7 +289,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #4ECDC4;
+    border-color: #4ecdc4;
   }
 `;
 
@@ -403,17 +396,12 @@ export const Highlights: React.FC<HighlightsProps> = ({
         )}
 
         {highlights.map((highlight) => (
-          <HighlightItem
-            key={highlight.id}
-            onClick={() => onViewHighlight(highlight.id)}
-          >
+          <HighlightItem key={highlight.id} onClick={() => onViewHighlight(highlight.id)}>
             <HighlightCover imageUrl={highlight.coverImageUrl}>
               {!highlight.coverImageUrl && highlight.emoji && (
                 <EmojiIcon>{highlight.emoji}</EmojiIcon>
               )}
-              {highlight.storyCount > 0 && (
-                <StoryCount>{highlight.storyCount}</StoryCount>
-              )}
+              {highlight.storyCount > 0 && <StoryCount>{highlight.storyCount}</StoryCount>}
               {isOwnProfile && (
                 <MenuButton onClick={(e) => handleMenuClick(e, highlight.id)}>
                   <FiMoreVertical />
@@ -450,9 +438,7 @@ export const Highlights: React.FC<HighlightsProps> = ({
             <CoverSelector>
               <CoverPreview imageUrl={newHighlight.coverImageUrl}>
                 {!newHighlight.coverImageUrl && (
-                  <EmojiIcon style={{ fontSize: '40px' }}>
-                    {newHighlight.emoji}
-                  </EmojiIcon>
+                  <EmojiIcon style={{ fontSize: '40px' }}>{newHighlight.emoji}</EmojiIcon>
                 )}
                 <CoverIcon>
                   <FiImage />
@@ -465,9 +451,7 @@ export const Highlights: React.FC<HighlightsProps> = ({
               <Input
                 placeholder="Add a title..."
                 value={newHighlight.title}
-                onChange={(e) =>
-                  setNewHighlight({ ...newHighlight, title: e.target.value })
-                }
+                onChange={(e) => setNewHighlight({ ...newHighlight, title: e.target.value })}
                 maxLength={20}
               />
             </FormGroup>
@@ -479,9 +463,7 @@ export const Highlights: React.FC<HighlightsProps> = ({
                   <EmojiButton
                     key={emoji}
                     isSelected={newHighlight.emoji === emoji}
-                    onClick={() =>
-                      setNewHighlight({ ...newHighlight, emoji })
-                    }
+                    onClick={() => setNewHighlight({ ...newHighlight, emoji })}
                   >
                     {emoji}
                   </EmojiButton>
@@ -490,9 +472,7 @@ export const Highlights: React.FC<HighlightsProps> = ({
             </FormGroup>
 
             <ModalActions>
-              <ModalButton onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </ModalButton>
+              <ModalButton onClick={() => setShowCreateModal(false)}>Cancel</ModalButton>
               <ModalButton
                 variant="primary"
                 onClick={handleCreateHighlight}

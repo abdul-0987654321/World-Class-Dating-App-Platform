@@ -4,18 +4,15 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { OnboardingStackParamList } from './OnboardingNavigator';
 
-type InterestedInScreenNavigationProp = StackNavigationProp<OnboardingStackParamList, 'InterestedIn'>;
+type InterestedInScreenNavigationProp = StackNavigationProp<
+  OnboardingStackParamList,
+  'InterestedIn'
+>;
 type InterestedInScreenRouteProp = RouteProp<OnboardingStackParamList, 'InterestedIn'>;
 
 interface Props {
@@ -43,9 +40,9 @@ const InterestedInScreen: React.FC<Props> = ({ navigation, route }) => {
     if (id === 'everyone') {
       setSelectedInterests(['everyone']);
     } else {
-      const newInterests = selectedInterests.filter(i => i !== 'everyone');
+      const newInterests = selectedInterests.filter((i) => i !== 'everyone');
       if (newInterests.includes(id)) {
-        setSelectedInterests(newInterests.filter(i => i !== id));
+        setSelectedInterests(newInterests.filter((i) => i !== id));
       } else {
         setSelectedInterests([...newInterests, id]);
       }
@@ -77,35 +74,24 @@ const InterestedInScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.progressText}>4 of 12</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
         <View style={styles.questionContainer}>
           <Text style={styles.title}>Who are you interested in?</Text>
-          <Text style={styles.subtitle}>
-            Select one or more options
-          </Text>
+          <Text style={styles.subtitle}>Select one or more options</Text>
 
           <View style={styles.optionsContainer}>
             {INTEREST_OPTIONS.map((option) => (
               <TouchableOpacity
                 key={option.id}
-                style={[
-                  styles.optionButton,
-                  isSelected(option.id) && styles.optionButtonSelected,
-                ]}
+                style={[styles.optionButton, isSelected(option.id) && styles.optionButtonSelected]}
                 onPress={() => toggleInterest(option.id)}
               >
                 <Text style={styles.optionIcon}>{option.icon}</Text>
                 <Text
-                  style={[
-                    styles.optionText,
-                    isSelected(option.id) && styles.optionTextSelected,
-                  ]}
+                  style={[styles.optionText, isSelected(option.id) && styles.optionTextSelected]}
                 >
                   {option.label}
                 </Text>
@@ -113,9 +99,7 @@ const InterestedInScreen: React.FC<Props> = ({ navigation, route }) => {
             ))}
           </View>
 
-          <Text style={styles.hint}>
-            You can change this later in settings
-          </Text>
+          <Text style={styles.hint}>You can change this later in settings</Text>
         </View>
 
         <View style={styles.footer}>
@@ -124,7 +108,12 @@ const InterestedInScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={handleContinue}
             disabled={selectedInterests.length === 0}
           >
-            <Text style={[styles.buttonText, selectedInterests.length === 0 && styles.buttonTextDisabled]}>
+            <Text
+              style={[
+                styles.buttonText,
+                selectedInterests.length === 0 && styles.buttonTextDisabled,
+              ]}
+            >
               Continue
             </Text>
           </TouchableOpacity>

@@ -101,13 +101,15 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
       issues.push({
         type: 'length',
         severity: 'high',
-        message: 'Your bio is too short. Aim for at least 20-30 words to give others a sense of who you are.',
+        message:
+          'Your bio is too short. Aim for at least 20-30 words to give others a sense of who you are.',
       });
     } else if (wordCount > 150) {
       issues.push({
         type: 'length',
         severity: 'medium',
-        message: 'Your bio is quite long. Consider condensing to 100-150 words for better readability.',
+        message:
+          'Your bio is quite long. Consider condensing to 100-150 words for better readability.',
       });
     }
 
@@ -134,7 +136,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
     }
 
     // Negative language detection
-    const negativeWords = ['hate', 'don\'t', 'not looking for', 'no', 'avoid'];
+    const negativeWords = ['hate', "don't", 'not looking for', 'no', 'avoid'];
     let negativeCount = 0;
     for (const word of negativeWords) {
       if (bioText.toLowerCase().includes(word)) {
@@ -146,18 +148,20 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
       issues.push({
         type: 'negative',
         severity: 'high',
-        message: 'Your bio contains negative language. Focus on what you like and who you are, not what you don\'t want.',
+        message:
+          "Your bio contains negative language. Focus on what you like and who you are, not what you don't want.",
       });
     }
 
     // Vagueness check
-    const vaguePhrases = ['i like stuff', 'i enjoy things', 'i\'m fun', 'i\'m nice', 'i\'m cool'];
+    const vaguePhrases = ['i like stuff', 'i enjoy things', "i'm fun", "i'm nice", "i'm cool"];
     for (const phrase of vaguePhrases) {
       if (bioText.toLowerCase().includes(phrase)) {
         issues.push({
           type: 'vague',
           severity: 'medium',
-          message: 'Be more specific! Instead of vague phrases, share concrete details about your interests and personality.',
+          message:
+            'Be more specific! Instead of vague phrases, share concrete details about your interests and personality.',
         });
       }
     }
@@ -193,17 +197,26 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
 
   const calculateSentiment = (text: string): number => {
     // Simplified sentiment analysis
-    const positiveWords = ['love', 'enjoy', 'passionate', 'excited', 'happy', 'great', 'amazing', 'wonderful'];
+    const positiveWords = [
+      'love',
+      'enjoy',
+      'passionate',
+      'excited',
+      'happy',
+      'great',
+      'amazing',
+      'wonderful',
+    ];
     const negativeWords = ['hate', 'dislike', 'boring', 'bad', 'terrible', 'awful'];
 
     let score = 0.5; // neutral
     const lowerText = text.toLowerCase();
 
-    positiveWords.forEach(word => {
+    positiveWords.forEach((word) => {
       if (lowerText.includes(word)) score += 0.05;
     });
 
-    negativeWords.forEach(word => {
+    negativeWords.forEach((word) => {
       if (lowerText.includes(word)) score -= 0.1;
     });
 
@@ -214,7 +227,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
     let score = 70;
 
     // Deduct for issues
-    issues.forEach(issue => {
+    issues.forEach((issue) => {
       if (issue.severity === 'high') score -= 15;
       else if (issue.severity === 'medium') score -= 8;
       else score -= 3;
@@ -229,7 +242,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
   };
 
   const calculateReadabilityScore = (text: string): number => {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const words = text.trim().split(/\s+/);
     const avgWordsPerSentence = words.length / Math.max(sentences.length, 1);
 
@@ -248,7 +261,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
 
   const calculateUniquenessScore = (text: string, cliches: string[]): number => {
     let score = 85;
-    cliches.forEach(cliche => {
+    cliches.forEach((cliche) => {
       if (text.toLowerCase().includes(cliche)) {
         score -= 10;
       }
@@ -265,12 +278,14 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
       /\b(mountains|beach|city|forest|desert)\b/i,
     ];
 
-    return specificPatterns.some(pattern => pattern.test(text));
+    return specificPatterns.some((pattern) => pattern.test(text));
   };
 
   const hasHumor = (text: string): boolean => {
     // Simple humor detection
-    return text.includes('😂') || text.includes('😄') || text.includes('haha') || text.includes('lol');
+    return (
+      text.includes('😂') || text.includes('😄') || text.includes('haha') || text.includes('lol')
+    );
   };
 
   const generateBioSuggestions = async (userProfile?: any): Promise<BioSuggestion[]> => {
@@ -324,7 +339,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
     suggestions.push({
       id: '5',
       category: 'values',
-      text: 'Believer in deep conversations, spontaneous road trips, and trying that new restaurant everyone\'s talking about',
+      text: "Believer in deep conversations, spontaneous road trips, and trying that new restaurant everyone's talking about",
       tone: 'sincere',
       appealScore: 87,
       why: 'Shows your values while remaining approachable',
@@ -344,10 +359,10 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
     suggestions.push({
       id: '7',
       category: 'closer',
-      text: 'Let\'s grab coffee and see if we can make each other laugh?',
+      text: "Let's grab coffee and see if we can make each other laugh?",
       tone: 'casual',
       appealScore: 84,
-      why: 'Direct call-to-action that\'s low-pressure and friendly',
+      why: "Direct call-to-action that's low-pressure and friendly",
     });
 
     suggestions.push({
@@ -394,9 +409,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
           textAlignVertical="top"
         />
 
-        <Text style={styles.characterCount}>
-          {bio.length} / 500 characters
-        </Text>
+        <Text style={styles.characterCount}>{bio.length} / 500 characters</Text>
       </View>
 
       {loading && (
@@ -420,7 +433,9 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
 
             <View style={styles.scoreCard}>
               <Text style={styles.scoreLabel}>Readability</Text>
-              <Text style={[styles.scoreValue, { color: getScoreColor(analysis.readabilityScore) }]}>
+              <Text
+                style={[styles.scoreValue, { color: getScoreColor(analysis.readabilityScore) }]}
+              >
                 {analysis.readabilityScore}
               </Text>
             </View>
@@ -437,7 +452,9 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
             <View style={styles.strengthsContainer}>
               <Text style={styles.strengthsTitle}>✅ Strengths</Text>
               {analysis.strengths.map((strength, index) => (
-                <Text key={index} style={styles.strengthText}>• {strength}</Text>
+                <Text key={index} style={styles.strengthText}>
+                  • {strength}
+                </Text>
               ))}
             </View>
           )}
@@ -452,9 +469,12 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
                     styles.issueCard,
                     {
                       borderLeftColor:
-                        issue.severity === 'high' ? '#ef4444' :
-                        issue.severity === 'medium' ? '#f59e0b' : '#3b82f6'
-                    }
+                        issue.severity === 'high'
+                          ? '#ef4444'
+                          : issue.severity === 'medium'
+                            ? '#f59e0b'
+                            : '#3b82f6',
+                    },
                   ]}
                 >
                   <Text style={styles.issueMessage}>{issue.message}</Text>
@@ -465,10 +485,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
         </View>
       )}
 
-      <TouchableOpacity
-        style={styles.suggestionsButton}
-        onPress={() => setShowSuggestions(true)}
-      >
+      <TouchableOpacity style={styles.suggestionsButton} onPress={() => setShowSuggestions(true)}>
         <Text style={styles.suggestionsButtonText}>💡 Get Bio Suggestions</Text>
       </TouchableOpacity>
 

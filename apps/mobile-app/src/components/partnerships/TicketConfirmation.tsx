@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Share,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Share } from 'react-native';
 
 interface Ticket {
   ticketType: string;
@@ -116,12 +108,7 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
           </TouchableOpacity>
         )}
 
-        <View
-          style={[
-            styles.statusIconContainer,
-            { backgroundColor: statusConfig.color + '20' },
-          ]}
-        >
+        <View style={[styles.statusIconContainer, { backgroundColor: statusConfig.color + '20' }]}>
           <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
             {statusConfig.icon}
           </Text>
@@ -134,11 +121,7 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
       </View>
 
       {purchase.imageUrl && (
-        <Image
-          source={{ uri: purchase.imageUrl }}
-          style={styles.eventImage}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: purchase.imageUrl }} style={styles.eventImage} resizeMode="cover" />
       )}
 
       <View style={styles.eventInfo}>
@@ -149,9 +132,7 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
 
       <View style={styles.confirmationCard}>
         <Text style={styles.confirmationLabel}>Order Confirmation</Text>
-        <Text style={styles.confirmationNumber}>
-          {purchase.confirmationNumber}
-        </Text>
+        <Text style={styles.confirmationNumber}>{purchase.confirmationNumber}</Text>
       </View>
 
       <View style={styles.dateTimeCard}>
@@ -180,9 +161,7 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
                 </Text>
               )}
             </View>
-            <Text style={styles.ticketPrice}>
-              {formatPrice(ticket.price, purchase.currency)}
-            </Text>
+            <Text style={styles.ticketPrice}>{formatPrice(ticket.price, purchase.currency)}</Text>
           </View>
         ))}
       </View>
@@ -201,8 +180,7 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
           <Text style={styles.totalLabel}>Fees</Text>
           <Text style={styles.totalValue}>
             {formatPrice(
-              purchase.totalAmount -
-                purchase.tickets.reduce((sum, t) => sum + t.price, 0),
+              purchase.totalAmount - purchase.tickets.reduce((sum, t) => sum + t.price, 0),
               purchase.currency
             )}
           </Text>
@@ -223,9 +201,7 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
           </View>
           <View style={styles.viewTicketsContent}>
             <Text style={styles.viewTicketsTitle}>View Mobile Tickets</Text>
-            <Text style={styles.viewTicketsSubtitle}>
-              Show this at the venue entrance
-            </Text>
+            <Text style={styles.viewTicketsSubtitle}>Show this at the venue entrance</Text>
           </View>
           <Text style={styles.viewTicketsArrow}>{'>'}</Text>
         </TouchableOpacity>
@@ -271,10 +247,9 @@ export const TicketConfirmation: React.FC<TicketConfirmationProps> = ({
       <View style={styles.infoNote}>
         <Text style={styles.infoTitle}>Important Information</Text>
         <Text style={styles.infoText}>
-          - Tickets will be available 24 hours before the event{'\n'}
-          - Please arrive 30 minutes early for entry{'\n'}
-          - Screenshot your tickets in case of connectivity issues{'\n'}
-          - Tickets are non-transferable
+          - Tickets will be available 24 hours before the event{'\n'}- Please arrive 30 minutes
+          early for entry{'\n'}- Screenshot your tickets in case of connectivity issues{'\n'}-
+          Tickets are non-transferable
         </Text>
       </View>
     </ScrollView>

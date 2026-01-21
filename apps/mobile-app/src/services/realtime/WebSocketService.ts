@@ -227,12 +227,15 @@ class WebSocketService {
   }
 
   // Send message
-  sendMessage(conversationId: string, message: {
-    content: string;
-    type: 'text' | 'image' | 'gif' | 'voice';
-    mediaUrl?: string;
-    tempId?: string;
-  }): void {
+  sendMessage(
+    conversationId: string,
+    message: {
+      content: string;
+      type: 'text' | 'image' | 'gif' | 'voice';
+      mediaUrl?: string;
+      tempId?: string;
+    }
+  ): void {
     if (!this.socket?.connected) {
       throw new Error('WebSocket not connected');
     }
@@ -350,7 +353,7 @@ class WebSocketService {
   private emit(event: string, data: any): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
-      callbacks.forEach(callback => {
+      callbacks.forEach((callback) => {
         try {
           callback(data);
         } catch (error) {

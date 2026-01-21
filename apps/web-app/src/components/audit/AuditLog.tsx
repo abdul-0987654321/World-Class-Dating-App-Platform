@@ -82,11 +82,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   default: '#9ca3af',
 };
 
-const AuditLog: React.FC<AuditLogProps> = ({
-  userId,
-  showFilters = true,
-  pageSize = 20,
-}) => {
+const AuditLog: React.FC<AuditLogProps> = ({ userId, showFilters = true, pageSize = 20 }) => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,7 +176,7 @@ const AuditLog: React.FC<AuditLogProps> = ({
   const formatAction = (action: string) => {
     return action
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
@@ -252,7 +248,7 @@ const AuditLog: React.FC<AuditLogProps> = ({
             type="date"
             value={dateRange.start || ''}
             onChange={(e) => {
-              setDateRange(prev => ({ ...prev, start: e.target.value }));
+              setDateRange((prev) => ({ ...prev, start: e.target.value }));
               setPage(1);
             }}
             placeholder="Start date"
@@ -261,7 +257,7 @@ const AuditLog: React.FC<AuditLogProps> = ({
             type="date"
             value={dateRange.end || ''}
             onChange={(e) => {
-              setDateRange(prev => ({ ...prev, end: e.target.value }));
+              setDateRange((prev) => ({ ...prev, end: e.target.value }));
               setPage(1);
             }}
             placeholder="End date"
@@ -289,40 +285,40 @@ const AuditLog: React.FC<AuditLogProps> = ({
                       {log.category}
                     </CategoryBadge>
                     <LogTimestamp>{formatDate(log.timestamp)}</LogTimestamp>
-                    {log.ipAddress && (
-                      <LogIp>IP: {log.ipAddress}</LogIp>
-                    )}
+                    {log.ipAddress && <LogIp>IP: {log.ipAddress}</LogIp>}
                   </LogMeta>
                   {log.metadata && Object.keys(log.metadata).length > 0 && (
                     <LogMetadata>
-                      {Object.entries(log.metadata).slice(0, 3).map(([key, value]) => (
-                        <MetadataItem key={key}>
-                          <span>{key}:</span> {String(value)}
-                        </MetadataItem>
-                      ))}
+                      {Object.entries(log.metadata)
+                        .slice(0, 3)
+                        .map(([key, value]) => (
+                          <MetadataItem key={key}>
+                            <span>{key}:</span> {String(value)}
+                          </MetadataItem>
+                        ))}
                     </LogMetadata>
                   )}
                 </LogContent>
                 <LogStatus $status={log.status}>
-                  {log.status === 'success' ? 'Success' :
-                   log.status === 'failure' ? 'Failed' : 'Pending'}
+                  {log.status === 'success'
+                    ? 'Success'
+                    : log.status === 'failure'
+                      ? 'Failed'
+                      : 'Pending'}
                 </LogStatus>
               </LogEntry>
             ))}
           </LogList>
 
           <Pagination>
-            <PageButton
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
+            <PageButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
               <FaChevronLeft />
             </PageButton>
             <PageInfo>
               Page {page} of {totalPages}
             </PageInfo>
             <PageButton
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
             >
               <FaChevronRight />
@@ -459,8 +455,8 @@ const LogIcon = styled.div<{ $color: string }>`
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background-color: ${props => props.$color}15;
-  color: ${props => props.$color};
+  background-color: ${(props) => props.$color}15;
+  color: ${(props) => props.$color};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -489,8 +485,8 @@ const LogMeta = styled.div`
 
 const CategoryBadge = styled.span<{ $color: string }>`
   padding: 2px 8px;
-  background-color: ${props => props.$color}20;
-  color: ${props => props.$color};
+  background-color: ${(props) => props.$color}20;
+  color: ${(props) => props.$color};
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
@@ -533,14 +529,10 @@ const LogStatus = styled.div<{ $status: string }>`
   font-weight: 600;
   flex-shrink: 0;
 
-  background-color: ${props =>
-    props.$status === 'success' ? '#dcfce7' :
-    props.$status === 'failure' ? '#fee2e2' :
-    '#fef3c7'};
-  color: ${props =>
-    props.$status === 'success' ? '#166534' :
-    props.$status === 'failure' ? '#991b1b' :
-    '#92400e'};
+  background-color: ${(props) =>
+    props.$status === 'success' ? '#dcfce7' : props.$status === 'failure' ? '#fee2e2' : '#fef3c7'};
+  color: ${(props) =>
+    props.$status === 'success' ? '#166534' : props.$status === 'failure' ? '#991b1b' : '#92400e'};
 `;
 
 const Pagination = styled.div`
@@ -593,8 +585,12 @@ const LoadingState = styled.div`
   }
 
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 

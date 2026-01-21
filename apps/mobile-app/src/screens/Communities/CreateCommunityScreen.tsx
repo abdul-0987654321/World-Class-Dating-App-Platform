@@ -46,15 +46,34 @@ const ICONS = [
 ];
 
 const COLORS = [
-  '#FF6B6B', '#FF8E53', '#F9C74F', '#90BE6D',
-  '#43AA8B', '#4D908E', '#577590', '#277DA1',
-  '#7209B7', '#B5179E', '#F72585', '#3F37C9',
+  '#FF6B6B',
+  '#FF8E53',
+  '#F9C74F',
+  '#90BE6D',
+  '#43AA8B',
+  '#4D908E',
+  '#577590',
+  '#277DA1',
+  '#7209B7',
+  '#B5179E',
+  '#F72585',
+  '#3F37C9',
 ];
 
 const CATEGORIES = [
-  'Lifestyle', 'Food & Drink', 'Health & Fitness', 'Culture',
-  'Entertainment', 'Music', 'Technology', 'Art & Design',
-  'Sports', 'Outdoor', 'Travel', 'Gaming', 'Other',
+  'Lifestyle',
+  'Food & Drink',
+  'Health & Fitness',
+  'Culture',
+  'Entertainment',
+  'Music',
+  'Technology',
+  'Art & Design',
+  'Sports',
+  'Outdoor',
+  'Travel',
+  'Gaming',
+  'Other',
 ];
 
 const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
@@ -135,11 +154,13 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
         color: selectedColor,
         category: selectedCategory,
         isPrivate,
-        rules: rules.filter((r) => r.trim()).map((r, i) => ({
-          title: `Rule ${i + 1}`,
-          description: r.trim(),
-          order: i + 1,
-        })),
+        rules: rules
+          .filter((r) => r.trim())
+          .map((r, i) => ({
+            title: `Rule ${i + 1}`,
+            description: r.trim(),
+            order: i + 1,
+          })),
       };
 
       const response = await httpClient.post('/api/communities', communityData);
@@ -180,14 +201,21 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  }, [name, description, selectedIcon, selectedColor, selectedCategory, isPrivate, rules, navigation]);
+  }, [
+    name,
+    description,
+    selectedIcon,
+    selectedColor,
+    selectedCategory,
+    isPrivate,
+    rules,
+    navigation,
+  ]);
 
   const renderStep1 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Basic Info</Text>
-      <Text style={styles.stepSubtitle}>
-        Give your community a name and description
-      </Text>
+      <Text style={styles.stepSubtitle}>Give your community a name and description</Text>
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Community Name</Text>
@@ -223,9 +251,7 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
   const renderStep2 = () => (
     <ScrollView style={styles.stepContent} showsVerticalScrollIndicator={false}>
       <Text style={styles.stepTitle}>Customize</Text>
-      <Text style={styles.stepSubtitle}>
-        Choose an icon, color, and category
-      </Text>
+      <Text style={styles.stepSubtitle}>Choose an icon, color, and category</Text>
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Icon</Text>
@@ -252,10 +278,7 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
                 />
               </View>
               <Text
-                style={[
-                  styles.iconLabel,
-                  selectedIcon === icon.name && { color: selectedColor },
-                ]}
+                style={[styles.iconLabel, selectedIcon === icon.name && { color: selectedColor }]}
               >
                 {icon.label}
               </Text>
@@ -277,9 +300,7 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
               ]}
               onPress={() => setSelectedColor(color)}
             >
-              {selectedColor === color && (
-                <Icon name="checkmark" size={20} color="#fff" />
-              )}
+              {selectedColor === color && <Icon name="checkmark" size={20} color="#fff" />}
             </TouchableOpacity>
           ))}
         </View>
@@ -315,9 +336,7 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
   const renderStep3 = () => (
     <ScrollView style={styles.stepContent} showsVerticalScrollIndicator={false}>
       <Text style={styles.stepTitle}>Settings & Rules</Text>
-      <Text style={styles.stepSubtitle}>
-        Configure privacy and community guidelines
-      </Text>
+      <Text style={styles.stepSubtitle}>Configure privacy and community guidelines</Text>
 
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
@@ -412,21 +431,11 @@ const CreateCommunityScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.progressContainer}>
           {[1, 2, 3].map((s) => (
             <View key={s} style={styles.progressStep}>
-              <View
-                style={[
-                  styles.progressDot,
-                  step >= s && { backgroundColor: '#FF6B6B' },
-                ]}
-              >
+              <View style={[styles.progressDot, step >= s && { backgroundColor: '#FF6B6B' }]}>
                 {step > s && <Icon name="checkmark" size={12} color="#fff" />}
               </View>
               {s < 3 && (
-                <View
-                  style={[
-                    styles.progressLine,
-                    step > s && { backgroundColor: '#FF6B6B' },
-                  ]}
-                />
+                <View style={[styles.progressLine, step > s && { backgroundColor: '#FF6B6B' }]} />
               )}
             </View>
           ))}

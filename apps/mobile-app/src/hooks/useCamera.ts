@@ -5,7 +5,12 @@
 
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
-import { CameraService, MediaAsset, CapturePhotoOptions, CaptureVideoOptions } from '@services/camera/CameraService';
+import {
+  CameraService,
+  MediaAsset,
+  CapturePhotoOptions,
+  CaptureVideoOptions,
+} from '@services/camera/CameraService';
 
 interface UseCameraReturn {
   capturePhoto: (options?: CapturePhotoOptions) => Promise<MediaAsset | null>;
@@ -136,12 +141,9 @@ export const useCamera = (): UseCameraReturn => {
     }
   }, []);
 
-  const showPhotoSelectionSheet = useCallback(
-    (onCamera: () => void, onGallery: () => void) => {
-      CameraService.showPhotoSelectionActionSheet(onCamera, onGallery);
-    },
-    []
-  );
+  const showPhotoSelectionSheet = useCallback((onCamera: () => void, onGallery: () => void) => {
+    CameraService.showPhotoSelectionActionSheet(onCamera, onGallery);
+  }, []);
 
   return {
     capturePhoto,

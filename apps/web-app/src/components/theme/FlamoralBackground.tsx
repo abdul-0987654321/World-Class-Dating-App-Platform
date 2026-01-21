@@ -41,147 +41,159 @@ interface FlamoralBackgroundProps {
 // Background configuration per variant — BRIGHTER values for better readability
 const backgroundConfig = {
   landing: {
-    base: '#14141f',  // Brighter from #0a0a0f
+    base: '#14141f', // Brighter from #0a0a0f
     gradient: 'linear-gradient(180deg, #14141f 0%, #1e1e2d 50%, #282840 100%)',
-    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.20) 0%, transparent 50%)',
-    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.18) 0%, transparent 50%)',
-    glow3: 'radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.12) 0%, transparent 40%)',
+    glow1:
+      'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.20) 0%, transparent 50%)',
+    glow2:
+      'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.18) 0%, transparent 50%)',
+    glow3:
+      'radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.12) 0%, transparent 40%)',
     glowOpacity: 1,
   },
   interior: {
-    base: '#282840',  // Brighter from #1a1a25
+    base: '#282840', // Brighter from #1a1a25
     gradient: 'linear-gradient(180deg, #282840 0%, #282840 100%)',
-    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%)',
-    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%)',
+    glow1:
+      'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%)',
+    glow2:
+      'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%)',
     glow3: null,
     glowOpacity: 0.9,
   },
   dashboard: {
-    base: '#323250',  // Brighter from #232330
+    base: '#323250', // Brighter from #232330
     gradient: 'linear-gradient(180deg, #323250 0%, #282840 100%)',
-    glow1: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.10) 0%, transparent 50%)',
+    glow1:
+      'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.10) 0%, transparent 50%)',
     glow2: null,
     glow3: null,
     glowOpacity: 0.7,
   },
   auth: {
-    base: '#1e1e2d',  // Brighter from #12121a
+    base: '#1e1e2d', // Brighter from #12121a
     gradient: 'linear-gradient(180deg, #1e1e2d 0%, #282840 100%)',
-    glow1: 'radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.20) 0%, transparent 60%)',
+    glow1:
+      'radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.20) 0%, transparent 60%)',
     glow2: null,
     glow3: null,
     glowOpacity: 1,
   },
   modal: {
-    base: '#1e1e2d',  // Brighter from #12121a
+    base: '#1e1e2d', // Brighter from #12121a
     gradient: 'linear-gradient(180deg, #1e1e2d 0%, #282840 100%)',
-    glow1: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(168, 85, 247, 0.12) 0%, transparent 60%)',
+    glow1:
+      'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(168, 85, 247, 0.12) 0%, transparent 60%)',
     glow2: null,
     glow3: null,
     glowOpacity: 0.6,
   },
 };
 
-const FlamoralBackground: React.FC<FlamoralBackgroundProps> = memo(({
-  variant = 'interior',
-  className = '',
-  animated = false,
-  withNoise = true,
-  children,
-  fixed = false,
-}) => {
-  const config = backgroundConfig[variant];
+const FlamoralBackground: React.FC<FlamoralBackgroundProps> = memo(
+  ({
+    variant = 'interior',
+    className = '',
+    animated = false,
+    withNoise = true,
+    children,
+    fixed = false,
+  }) => {
+    const config = backgroundConfig[variant];
 
-  return (
-    <div
-      className={`
+    return (
+      <div
+        className={`
         ${fixed ? 'fixed inset-0' : 'relative min-h-screen'}
         overflow-hidden
         ${className}
       `}
-      style={{
-        background: config.base,
-      }}
-    >
-      {/* Base gradient layer */}
-      <div
-        className="absolute inset-0 pointer-events-none"
         style={{
-          background: config.gradient,
+          background: config.base,
         }}
-      />
-
-      {/* Primary glow */}
-      {config.glow1 && (
+      >
+        {/* Base gradient layer */}
         <div
-          className={`
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: config.gradient,
+          }}
+        />
+
+        {/* Primary glow */}
+        {config.glow1 && (
+          <div
+            className={`
             absolute inset-0 pointer-events-none
             ${animated ? 'animate-pulse-slow' : ''}
           `}
-          style={{
-            background: config.glow1,
-            opacity: config.glowOpacity,
-          }}
-        />
-      )}
+            style={{
+              background: config.glow1,
+              opacity: config.glowOpacity,
+            }}
+          />
+        )}
 
-      {/* Secondary glow */}
-      {config.glow2 && (
-        <div
-          className={`
+        {/* Secondary glow */}
+        {config.glow2 && (
+          <div
+            className={`
             absolute inset-0 pointer-events-none
             ${animated ? 'animate-pulse-slow [animation-delay:1.5s]' : ''}
           `}
-          style={{
-            background: config.glow2,
-            opacity: config.glowOpacity,
-          }}
-        />
-      )}
+            style={{
+              background: config.glow2,
+              opacity: config.glowOpacity,
+            }}
+          />
+        )}
 
-      {/* Tertiary glow (landing only) */}
-      {config.glow3 && (
-        <div
-          className={`
+        {/* Tertiary glow (landing only) */}
+        {config.glow3 && (
+          <div
+            className={`
             absolute inset-0 pointer-events-none
             ${animated ? 'animate-pulse-slow [animation-delay:3s]' : ''}
           `}
-          style={{
-            background: config.glow3,
-            opacity: config.glowOpacity,
-          }}
-        />
-      )}
+            style={{
+              background: config.glow3,
+              opacity: config.glowOpacity,
+            }}
+          />
+        )}
 
-      {/* Noise texture overlay for premium feel */}
-      {withNoise && (
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.02]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat',
-          }}
-        />
-      )}
+        {/* Noise texture overlay for premium feel */}
+        {withNoise && (
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.02]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+            }}
+          />
+        )}
 
-      {/* Content layer */}
-      {children && (
-        <div className={`relative z-10 ${fixed ? 'h-screen overflow-y-auto overflow-x-hidden' : ''}`}>
-          {children}
-        </div>
-      )}
+        {/* Content layer */}
+        {children && (
+          <div
+            className={`relative z-10 ${fixed ? 'h-screen overflow-y-auto overflow-x-hidden' : ''}`}
+          >
+            {children}
+          </div>
+        )}
 
-      {/* Reduced motion support */}
-      <style>{`
+        {/* Reduced motion support */}
+        <style>{`
         @media (prefers-reduced-motion: reduce) {
           .animate-pulse-slow {
             animation: none !important;
           }
         }
       `}</style>
-    </div>
-  );
-});
+      </div>
+    );
+  }
+);
 
 FlamoralBackground.displayName = 'FlamoralBackground';
 
@@ -197,9 +209,12 @@ export const BackgroundGradientOverlay: React.FC<{
   className?: string;
 }> = memo(({ variant = 'romance', className = '' }) => {
   const gradients = {
-    romance: 'linear-gradient(135deg, rgba(255, 107, 122, 0.1) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(34, 211, 238, 0.1) 100%)',
-    trust: 'linear-gradient(135deg, rgba(30, 58, 95, 0.3) 0%, rgba(37, 99, 235, 0.2) 50%, rgba(34, 211, 238, 0.1) 100%)',
-    elite: 'linear-gradient(135deg, rgba(120, 53, 15, 0.2) 0%, rgba(205, 127, 50, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
+    romance:
+      'linear-gradient(135deg, rgba(255, 107, 122, 0.1) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(34, 211, 238, 0.1) 100%)',
+    trust:
+      'linear-gradient(135deg, rgba(30, 58, 95, 0.3) 0%, rgba(37, 99, 235, 0.2) 50%, rgba(34, 211, 238, 0.1) 100%)',
+    elite:
+      'linear-gradient(135deg, rgba(120, 53, 15, 0.2) 0%, rgba(205, 127, 50, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
   };
 
   return (

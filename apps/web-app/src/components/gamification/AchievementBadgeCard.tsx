@@ -33,7 +33,11 @@ const rarityColors = {
   uncommon: { bg: '#4CAF50', text: '#2E7D32', glow: '0 0 10px rgba(76,175,80,0.5)' },
   rare: { bg: '#2196F3', text: '#1565C0', glow: '0 0 15px rgba(33,150,243,0.5)' },
   epic: { bg: '#9C27B0', text: '#6A1B9A', glow: '0 0 20px rgba(156,39,176,0.5)' },
-  legendary: { bg: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', text: '#FF8F00', glow: '0 0 25px rgba(255,215,0,0.7)' },
+  legendary: {
+    bg: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+    text: '#FF8F00',
+    glow: '0 0 25px rgba(255,215,0,0.7)',
+  },
 };
 
 const categoryIcons: Record<string, string> = {
@@ -66,7 +70,10 @@ export const AchievementBadgeCard: React.FC<Props> = ({
   const [toggleError, setToggleError] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const progressPercent = Math.min(100, Math.round((badge.currentProgress / badge.targetProgress) * 100));
+  const progressPercent = Math.min(
+    100,
+    Math.round((badge.currentProgress / badge.targetProgress) * 100)
+  );
   const rarityStyle = rarityColors[badge.rarity];
 
   useEffect(() => {
@@ -116,11 +123,17 @@ export const AchievementBadgeCard: React.FC<Props> = ({
           ${isAnimating ? 'animate-pulse scale-110' : 'hover:scale-105'}
         `}
         style={{
-          background: badge.isUnlocked ? `${badge.backgroundColor || rarityStyle.bg}20` : 'rgba(128,128,128,0.1)',
-          border: badge.isUnlocked ? `2px solid ${badge.iconColor || rarityStyle.bg}` : '2px solid transparent',
+          background: badge.isUnlocked
+            ? `${badge.backgroundColor || rarityStyle.bg}20`
+            : 'rgba(128,128,128,0.1)',
+          border: badge.isUnlocked
+            ? `2px solid ${badge.iconColor || rarityStyle.bg}`
+            : '2px solid transparent',
           boxShadow: isAnimating
             ? `0 0 30px ${badge.iconColor || rarityStyle.bg}`
-            : badge.isUnlocked ? rarityStyle.glow : 'none',
+            : badge.isUnlocked
+              ? rarityStyle.glow
+              : 'none',
         }}
         title={badge.description}
         onMouseEnter={() => setIsHovered(true)}
@@ -185,10 +198,12 @@ export const AchievementBadgeCard: React.FC<Props> = ({
         background: badge.isUnlocked
           ? `linear-gradient(135deg, ${badge.backgroundColor || rarityStyle.bg}20 0%, transparent 100%)`
           : 'rgba(255,255,255,0.05)',
-        border: `1px solid ${badge.isUnlocked ? (badge.iconColor || rarityStyle.bg) : 'var(--border-subtle)'}`,
+        border: `1px solid ${badge.isUnlocked ? badge.iconColor || rarityStyle.bg : 'var(--border-subtle)'}`,
         boxShadow: isAnimating
           ? `0 0 40px ${badge.iconColor || rarityStyle.bg}`
-          : badge.isUnlocked ? rarityStyle.glow : 'none',
+          : badge.isUnlocked
+            ? rarityStyle.glow
+            : 'none',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -196,7 +211,10 @@ export const AchievementBadgeCard: React.FC<Props> = ({
       {/* Unlock animation overlay */}
       {isAnimating && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 animate-pulse" style={{ background: `${badge.iconColor || rarityStyle.bg}20` }} />
+          <div
+            className="absolute inset-0 animate-pulse"
+            style={{ background: `${badge.iconColor || rarityStyle.bg}20` }}
+          />
           <div className="text-6xl animate-bounce z-10">🎉</div>
         </div>
       )}
@@ -205,9 +223,10 @@ export const AchievementBadgeCard: React.FC<Props> = ({
       <div
         className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold uppercase transition-transform duration-200"
         style={{
-          background: typeof rarityStyle.bg === 'string' && rarityStyle.bg.includes('gradient')
-            ? rarityStyle.bg
-            : `${rarityStyle.bg}40`,
+          background:
+            typeof rarityStyle.bg === 'string' && rarityStyle.bg.includes('gradient')
+              ? rarityStyle.bg
+              : `${rarityStyle.bg}40`,
           color: rarityStyle.text,
           transform: isHovered ? 'scale(1.1)' : 'scale(1)',
         }}
@@ -237,23 +256,28 @@ export const AchievementBadgeCard: React.FC<Props> = ({
           >
             {badge.isHidden && !badge.isUnlocked ? 'Hidden Badge' : badge.name}
           </h4>
-          <p
-            className="text-sm mt-1 line-clamp-2"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {badge.isHidden && !badge.isUnlocked ? 'Complete the secret requirement to unlock!' : badge.description}
+          <p className="text-sm mt-1 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+            {badge.isHidden && !badge.isUnlocked
+              ? 'Complete the secret requirement to unlock!'
+              : badge.description}
           </p>
 
           {/* Rewards */}
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {badge.coinReward > 0 && (
-              <span className="text-sm flex items-center gap-1" style={{ color: 'var(--coin-primary)' }}>
+              <span
+                className="text-sm flex items-center gap-1"
+                style={{ color: 'var(--coin-primary)' }}
+              >
                 <span>+{badge.coinReward}</span>
                 <span>🪙</span>
               </span>
             )}
             {badge.xpReward > 0 && (
-              <span className="text-sm flex items-center gap-1" style={{ color: 'var(--accent-purple)' }}>
+              <span
+                className="text-sm flex items-center gap-1"
+                style={{ color: 'var(--accent-purple)' }}
+              >
                 <span>+{badge.xpReward}</span>
                 <span>XP</span>
               </span>
@@ -271,7 +295,11 @@ export const AchievementBadgeCard: React.FC<Props> = ({
             <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm text-green-500">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 <span>Unlocked</span>
                 {badge.unlockedAt && (
@@ -289,9 +317,10 @@ export const AchievementBadgeCard: React.FC<Props> = ({
                       px-3 py-1 rounded-full text-xs font-medium transition-all duration-200
                       flex items-center gap-1
                       ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}
-                      ${badge.isDisplayed
-                        ? 'bg-green-500 text-white hover:bg-green-600'
-                        : 'bg-transparent text-gray-400 border border-gray-400 hover:border-green-500 hover:text-green-500'
+                      ${
+                        badge.isDisplayed
+                          ? 'bg-green-500 text-white hover:bg-green-600'
+                          : 'bg-transparent text-gray-400 border border-gray-400 hover:border-green-500 hover:text-green-500'
                       }
                     `}
                   >
@@ -303,7 +332,11 @@ export const AchievementBadgeCard: React.FC<Props> = ({
                     ) : badge.isDisplayed ? (
                       <>
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         <span>On Profile</span>
                       </>
@@ -327,7 +360,10 @@ export const AchievementBadgeCard: React.FC<Props> = ({
                   {badge.currentProgress}/{badge.targetProgress} ({progressPercent}%)
                 </span>
               </div>
-              <div className="rounded-full h-2 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div
+                className="rounded-full h-2 overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.1)' }}
+              >
                 <div
                   className="h-2 rounded-full transition-all duration-500 relative overflow-hidden"
                   style={{
@@ -339,7 +375,8 @@ export const AchievementBadgeCard: React.FC<Props> = ({
                   <div
                     className="absolute inset-0 opacity-30"
                     style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                      background:
+                        'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
                       animation: 'shimmer 2s infinite',
                     }}
                   />

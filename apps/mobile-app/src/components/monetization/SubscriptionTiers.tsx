@@ -143,9 +143,7 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       await onSubscribe(tier, billingPeriod);
       Alert.alert(
         'Success!',
-        `You're now subscribed to ${
-          SUBSCRIPTION_PLANS.find((p) => p.tier === tier)?.name
-        }!`
+        `You're now subscribed to ${SUBSCRIPTION_PLANS.find((p) => p.tier === tier)?.name}!`
       );
     } catch (error: any) {
       Alert.alert(
@@ -233,9 +231,7 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         <View style={styles.priceContainer}>
           <Text style={styles.price}>{getPricePerMonth(plan)}</Text>
           {plan.monthlyPrice > 0 && billingPeriod === 'annual' && (
-            <Text style={styles.billedAnnually}>
-              Billed ${plan.annualPrice} annually
-            </Text>
+            <Text style={styles.billedAnnually}>Billed ${plan.annualPrice} annually</Text>
           )}
           {plan.monthlyPrice > 0 && billingPeriod === 'annual' && savings > 0 && (
             <View style={styles.savingsBadge}>
@@ -255,13 +251,7 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
 
         {plan.tier !== 'free' && (
           <Button
-            title={
-              isCurrentPlan
-                ? 'Current Plan'
-                : isDowngrade
-                ? 'Downgrade'
-                : 'Upgrade'
-            }
+            title={isCurrentPlan ? 'Current Plan' : isDowngrade ? 'Downgrade' : 'Upgrade'}
             onPress={() => handleSubscribe(plan.tier)}
             variant={isCurrentPlan ? 'outline' : 'primary'}
             disabled={isCurrentPlan || isLoadingThis}
@@ -278,17 +268,12 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Choose Your Plan</Text>
-        <Text style={styles.subtitle}>
-          Unlock more features and increase your matches
-        </Text>
+        <Text style={styles.subtitle}>Unlock more features and increase your matches</Text>
       </View>
 
       <View style={styles.billingToggle}>
         <TouchableOpacity
-          style={[
-            styles.billingOption,
-            billingPeriod === 'monthly' && styles.billingOptionActive,
-          ]}
+          style={[styles.billingOption, billingPeriod === 'monthly' && styles.billingOptionActive]}
           onPress={() => setBillingPeriod('monthly')}
         >
           <Text
@@ -301,10 +286,7 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.billingOption,
-            billingPeriod === 'annual' && styles.billingOptionActive,
-          ]}
+          style={[styles.billingOption, billingPeriod === 'annual' && styles.billingOptionActive]}
           onPress={() => setBillingPeriod('annual')}
         >
           <Text
@@ -341,12 +323,11 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            • Subscriptions automatically renew unless canceled at least 24 hours
-            before the end of the current period.
+            • Subscriptions automatically renew unless canceled at least 24 hours before the end of
+            the current period.
           </Text>
           <Text style={styles.footerText}>
-            • You can manage or cancel your subscription in your App Store account
-            settings.
+            • You can manage or cancel your subscription in your App Store account settings.
           </Text>
           <Text style={styles.footerText}>
             • Payment will be charged to your Apple ID/Google Play account.

@@ -142,7 +142,7 @@ export const ResponseModal: React.FC<ResponseModalProps> = ({
           {/* Opening Moves */}
           <View style={styles.movesSection}>
             <Text style={styles.sectionTitle}>Choose one to respond to:</Text>
-            {openingMoves.map(move => (
+            {openingMoves.map((move) => (
               <OpeningMoveCard
                 key={move.id}
                 move={move}
@@ -177,9 +177,7 @@ export const ResponseModal: React.FC<ResponseModalProps> = ({
               />
 
               <View style={styles.responseFooter}>
-                <Text style={styles.characterCount}>
-                  {responseText.length} / 500
-                </Text>
+                <Text style={styles.characterCount}>{responseText.length} / 500</Text>
 
                 <View style={styles.tipBadge}>
                   <Text style={styles.tipBadgeIcon}>💡</Text>
@@ -193,7 +191,9 @@ export const ResponseModal: React.FC<ResponseModalProps> = ({
           <View style={styles.tipsCard}>
             <Text style={styles.tipsTitle}>✨ Pro Tips</Text>
             <Text style={styles.tipText}>• Be authentic and share something personal</Text>
-            <Text style={styles.tipText}>• Ask a follow-up question to keep conversation going</Text>
+            <Text style={styles.tipText}>
+              • Ask a follow-up question to keep conversation going
+            </Text>
             <Text style={styles.tipText}>• Show enthusiasm and positivity</Text>
             <Text style={styles.tipText}>• Keep it concise but meaningful</Text>
           </View>

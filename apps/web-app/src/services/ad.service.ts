@@ -206,16 +206,21 @@ class AdService {
         timeUntilNextInterstitial === 0;
 
       const canShowRewarded =
-        this.mockState.rewardedViewsToday < rewarded.maxViewsPerDay &&
-        timeUntilNextRewarded === 0;
+        this.mockState.rewardedViewsToday < rewarded.maxViewsPerDay && timeUntilNextRewarded === 0;
 
       return {
         canShowInterstitial,
         canShowRewarded,
         timeUntilNextInterstitial: Math.ceil(timeUntilNextInterstitial),
         timeUntilNextRewarded: Math.ceil(timeUntilNextRewarded),
-        remainingRewardedToday: Math.max(0, rewarded.maxViewsPerDay - this.mockState.rewardedViewsToday),
-        remainingInterstitialsToday: Math.max(0, interstitial.maxAdsPerDay - this.mockState.interstitialsShownToday),
+        remainingRewardedToday: Math.max(
+          0,
+          rewarded.maxViewsPerDay - this.mockState.rewardedViewsToday
+        ),
+        remainingInterstitialsToday: Math.max(
+          0,
+          interstitial.maxAdsPerDay - this.mockState.interstitialsShownToday
+        ),
       };
     }
 
@@ -276,7 +281,11 @@ class AdService {
   /**
    * Record an ad impression
    */
-  async recordImpression(adType: AdType, network: AdNetwork, placement: string): Promise<string | null> {
+  async recordImpression(
+    adType: AdType,
+    network: AdNetwork,
+    placement: string
+  ): Promise<string | null> {
     if (this.isMock) {
       const impressionId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -383,7 +392,7 @@ class AdService {
     const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     if (this.isMock) {
-      const reward = DEFAULT_REWARDS.find(r => r.id === rewardId);
+      const reward = DEFAULT_REWARDS.find((r) => r.id === rewardId);
       if (!reward) {
         return { success: false, error: 'Invalid reward ID' };
       }
@@ -392,7 +401,7 @@ class AdService {
       const count = this.mockState.rewardCounts.get(rewardId) || 0;
       this.mockState.rewardCounts.set(rewardId, count + 1);
 
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
 
       return {
         success: true,

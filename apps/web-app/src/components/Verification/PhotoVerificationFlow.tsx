@@ -78,7 +78,7 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
   // Upload photo to storage
   const uploadPhoto = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('photo', file);  // Backend expects 'photo' field name
+    formData.append('photo', file); // Backend expects 'photo' field name
     formData.append('userId', userId);
     formData.append('type', 'verification');
 
@@ -211,15 +211,15 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
         <PreviewContainer>
           <PreviewImage src={previewUrl} alt="Preview" />
           <PreviewActions>
-            <ActionButton onClick={() => {
-              setSelectedFile(null);
-              setPreviewUrl(null);
-            }}>
+            <ActionButton
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewUrl(null);
+              }}
+            >
               Change Photo
             </ActionButton>
-            <PrimaryButton onClick={handleVerify}>
-              Verify Photo
-            </PrimaryButton>
+            <PrimaryButton onClick={handleVerify}>Verify Photo</PrimaryButton>
           </PreviewActions>
         </PreviewContainer>
       )}
@@ -255,19 +255,28 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
           <span>Uploading photo</span>
         </ProcessingStep>
         <ProcessingStep $completed={status === 'verifying'}>
-          {status === 'verifying' ? <FaSpinner className="spin" /> :
-           status === 'success' || status === 'failed' ? <FaCheckCircle /> : null}
+          {status === 'verifying' ? (
+            <FaSpinner className="spin" />
+          ) : status === 'success' || status === 'failed' ? (
+            <FaCheckCircle />
+          ) : null}
           <span>Detecting face</span>
         </ProcessingStep>
         <ProcessingStep $completed={status === 'verifying'}>
-          {status === 'verifying' ? <FaSpinner className="spin" /> :
-           status === 'success' || status === 'failed' ? <FaCheckCircle /> : null}
+          {status === 'verifying' ? (
+            <FaSpinner className="spin" />
+          ) : status === 'success' || status === 'failed' ? (
+            <FaCheckCircle />
+          ) : null}
           <span>Checking quality</span>
         </ProcessingStep>
         {referencePhotoUrl && (
           <ProcessingStep $completed={status === 'verifying'}>
-            {status === 'verifying' ? <FaSpinner className="spin" /> :
-             status === 'success' || status === 'failed' ? <FaCheckCircle /> : null}
+            {status === 'verifying' ? (
+              <FaSpinner className="spin" />
+            ) : status === 'success' || status === 'failed' ? (
+              <FaCheckCircle />
+            ) : null}
             <span>Matching face</span>
           </ProcessingStep>
         )}
@@ -305,12 +314,16 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
                 </DetailItem>
                 <DetailItem>
                   <DetailLabel>Quality Score:</DetailLabel>
-                  <DetailValue>{Math.round(verificationResult.details.qualityScore * 100)}%</DetailValue>
+                  <DetailValue>
+                    {Math.round(verificationResult.details.qualityScore * 100)}%
+                  </DetailValue>
                 </DetailItem>
                 {verificationResult.details.matchScore !== undefined && (
                   <DetailItem>
                     <DetailLabel>Face Match Score:</DetailLabel>
-                    <DetailValue>{Math.round(verificationResult.details.matchScore * 100)}%</DetailValue>
+                    <DetailValue>
+                      {Math.round(verificationResult.details.matchScore * 100)}%
+                    </DetailValue>
                   </DetailItem>
                 )}
                 {verificationResult.liveness && (
@@ -390,11 +403,17 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
     <Container>
       <Header>
         <ProgressBar>
-          <ProgressStep $active={step === 'upload'} $completed={step !== 'upload'}>1</ProgressStep>
+          <ProgressStep $active={step === 'upload'} $completed={step !== 'upload'}>
+            1
+          </ProgressStep>
           <ProgressLine $completed={step !== 'upload'} />
-          <ProgressStep $active={step === 'processing'} $completed={step === 'result'}>2</ProgressStep>
+          <ProgressStep $active={step === 'processing'} $completed={step === 'result'}>
+            2
+          </ProgressStep>
           <ProgressLine $completed={step === 'result'} />
-          <ProgressStep $active={step === 'result'} $completed={false}>3</ProgressStep>
+          <ProgressStep $active={step === 'result'} $completed={false}>
+            3
+          </ProgressStep>
         </ProgressBar>
       </Header>
 
@@ -443,18 +462,16 @@ const ProgressStep = styled.div<{ $active: boolean; $completed: boolean }>`
   justify-content: center;
   font-weight: 600;
   font-size: 16px;
-  background-color: ${props =>
-    props.$completed ? '#10b981' :
-    props.$active ? '#3b82f6' :
-    '#e5e7eb'};
-  color: ${props => props.$active || props.$completed ? 'white' : '#6b7280'};
+  background-color: ${(props) =>
+    props.$completed ? '#10b981' : props.$active ? '#3b82f6' : '#e5e7eb'};
+  color: ${(props) => (props.$active || props.$completed ? 'white' : '#6b7280')};
   transition: all 0.3s;
 `;
 
 const ProgressLine = styled.div<{ $completed: boolean }>`
   flex: 1;
   height: 2px;
-  background-color: ${props => props.$completed ? '#10b981' : '#e5e7eb'};
+  background-color: ${(props) => (props.$completed ? '#10b981' : '#e5e7eb')};
   transition: all 0.3s;
 `;
 
@@ -577,8 +594,12 @@ const SpinnerIcon = styled.div`
   }
 
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -609,7 +630,7 @@ const ProcessingStep = styled.div<{ $completed: boolean }>`
   align-items: center;
   gap: 12px;
   font-size: 14px;
-  color: ${props => props.$completed ? '#10b981' : '#6b7280'};
+  color: ${(props) => (props.$completed ? '#10b981' : '#6b7280')};
 
   svg {
     width: 20px;
@@ -629,14 +650,14 @@ const ResultContainer = styled.div`
 `;
 
 const ResultIcon = styled.div<{ $success: boolean }>`
-  color: ${props => props.$success ? '#10b981' : '#ef4444'};
+  color: ${(props) => (props.$success ? '#10b981' : '#ef4444')};
   margin-bottom: 24px;
 `;
 
 const ResultTitle = styled.h3<{ $success: boolean }>`
   font-size: 24px;
   font-weight: 700;
-  color: ${props => props.$success ? '#10b981' : '#ef4444'};
+  color: ${(props) => (props.$success ? '#10b981' : '#ef4444')};
   margin-bottom: 12px;
 `;
 
@@ -675,9 +696,8 @@ const DetailLabel = styled.span`
 const DetailValue = styled.span<{ $success?: boolean }>`
   font-size: 14px;
   font-weight: 600;
-  color: ${props =>
-    props.$success === undefined ? '#111827' :
-    props.$success ? '#10b981' : '#ef4444'};
+  color: ${(props) =>
+    props.$success === undefined ? '#111827' : props.$success ? '#10b981' : '#ef4444'};
 `;
 
 const FailureReason = styled.div`

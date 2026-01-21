@@ -64,7 +64,8 @@ export const SwipeCardEnhanced: React.FC<SwipeCardEnhancedProps> = ({
 
   const forceSwipe = (direction: 'left' | 'right' | 'up') => {
     'worklet';
-    const x = direction === 'left' ? -SCREEN_WIDTH * 1.5 : direction === 'right' ? SCREEN_WIDTH * 1.5 : 0;
+    const x =
+      direction === 'left' ? -SCREEN_WIDTH * 1.5 : direction === 'right' ? SCREEN_WIDTH * 1.5 : 0;
     const y = direction === 'up' ? -SCREEN_HEIGHT * 1.5 : 0;
 
     translateX.value = withTiming(x, { duration: 250 }, () => {
@@ -128,12 +129,7 @@ export const SwipeCardEnhanced: React.FC<SwipeCardEnhancedProps> = ({
   });
 
   const likeOpacityStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      translateX.value,
-      [0, SCREEN_WIDTH / 4],
-      [0, 1],
-      Extrapolate.CLAMP
-    );
+    const opacity = interpolate(translateX.value, [0, SCREEN_WIDTH / 4], [0, 1], Extrapolate.CLAMP);
     return { opacity };
   });
 

@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Button } from '../common/Button';
 
 export type PromotionTier = 'basic' | 'advanced' | 'premium';
@@ -226,9 +219,7 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
         </View>
 
         <Text style={styles.activePromotionTitle}>Your Profile is Being Promoted!</Text>
-        <Text style={styles.activePromotionSubtitle}>
-          Time remaining: {timeRemaining}
-        </Text>
+        <Text style={styles.activePromotionSubtitle}>Time remaining: {timeRemaining}</Text>
 
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
@@ -260,8 +251,8 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
         <View style={styles.activePromotionInfo}>
           <Text style={styles.activePromotionInfoIcon}>💡</Text>
           <Text style={styles.activePromotionInfoText}>
-            Your profile is currently being shown to more people. Keep your app open to
-            respond to new matches quickly!
+            Your profile is currently being shown to more people. Keep your app open to respond to
+            new matches quickly!
           </Text>
         </View>
       </View>
@@ -311,9 +302,7 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
             <Text style={styles.packageOriginalPrice}>{pkg.originalPrice} coins</Text>
           )}
           <View style={styles.packagePriceRow}>
-            <Text style={[styles.packagePrice, { color: tierColor }]}>
-              {pkg.price}
-            </Text>
+            <Text style={[styles.packagePrice, { color: tierColor }]}>{pkg.price}</Text>
             <Text style={styles.packagePriceCurrency}>coins</Text>
           </View>
         </View>
@@ -340,10 +329,7 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
           fullWidth
           loading={isLoading}
           disabled={isLoading}
-          style={[
-            styles.packageButton,
-            !canAfford && styles.packageButtonDisabled,
-          ]}
+          style={[styles.packageButton, !canAfford && styles.packageButtonDisabled]}
         />
 
         {!canAfford && (
@@ -391,9 +377,7 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
               </Text>
             </View>
 
-            <View style={styles.packages}>
-              {promotionPackages.map(renderPackageCard)}
-            </View>
+            <View style={styles.packages}>{promotionPackages.map(renderPackageCard)}</View>
 
             {/* How It Works */}
             <View style={styles.howItWorksSection}>
@@ -405,9 +389,7 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
                     <Text style={styles.howItWorksStepNumberText}>1</Text>
                   </View>
                   <View style={styles.howItWorksStepContent}>
-                    <Text style={styles.howItWorksStepTitle}>
-                      Choose a promotion package
-                    </Text>
+                    <Text style={styles.howItWorksStepTitle}>Choose a promotion package</Text>
                     <Text style={styles.howItWorksStepText}>
                       Select the duration and visibility level that fits your needs
                     </Text>
@@ -419,9 +401,7 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
                     <Text style={styles.howItWorksStepNumberText}>2</Text>
                   </View>
                   <View style={styles.howItWorksStepContent}>
-                    <Text style={styles.howItWorksStepTitle}>
-                      Your profile gets boosted
-                    </Text>
+                    <Text style={styles.howItWorksStepTitle}>Your profile gets boosted</Text>
                     <Text style={styles.howItWorksStepText}>
                       You'll appear higher in search results and discovery feeds
                     </Text>
@@ -445,12 +425,8 @@ export const PromotedProfile: React.FC<PromotedProfileProps> = ({
             {/* Tips */}
             <View style={styles.tipsSection}>
               <Text style={styles.tipsTitle}>💡 Tips for Best Results</Text>
-              <Text style={styles.tipText}>
-                • Update your photos before promoting your profile
-              </Text>
-              <Text style={styles.tipText}>
-                • Write an engaging bio to capture attention
-              </Text>
+              <Text style={styles.tipText}>• Update your photos before promoting your profile</Text>
+              <Text style={styles.tipText}>• Write an engaging bio to capture attention</Text>
               <Text style={styles.tipText}>
                 • Promote during peak hours (evenings and weekends)
               </Text>

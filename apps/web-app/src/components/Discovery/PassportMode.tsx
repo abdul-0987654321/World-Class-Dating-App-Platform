@@ -66,7 +66,7 @@ const Title = styled.h2`
   gap: 8px;
 
   svg {
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 `;
 
@@ -104,7 +104,7 @@ const LocationIcon = styled.div`
   svg {
     width: 24px;
     height: 24px;
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 `;
 
@@ -131,7 +131,7 @@ const DeactivateButton = styled.button`
   background: rgba(255, 107, 107, 0.2);
   border: 1px solid rgba(255, 107, 107, 0.3);
   border-radius: 8px;
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
@@ -157,7 +157,7 @@ const TimeRemaining = styled.div`
   svg {
     width: 16px;
     height: 16px;
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 
   span {
@@ -246,7 +246,7 @@ const SearchResultItem = styled.button`
     svg {
       width: 16px;
       height: 16px;
-      color: #4ECDC4;
+      color: #4ecdc4;
     }
 
     span {
@@ -276,7 +276,7 @@ const SectionTitle = styled.h3`
   svg {
     width: 18px;
     height: 18px;
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 `;
 
@@ -368,7 +368,7 @@ const LockIcon = styled.div`
   svg {
     width: 32px;
     height: 32px;
-    color: #FF6B6B;
+    color: #ff6b6b;
   }
 `;
 
@@ -391,7 +391,7 @@ const UpgradeButton = styled.button`
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
   border: none;
   border-radius: 12px;
   color: white;
@@ -420,7 +420,7 @@ const ErrorBanner = styled.div`
   background: rgba(255, 107, 107, 0.15);
   border: 1px solid rgba(255, 107, 107, 0.3);
   border-radius: 12px;
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 14px;
 
   svg {
@@ -448,8 +448,12 @@ const LoadingSpinner = styled.div`
   }
 
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -508,7 +512,7 @@ const SavedLocationItem = styled.button`
     svg {
       width: 16px;
       height: 16px;
-      color: #4ECDC4;
+      color: #4ecdc4;
     }
 
     .text {
@@ -518,7 +522,7 @@ const SavedLocationItem = styled.button`
 
   .use-btn {
     font-size: 12px;
-    color: #4ECDC4;
+    color: #4ecdc4;
   }
 `;
 
@@ -527,7 +531,7 @@ const getCountryFlag = (countryCode: string): string => {
   const codePoints = countryCode
     .toUpperCase()
     .split('')
-    .map(char => 127397 + char.charCodeAt(0));
+    .map((char) => 127397 + char.charCodeAt(0));
   return String.fromCodePoint(...codePoints);
 };
 
@@ -555,26 +559,29 @@ export const PassportMode: React.FC<PassportModeProps> = ({
   const [actionError, setActionError] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  const handleSearch = useCallback(async (query: string) => {
-    if (query.length < 2) {
-      setSearchResults([]);
-      setSearchError(null);
-      return;
-    }
+  const handleSearch = useCallback(
+    async (query: string) => {
+      if (query.length < 2) {
+        setSearchResults([]);
+        setSearchError(null);
+        return;
+      }
 
-    setSearching(true);
-    setSearchError(null);
-    try {
-      const results = await onSearch(query);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search failed:', error);
-      setSearchError('Failed to search locations. Please try again.');
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
-    }
-  }, [onSearch]);
+      setSearching(true);
+      setSearchError(null);
+      try {
+        const results = await onSearch(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setSearchError('Failed to search locations. Please try again.');
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    },
+    [onSearch]
+  );
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -637,8 +644,8 @@ export const PassportMode: React.FC<PassportModeProps> = ({
           </LockIcon>
           <LockedTitle>Unlock Passport Mode</LockedTitle>
           <LockedDescription>
-            With Passport, you can teleport your location to anywhere in the world
-            and match with people before you even arrive. Perfect for travel planning!
+            With Passport, you can teleport your location to anywhere in the world and match with
+            people before you even arrive. Perfect for travel planning!
           </LockedDescription>
           <UpgradeButton onClick={onUpgradeClick}>
             <FiNavigation />
@@ -692,12 +699,18 @@ export const PassportMode: React.FC<PassportModeProps> = ({
                 <FiNavigation />
               </LocationIcon>
               <LocationText>
-                <h3>{status.activeLocation.city}, {status.activeLocation.country}</h3>
+                <h3>
+                  {status.activeLocation.city}, {status.activeLocation.country}
+                </h3>
                 <p>Your current virtual location</p>
               </LocationText>
             </LocationInfo>
             <DeactivateButton onClick={handleDeactivate} disabled={actionLoading}>
-              {actionLoading ? <FiLoader style={{ animation: 'spin 1s linear infinite' }} /> : <FiX />}
+              {actionLoading ? (
+                <FiLoader style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <FiX />
+              )}
               {actionLoading ? 'Returning...' : 'Return Home'}
             </DeactivateButton>
           </ActiveLocationHeader>
@@ -726,7 +739,9 @@ export const PassportMode: React.FC<PassportModeProps> = ({
             >
               <div className="location-info">
                 <FiMapPin />
-                <span className="text">{loc.city}, {loc.country}</span>
+                <span className="text">
+                  {loc.city}, {loc.country}
+                </span>
               </div>
               <span className="use-btn">Use</span>
             </SavedLocationItem>
@@ -760,17 +775,13 @@ export const PassportMode: React.FC<PassportModeProps> = ({
 
         {!searching && searchQuery.length >= 2 && searchResults.length === 0 && !searchError && (
           <SearchResults>
-            <NoResultsMessage>
-              No cities found matching "{searchQuery}"
-            </NoResultsMessage>
+            <NoResultsMessage>No cities found matching "{searchQuery}"</NoResultsMessage>
           </SearchResults>
         )}
 
         {!searching && searchError && (
           <SearchResults>
-            <NoResultsMessage style={{ color: '#FF6B6B' }}>
-              {searchError}
-            </NoResultsMessage>
+            <NoResultsMessage style={{ color: '#FF6B6B' }}>{searchError}</NoResultsMessage>
           </SearchResults>
         )}
 
@@ -784,10 +795,16 @@ export const PassportMode: React.FC<PassportModeProps> = ({
               >
                 <div className="city-info">
                   <FiMapPin />
-                  <span>{result.city}, {result.country}</span>
+                  <span>
+                    {result.city}, {result.country}
+                  </span>
                 </div>
                 <div className="chevron">
-                  {actionLoading ? <FiLoader style={{ animation: 'spin 1s linear infinite' }} /> : <FiChevronRight />}
+                  {actionLoading ? (
+                    <FiLoader style={{ animation: 'spin 1s linear infinite' }} />
+                  ) : (
+                    <FiChevronRight />
+                  )}
                 </div>
               </SearchResultItem>
             ))}
@@ -809,12 +826,14 @@ export const PassportMode: React.FC<PassportModeProps> = ({
           {popularDestinations.map((dest) => (
             <DestinationCard
               key={`${dest.city}-${dest.country}`}
-              onClick={() => handleSelectLocation({
-                city: dest.city,
-                country: dest.country,
-                latitude: dest.latitude,
-                longitude: dest.longitude,
-              })}
+              onClick={() =>
+                handleSelectLocation({
+                  city: dest.city,
+                  country: dest.country,
+                  latitude: dest.latitude,
+                  longitude: dest.longitude,
+                })
+              }
               disabled={actionLoading}
             >
               <div className="flag">{getCountryFlag(dest.countryCode)}</div>

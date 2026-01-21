@@ -19,7 +19,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { paymentService, Product, SubscriptionStatus } from '../../services/payments/PaymentService';
+import {
+  paymentService,
+  Product,
+  SubscriptionStatus,
+} from '../../services/payments/PaymentService';
 // Legal URLs - Required for App Store/Play Store compliance
 const LEGAL_URLS = {
   TERMS_OF_SERVICE: 'https://flamoral.com/terms',
@@ -45,12 +49,7 @@ const PLANS: Plan[] = [
     productId: 'free',
     tier: 'FREE',
     name: 'Free',
-    features: [
-      'Basic matching',
-      '10 daily likes',
-      'Basic filters',
-      'View profiles',
-    ],
+    features: ['Basic matching', '10 daily likes', 'Basic filters', 'View profiles'],
     color: ['#9CA3AF', '#6B7280'],
     icon: 'account',
   },
@@ -58,12 +57,8 @@ const PLANS: Plan[] = [
     productId: 'gold',
     tier: 'GOLD',
     name: 'Gold',
-    monthlyProductId: Platform.OS === 'ios'
-      ? 'com.flamoral.gold.monthly'
-      : 'gold_monthly',
-    yearlyProductId: Platform.OS === 'ios'
-      ? 'com.flamoral.gold.yearly'
-      : 'gold_yearly',
+    monthlyProductId: Platform.OS === 'ios' ? 'com.flamoral.gold.monthly' : 'gold_monthly',
+    yearlyProductId: Platform.OS === 'ios' ? 'com.flamoral.gold.yearly' : 'gold_yearly',
     features: [
       'Unlimited likes',
       'See who likes you',
@@ -78,12 +73,8 @@ const PLANS: Plan[] = [
     productId: 'platinum',
     tier: 'PLATINUM',
     name: 'Platinum',
-    monthlyProductId: Platform.OS === 'ios'
-      ? 'com.flamoral.platinum.monthly'
-      : 'platinum_monthly',
-    yearlyProductId: Platform.OS === 'ios'
-      ? 'com.flamoral.platinum.yearly'
-      : 'platinum_yearly',
+    monthlyProductId: Platform.OS === 'ios' ? 'com.flamoral.platinum.monthly' : 'platinum_monthly',
+    yearlyProductId: Platform.OS === 'ios' ? 'com.flamoral.platinum.yearly' : 'platinum_yearly',
     features: [
       'Everything in Gold',
       'Message before matching',
@@ -99,12 +90,8 @@ const PLANS: Plan[] = [
     productId: 'diamond',
     tier: 'DIAMOND',
     name: 'Diamond',
-    monthlyProductId: Platform.OS === 'ios'
-      ? 'com.flamoral.diamond.monthly'
-      : 'diamond_monthly',
-    yearlyProductId: Platform.OS === 'ios'
-      ? 'com.flamoral.diamond.yearly'
-      : 'diamond_yearly',
+    monthlyProductId: Platform.OS === 'ios' ? 'com.flamoral.diamond.monthly' : 'diamond_monthly',
+    yearlyProductId: Platform.OS === 'ios' ? 'com.flamoral.diamond.yearly' : 'diamond_yearly',
     features: [
       'Everything in Platinum',
       'Unlimited Boosts',
@@ -162,9 +149,7 @@ export const SubscriptionScreen: React.FC = () => {
     if (plan.tier === 'FREE') return;
     if (subscriptionStatus?.tier === plan.tier) return;
 
-    const productId = selectedInterval === 'monthly'
-      ? plan.monthlyProductId
-      : plan.yearlyProductId;
+    const productId = selectedInterval === 'monthly' ? plan.monthlyProductId : plan.yearlyProductId;
 
     if (!productId) {
       Alert.alert('Error', 'This product is not available.');
@@ -177,11 +162,9 @@ export const SubscriptionScreen: React.FC = () => {
       const purchase = await paymentService.purchaseSubscription(productId);
 
       if (purchase) {
-        Alert.alert(
-          'Success',
-          `You're now subscribed to ${plan.name}!`,
-          [{ text: 'OK', onPress: loadData }]
-        );
+        Alert.alert('Success', `You're now subscribed to ${plan.name}!`, [
+          { text: 'OK', onPress: loadData },
+        ]);
       }
     } catch (error: any) {
       console.error('Purchase failed:', error);
@@ -212,7 +195,7 @@ export const SubscriptionScreen: React.FC = () => {
   const getProductPrice = (plan: Plan, interval: 'monthly' | 'yearly'): string => {
     const productId = interval === 'monthly' ? plan.monthlyProductId : plan.yearlyProductId;
     if (!productId) return '';
-    const product = products.find(p => p.productId === productId);
+    const product = products.find((p) => p.productId === productId);
     return product?.localizedPrice || '';
   };
 
@@ -228,16 +211,12 @@ export const SubscriptionScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Unlock Premium</Text>
-          <Text style={styles.headerSubtitle}>
-            Get more matches and stand out
-          </Text>
+          <Text style={styles.headerSubtitle}>Get more matches and stand out</Text>
         </View>
 
         {/* Current Subscription */}
@@ -305,17 +284,14 @@ export const SubscriptionScreen: React.FC = () => {
         {PLANS.map((plan) => {
           const isCurrentPlan = subscriptionStatus?.tier === plan.tier;
           const price = getProductPrice(plan, selectedInterval);
-          const isPurchasing = purchasing === (selectedInterval === 'monthly'
-            ? plan.monthlyProductId
-            : plan.yearlyProductId);
+          const isPurchasing =
+            purchasing ===
+            (selectedInterval === 'monthly' ? plan.monthlyProductId : plan.yearlyProductId);
 
           return (
             <View
               key={plan.productId}
-              style={[
-                styles.planCard,
-                plan.highlighted && styles.planCardHighlighted,
-              ]}
+              style={[styles.planCard, plan.highlighted && styles.planCardHighlighted]}
             >
               {plan.highlighted && (
                 <View style={styles.popularBadge}>
@@ -364,15 +340,17 @@ export const SubscriptionScreen: React.FC = () => {
                 {isPurchasing ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={[
-                    styles.planButtonText,
-                    plan.tier === 'FREE' && styles.planButtonTextFree,
-                  ]}>
+                  <Text
+                    style={[
+                      styles.planButtonText,
+                      plan.tier === 'FREE' && styles.planButtonTextFree,
+                    ]}
+                  >
                     {isCurrentPlan
                       ? 'Current Plan'
                       : plan.tier === 'FREE'
-                      ? 'Free Plan'
-                      : 'Subscribe'}
+                        ? 'Free Plan'
+                        : 'Subscribe'}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -381,18 +359,16 @@ export const SubscriptionScreen: React.FC = () => {
         })}
 
         {/* Restore Purchases */}
-        <TouchableOpacity
-          style={styles.restoreButton}
-          onPress={handleRestorePurchases}
-        >
+        <TouchableOpacity style={styles.restoreButton} onPress={handleRestorePurchases}>
           <Text style={styles.restoreButtonText}>Restore Purchases</Text>
         </TouchableOpacity>
 
         {/* Legal */}
         <View style={styles.legalSection}>
           <Text style={styles.legalText}>
-            Subscriptions will be charged to your {Platform.OS === 'ios' ? 'iTunes' : 'Google Play'} account.
-            Subscriptions auto-renew unless canceled at least 24 hours before the end of the current period.
+            Subscriptions will be charged to your {Platform.OS === 'ios' ? 'iTunes' : 'Google Play'}{' '}
+            account. Subscriptions auto-renew unless canceled at least 24 hours before the end of
+            the current period.
           </Text>
           <View style={styles.legalLinks}>
             <TouchableOpacity onPress={() => Linking.openURL(LEGAL_URLS.TERMS_OF_SERVICE)}>

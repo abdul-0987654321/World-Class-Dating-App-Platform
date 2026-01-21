@@ -263,8 +263,8 @@ export const BoostCard: React.FC<BoostCardProps> = ({
 
         <Text style={styles.purchaseTitle}>Boost Your Profile</Text>
         <Text style={styles.purchaseDescription}>
-          Be the top profile in your area for {BOOST_DURATION_MINUTES} minutes and get
-          up to 10x more views
+          Be the top profile in your area for {BOOST_DURATION_MINUTES} minutes and get up to 10x
+          more views
         </Text>
 
         <View style={styles.benefitsContainer}>
@@ -292,9 +292,7 @@ export const BoostCard: React.FC<BoostCardProps> = ({
               <Text style={styles.purchaseOptionIcon}>💰</Text>
               <Text style={styles.purchaseOptionTitle}>Use Coins</Text>
             </View>
-            <Text style={styles.purchaseOptionPrice}>
-              {BOOST_COST_COINS} coins
-            </Text>
+            <Text style={styles.purchaseOptionPrice}>{BOOST_COST_COINS} coins</Text>
             {coinBalance < BOOST_COST_COINS && (
               <Text style={styles.insufficientFunds}>Not enough coins</Text>
             )}
@@ -309,9 +307,7 @@ export const BoostCard: React.FC<BoostCardProps> = ({
               <Text style={styles.purchaseOptionIcon}>💳</Text>
               <Text style={styles.purchaseOptionTitle}>Buy Now</Text>
             </View>
-            <Text style={styles.purchaseOptionPrice}>
-              ${BOOST_COST_MONEY.toFixed(2)}
-            </Text>
+            <Text style={styles.purchaseOptionPrice}>${BOOST_COST_MONEY.toFixed(2)}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -336,18 +332,14 @@ export const BoostCard: React.FC<BoostCardProps> = ({
               <Text style={styles.historyItemIconText}>🔥</Text>
             </View>
             <View style={styles.historyItemInfo}>
-              <Text style={styles.historyItemDate}>
-                {formatDate(boost.activatedAt)}
-              </Text>
+              <Text style={styles.historyItemDate}>{formatDate(boost.activatedAt)}</Text>
               <Text style={styles.historyItemStats}>
-                {boost.viewsGained} views • {boost.likesGained} likes •{' '}
-                {boost.matchesGained} matches
+                {boost.viewsGained} views • {boost.likesGained} likes • {boost.matchesGained}{' '}
+                matches
               </Text>
             </View>
             <View style={styles.historyItemDuration}>
-              <Text style={styles.historyItemDurationText}>
-                {boost.duration}m
-              </Text>
+              <Text style={styles.historyItemDurationText}>{boost.duration}m</Text>
             </View>
           </View>
         ))}

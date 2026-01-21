@@ -172,30 +172,32 @@ export const SubscriptionPage: React.FC = () => {
   const loadData = async () => {
     try {
       const token = authTokenService.getToken();
-      const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Get plans
       const plansRes = await fetch('/api/subscriptions/plans', { headers });
       if (plansRes.ok) {
         const plansData = await plansRes.json();
         if (plansData.data?.plans?.length > 0) {
-          setPlans(plansData.data.plans.map((p: any) => {
-            // Map API response to our Plan format
-            const planId = p.id?.toLowerCase() || p.slug?.toLowerCase();
-            const defaultPlan = defaultPlans.find(dp => dp.id === planId);
-            return {
-              id: p.id || p.slug,
-              name: p.name,
-              tier: (p.id || p.slug || '').toUpperCase(),
-              price: (p.monthlyPrice || p.price || 0) / 100, // Convert cents to dollars
-              currency: p.currency || 'USD',
-              interval: 'monthly',
-              features: p.features || defaultPlan?.features || [],
-              highlighted: planId === 'platinum',
-              color: defaultPlan?.color || 'from-gray-400 to-gray-500',
-              icon: defaultPlan?.icon || 'star',
-            };
-          }));
+          setPlans(
+            plansData.data.plans.map((p: any) => {
+              // Map API response to our Plan format
+              const planId = p.id?.toLowerCase() || p.slug?.toLowerCase();
+              const defaultPlan = defaultPlans.find((dp) => dp.id === planId);
+              return {
+                id: p.id || p.slug,
+                name: p.name,
+                tier: (p.id || p.slug || '').toUpperCase(),
+                price: (p.monthlyPrice || p.price || 0) / 100, // Convert cents to dollars
+                currency: p.currency || 'USD',
+                interval: 'monthly',
+                features: p.features || defaultPlan?.features || [],
+                highlighted: planId === 'platinum',
+                color: defaultPlan?.color || 'from-gray-400 to-gray-500',
+                icon: defaultPlan?.icon || 'star',
+              };
+            })
+          );
         } else {
           setPlans(defaultPlans);
         }
@@ -230,7 +232,7 @@ export const SubscriptionPage: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           planId: plan.id,
@@ -268,13 +270,15 @@ export const SubscriptionPage: React.FC = () => {
       const res = await fetch('/api/subscriptions/cancel', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (res.ok) {
         setCurrentSubscription({ ...currentSubscription!, status: 'cancelled' });
-        alert('Subscription cancelled. You will retain access until the end of your billing period.');
+        alert(
+          'Subscription cancelled. You will retain access until the end of your billing period.'
+        );
       }
     } catch (err) {
       console.error('Failed to cancel subscription:', err);
@@ -286,7 +290,11 @@ export const SubscriptionPage: React.FC = () => {
       case 'user':
         return (
           <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+              clipRule="evenodd"
+            />
           </svg>
         );
       case 'star':
@@ -324,8 +332,14 @@ export const SubscriptionPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-page)' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--accent-pink)' }}></div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--bg-page)' }}
+      >
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+          style={{ borderColor: 'var(--accent-pink)' }}
+        ></div>
       </div>
     );
   }
@@ -340,13 +354,21 @@ export const SubscriptionPage: React.FC = () => {
           <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span>{error}</span>
             </div>
             <button onClick={() => setError(null)} className="hover:text-red-300">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
@@ -355,13 +377,21 @@ export const SubscriptionPage: React.FC = () => {
           <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span>{success}</span>
             </div>
             <button onClick={() => setSuccess(null)} className="hover:text-green-300">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
@@ -377,14 +407,19 @@ export const SubscriptionPage: React.FC = () => {
           </p>
 
           {/* Interval Toggle */}
-          <div className="billing-toggle inline-flex items-center rounded-full p-1" data-testid="billing-toggle" style={{ background: 'var(--surface-card)' }}>
+          <div
+            className="billing-toggle inline-flex items-center rounded-full p-1"
+            data-testid="billing-toggle"
+            style={{ background: 'var(--surface-card)' }}
+          >
             <button
               onClick={() => setSelectedInterval('monthly')}
               className="px-6 py-2 rounded-full transition"
               data-billing="monthly"
               style={{
-                background: selectedInterval === 'monthly' ? 'var(--accent-gradient)' : 'transparent',
-                color: selectedInterval === 'monthly' ? 'white' : 'var(--text-secondary)'
+                background:
+                  selectedInterval === 'monthly' ? 'var(--accent-gradient)' : 'transparent',
+                color: selectedInterval === 'monthly' ? 'white' : 'var(--text-secondary)',
               }}
             >
               Monthly
@@ -394,26 +429,33 @@ export const SubscriptionPage: React.FC = () => {
               className="px-6 py-2 rounded-full transition flex items-center gap-2"
               data-billing="yearly"
               style={{
-                background: selectedInterval === 'yearly' ? 'var(--accent-gradient)' : 'transparent',
-                color: selectedInterval === 'yearly' ? 'white' : 'var(--text-secondary)'
+                background:
+                  selectedInterval === 'yearly' ? 'var(--accent-gradient)' : 'transparent',
+                color: selectedInterval === 'yearly' ? 'white' : 'var(--text-secondary)',
               }}
             >
               Yearly
-              <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">Save 20%</span>
+              <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                Save 20%
+              </span>
             </button>
           </div>
         </div>
 
         {/* Current Subscription Banner */}
         {currentSubscription && currentSubscription.tier !== 'FREE' && (
-          <div className="rounded-xl p-6 text-white mb-8" style={{ background: 'var(--accent-gradient)' }}>
+          <div
+            className="rounded-xl p-6 text-white mb-8"
+            style={{ background: 'var(--accent-gradient)' }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/70 text-sm">Current Plan</p>
                 <h3 className="text-2xl font-bold">{currentSubscription.tier}</h3>
                 <p className="text-white/70">
                   {currentSubscription.status === 'active' ? 'Active' : 'Cancelled'}
-                  {currentSubscription.expiresAt && ` - Expires ${new Date(currentSubscription.expiresAt).toLocaleDateString()}`}
+                  {currentSubscription.expiresAt &&
+                    ` - Expires ${new Date(currentSubscription.expiresAt).toLocaleDateString()}`}
                 </p>
               </div>
               <div className="flex gap-3">
@@ -445,19 +487,27 @@ export const SubscriptionPage: React.FC = () => {
               id={`plan-${plan.id}`}
               data-testid="subscription-plan"
               className={`plan-card rounded-2xl overflow-hidden transition-all duration-300 ${
-                plan.highlighted || highlightedTier === plan.id ? 'ring-2 ring-pink-500 transform scale-105 z-10' : ''
+                plan.highlighted || highlightedTier === plan.id
+                  ? 'ring-2 ring-pink-500 transform scale-105 z-10'
+                  : ''
               } ${plan.bestValue ? 'ring-2 ring-green-500' : ''} ${
                 highlightedTier === plan.id ? 'animate-pulse' : ''
               }`}
               style={{ background: 'var(--surface-card)' }}
             >
               {plan.highlighted && (
-                <div className="popular recommended bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-1.5 text-xs font-medium" data-recommended="true">
+                <div
+                  className="popular recommended bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-1.5 text-xs font-medium"
+                  data-recommended="true"
+                >
                   MOST POPULAR
                 </div>
               )}
               {plan.bestValue && !plan.highlighted && (
-                <div className="best-value bg-green-500 text-white text-center py-1.5 text-xs font-medium" data-best-value="true">
+                <div
+                  className="best-value bg-green-500 text-white text-center py-1.5 text-xs font-medium"
+                  data-best-value="true"
+                >
                   BEST VALUE
                 </div>
               )}
@@ -468,26 +518,46 @@ export const SubscriptionPage: React.FC = () => {
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold">
-                    ${selectedInterval === 'yearly' && plan.price > 0 ? getYearlyPrice(plan.price) : plan.price}
+                    $
+                    {selectedInterval === 'yearly' && plan.price > 0
+                      ? getYearlyPrice(plan.price)
+                      : plan.price}
                   </span>
                   {plan.price > 0 && (
-                    <span className="text-white/80">/{selectedInterval === 'yearly' ? 'year' : 'month'}</span>
+                    <span className="text-white/80">
+                      /{selectedInterval === 'yearly' ? 'year' : 'month'}
+                    </span>
                   )}
                 </div>
                 {selectedInterval === 'yearly' && plan.price > 0 && (
                   <p className="text-white/80 text-sm mt-1">
-                    ${(parseFloat(getYearlyPrice(plan.price)) / 12).toFixed(2)}/month billed annually
+                    ${(parseFloat(getYearlyPrice(plan.price)) / 12).toFixed(2)}/month billed
+                    annually
                   </p>
                 )}
               </div>
               <div className="p-6">
                 <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="feature plan-feature flex items-start gap-2" data-testid="feature">
-                      <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <li
+                      key={idx}
+                      className="feature plan-feature flex items-start gap-2"
+                      data-testid="feature"
+                    >
+                      <svg
+                        className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
-                      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{feature}</span>
+                      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        {feature}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -496,18 +566,31 @@ export const SubscriptionPage: React.FC = () => {
                   disabled={processingPlan === plan.id || currentSubscription?.tier === plan.tier}
                   className="w-full py-3 rounded-xl font-medium transition"
                   style={{
-                    background: currentSubscription?.tier === plan.tier || plan.price === 0
-                      ? 'rgba(255,255,255,0.1)'
-                      : `linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)`,
+                    background:
+                      currentSubscription?.tier === plan.tier || plan.price === 0
+                        ? 'rgba(255,255,255,0.1)'
+                        : `linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)`,
                     color: currentSubscription?.tier === plan.tier ? 'var(--text-muted)' : 'white',
-                    cursor: currentSubscription?.tier === plan.tier ? 'not-allowed' : 'pointer'
+                    cursor: currentSubscription?.tier === plan.tier ? 'not-allowed' : 'pointer',
                   }}
                 >
                   {processingPlan === plan.id ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                       Processing...
                     </span>
@@ -526,49 +609,227 @@ export const SubscriptionPage: React.FC = () => {
 
         {/* Features Comparison - 6 Tier */}
         <div className="rounded-2xl p-8 mb-8" style={{ background: 'var(--surface-card)' }}>
-          <h3 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--text-primary)' }}>Compare Features</h3>
+          <h3
+            className="text-2xl font-bold mb-6 text-center"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Compare Features
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th className="text-left py-4 px-2 text-sm min-w-[140px]" style={{ color: 'var(--text-secondary)' }}>Feature</th>
-                  <th className="text-center py-4 px-1 text-xs" style={{ color: 'var(--text-muted)' }}>Free</th>
+                  <th
+                    className="text-left py-4 px-2 text-sm min-w-[140px]"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    Feature
+                  </th>
+                  <th
+                    className="text-center py-4 px-1 text-xs"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    Free
+                  </th>
                   <th className="text-center py-4 px-1 text-xs text-blue-400">Basic</th>
                   <th className="text-center py-4 px-1 text-xs text-green-400">Plus</th>
-                  <th className="text-center py-4 px-1 text-xs font-bold" style={{ color: 'var(--accent-pink)' }}>Premium</th>
-                  <th className="text-center py-4 px-1 text-xs" style={{ color: 'var(--accent-cyan)' }}>Premium+</th>
+                  <th
+                    className="text-center py-4 px-1 text-xs font-bold"
+                    style={{ color: 'var(--accent-pink)' }}
+                  >
+                    Premium
+                  </th>
+                  <th
+                    className="text-center py-4 px-1 text-xs"
+                    style={{ color: 'var(--accent-cyan)' }}
+                  >
+                    Premium+
+                  </th>
                   <th className="text-center py-4 px-1 text-xs text-amber-400">Elite</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { feature: 'Daily Swipes', free: '50', basic: '∞', plus: '∞', premium: '∞', premiumPlus: '∞', elite: '∞' },
-                  { feature: 'Super Likes', free: '1/day', basic: '5/day', plus: '10/day', premium: '∞', premiumPlus: '∞', elite: '∞' },
-                  { feature: 'Boosts', free: '0', basic: '1/mo', plus: '3/mo', premium: '∞', premiumPlus: '∞', elite: '∞' },
-                  { feature: 'See Who Likes You', free: false, basic: true, plus: true, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Rewind', free: false, basic: true, plus: true, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Advanced Filters', free: false, basic: false, plus: true, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Read Receipts', free: false, basic: false, plus: true, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Incognito Mode', free: false, basic: false, plus: true, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Video Dating', free: false, basic: false, plus: false, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'AI Matchmaking', free: false, basic: false, plus: false, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Verified Badge', free: false, basic: false, plus: false, premium: true, premiumPlus: true, elite: true },
-                  { feature: 'Passport (Travel)', free: false, basic: false, plus: false, premium: false, premiumPlus: true, elite: true },
-                  { feature: 'Message Before Match', free: false, basic: false, plus: false, premium: false, premiumPlus: true, elite: true },
-                  { feature: 'Priority Support', free: false, basic: false, plus: false, premium: false, premiumPlus: true, elite: true },
-                  { feature: 'VIP Badge', free: false, basic: false, plus: false, premium: false, premiumPlus: false, elite: true },
-                  { feature: 'Dedicated Coach', free: false, basic: false, plus: false, premium: false, premiumPlus: false, elite: true },
-                  { feature: 'Background Verified', free: false, basic: false, plus: false, premium: false, premiumPlus: false, elite: true },
+                  {
+                    feature: 'Daily Swipes',
+                    free: '50',
+                    basic: '∞',
+                    plus: '∞',
+                    premium: '∞',
+                    premiumPlus: '∞',
+                    elite: '∞',
+                  },
+                  {
+                    feature: 'Super Likes',
+                    free: '1/day',
+                    basic: '5/day',
+                    plus: '10/day',
+                    premium: '∞',
+                    premiumPlus: '∞',
+                    elite: '∞',
+                  },
+                  {
+                    feature: 'Boosts',
+                    free: '0',
+                    basic: '1/mo',
+                    plus: '3/mo',
+                    premium: '∞',
+                    premiumPlus: '∞',
+                    elite: '∞',
+                  },
+                  {
+                    feature: 'See Who Likes You',
+                    free: false,
+                    basic: true,
+                    plus: true,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Rewind',
+                    free: false,
+                    basic: true,
+                    plus: true,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Advanced Filters',
+                    free: false,
+                    basic: false,
+                    plus: true,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Read Receipts',
+                    free: false,
+                    basic: false,
+                    plus: true,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Incognito Mode',
+                    free: false,
+                    basic: false,
+                    plus: true,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Video Dating',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'AI Matchmaking',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Verified Badge',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: true,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Passport (Travel)',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: false,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Message Before Match',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: false,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Priority Support',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: false,
+                    premiumPlus: true,
+                    elite: true,
+                  },
+                  {
+                    feature: 'VIP Badge',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: false,
+                    premiumPlus: false,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Dedicated Coach',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: false,
+                    premiumPlus: false,
+                    elite: true,
+                  },
+                  {
+                    feature: 'Background Verified',
+                    free: false,
+                    basic: false,
+                    plus: false,
+                    premium: false,
+                    premiumPlus: false,
+                    elite: true,
+                  },
                 ].map((row, idx) => {
                   const renderCell = (value: boolean | string, colorClass: string) => {
                     if (typeof value === 'boolean') {
                       return value ? (
-                        <svg className="w-4 h-4 text-green-400 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <svg
+                          className="w-4 h-4 text-green-400 mx-auto"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       ) : (
-                        <svg className="w-4 h-4 mx-auto" style={{ color: 'var(--text-muted)' }} fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        <svg
+                          className="w-4 h-4 mx-auto"
+                          style={{ color: 'var(--text-muted)' }}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       );
                     }
@@ -577,13 +838,30 @@ export const SubscriptionPage: React.FC = () => {
 
                   return (
                     <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td className="py-2 px-2 text-xs" style={{ color: 'var(--text-primary)' }}>{row.feature}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.free, 'text-gray-400')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.basic, 'text-blue-400')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.plus, 'text-green-400')}</td>
-                      <td className="text-center py-2 px-1" style={{ background: 'rgba(255, 46, 147, 0.1)' }}>{renderCell(row.premium, 'text-pink-400')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.premiumPlus, 'text-cyan-400')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.elite, 'text-amber-400')}</td>
+                      <td className="py-2 px-2 text-xs" style={{ color: 'var(--text-primary)' }}>
+                        {row.feature}
+                      </td>
+                      <td className="text-center py-2 px-1">
+                        {renderCell(row.free, 'text-gray-400')}
+                      </td>
+                      <td className="text-center py-2 px-1">
+                        {renderCell(row.basic, 'text-blue-400')}
+                      </td>
+                      <td className="text-center py-2 px-1">
+                        {renderCell(row.plus, 'text-green-400')}
+                      </td>
+                      <td
+                        className="text-center py-2 px-1"
+                        style={{ background: 'rgba(255, 46, 147, 0.1)' }}
+                      >
+                        {renderCell(row.premium, 'text-pink-400')}
+                      </td>
+                      <td className="text-center py-2 px-1">
+                        {renderCell(row.premiumPlus, 'text-cyan-400')}
+                      </td>
+                      <td className="text-center py-2 px-1">
+                        {renderCell(row.elite, 'text-amber-400')}
+                      </td>
                     </tr>
                   );
                 })}
@@ -594,23 +872,48 @@ export const SubscriptionPage: React.FC = () => {
 
         {/* FAQ */}
         <div className="rounded-2xl p-8" style={{ background: 'var(--surface-card)' }}>
-          <h3 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--text-primary)' }}>Frequently Asked Questions</h3>
+          <h3
+            className="text-2xl font-bold mb-6 text-center"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Frequently Asked Questions
+          </h3>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Can I cancel anytime?</h4>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                Can I cancel anytime?
+              </h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Yes, you can cancel your subscription at any time. You'll continue to have access
+                until the end of your billing period.
+              </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>What payment methods do you accept?</h4>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>We accept all major credit cards, Apple Pay/Google Pay for mobile payments, and regional options like Paystack and Flutterwave for African markets.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                What payment methods do you accept?
+              </h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                We accept all major credit cards, Apple Pay/Google Pay for mobile payments, and
+                regional options like Paystack and Flutterwave for African markets.
+              </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Can I upgrade or downgrade my plan?</h4>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Absolutely! You can change your plan anytime. Upgrades take effect immediately, downgrades at your next billing cycle.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                Can I upgrade or downgrade my plan?
+              </h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Absolutely! You can change your plan anytime. Upgrades take effect immediately,
+                downgrades at your next billing cycle.
+              </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Is there a free trial?</h4>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>New users get a 7-day free trial of Platinum features. Cancel before the trial ends to avoid any charges.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                Is there a free trial?
+              </h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                New users get a 7-day free trial of Platinum features. Cancel before the trial ends
+                to avoid any charges.
+              </p>
             </div>
           </div>
         </div>

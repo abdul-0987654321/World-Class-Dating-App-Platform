@@ -147,9 +147,7 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const toggleBookmark = (eventId: string) => {
-    setEvents(events.map(e =>
-      e.id === eventId ? { ...e, isBookmarked: !e.isBookmarked } : e
-    ));
+    setEvents(events.map((e) => (e.id === eventId ? { ...e, isBookmarked: !e.isBookmarked } : e)));
   };
 
   const renderEventCard = ({ item }: { item: Event }) => (
@@ -161,22 +159,17 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
       <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
 
       {/* Bookmark button */}
-      <TouchableOpacity
-        style={styles.bookmarkButton}
-        onPress={() => toggleBookmark(item.id)}
-      >
-        <Text style={styles.bookmarkIcon}>
-          {item.isBookmarked ? '❤️' : '🤍'}
-        </Text>
+      <TouchableOpacity style={styles.bookmarkButton} onPress={() => toggleBookmark(item.id)}>
+        <Text style={styles.bookmarkIcon}>{item.isBookmarked ? '❤️' : '🤍'}</Text>
       </TouchableOpacity>
 
       {/* Category badge */}
       <View style={styles.categoryBadge}>
         <Text style={styles.categoryEmoji}>
-          {CATEGORIES.find(c => c.id === item.category)?.emoji}
+          {CATEGORIES.find((c) => c.id === item.category)?.emoji}
         </Text>
         <Text style={styles.categoryLabel}>
-          {CATEGORIES.find(c => c.id === item.category)?.label}
+          {CATEGORIES.find((c) => c.id === item.category)?.label}
         </Text>
       </View>
 
@@ -219,17 +212,16 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.priceContainer}>
-            <Text style={styles.priceText}>
-              {item.price === 0 ? 'Free' : `$${item.price}`}
-            </Text>
+            <Text style={styles.priceText}>{item.price === 0 ? 'Free' : `$${item.price}`}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   );
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location.city.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || event.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -267,16 +259,12 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={styles.categoriesContainer}
       >
         <TouchableOpacity
-          style={[
-            styles.categoryChip,
-            !selectedCategory && styles.categoryChipSelected,
-          ]}
+          style={[styles.categoryChip, !selectedCategory && styles.categoryChipSelected]}
           onPress={() => setSelectedCategory(null)}
         >
-          <Text style={[
-            styles.categoryChipText,
-            !selectedCategory && styles.categoryChipTextSelected,
-          ]}>
+          <Text
+            style={[styles.categoryChipText, !selectedCategory && styles.categoryChipTextSelected]}
+          >
             All
           </Text>
         </TouchableOpacity>
@@ -287,15 +275,17 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
               styles.categoryChip,
               selectedCategory === category.id && styles.categoryChipSelected,
             ]}
-            onPress={() => setSelectedCategory(
-              selectedCategory === category.id ? null : category.id
-            )}
+            onPress={() =>
+              setSelectedCategory(selectedCategory === category.id ? null : category.id)
+            }
           >
             <Text style={styles.categoryChipEmoji}>{category.emoji}</Text>
-            <Text style={[
-              styles.categoryChipText,
-              selectedCategory === category.id && styles.categoryChipTextSelected,
-            ]}>
+            <Text
+              style={[
+                styles.categoryChipText,
+                selectedCategory === category.id && styles.categoryChipTextSelected,
+              ]}
+            >
               {category.label}
             </Text>
           </TouchableOpacity>
@@ -309,19 +299,13 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#FF6B6B"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B6B" />
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🎭</Text>
             <Text style={styles.emptyTitle}>No events found</Text>
-            <Text style={styles.emptySubtitle}>
-              Try adjusting your filters or check back later
-            </Text>
+            <Text style={styles.emptySubtitle}>Try adjusting your filters or check back later</Text>
           </View>
         }
       />

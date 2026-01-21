@@ -102,8 +102,7 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
       default:
         return {
           title: 'Connection Error',
-          message:
-            errorMessage || 'Unable to establish a secure connection. Please try again.',
+          message: errorMessage || 'Unable to establish a secure connection. Please try again.',
           recommendations: [
             'Check your internet connection',
             'Try again in a few moments',
@@ -122,7 +121,7 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
 
     const mailtoUrl = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-    Linking.canOpenURL(mailtoUrl).then(supported => {
+    Linking.canOpenURL(mailtoUrl).then((supported) => {
       if (supported) {
         Linking.openURL(mailtoUrl);
       } else {
@@ -143,15 +142,13 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
     });
 
     if (appStoreUrl) {
-      Linking.canOpenURL(appStoreUrl).then(supported => {
+      Linking.canOpenURL(appStoreUrl).then((supported) => {
         if (supported) {
           Linking.openURL(appStoreUrl);
         } else {
-          Alert.alert(
-            'Update Required',
-            'Please update the app from your app store.',
-            [{ text: 'OK' }]
-          );
+          Alert.alert('Update Required', 'Please update the app from your app store.', [
+            { text: 'OK' },
+          ]);
         }
       });
     }
@@ -163,20 +160,12 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
   const isCritical = errorDetails.severity === 'critical';
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onDismiss}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Error Icon */}
           <View
-            style={[
-              styles.iconContainer,
-              isCritical ? styles.criticalIcon : styles.warningIcon,
-            ]}
+            style={[styles.iconContainer, isCritical ? styles.criticalIcon : styles.warningIcon]}
           >
             <Text style={styles.iconText}>{isCritical ? '🔒' : '⚠️'}</Text>
           </View>
@@ -201,10 +190,7 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
           {/* Actions */}
           <View style={styles.actionsContainer}>
             {onRetry && (
-              <TouchableOpacity
-                style={[styles.button, styles.retryButton]}
-                onPress={onRetry}
-              >
+              <TouchableOpacity style={[styles.button, styles.retryButton]} onPress={onRetry}>
                 <Text style={styles.retryButtonText}>Try Again</Text>
               </TouchableOpacity>
             )}
@@ -226,10 +212,7 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
             </TouchableOpacity>
 
             {!isCritical && (
-              <TouchableOpacity
-                style={[styles.button, styles.dismissButton]}
-                onPress={onDismiss}
-              >
+              <TouchableOpacity style={[styles.button, styles.dismissButton]} onPress={onDismiss}>
                 <Text style={styles.dismissButtonText}>Close</Text>
               </TouchableOpacity>
             )}
@@ -239,8 +222,8 @@ export const SSLPinningErrorHandler: React.FC<SSLPinningErrorHandlerProps> = ({
           {isCritical && (
             <View style={styles.securityNotice}>
               <Text style={styles.securityNoticeText}>
-                For your security, we cannot proceed with this connection. Your data
-                protection is our priority.
+                For your security, we cannot proceed with this connection. Your data protection is
+                our priority.
               </Text>
             </View>
           )}

@@ -7,7 +7,7 @@ export const TIER_CONFIG = {
   FREE: {
     label: 'Free',
     icon: '👤',
-    color: '#6B7280',        // Gray
+    color: '#6B7280', // Gray
     backgroundColor: '#F3F4F6',
     textColor: '#374151',
     gradient: 'linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%)',
@@ -17,7 +17,7 @@ export const TIER_CONFIG = {
   GOLD: {
     label: 'Gold',
     icon: '⭐',
-    color: '#F59E0B',        // Amber/Gold
+    color: '#F59E0B', // Amber/Gold
     backgroundColor: '#FFFBEB',
     textColor: '#92400E',
     gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)',
@@ -27,7 +27,7 @@ export const TIER_CONFIG = {
   PLATINUM: {
     label: 'Platinum',
     icon: '💎',
-    color: '#8B5CF6',        // Purple/Violet
+    color: '#8B5CF6', // Purple/Violet
     backgroundColor: '#F5F3FF',
     textColor: '#5B21B6',
     gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #8B5CF6 100%)',
@@ -37,10 +37,11 @@ export const TIER_CONFIG = {
   DIAMOND: {
     label: 'Diamond',
     icon: '👑',
-    color: '#06B6D4',        // Cyan/Diamond Blue
+    color: '#06B6D4', // Cyan/Diamond Blue
     backgroundColor: '#ECFEFF',
     textColor: '#0E7490',
-    gradient: 'linear-gradient(135deg, #06B6D4 0%, #22D3EE 25%, #67E8F9 50%, #22D3EE 75%, #06B6D4 100%)',
+    gradient:
+      'linear-gradient(135deg, #06B6D4 0%, #22D3EE 25%, #67E8F9 50%, #22D3EE 75%, #06B6D4 100%)',
     borderColor: '#22D3EE',
     glowColor: 'rgba(6, 182, 212, 0.5)',
     sparkle: true,
@@ -148,9 +149,7 @@ export const SubscriptionBadge: React.FC<SubscriptionBadgeProps> = ({
           />
         </svg>
       )}
-      {displayTier === 'DIAMOND' && (
-        <span className="sparkle-effect">✨</span>
-      )}
+      {displayTier === 'DIAMOND' && <span className="sparkle-effect">✨</span>}
 
       <style>{`
         .subscription-badge {
@@ -383,7 +382,9 @@ export const TierCard: React.FC<{
         <ul className="tier-card-features">
           {features.map((feature, index) => (
             <li key={index} style={{ color: config.textColor }}>
-              <span className="feature-check" style={{ color: config.color }}>✓</span>
+              <span className="feature-check" style={{ color: config.color }}>
+                ✓
+              </span>
               {feature}
             </li>
           ))}

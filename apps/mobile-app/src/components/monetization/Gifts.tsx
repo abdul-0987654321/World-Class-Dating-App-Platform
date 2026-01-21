@@ -328,11 +328,9 @@ export const Gifts: React.FC<GiftsProps> = ({
     try {
       await onSendGift(selectedGift.id, giftMessage.trim() || undefined);
 
-      Alert.alert(
-        'Gift Sent! 🎁',
-        `You sent ${selectedGift.name} to ${recipient.name}!`,
-        [{ text: 'OK', onPress: handleClose }]
-      );
+      Alert.alert('Gift Sent! 🎁', `You sent ${selectedGift.name} to ${recipient.name}!`, [
+        { text: 'OK', onPress: handleClose },
+      ]);
     } catch (error: any) {
       Alert.alert(
         'Failed to Send Gift',
@@ -354,11 +352,7 @@ export const Gifts: React.FC<GiftsProps> = ({
     return gifts.filter((g) => g.category === selectedCategory);
   };
 
-  const renderCategoryTab = (category: {
-    key: GiftCategory;
-    label: string;
-    icon: string;
-  }) => {
+  const renderCategoryTab = (category: { key: GiftCategory; label: string; icon: string }) => {
     const isActive = selectedCategory === category.key;
 
     return (
@@ -372,12 +366,7 @@ export const Gifts: React.FC<GiftsProps> = ({
         }}
       >
         <Text style={styles.categoryIcon}>{category.icon}</Text>
-        <Text
-          style={[
-            styles.categoryLabel,
-            isActive && styles.categoryLabelActive,
-          ]}
-        >
+        <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
           {category.label}
         </Text>
       </TouchableOpacity>
@@ -391,17 +380,12 @@ export const Gifts: React.FC<GiftsProps> = ({
     return (
       <TouchableOpacity
         key={gift.id}
-        style={[
-          styles.giftCard,
-          !canAfford && styles.giftCardDisabled,
-        ]}
+        style={[styles.giftCard, !canAfford && styles.giftCardDisabled]}
         onPress={() => handleSelectGift(gift)}
         disabled={!canAfford}
       >
         <View style={[styles.giftRarityBadge, { backgroundColor: rarityColor }]}>
-          <Text style={styles.giftRarityText}>
-            {getRarityLabel(gift.rarity)}
-          </Text>
+          <Text style={styles.giftRarityText}>{getRarityLabel(gift.rarity)}</Text>
         </View>
 
         <View style={styles.giftEmojiContainer}>
@@ -457,14 +441,10 @@ export const Gifts: React.FC<GiftsProps> = ({
                 <Text style={styles.selectedGiftName}>{selectedGift.name}</Text>
               </View>
 
-              <Text style={styles.messageModalTitle}>
-                Send to {recipient.name}
-              </Text>
+              <Text style={styles.messageModalTitle}>Send to {recipient.name}</Text>
 
               <View style={styles.messageInputContainer}>
-                <Text style={styles.messageInputLabel}>
-                  Add a personal message (optional)
-                </Text>
+                <Text style={styles.messageInputLabel}>Add a personal message (optional)</Text>
                 <TextInput
                   style={styles.messageInput}
                   placeholder="Write something nice..."
@@ -474,9 +454,7 @@ export const Gifts: React.FC<GiftsProps> = ({
                   multiline
                   maxLength={200}
                 />
-                <Text style={styles.messageCharCount}>
-                  {giftMessage.length}/200
-                </Text>
+                <Text style={styles.messageCharCount}>{giftMessage.length}/200</Text>
               </View>
 
               <View style={styles.messageCostSummary}>
@@ -522,12 +500,7 @@ export const Gifts: React.FC<GiftsProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={handleClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={handleClose}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -568,16 +541,14 @@ export const Gifts: React.FC<GiftsProps> = ({
           contentContainerStyle={styles.giftsContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.giftsGrid}>
-            {getGiftsForCategory().map(renderGiftCard)}
-          </View>
+          <View style={styles.giftsGrid}>{getGiftsForCategory().map(renderGiftCard)}</View>
 
           {/* Info Card */}
           <View style={styles.infoCard}>
             <Text style={styles.infoCardIcon}>💡</Text>
             <Text style={styles.infoCardText}>
-              Stand out by sending a gift! Recipients are more likely to respond to
-              messages that include a thoughtful gift.
+              Stand out by sending a gift! Recipients are more likely to respond to messages that
+              include a thoughtful gift.
             </Text>
           </View>
         </ScrollView>

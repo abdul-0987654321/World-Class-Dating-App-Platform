@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  FaHeart,
-  FaComments,
-  FaClock,
-  FaBan,
-  FaUser,
-  FaEnvelope,
-} from 'react-icons/fa';
+import { FaHeart, FaComments, FaClock, FaBan, FaUser, FaEnvelope } from 'react-icons/fa';
 import { useUserMatches, useUserConversations } from '../../hooks/useAdminUsers';
 
 interface UserMatchesViewProps {
@@ -16,8 +9,14 @@ interface UserMatchesViewProps {
 export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
   const [activeTab, setActiveTab] = useState<'matches' | 'conversations'>('matches');
 
-  const { data: matches, isLoading: matchesLoading } = useUserMatches(userId, activeTab === 'matches');
-  const { data: conversations, isLoading: conversationsLoading } = useUserConversations(userId, activeTab === 'conversations');
+  const { data: matches, isLoading: matchesLoading } = useUserMatches(
+    userId,
+    activeTab === 'matches'
+  );
+  const { data: conversations, isLoading: conversationsLoading } = useUserConversations(
+    userId,
+    activeTab === 'conversations'
+  );
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -103,7 +102,8 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                          {match.matchedUser.firstName[0]}{match.matchedUser.lastName[0]}
+                          {match.matchedUser.firstName[0]}
+                          {match.matchedUser.lastName[0]}
                         </div>
                       )}
                       <div>
@@ -165,7 +165,9 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
             <div className="text-center py-12">
               <FaComments className="mx-auto text-6xl text-gray-300 mb-4" />
               <p className="text-gray-500 text-lg">No conversations found</p>
-              <p className="text-gray-400 text-sm mt-2">This user hasn't started any conversations</p>
+              <p className="text-gray-400 text-sm mt-2">
+                This user hasn't started any conversations
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -190,9 +192,7 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FaUser className="text-gray-400" />
-                      <span>
-                        {conversation.participants.length} participants
-                      </span>
+                      <span>{conversation.participants.length} participants</span>
                     </div>
 
                     {conversation.lastMessage && (
@@ -229,7 +229,8 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
       )}
 
       {/* Summary Stats */}
-      {((activeTab === 'matches' && matches) || (activeTab === 'conversations' && conversations)) && (
+      {((activeTab === 'matches' && matches) ||
+        (activeTab === 'conversations' && conversations)) && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h4 className="text-sm font-semibold text-gray-900 mb-3">
             {activeTab === 'matches' ? 'Match Statistics' : 'Conversation Statistics'}
@@ -243,19 +244,19 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">
-                    {matches.filter(m => m.messageCount > 0).length}
+                    {matches.filter((m) => m.messageCount > 0).length}
                   </p>
                   <p className="text-xs text-gray-600">Active Chats</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-600">
-                    {matches.filter(m => m.messageCount === 0).length}
+                    {matches.filter((m) => m.messageCount === 0).length}
                   </p>
                   <p className="text-xs text-gray-600">No Messages</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-red-600">
-                    {matches.filter(m => m.isBlocked).length}
+                    {matches.filter((m) => m.isBlocked).length}
                   </p>
                   <p className="text-xs text-gray-600">Blocked</p>
                 </div>
@@ -275,13 +276,16 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    {conversations.filter(c => c.lastMessage).length}
+                    {conversations.filter((c) => c.lastMessage).length}
                   </p>
                   <p className="text-xs text-gray-600">Active</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-600">
-                    {Math.round(conversations.reduce((sum, c) => sum + c.messageCount, 0) / conversations.length) || 0}
+                    {Math.round(
+                      conversations.reduce((sum, c) => sum + c.messageCount, 0) /
+                        conversations.length
+                    ) || 0}
                   </p>
                   <p className="text-xs text-gray-600">Avg Messages</p>
                 </div>

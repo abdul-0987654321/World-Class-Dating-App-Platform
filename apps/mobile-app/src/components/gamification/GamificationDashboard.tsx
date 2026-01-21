@@ -50,7 +50,9 @@ interface GamificationData {
 export const GamificationDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<GamificationData | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'achievements' | 'badges'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'achievements' | 'badges'>(
+    'overview'
+  );
 
   useEffect(() => {
     fetchGamificationData();
@@ -98,10 +100,7 @@ export const GamificationDashboard: React.FC = () => {
           </Text>
           <View style={styles.xpBar}>
             <View
-              style={[
-                styles.xpBarFill,
-                { width: `${data.experience.levelProgressPercentage}%` },
-              ]}
+              style={[styles.xpBarFill, { width: `${data.experience.levelProgressPercentage}%` }]}
             />
           </View>
         </View>
@@ -155,7 +154,8 @@ export const GamificationDashboard: React.FC = () => {
                   <Ionicons name="flame" size={32} color="#FF6B6B" />
                   <View style={styles.streakInfo}>
                     <Text style={styles.streakType}>
-                      {streak.streakType.charAt(0).toUpperCase() + streak.streakType.slice(1)} Streak
+                      {streak.streakType.charAt(0).toUpperCase() + streak.streakType.slice(1)}{' '}
+                      Streak
                     </Text>
                     <Text style={styles.streakCount}>{streak.currentStreak} days</Text>
                     <Text style={styles.streakRecord}>Best: {streak.longestStreak} days</Text>
@@ -219,10 +219,7 @@ export const GamificationDashboard: React.FC = () => {
             {data.achievements.map((achievement) => (
               <View
                 key={achievement.id}
-                style={[
-                  styles.achievementCard,
-                  !achievement.isUnlocked && styles.lockedCard,
-                ]}
+                style={[styles.achievementCard, !achievement.isUnlocked && styles.lockedCard]}
               >
                 <Ionicons
                   name={achievement.isUnlocked ? 'trophy' : 'lock-closed'}
@@ -231,10 +228,7 @@ export const GamificationDashboard: React.FC = () => {
                 />
                 <View style={styles.achievementInfo}>
                   <Text
-                    style={[
-                      styles.achievementName,
-                      !achievement.isUnlocked && styles.lockedText,
-                    ]}
+                    style={[styles.achievementName, !achievement.isUnlocked && styles.lockedText]}
                   >
                     {achievement.name}
                   </Text>
@@ -249,13 +243,12 @@ export const GamificationDashboard: React.FC = () => {
           <View style={styles.badgeGrid}>
             {data.badges.map((badge) => (
               <View key={badge.id} style={styles.badgeCard}>
-                <View
-                  style={[
-                    styles.badgeIcon,
-                    { backgroundColor: badge.iconColor + '20' },
-                  ]}
-                >
-                  <Ionicons name={badge.iconName as IoniconsName} size={32} color={badge.iconColor} />
+                <View style={[styles.badgeIcon, { backgroundColor: badge.iconColor + '20' }]}>
+                  <Ionicons
+                    name={badge.iconName as IoniconsName}
+                    size={32}
+                    color={badge.iconColor}
+                  />
                 </View>
                 <Text style={styles.badgeName}>{badge.name}</Text>
               </View>

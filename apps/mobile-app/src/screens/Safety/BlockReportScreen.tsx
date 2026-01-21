@@ -148,10 +148,7 @@ export const BlockReportScreen: React.FC = () => {
           onPress: async () => {
             setIsSubmitting(true);
             try {
-              await safetyService.blockUser(
-                params.userId,
-                blockReason || 'User blocked'
-              );
+              await safetyService.blockUser(params.userId, blockReason || 'User blocked');
 
               Alert.alert(
                 'User Blocked',
@@ -192,10 +189,7 @@ export const BlockReportScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Safety Actions</Text>
@@ -204,9 +198,7 @@ export const BlockReportScreen: React.FC = () => {
 
       {/* User Info */}
       <View style={styles.userInfo}>
-        {params.userPhoto && (
-          <Image source={{ uri: params.userPhoto }} style={styles.userPhoto} />
-        )}
+        {params.userPhoto && <Image source={{ uri: params.userPhoto }} style={styles.userPhoto} />}
         <View style={styles.userDetails}>
           <Text style={styles.userName}>{params.userName}</Text>
           <Text style={styles.userId}>ID: {params.userId.slice(0, 8)}...</Text>
@@ -219,17 +211,8 @@ export const BlockReportScreen: React.FC = () => {
           style={[styles.tab, activeTab === 'report' && styles.activeTab]}
           onPress={() => setActiveTab('report')}
         >
-          <Icon
-            name="flag"
-            size={20}
-            color={activeTab === 'report' ? '#FF4458' : '#666'}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'report' && styles.activeTabText,
-            ]}
-          >
+          <Icon name="flag" size={20} color={activeTab === 'report' ? '#FF4458' : '#666'} />
+          <Text style={[styles.tabText, activeTab === 'report' && styles.activeTabText]}>
             Report
           </Text>
         </TouchableOpacity>
@@ -237,16 +220,8 @@ export const BlockReportScreen: React.FC = () => {
           style={[styles.tab, activeTab === 'block' && styles.activeTab]}
           onPress={() => setActiveTab('block')}
         >
-          <Icon
-            name="block-helper"
-            size={20}
-            color={activeTab === 'block' ? '#FF4458' : '#666'}
-          />
-          <Text
-            style={[styles.tabText, activeTab === 'block' && styles.activeTabText]}
-          >
-            Block
-          </Text>
+          <Icon name="block-helper" size={20} color={activeTab === 'block' ? '#FF4458' : '#666'} />
+          <Text style={[styles.tabText, activeTab === 'block' && styles.activeTabText]}>Block</Text>
         </TouchableOpacity>
       </View>
 
@@ -274,16 +249,12 @@ export const BlockReportScreen: React.FC = () => {
                     <Icon
                       name={category.icon}
                       size={24}
-                      color={
-                        selectedCategory === category.id ? '#FF4458' : '#666'
-                      }
+                      color={selectedCategory === category.id ? '#FF4458' : '#666'}
                     />
                   </View>
                   <View style={styles.categoryContent}>
                     <Text style={styles.categoryLabel}>{category.label}</Text>
-                    <Text style={styles.categoryDescription}>
-                      {category.description}
-                    </Text>
+                    <Text style={styles.categoryDescription}>{category.description}</Text>
                   </View>
                   {category.severity === 'high' && (
                     <View style={styles.highPriorityBadge}>
@@ -295,9 +266,7 @@ export const BlockReportScreen: React.FC = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                Additional Details (Optional)
-              </Text>
+              <Text style={styles.inputLabel}>Additional Details (Optional)</Text>
               <TextInput
                 style={styles.textArea}
                 value={description}
@@ -329,8 +298,7 @@ export const BlockReportScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.primaryButton,
-                  (!selectedCategory || isSubmitting) &&
-                    styles.disabledButton,
+                  (!selectedCategory || isSubmitting) && styles.disabledButton,
                 ]}
                 onPress={handleReport}
                 disabled={!selectedCategory || isSubmitting}
@@ -357,9 +325,7 @@ export const BlockReportScreen: React.FC = () => {
         ) : (
           <View>
             <Text style={styles.sectionTitle}>Block This User</Text>
-            <Text style={styles.sectionDescription}>
-              Blocking will prevent this user from:
-            </Text>
+            <Text style={styles.sectionDescription}>Blocking will prevent this user from:</Text>
 
             <View style={styles.blockEffects}>
               <View style={styles.effectItem}>
@@ -372,9 +338,7 @@ export const BlockReportScreen: React.FC = () => {
               </View>
               <View style={styles.effectItem}>
                 <Icon name="check" size={20} color="#4CAF50" />
-                <Text style={styles.effectText}>
-                  Appearing in your discovery feed
-                </Text>
+                <Text style={styles.effectText}>Appearing in your discovery feed</Text>
               </View>
               <View style={styles.effectItem}>
                 <Icon name="check" size={20} color="#4CAF50" />
@@ -385,15 +349,12 @@ export const BlockReportScreen: React.FC = () => {
             <View style={styles.warningBox}>
               <Icon name="information" size={20} color="#FF9800" />
               <Text style={styles.warningText}>
-                The user won't be notified. You can unblock them later from
-                Settings.
+                The user won't be notified. You can unblock them later from Settings.
               </Text>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                Reason for blocking (Optional)
-              </Text>
+              <Text style={styles.inputLabel}>Reason for blocking (Optional)</Text>
               <TextInput
                 style={styles.textArea}
                 value={blockReason}

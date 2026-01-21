@@ -96,7 +96,9 @@ export const CoinShop: React.FC = () => {
     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="10" fill="#FFD700" />
       <circle cx="12" cy="12" r="8" fill="#FFC107" />
-      <text x="12" y="16" textAnchor="middle" fill="#996600" fontSize="10" fontWeight="bold">C</text>
+      <text x="12" y="16" textAnchor="middle" fill="#996600" fontSize="10" fontWeight="bold">
+        C
+      </text>
     </svg>
   );
 
@@ -108,7 +110,10 @@ export const CoinShop: React.FC = () => {
 
   const getSuperLikeIcon = () => (
     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-      <path fill="#3B82F6" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      <path
+        fill="#3B82F6"
+        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+      />
     </svg>
   );
 
@@ -126,7 +131,11 @@ export const CoinShop: React.FC = () => {
       {purchaseSuccess && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
           </svg>
           Purchase successful! Your coins have been added.
         </div>
@@ -159,7 +168,7 @@ export const CoinShop: React.FC = () => {
           </div>
           <div className="text-right">
             <button
-              onClick={() => window.location.href = '/wallet/history'}
+              onClick={() => (window.location.href = '/wallet/history')}
               className="text-yellow-100 hover:text-white text-sm underline"
             >
               View History
@@ -231,23 +240,15 @@ export const CoinShop: React.FC = () => {
                       )}
                     </div>
                   )}
-                  {product.type === 'boost' && (
-                    <span className="text-4xl">⚡</span>
-                  )}
-                  {product.type === 'super_like' && (
-                    <span className="text-4xl">⭐</span>
-                  )}
+                  {product.type === 'boost' && <span className="text-4xl">⚡</span>}
+                  {product.type === 'super_like' && <span className="text-4xl">⭐</span>}
                 </div>
               </div>
 
               {/* Product Info */}
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-1">
-                {product.name}
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-1">{product.name}</h3>
               {product.description && (
-                <p className="text-gray-500 text-sm text-center mb-3">
-                  {product.description}
-                </p>
+                <p className="text-gray-500 text-sm text-center mb-3">{product.description}</p>
               )}
 
               {/* Amount */}
@@ -260,9 +261,7 @@ export const CoinShop: React.FC = () => {
               {product.type === 'boost' && (
                 <div className="text-center text-purple-600 mb-3">
                   <span className="font-bold">{product.boostCount}x</span>
-                  <span className="text-sm ml-1">
-                    ({product.boostDurationMinutes} min each)
-                  </span>
+                  <span className="text-sm ml-1">({product.boostDurationMinutes} min each)</span>
                 </div>
               )}
 
@@ -273,7 +272,7 @@ export const CoinShop: React.FC = () => {
                 </span>
                 {product.type === 'coins' && product.coinAmount && (
                   <span className="text-gray-500 text-sm block">
-                    ${((product.price / 100) / product.coinAmount * 100).toFixed(2)} per 100
+                    ${((product.price / 100 / product.coinAmount) * 100).toFixed(2)} per 100
                   </span>
                 )}
               </div>
@@ -285,8 +284,8 @@ export const CoinShop: React.FC = () => {
                   product.type === 'coins'
                     ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white hover:opacity-90'
                     : product.type === 'boost'
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'
-                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:opacity-90'
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'
+                      : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:opacity-90'
                 }`}
               >
                 Purchase

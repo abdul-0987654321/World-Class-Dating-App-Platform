@@ -104,44 +104,47 @@ export const BoostHistory: React.FC<BoostHistoryProps> = ({
           const endTime = boost.endTime || boost.expiresAt;
 
           return (
-          <div key={boost.id} className={`history-item ${isActive ? 'active' : ''}`}>
-            <div className="item-icon">
-              {isActive ? '⚡' : '✓'}
+            <div key={boost.id} className={`history-item ${isActive ? 'active' : ''}`}>
+              <div className="item-icon">{isActive ? '⚡' : '✓'}</div>
+              <div className="item-details">
+                <div className="item-header">
+                  <h3 className="item-title">{productName}</h3>
+                  <span className={`status-badge ${isActive ? 'active' : 'completed'}`}>
+                    {isActive ? 'Active' : 'Completed'}
+                  </span>
+                </div>
+                <div className="item-info">
+                  <span className="info-item">
+                    <svg className="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {formatDuration(duration)}
+                  </span>
+                  <span className="info-item">
+                    <svg className="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                    </svg>
+                    {visibility}x visibility
+                  </span>
+                  <span className="info-item coin-cost">
+                    <svg className="info-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="12" r="10" fill="#FFD700" />
+                    </svg>
+                    {cost} coins
+                  </span>
+                </div>
+                <div className="item-date">
+                  {formatDate(new Date(startTime))} - {formatDate(new Date(endTime))}
+                </div>
+              </div>
             </div>
-            <div className="item-details">
-              <div className="item-header">
-                <h3 className="item-title">{productName}</h3>
-                <span className={`status-badge ${isActive ? 'active' : 'completed'}`}>
-                  {isActive ? 'Active' : 'Completed'}
-                </span>
-              </div>
-              <div className="item-info">
-                <span className="info-item">
-                  <svg className="info-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                  {formatDuration(duration)}
-                </span>
-                <span className="info-item">
-                  <svg className="info-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-                  </svg>
-                  {visibility}x visibility
-                </span>
-                <span className="info-item coin-cost">
-                  <svg className="info-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="12" r="10" fill="#FFD700" />
-                  </svg>
-                  {cost} coins
-                </span>
-              </div>
-              <div className="item-date">
-                {formatDate(new Date(startTime))} - {formatDate(new Date(endTime))}
-              </div>
-            </div>
-          </div>
-        )})}
+          );
+        })}
       </div>
 
       {loading && (

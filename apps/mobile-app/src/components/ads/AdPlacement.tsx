@@ -24,12 +24,15 @@ interface AdPlacementProps {
 /**
  * Screen-specific ad configurations
  */
-const SCREEN_AD_CONFIG: Record<string, {
-  placement: BannerPlacement;
-  showBanner: boolean;
-  showRewardButton: boolean;
-  bannerPosition: 'top' | 'bottom';
-}> = {
+const SCREEN_AD_CONFIG: Record<
+  string,
+  {
+    placement: BannerPlacement;
+    showBanner: boolean;
+    showRewardButton: boolean;
+    bannerPosition: 'top' | 'bottom';
+  }
+> = {
   discovery: {
     placement: 'discovery_bottom',
     showBanner: true,
@@ -90,10 +93,7 @@ export const AdPlacement: React.FC<AdPlacementProps> = ({
         )}
 
         {shouldShowReward && (
-          <QuickRewardButton
-            onRewardEarned={onRewardEarned}
-            position="bottom-right"
-          />
+          <QuickRewardButton onRewardEarned={onRewardEarned} position="bottom-right" />
         )}
 
         {config.showBanner && bannerPosition === 'bottom' && (
@@ -120,15 +120,10 @@ export const DiscoveryAdLayout: React.FC<DiscoveryAdLayoutProps> = ({
 }) => {
   return (
     <View style={styles.fullScreen}>
-      <View style={styles.contentArea}>
-        {children}
-      </View>
+      <View style={styles.contentArea}>{children}</View>
 
       <ShowIfAds>
-        <QuickRewardButton
-          onRewardEarned={onRewardEarned}
-          position="bottom-right"
-        />
+        <QuickRewardButton onRewardEarned={onRewardEarned} position="bottom-right" />
         <BottomBannerAd placement="discovery_bottom" />
       </ShowIfAds>
     </View>
@@ -143,20 +138,13 @@ interface MessagesAdLayoutProps {
   children: React.ReactNode;
 }
 
-export const MessagesAdLayout: React.FC<MessagesAdLayoutProps> = ({
-  children,
-}) => {
+export const MessagesAdLayout: React.FC<MessagesAdLayoutProps> = ({ children }) => {
   return (
     <View style={styles.fullScreen}>
-      <View style={styles.contentArea}>
-        {children}
-      </View>
+      <View style={styles.contentArea}>{children}</View>
 
       <ShowIfAds>
-        <BannerAdComponent
-          placement="messages_bottom"
-          size="banner"
-        />
+        <BannerAdComponent placement="messages_bottom" size="banner" />
       </ShowIfAds>
     </View>
   );
@@ -171,21 +159,13 @@ interface MatchesAdLayoutProps {
   onRewardEarned?: (reward: RewardEarned) => void;
 }
 
-export const MatchesAdLayout: React.FC<MatchesAdLayoutProps> = ({
-  children,
-  onRewardEarned,
-}) => {
+export const MatchesAdLayout: React.FC<MatchesAdLayoutProps> = ({ children, onRewardEarned }) => {
   return (
     <View style={styles.fullScreen}>
-      <View style={styles.contentArea}>
-        {children}
-      </View>
+      <View style={styles.contentArea}>{children}</View>
 
       <ShowIfAds>
-        <QuickRewardButton
-          onRewardEarned={onRewardEarned}
-          position="bottom-left"
-        />
+        <QuickRewardButton onRewardEarned={onRewardEarned} position="bottom-left" />
         <BottomBannerAd placement="matches_list" />
       </ShowIfAds>
     </View>
@@ -201,10 +181,7 @@ interface InlineAdProps {
   interval?: number; // Show ad every N items
 }
 
-export const InlineAd: React.FC<InlineAdProps> = ({
-  index,
-  interval = 5,
-}) => {
+export const InlineAd: React.FC<InlineAdProps> = ({ index, interval = 5 }) => {
   // Only show at specified intervals
   if ((index + 1) % interval !== 0) {
     return null;
@@ -225,16 +202,11 @@ interface ProfileAdSectionProps {
   style?: ViewStyle;
 }
 
-export const ProfileAdSection: React.FC<ProfileAdSectionProps> = ({
-  style,
-}) => {
+export const ProfileAdSection: React.FC<ProfileAdSectionProps> = ({ style }) => {
   return (
     <ShowIfAds>
       <View style={[styles.profileAdContainer, style]}>
-        <BannerAdComponent
-          placement="profile_view"
-          size="mediumRectangle"
-        />
+        <BannerAdComponent placement="profile_view" size="mediumRectangle" />
       </View>
     </ShowIfAds>
   );
@@ -248,15 +220,10 @@ interface CoinShopAdSectionProps {
   onRewardEarned?: (reward: RewardEarned) => void;
 }
 
-export const CoinShopAdSection: React.FC<CoinShopAdSectionProps> = ({
-  onRewardEarned,
-}) => {
+export const CoinShopAdSection: React.FC<CoinShopAdSectionProps> = ({ onRewardEarned }) => {
   return (
     <View style={styles.shopAdContainer}>
-      <QuickRewardButton
-        onRewardEarned={onRewardEarned}
-        position="bottom-right"
-      />
+      <QuickRewardButton onRewardEarned={onRewardEarned} position="bottom-right" />
     </View>
   );
 };

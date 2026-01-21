@@ -169,39 +169,35 @@ export const OpeningMoveSelector: React.FC<OpeningMoveSelectorProps> = ({
   };
 
   const handleDelete = async (move: OpeningMove) => {
-    Alert.alert(
-      'Delete Opening Move',
-      'Are you sure you want to delete this opening move?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await fetch(`/api/users/me/opening-moves/${move.id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${getAuthToken()}` },
-              });
+    Alert.alert('Delete Opening Move', 'Are you sure you want to delete this opening move?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const response = await fetch(`/api/users/me/opening-moves/${move.id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${getAuthToken()}` },
+            });
 
-              const data = await response.json();
-              if (data.success) {
-                const newMoves = openingMoves.filter(m => m.id !== move.id);
-                setOpeningMoves(newMoves);
-                onOpeningMovesChanged?.(newMoves);
-                Alert.alert('Success', 'Opening move deleted');
-              }
-            } catch (error) {
-              console.error('Failed to delete opening move:', error);
-              Alert.alert('Error', 'Failed to delete opening move');
+            const data = await response.json();
+            if (data.success) {
+              const newMoves = openingMoves.filter((m) => m.id !== move.id);
+              setOpeningMoves(newMoves);
+              onOpeningMovesChanged?.(newMoves);
+              Alert.alert('Success', 'Opening move deleted');
             }
-          },
+          } catch (error) {
+            console.error('Failed to delete opening move:', error);
+            Alert.alert('Error', 'Failed to delete opening move');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const filteredTemplates = templates.filter(t => t.category === selectedCategory);
+  const filteredTemplates = templates.filter((t) => t.category === selectedCategory);
 
   if (loading) {
     return (
@@ -234,31 +230,20 @@ export const OpeningMoveSelector: React.FC<OpeningMoveSelectorProps> = ({
           </View>
         ) : (
           <View style={styles.movesList}>
-            {openingMoves.map(move => (
-              <OpeningMoveCard
-                key={move.id}
-                move={move}
-                editable
-                onDelete={handleDelete}
-              />
+            {openingMoves.map((move) => (
+              <OpeningMoveCard key={move.id} move={move} editable onDelete={handleDelete} />
             ))}
           </View>
         )}
 
         {canAddMore && (
           <View style={styles.addButtons}>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowTemplateModal(true)}
-            >
+            <TouchableOpacity style={styles.addButton} onPress={() => setShowTemplateModal(true)}>
               <Text style={styles.addButtonIcon}>📝</Text>
               <Text style={styles.addButtonText}>Choose from Templates</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowCustomModal(true)}
-            >
+            <TouchableOpacity style={styles.addButton} onPress={() => setShowCustomModal(true)}>
               <Text style={styles.addButtonIcon}>✍️</Text>
               <Text style={styles.addButtonText}>Write Custom Message</Text>
             </TouchableOpacity>
@@ -304,7 +289,7 @@ export const OpeningMoveSelector: React.FC<OpeningMoveSelectorProps> = ({
             style={styles.categoryScroll}
             contentContainerStyle={styles.categoryScrollContent}
           >
-            {categories.map(category => (
+            {categories.map((category) => (
               <TouchableOpacity
                 key={category.key}
                 style={[
@@ -327,7 +312,7 @@ export const OpeningMoveSelector: React.FC<OpeningMoveSelectorProps> = ({
           </ScrollView>
 
           <ScrollView style={styles.templateList}>
-            {filteredTemplates.map(template => (
+            {filteredTemplates.map((template) => (
               <TouchableOpacity
                 key={template.id}
                 style={styles.templateCard}
@@ -336,9 +321,7 @@ export const OpeningMoveSelector: React.FC<OpeningMoveSelectorProps> = ({
               >
                 <Text style={styles.templateText}>{template.content}</Text>
                 <View style={styles.templateFooter}>
-                  <Text style={styles.templatePopularity}>
-                    ⭐ {template.popularity_score} uses
-                  </Text>
+                  <Text style={styles.templatePopularity}>⭐ {template.popularity_score} uses</Text>
                   <Text style={styles.templateAdd}>Add +</Text>
                 </View>
               </TouchableOpacity>

@@ -229,16 +229,12 @@ export function renderWithProviders(
 
     if (withQueryClient) {
       wrappedChildren = (
-        <QueryClientProvider client={queryClient}>
-          {wrappedChildren}
-        </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>{wrappedChildren}</QueryClientProvider>
       );
     }
 
     if (withTheme) {
-      wrappedChildren = (
-        <ThemeProvider theme={testTheme}>{wrappedChildren}</ThemeProvider>
-      );
+      wrappedChildren = <ThemeProvider theme={testTheme}>{wrappedChildren}</ThemeProvider>;
     }
 
     if (withRedux) {
@@ -247,9 +243,7 @@ export function renderWithProviders(
 
     if (withRouter) {
       wrappedChildren = (
-        <MemoryRouter initialEntries={initialEntries}>
-          {wrappedChildren}
-        </MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{wrappedChildren}</MemoryRouter>
       );
     }
 

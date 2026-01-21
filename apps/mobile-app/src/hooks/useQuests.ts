@@ -65,25 +65,93 @@ export const useQuests = (): UseQuestsReturn => {
   const [refreshing, setRefreshing] = useState(false);
   const [claiming, setClaiming] = useState(false);
 
-  const getHeaders = useCallback(() => ({
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  }), [token]);
+  const getHeaders = useCallback(
+    () => ({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }),
+    [token]
+  );
 
   const getMockQuests = (): Quest[] => [
-    { id: 'd1', title: 'Daily Swiper', description: 'Swipe on 20 profiles today', type: 'daily', progress: 12, maxProgress: 20, reward: { coins: 25 }, expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(), isCompleted: false, isClaimed: false, category: 'swipe', iconName: 'refresh-cw' },
-    { id: 'd2', title: 'Chat Champion', description: 'Send 5 messages today', type: 'daily', progress: 3, maxProgress: 5, reward: { coins: 15 }, expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(), isCompleted: false, isClaimed: false, category: 'chat', iconName: 'message-circle' },
-    { id: 'd3', title: 'Profile Viewer', description: 'View 10 full profiles', type: 'daily', progress: 10, maxProgress: 10, reward: { coins: 20 }, expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(), isCompleted: true, isClaimed: false, category: 'profile', iconName: 'eye' },
-    { id: 'w1', title: 'Weekly Matcher', description: 'Get 5 new matches this week', type: 'weekly', progress: 2, maxProgress: 5, reward: { gems: 5, xp: 200 }, expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString(), isCompleted: false, isClaimed: false, category: 'match', iconName: 'heart' },
-    { id: 'w2', title: 'Photo Updater', description: 'Update your photos this week', type: 'weekly', progress: 0, maxProgress: 1, reward: { coins: 50 }, expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString(), isCompleted: false, isClaimed: false, category: 'profile', iconName: 'camera' },
+    {
+      id: 'd1',
+      title: 'Daily Swiper',
+      description: 'Swipe on 20 profiles today',
+      type: 'daily',
+      progress: 12,
+      maxProgress: 20,
+      reward: { coins: 25 },
+      expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+      isCompleted: false,
+      isClaimed: false,
+      category: 'swipe',
+      iconName: 'refresh-cw',
+    },
+    {
+      id: 'd2',
+      title: 'Chat Champion',
+      description: 'Send 5 messages today',
+      type: 'daily',
+      progress: 3,
+      maxProgress: 5,
+      reward: { coins: 15 },
+      expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+      isCompleted: false,
+      isClaimed: false,
+      category: 'chat',
+      iconName: 'message-circle',
+    },
+    {
+      id: 'd3',
+      title: 'Profile Viewer',
+      description: 'View 10 full profiles',
+      type: 'daily',
+      progress: 10,
+      maxProgress: 10,
+      reward: { coins: 20 },
+      expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+      isCompleted: true,
+      isClaimed: false,
+      category: 'profile',
+      iconName: 'eye',
+    },
+    {
+      id: 'w1',
+      title: 'Weekly Matcher',
+      description: 'Get 5 new matches this week',
+      type: 'weekly',
+      progress: 2,
+      maxProgress: 5,
+      reward: { gems: 5, xp: 200 },
+      expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString(),
+      isCompleted: false,
+      isClaimed: false,
+      category: 'match',
+      iconName: 'heart',
+    },
+    {
+      id: 'w2',
+      title: 'Photo Updater',
+      description: 'Update your photos this week',
+      type: 'weekly',
+      progress: 0,
+      maxProgress: 1,
+      reward: { coins: 50 },
+      expiresAt: new Date(Date.now() + 5 * 24 * 3600000).toISOString(),
+      isCompleted: false,
+      isClaimed: false,
+      category: 'profile',
+      iconName: 'camera',
+    },
   ];
 
   const loadQuests = useCallback(async () => {
     try {
       setError(null);
       const mockQuests = getMockQuests();
-      setDailyQuests(mockQuests.filter(q => q.type === 'daily'));
-      setWeeklyQuests(mockQuests.filter(q => q.type === 'weekly'));
+      setDailyQuests(mockQuests.filter((q) => q.type === 'daily'));
+      setWeeklyQuests(mockQuests.filter((q) => q.type === 'weekly'));
     } catch (err) {
       console.error('Failed to load quests:', err);
     } finally {
@@ -103,9 +171,9 @@ export const useQuests = (): UseQuestsReturn => {
 
   const claimQuest = useCallback(async (questId: string): Promise<boolean> => {
     const updateQuest = (quests: Quest[]) =>
-      quests.map(q => q.id === questId ? { ...q, isClaimed: true } : q);
-    setDailyQuests(prev => updateQuest(prev));
-    setWeeklyQuests(prev => updateQuest(prev));
+      quests.map((q) => (q.id === questId ? { ...q, isClaimed: true } : q));
+    setDailyQuests((prev) => updateQuest(prev));
+    setWeeklyQuests((prev) => updateQuest(prev));
     return true;
   }, []);
 
@@ -141,14 +209,16 @@ export const useQuests = (): UseQuestsReturn => {
 
   const allQuests = [...dailyQuests, ...weeklyQuests];
   const stats: QuestStats = {
-    dailyCompleted: dailyQuests.filter(q => q.isCompleted).length,
+    dailyCompleted: dailyQuests.filter((q) => q.isCompleted).length,
     dailyTotal: dailyQuests.length,
-    weeklyCompleted: weeklyQuests.filter(q => q.isCompleted).length,
+    weeklyCompleted: weeklyQuests.filter((q) => q.isCompleted).length,
     weeklyTotal: weeklyQuests.length,
     totalRewardsEarned: {
-      coins: allQuests.filter(q => q.isClaimed).reduce((sum, q) => sum + (q.reward.coins || 0), 0),
-      gems: allQuests.filter(q => q.isClaimed).reduce((sum, q) => sum + (q.reward.gems || 0), 0),
-      xp: allQuests.filter(q => q.isClaimed).reduce((sum, q) => sum + (q.reward.xp || 0), 0),
+      coins: allQuests
+        .filter((q) => q.isClaimed)
+        .reduce((sum, q) => sum + (q.reward.coins || 0), 0),
+      gems: allQuests.filter((q) => q.isClaimed).reduce((sum, q) => sum + (q.reward.gems || 0), 0),
+      xp: allQuests.filter((q) => q.isClaimed).reduce((sum, q) => sum + (q.reward.xp || 0), 0),
     },
   };
 

@@ -9,13 +9,7 @@
  */
 
 import React, { Component, type ReactNode, type ErrorInfo } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import type { ErrorBoundaryProps, ErrorBoundaryState } from './types';
 
 /**
@@ -36,9 +30,7 @@ function DefaultErrorFallback({ error, reset }: DefaultFallbackProps): JSX.Eleme
       </View>
 
       <Text style={styles.title}>Something went wrong</Text>
-      <Text style={styles.message}>
-        We encountered an unexpected error. Please try again.
-      </Text>
+      <Text style={styles.message}>We encountered an unexpected error. Please try again.</Text>
 
       <TouchableOpacity style={styles.button} onPress={reset} activeOpacity={0.8}>
         <Text style={styles.buttonText}>Try Again</Text>
@@ -48,9 +40,7 @@ function DefaultErrorFallback({ error, reset }: DefaultFallbackProps): JSX.Eleme
         <ScrollView style={styles.detailsContainer}>
           <Text style={styles.detailsTitle}>Error Details (Development Only)</Text>
           <Text style={styles.detailsText}>{error.message}</Text>
-          {error.stack && (
-            <Text style={styles.stackText}>{error.stack}</Text>
-          )}
+          {error.stack && <Text style={styles.stackText}>{error.stack}</Text>}
         </ScrollView>
       )}
     </View>
@@ -234,8 +224,7 @@ export function withErrorBoundary<P extends object>(
     </ErrorBoundary>
   );
 
-  const displayName =
-    WrappedComponent.displayName || WrappedComponent.name || 'Component';
+  const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
   WithErrorBoundary.displayName = `withErrorBoundary(${displayName})`;
 
   return WithErrorBoundary;

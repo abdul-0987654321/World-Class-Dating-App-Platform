@@ -16,10 +16,7 @@ test.describe('Authentication Flow', () => {
   });
 
   test('should login with valid credentials', async () => {
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
+    await loginPage.login(process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
     await loginPage.expectSuccessfulLogin();
   });
 
@@ -55,7 +52,9 @@ test.describe('Authentication Flow', () => {
 
     // Close and reopen browser
     const cookies = await context.cookies();
-    expect(cookies.some(c => c.name.includes('auth') && c.expires > Date.now() / 1000 + 86400)).toBeTruthy();
+    expect(
+      cookies.some((c) => c.name.includes('auth') && c.expires > Date.now() / 1000 + 86400)
+    ).toBeTruthy();
   });
 
   test('should handle rate limiting', async () => {
@@ -72,10 +71,7 @@ test.describe('Session Management', () => {
     // Login first
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
+    await loginPage.login(process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
 
     // Clear session storage/cookies
     await page.evaluate(() => {
@@ -92,10 +88,7 @@ test.describe('Session Management', () => {
   test('should logout successfully', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
+    await loginPage.login(process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
     await loginPage.expectSuccessfulLogin();
 
     // Logout

@@ -95,9 +95,7 @@ class DiscoveryService {
     }
 
     // Use /feed endpoint
-    const url = cursor
-      ? `${this.baseUrl}/feed?cursor=${cursor}`
-      : `${this.baseUrl}/feed`;
+    const url = cursor ? `${this.baseUrl}/feed?cursor=${cursor}` : `${this.baseUrl}/feed`;
 
     const response = await fetch(url, {
       headers: {
@@ -140,9 +138,10 @@ class DiscoveryService {
         interests: toArray(preview.interests),
         is_verified: toBoolean(preview.is_verified),
         premium_tier: normalizeSubscriptionTier(preview.premium_tier) || undefined,
-        compatibility_score: preview.compatibility_score !== undefined
-          ? toNumber(preview.compatibility_score)
-          : undefined,
+        compatibility_score:
+          preview.compatibility_score !== undefined
+            ? toNumber(preview.compatibility_score)
+            : undefined,
       };
     });
 
@@ -167,16 +166,18 @@ class DiscoveryService {
       // Transform mock result to SwipeResult format
       return {
         isMatch: result.isMatch,
-        match: result.match ? {
-          id: result.match.id,
-          matchedUser: {
-            id: result.match.matchedUser.id,
-            name: result.match.matchedUser.name,
-            photoUrl: result.match.matchedUser.photoUrl,
-            isOnline: result.match.matchedUser.isOnline,
-          },
-          matchedAt: result.match.matchedAt,
-        } : undefined,
+        match: result.match
+          ? {
+              id: result.match.id,
+              matchedUser: {
+                id: result.match.matchedUser.id,
+                name: result.match.matchedUser.name,
+                photoUrl: result.match.matchedUser.photoUrl,
+                isOnline: result.match.matchedUser.isOnline,
+              },
+              matchedAt: result.match.matchedAt,
+            }
+          : undefined,
         remainingLikes: result.remainingLikes,
         remainingSuperLikes: result.remainingSuperLikes,
       };
@@ -221,16 +222,18 @@ class DiscoveryService {
 
     return {
       isMatch: data.match_created || false,
-      match: data.match ? {
-        id: data.match.id,
-        matchedUser: {
-          id: data.match.matched_user_id || data.match.matchedUserId,
-          name: data.match.matched_user_name || data.match.name || 'Match',
-          photoUrl: data.match.matched_user_photo || data.match.photoUrl || '',
-          isOnline: data.match.is_online || false,
-        },
-        matchedAt: data.match.created_at || new Date().toISOString(),
-      } : undefined,
+      match: data.match
+        ? {
+            id: data.match.id,
+            matchedUser: {
+              id: data.match.matched_user_id || data.match.matchedUserId,
+              name: data.match.matched_user_name || data.match.name || 'Match',
+              photoUrl: data.match.matched_user_photo || data.match.photoUrl || '',
+              isOnline: data.match.is_online || false,
+            },
+            matchedAt: data.match.created_at || new Date().toISOString(),
+          }
+        : undefined,
       remainingLikes: data.remaining_likes ?? 50,
       remainingSuperLikes: data.remaining_super_likes ?? 5,
     };
@@ -293,16 +296,18 @@ class DiscoveryService {
 
     return {
       isMatch: data.match_created || false,
-      match: data.match ? {
-        id: data.match.id,
-        matchedUser: {
-          id: data.match.matched_user_id || data.match.matchedUserId,
-          name: data.match.matched_user_name || data.match.name || 'Match',
-          photoUrl: data.match.matched_user_photo || data.match.photoUrl || '',
-          isOnline: data.match.is_online || false,
-        },
-        matchedAt: data.match.created_at || new Date().toISOString(),
-      } : undefined,
+      match: data.match
+        ? {
+            id: data.match.id,
+            matchedUser: {
+              id: data.match.matched_user_id || data.match.matchedUserId,
+              name: data.match.matched_user_name || data.match.name || 'Match',
+              photoUrl: data.match.matched_user_photo || data.match.photoUrl || '',
+              isOnline: data.match.is_online || false,
+            },
+            matchedAt: data.match.created_at || new Date().toISOString(),
+          }
+        : undefined,
       remainingLikes: data.remaining_likes ?? 50,
       remainingSuperLikes: data.remaining_super_likes ?? 4, // Decremented after super-like
     };

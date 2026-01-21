@@ -36,7 +36,15 @@ export interface ToxicityAnalysisResult {
 }
 
 export interface ToxicityCategory {
-  category: 'harassment' | 'hate_speech' | 'sexual_content' | 'profanity' | 'spam' | 'threat' | 'identity_attack' | 'scam';
+  category:
+    | 'harassment'
+    | 'hate_speech'
+    | 'sexual_content'
+    | 'profanity'
+    | 'spam'
+    | 'threat'
+    | 'identity_attack'
+    | 'scam';
   score: number;
   confidence: number;
   matched_patterns?: string[];
@@ -130,10 +138,7 @@ class NLPService {
     return apiClient.post<SentimentAnalysisResult>(`${this.baseUrl}/sentiment`, { text, context });
   }
 
-  async analyzeToxicity(
-    text: string,
-    strictMode?: boolean
-  ): Promise<ToxicityAnalysisResult> {
+  async analyzeToxicity(text: string, strictMode?: boolean): Promise<ToxicityAnalysisResult> {
     return apiClient.post<ToxicityAnalysisResult>(`${this.baseUrl}/toxicity`, {
       text,
       strict_mode: strictMode,

@@ -108,7 +108,7 @@ class ModerationService {
   async getViolationDetails(violationId: string): Promise<Violation> {
     if (this.isMock) {
       const history = this.getMockViolationHistory();
-      const violation = history.violations.find(v => v.id === violationId);
+      const violation = history.violations.find((v) => v.id === violationId);
       if (!violation) {
         throw new Error('Violation not found');
       }
@@ -131,7 +131,7 @@ class ModerationService {
 
   async submitAppeal(request: AppealRequest): Promise<AppealResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return {
         success: true,
         message: 'Your appeal has been submitted and will be reviewed within 48 hours.',
@@ -181,7 +181,10 @@ class ModerationService {
   }
 
   // Admin methods
-  async getModerationQueue(filter?: { status?: string; priority?: string }): Promise<ModerationQueueItem[]> {
+  async getModerationQueue(filter?: {
+    status?: string;
+    priority?: string;
+  }): Promise<ModerationQueueItem[]> {
     if (this.isMock) {
       return this.getMockModerationQueue();
     }
@@ -190,7 +193,9 @@ class ModerationService {
     if (filter?.status) params.append('status', filter.status);
     if (filter?.priority) params.append('priority', filter.priority);
     const queryString = params.toString();
-    const url = queryString ? `/api/admin/moderation/queue?${queryString}` : '/api/admin/moderation/queue';
+    const url = queryString
+      ? `/api/admin/moderation/queue?${queryString}`
+      : '/api/admin/moderation/queue';
 
     const response = await fetch(url, {
       headers: {
@@ -213,7 +218,7 @@ class ModerationService {
     moderatorId: string;
   }): Promise<void> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return;
     }
 
@@ -244,7 +249,9 @@ class ModerationService {
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
     const queryString = params.toString();
-    const url = queryString ? `/api/admin/moderation/statistics?${queryString}` : '/api/admin/moderation/statistics';
+    const url = queryString
+      ? `/api/admin/moderation/statistics?${queryString}`
+      : '/api/admin/moderation/statistics';
 
     const response = await fetch(url, {
       headers: {

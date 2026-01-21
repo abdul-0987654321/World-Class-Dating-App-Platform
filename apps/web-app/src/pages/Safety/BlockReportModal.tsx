@@ -64,7 +64,7 @@ const REPORT_CATEGORIES = [
   {
     id: 'stolen_photos',
     label: 'Stolen Photos',
-    description: 'Using someone else\'s photos',
+    description: "Using someone else's photos",
     severity: 'medium' as const,
   },
   {
@@ -99,7 +99,7 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
       return;
     }
 
-    const category = REPORT_CATEGORIES.find(c => c.id === selectedCategory);
+    const category = REPORT_CATEGORIES.find((c) => c.id === selectedCategory);
     if (!category) return;
 
     setIsSubmitting(true);
@@ -175,9 +175,7 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
             </div>
 
             <div className="user-info">
-              {userPhoto && (
-                <img src={userPhoto} alt={userName} className="user-photo" />
-              )}
+              {userPhoto && <img src={userPhoto} alt={userName} className="user-photo" />}
               <div className="user-details">
                 <h3>{userName}</h3>
                 <p className="user-id">ID: {userId.slice(0, 8)}...</p>
@@ -206,8 +204,8 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
                 <div className="report-section">
                   <h3>Report This User</h3>
                   <p className="section-description">
-                    Help us keep Flamoral safe by reporting inappropriate behavior.
-                    All reports are confidential.
+                    Help us keep Flamoral safe by reporting inappropriate behavior. All reports are
+                    confidential.
                   </p>
 
                   <div className="report-categories">
@@ -238,9 +236,7 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
                   </div>
 
                   <div className="description-field">
-                    <label htmlFor="description">
-                      Additional Details (Optional)
-                    </label>
+                    <label htmlFor="description">Additional Details (Optional)</label>
                     <textarea
                       id="description"
                       value={description}
@@ -249,25 +245,19 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
                       rows={4}
                       maxLength={500}
                     />
-                    <div className="char-count">
-                      {description.length}/500
-                    </div>
+                    <div className="char-count">{description.length}/500</div>
                   </div>
 
                   <div className="safety-notice">
                     <strong>🔒 Your report is confidential</strong>
                     <p>
-                      The user will not be notified that you reported them. Our moderation
-                      team will review this report within 24 hours.
+                      The user will not be notified that you reported them. Our moderation team will
+                      review this report within 24 hours.
                     </p>
                   </div>
 
                   <div className="action-buttons">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                    >
+                    <button className="btn btn-secondary" onClick={onClose} disabled={isSubmitting}>
                       Cancel
                     </button>
                     <button
@@ -289,9 +279,7 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
               ) : (
                 <div className="block-section">
                   <h3>Block This User</h3>
-                  <p className="section-description">
-                    Blocking will prevent this user from:
-                  </p>
+                  <p className="section-description">Blocking will prevent this user from:</p>
 
                   <ul className="block-effects">
                     <li>✓ Seeing your profile</li>
@@ -303,15 +291,13 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
                   <div className="warning-box">
                     <strong>⚠️ Note:</strong>
                     <p>
-                      The user will not be notified that you blocked them.
-                      You can unblock them later from Settings.
+                      The user will not be notified that you blocked them. You can unblock them
+                      later from Settings.
                     </p>
                   </div>
 
                   <div className="reason-field">
-                    <label htmlFor="blockReason">
-                      Reason for blocking (Optional)
-                    </label>
+                    <label htmlFor="blockReason">Reason for blocking (Optional)</label>
                     <textarea
                       id="blockReason"
                       value={blockReason}
@@ -323,11 +309,7 @@ export const BlockReportModal: React.FC<BlockReportModalProps> = ({
                   </div>
 
                   <div className="action-buttons">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                    >
+                    <button className="btn btn-secondary" onClick={onClose} disabled={isSubmitting}>
                       Cancel
                     </button>
                     <button

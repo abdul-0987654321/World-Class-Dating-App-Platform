@@ -55,7 +55,7 @@ export const AdminABTestsPage: React.FC = () => {
     try {
       const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/ab-tests?status=${filter !== 'all' ? filter : ''}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -71,10 +71,27 @@ export const AdminABTestsPage: React.FC = () => {
             status: 'running',
             startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
             variants: [
-              { id: 'v1', name: 'Control (Single Page)', description: '', allocation: 50, users: 2456, conversions: 1234 },
-              { id: 'v2', name: 'Multi-Step', description: '', allocation: 50, users: 2543, conversions: 1589 },
+              {
+                id: 'v1',
+                name: 'Control (Single Page)',
+                description: '',
+                allocation: 50,
+                users: 2456,
+                conversions: 1234,
+              },
+              {
+                id: 'v2',
+                name: 'Multi-Step',
+                description: '',
+                allocation: 50,
+                users: 2543,
+                conversions: 1589,
+              },
             ],
-            metrics: { primaryMetric: 'Profile Completion Rate', secondaryMetrics: ['Time to Complete', 'Drop-off Rate'] },
+            metrics: {
+              primaryMetric: 'Profile Completion Rate',
+              secondaryMetrics: ['Time to Complete', 'Drop-off Rate'],
+            },
             createdBy: 'admin@flamoral.com',
             createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           },
@@ -86,11 +103,29 @@ export const AdminABTestsPage: React.FC = () => {
             startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
             endDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
             variants: [
-              { id: 'v1', name: 'Original', description: '', allocation: 50, users: 5234, conversions: 892 },
-              { id: 'v2', name: 'New Design', description: '', allocation: 50, users: 5189, conversions: 1045 },
+              {
+                id: 'v1',
+                name: 'Original',
+                description: '',
+                allocation: 50,
+                users: 5234,
+                conversions: 892,
+              },
+              {
+                id: 'v2',
+                name: 'New Design',
+                description: '',
+                allocation: 50,
+                users: 5189,
+                conversions: 1045,
+              },
             ],
             metrics: { primaryMetric: 'Conversion Rate', secondaryMetrics: ['Revenue per User'] },
-            results: { winner: 'v2', confidence: 95, summary: 'New design increased conversions by 18%' },
+            results: {
+              winner: 'v2',
+              confidence: 95,
+              summary: 'New design increased conversions by 18%',
+            },
             createdBy: 'admin@flamoral.com',
             createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
           },
@@ -109,7 +144,7 @@ export const AdminABTestsPage: React.FC = () => {
       const res = await fetch('/api/admin/ab-tests', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -137,7 +172,7 @@ export const AdminABTestsPage: React.FC = () => {
       const token = authTokenService.getToken();
       await fetch(`/api/admin/ab-tests/${testId}/start`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchTests();
     } catch (err) {
@@ -150,7 +185,7 @@ export const AdminABTestsPage: React.FC = () => {
       const token = authTokenService.getToken();
       await fetch(`/api/admin/ab-tests/${testId}/pause`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchTests();
     } catch (err) {
@@ -259,7 +294,9 @@ export const AdminABTestsPage: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold text-gray-800">{test.name}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(test.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(test.status)}`}
+                      >
                         {test.status}
                       </span>
                     </div>
@@ -297,7 +334,10 @@ export const AdminABTestsPage: React.FC = () => {
                 {/* Variants */}
                 <div className="grid grid-cols-2 gap-4">
                   {test.variants.map((variant) => {
-                    const conversionRate = variant.users > 0 ? (variant.conversions / variant.users * 100).toFixed(2) : 0;
+                    const conversionRate =
+                      variant.users > 0
+                        ? ((variant.conversions / variant.users) * 100).toFixed(2)
+                        : 0;
                     return (
                       <div key={variant.id} className="p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
@@ -325,7 +365,9 @@ export const AdminABTestsPage: React.FC = () => {
 
                 {test.results && (
                   <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="font-semibold text-green-800">Winner: {test.variants.find(v => v.id === test.results?.winner)?.name}</p>
+                    <p className="font-semibold text-green-800">
+                      Winner: {test.variants.find((v) => v.id === test.results?.winner)?.name}
+                    </p>
                     <p className="text-sm text-green-700">{test.results.summary}</p>
                     <p className="text-sm text-green-600">Confidence: {test.results.confidence}%</p>
                   </div>
@@ -363,7 +405,9 @@ export const AdminABTestsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Primary Metric</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Primary Metric
+                </label>
                 <input
                   type="text"
                   value={newTest.primaryMetric}

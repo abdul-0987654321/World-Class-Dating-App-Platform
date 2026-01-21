@@ -9,12 +9,7 @@
  * - Handles correlation IDs for debugging
  */
 
-import axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosError,
-  AxiosResponse,
-} from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 import { handleError, normalizeError, processApiError } from './error-handler';
 import { NetworkErrorCode, ServerErrorCode } from './error-codes';
 import type {
@@ -92,26 +87,18 @@ export function createApiClient(config: ApiClientConfig) {
     async (error: AxiosError) => {
       // Extract correlation ID from response headers
       const correlationId =
-        error.response?.headers?.['x-correlation-id'] ||
-        error.response?.headers?.['x-request-id'];
+        error.response?.headers?.['x-correlation-id'] || error.response?.headers?.['x-request-id'];
 
       // Extract retry-after for rate limit errors
       const retryAfterHeader = error.response?.headers?.['retry-after'];
-      const retryAfter = retryAfterHeader
-        ? parseInt(retryAfterHeader, 10)
-        : undefined;
+      const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : undefined;
 
       if (error.response) {
         // Server responded with error status
         const errorData: ApiErrorResponse = {
           statusCode: error.response.status,
-          message:
-            (error.response.data as any)?.message ||
-            error.message ||
-            'Request failed',
-          errorCode:
-            (error.response.data as any)?.errorCode ||
-            (error.response.data as any)?.code,
+          message: (error.response.data as any)?.message || error.message || 'Request failed',
+          errorCode: (error.response.data as any)?.errorCode || (error.response.data as any)?.code,
           error: (error.response.data as any)?.error,
           correlationId,
           details: (error.response.data as any)?.details,
@@ -180,12 +167,7 @@ export function createApiClient(config: ApiClientConfig) {
 
       // Handle wrapped responses
       const data = response.data;
-      if (
-        data &&
-        typeof data === 'object' &&
-        'success' in data &&
-        'data' in data
-      ) {
+      if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
         return (data as any).data as T;
       }
 
@@ -205,10 +187,7 @@ export function createApiClient(config: ApiClientConfig) {
   /**
    * GET request
    */
-  async function get<T>(
-    endpoint: string,
-    options?: ApiRequestOptions
-  ): Promise<T> {
+  async function get<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
     return request<T>(endpoint, { ...options, method: 'GET' });
   }
 
@@ -230,11 +209,7 @@ export function createApiClient(config: ApiClientConfig) {
   /**
    * PUT request
    */
-  async function put<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: ApiRequestOptions
-  ): Promise<T> {
+  async function put<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return request<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -260,10 +235,7 @@ export function createApiClient(config: ApiClientConfig) {
   /**
    * DELETE request
    */
-  async function del<T>(
-    endpoint: string,
-    options?: ApiRequestOptions
-  ): Promise<T> {
+  async function del<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
     return request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 
@@ -296,9 +268,7 @@ export function initializeApiClient(config: ApiClientConfig): void {
  */
 export function getApiClient(): ReturnType<typeof createApiClient> {
   if (!defaultClient) {
-    throw new Error(
-      'API client not initialized. Call initializeApiClient() first.'
-    );
+    throw new Error('API client not initialized. Call initializeApiClient() first.');
   }
   return defaultClient;
 }

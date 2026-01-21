@@ -9,7 +9,9 @@ describe('Discovery Flow', () => {
     await element(by.id('password-input')).typeText('TestPassword123!');
     await element(by.id('submit-login')).tap();
     // Wait for discovery screen
-    await waitFor(element(by.id('discovery-screen'))).toBeVisible().withTimeout(5000);
+    await waitFor(element(by.id('discovery-screen')))
+      .toBeVisible()
+      .withTimeout(5000);
   });
 
   beforeEach(async () => {

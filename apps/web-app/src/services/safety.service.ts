@@ -128,10 +128,10 @@ class SafetyService {
       return { id: 'mock-verification', status: 'pending' };
     }
 
-    const response = await apiClient.post<ApiResponse<any>>(
-      '/api/safety/verification/submit',
-      { type, ...data }
-    );
+    const response = await apiClient.post<ApiResponse<any>>('/api/safety/verification/submit', {
+      type,
+      ...data,
+    });
     return response.data;
   }
 
@@ -183,10 +183,9 @@ class SafetyService {
       return { success: true, backupCodes: ['ABC123', 'DEF456'] };
     }
 
-    const response = await apiClient.post<ApiResponse<{ success: boolean; backupCodes?: string[] }>>(
-      '/api/safety/security/2fa/verify',
-      { code }
-    );
+    const response = await apiClient.post<
+      ApiResponse<{ success: boolean; backupCodes?: string[] }>
+    >('/api/safety/security/2fa/verify', { code });
     return response.data;
   }
 
@@ -205,14 +204,22 @@ class SafetyService {
   async getSessions(): Promise<any[]> {
     if (this.isMock) {
       return [
-        { id: '1', device: 'Chrome on Windows', lastActive: new Date().toISOString(), current: true },
-        { id: '2', device: 'Safari on iPhone', lastActive: new Date(Date.now() - 86400000).toISOString(), current: false },
+        {
+          id: '1',
+          device: 'Chrome on Windows',
+          lastActive: new Date().toISOString(),
+          current: true,
+        },
+        {
+          id: '2',
+          device: 'Safari on iPhone',
+          lastActive: new Date(Date.now() - 86400000).toISOString(),
+          current: false,
+        },
       ];
     }
 
-    const response = await apiClient.get<ApiResponse<any[]>>(
-      '/api/safety/security/sessions'
-    );
+    const response = await apiClient.get<ApiResponse<any[]>>('/api/safety/security/sessions');
     return response.data;
   }
 
@@ -285,7 +292,10 @@ class SafetyService {
     return response.data;
   }
 
-  async requestAccountDeletion(type: 'full' | 'selective', reason?: string): Promise<{ requestId: string }> {
+  async requestAccountDeletion(
+    type: 'full' | 'selective',
+    reason?: string
+  ): Promise<{ requestId: string }> {
     if (this.isMock) {
       return { requestId: 'mock-deletion-123' };
     }
@@ -312,7 +322,9 @@ class SafetyService {
     return response.data;
   }
 
-  async addEmergencyContact(contact: Omit<EmergencyContact, 'id' | 'user_id'>): Promise<EmergencyContact> {
+  async addEmergencyContact(
+    contact: Omit<EmergencyContact, 'id' | 'user_id'>
+  ): Promise<EmergencyContact> {
     if (this.isMock) {
       return { id: 'mock-contact-1', user_id: 'mock-user', ...contact };
     }
@@ -362,10 +374,7 @@ class SafetyService {
       };
     }
 
-    const response = await apiClient.post<ApiResponse<SafetyCheckIn>>(
-      '/api/safety/check-in',
-      data
-    );
+    const response = await apiClient.post<ApiResponse<SafetyCheckIn>>('/api/safety/check-in', data);
     return response.data;
   }
 
@@ -394,13 +403,15 @@ class SafetyService {
       return [];
     }
 
-    const response = await apiClient.get<ApiResponse<BlockedUser[]>>(
-      '/api/safety/blocked'
-    );
+    const response = await apiClient.get<ApiResponse<BlockedUser[]>>('/api/safety/blocked');
     return response.data;
   }
 
-  async blockUser(userId: string, blockType: 'full' | 'messages_only' | 'profile_only', reason?: string): Promise<BlockedUser> {
+  async blockUser(
+    userId: string,
+    blockType: 'full' | 'messages_only' | 'profile_only',
+    reason?: string
+  ): Promise<BlockedUser> {
     if (this.isMock) {
       return {
         id: 'mock-block-1',
@@ -411,10 +422,11 @@ class SafetyService {
       };
     }
 
-    const response = await apiClient.post<ApiResponse<BlockedUser>>(
-      '/api/safety/block',
-      { blockedUserId: userId, blockType, reason }
-    );
+    const response = await apiClient.post<ApiResponse<BlockedUser>>('/api/safety/block', {
+      blockedUserId: userId,
+      blockType,
+      reason,
+    });
     return response.data;
   }
 
@@ -471,9 +483,7 @@ class SafetyService {
 
   async getEmergencyResources(country: string = 'US'): Promise<any[]> {
     if (this.isMock) {
-      return [
-        { service: 'Emergency', number: '911', description: 'Police, Fire, Ambulance' },
-      ];
+      return [{ service: 'Emergency', number: '911', description: 'Police, Fire, Ambulance' }];
     }
 
     const response = await apiClient.get<ApiResponse<any[]>>(
@@ -535,7 +545,7 @@ class SafetyService {
   private getMockSafetyTips(): SafetyTip[] {
     return [
       { category: 'before', tip: 'Meet in a public place', priority: 'high' },
-      { category: 'before', tip: 'Tell a friend where you\'re going', priority: 'high' },
+      { category: 'before', tip: "Tell a friend where you're going", priority: 'high' },
       { category: 'during', tip: 'Keep your phone charged', priority: 'medium' },
       { category: 'after', tip: 'Trust your instincts', priority: 'high' },
     ];

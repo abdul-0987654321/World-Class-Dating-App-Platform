@@ -150,9 +150,12 @@ class BoostService {
     return response.json();
   }
 
-  async activateBoost(packageId: string, paymentMethod: 'card' | 'coins' = 'coins'): Promise<ActivateBoostResponse> {
+  async activateBoost(
+    packageId: string,
+    paymentMethod: 'card' | 'coins' = 'coins'
+  ): Promise<ActivateBoostResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return {
         success: true,
         boost: {

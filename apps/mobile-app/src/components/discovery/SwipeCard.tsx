@@ -80,7 +80,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   });
 
   const forceSwipe = (direction: 'left' | 'right' | 'up') => {
-    const x = direction === 'left' ? -SCREEN_WIDTH * 1.5 : direction === 'right' ? SCREEN_WIDTH * 1.5 : 0;
+    const x =
+      direction === 'left' ? -SCREEN_WIDTH * 1.5 : direction === 'right' ? SCREEN_WIDTH * 1.5 : 0;
     const y = direction === 'up' ? -SCREEN_HEIGHT : 0;
 
     Animated.timing(position, {
@@ -141,10 +142,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   };
 
   return (
-    <Animated.View
-      style={[styles.card, getCardStyle()]}
-      {...panResponder.panHandlers}
-    >
+    <Animated.View style={[styles.card, getCardStyle()]} {...panResponder.panHandlers}>
       {/* Like Label */}
       <Animated.View style={[styles.likeLabel, { opacity: getLikeOpacity() }]}>
         <Text style={styles.likeLabelText}>LIKE</Text>
@@ -170,7 +168,9 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       {/* Profile Info */}
       <View style={styles.infoContainer}>
         <View style={styles.nameRow}>
-          <Text style={styles.name}>{profile.name}, {profile.age}</Text>
+          <Text style={styles.name}>
+            {profile.name}, {profile.age}
+          </Text>
           {profile.verified && (
             <View style={styles.verifiedBadge}>
               <Text style={styles.verifiedIcon}>✓</Text>
@@ -178,16 +178,16 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           )}
         </View>
 
-        {profile.occupation && (
-          <Text style={styles.occupation}>{profile.occupation}</Text>
-        )}
+        {profile.occupation && <Text style={styles.occupation}>{profile.occupation}</Text>}
 
         {profile.distance !== undefined && (
           <Text style={styles.distance}>{profile.distance} km away</Text>
         )}
 
         {profile.bio && (
-          <Text style={styles.bio} numberOfLines={2}>{profile.bio}</Text>
+          <Text style={styles.bio} numberOfLines={2}>
+            {profile.bio}
+          </Text>
         )}
       </View>
 

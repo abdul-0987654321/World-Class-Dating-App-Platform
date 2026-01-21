@@ -71,13 +71,16 @@ const callSlice = createSlice({
   initialState,
   reducers: {
     // Start outgoing call
-    startCall: (state, action: PayloadAction<{
-      callId: string;
-      channelName: string;
-      agoraToken: string;
-      callType: 'video' | 'audio';
-      participant: CallParticipant;
-    }>) => {
+    startCall: (
+      state,
+      action: PayloadAction<{
+        callId: string;
+        channelName: string;
+        agoraToken: string;
+        callType: 'video' | 'audio';
+        participant: CallParticipant;
+      }>
+    ) => {
       state.activeCall = {
         ...action.payload,
         state: 'ringing',
@@ -93,10 +96,13 @@ const callSlice = createSlice({
     },
 
     // Accept incoming call
-    acceptIncomingCall: (state, action: PayloadAction<{
-      channelName: string;
-      agoraToken: string;
-    }>) => {
+    acceptIncomingCall: (
+      state,
+      action: PayloadAction<{
+        channelName: string;
+        agoraToken: string;
+      }>
+    ) => {
       if (state.incomingCall) {
         state.activeCall = {
           callId: state.incomingCall.callId,
@@ -180,7 +186,10 @@ const callSlice = createSlice({
     },
 
     // End call
-    endCall: (state, action: PayloadAction<{ reason: 'completed' | 'missed' | 'rejected' | 'failed' }>) => {
+    endCall: (
+      state,
+      action: PayloadAction<{ reason: 'completed' | 'missed' | 'rejected' | 'failed' }>
+    ) => {
       if (state.activeCall) {
         // Add to call history
         state.callHistory.unshift({
@@ -224,9 +233,7 @@ const callSlice = createSlice({
 
     // Remove call from history
     removeCallFromHistory: (state, action: PayloadAction<string>) => {
-      state.callHistory = state.callHistory.filter(
-        (call) => call.callId !== action.payload
-      );
+      state.callHistory = state.callHistory.filter((call) => call.callId !== action.payload);
     },
   },
 });

@@ -79,9 +79,7 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
     }
   };
 
-  const generateDefaultReplies = async (
-    messages: Message[]
-  ): Promise<SmartReply[]> => {
+  const generateDefaultReplies = async (messages: Message[]): Promise<SmartReply[]> => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 800));
 
@@ -131,7 +129,7 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
     ) {
       replies.push({
         id: 'reply_3',
-        text: "Thanks! That means a lot 😊",
+        text: 'Thanks! That means a lot 😊',
         tone: 'friendly',
         confidence: 0.85,
       });
@@ -171,7 +169,7 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
     replies.push(
       {
         id: 'generic_1',
-        text: 'Haha that\'s interesting! Tell me more',
+        text: "Haha that's interesting! Tell me more",
         tone: 'casual',
         confidence: 0.7,
       },
@@ -286,12 +284,7 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
             activeOpacity={0.7}
           >
             <View style={styles.replyHeader}>
-              <View
-                style={[
-                  styles.toneBadge,
-                  { backgroundColor: getToneColor(reply.tone) },
-                ]}
-              >
+              <View style={[styles.toneBadge, { backgroundColor: getToneColor(reply.tone) }]}>
                 <Text style={styles.toneIcon}>{getToneIcon(reply.tone)}</Text>
                 <Text style={styles.toneLabel}>
                   {reply.tone.charAt(0).toUpperCase() + reply.tone.slice(1)}
@@ -306,8 +299,8 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
                         reply.confidence >= 0.8
                           ? '#4CAF50'
                           : reply.confidence >= 0.6
-                          ? '#FF9800'
-                          : '#999',
+                            ? '#FF9800'
+                            : '#999',
                     },
                   ]}
                 />
@@ -317,10 +310,7 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
           </TouchableOpacity>
         ))}
 
-        <TouchableOpacity
-          style={styles.regenerateCard}
-          onPress={generateReplies}
-        >
+        <TouchableOpacity style={styles.regenerateCard} onPress={generateReplies}>
           <Text style={styles.regenerateIcon}>🔄</Text>
           <Text style={styles.regenerateText}>More</Text>
         </TouchableOpacity>

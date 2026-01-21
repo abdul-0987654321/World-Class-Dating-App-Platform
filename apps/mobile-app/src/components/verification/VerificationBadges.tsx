@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Button } from '../common/Button';
 
 export type VerificationType =
@@ -64,11 +57,7 @@ const getVerificationInfo = (
         description:
           'This user has verified their identity by submitting a real-time selfie that matches their profile photos.',
         color: '#2196F3',
-        benefits: [
-          'Confirms identity matches profile',
-          'Reduces fake profiles',
-          'Increases trust',
-        ],
+        benefits: ['Confirms identity matches profile', 'Reduces fake profiles', 'Increases trust'],
       };
     case 'email':
       return {
@@ -110,14 +99,9 @@ const getVerificationInfo = (
       return {
         icon: '🆔',
         label: 'ID Verified',
-        description:
-          'This user has verified their identity with a government-issued ID.',
+        description: 'This user has verified their identity with a government-issued ID.',
         color: '#3F51B5',
-        benefits: [
-          'Highest level of verification',
-          'Age confirmed',
-          'Identity guaranteed',
-        ],
+        benefits: ['Highest level of verification', 'Age confirmed', 'Identity guaranteed'],
       };
     case 'background_check':
       return {
@@ -175,19 +159,9 @@ const VerificationBadge: React.FC<{
   }
 
   const badge = (
-    <View
-      style={[
-        styles.badge,
-        currentSize.container,
-        { backgroundColor: info.color },
-      ]}
-    >
+    <View style={[styles.badge, currentSize.container, { backgroundColor: info.color }]}>
       <Text style={[styles.badgeIcon, currentSize.icon]}>{info.icon}</Text>
-      {showLabel && (
-        <Text style={[styles.badgeLabel, currentSize.label]}>
-          {info.label}
-        </Text>
-      )}
+      {showLabel && <Text style={[styles.badgeLabel, currentSize.label]}>{info.label}</Text>}
     </View>
   );
 
@@ -285,9 +259,7 @@ const VerificationDetailsModal: React.FC<VerificationDetailsModalProps> = ({
       </View>
 
       <Text style={styles.modalTitle}>Not Verified</Text>
-      <Text style={styles.modalDescription}>
-        This verification has not been completed yet.
-      </Text>
+      <Text style={styles.modalDescription}>This verification has not been completed yet.</Text>
 
       <View style={styles.benefitsContainer}>
         <Text style={styles.benefitsTitle}>Get this verification to:</Text>
@@ -314,12 +286,7 @@ const VerificationDetailsModal: React.FC<VerificationDetailsModalProps> = ({
   );
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
@@ -341,8 +308,9 @@ export const VerificationBadges: React.FC<VerificationBadgesProps> = ({
   showLabels = false,
   onBadgePress,
 }) => {
-  const [selectedVerification, setSelectedVerification] =
-    React.useState<VerificationStatus | null>(null);
+  const [selectedVerification, setSelectedVerification] = React.useState<VerificationStatus | null>(
+    null
+  );
   const [showModal, setShowModal] = React.useState(false);
 
   const handleBadgePress = (verification: VerificationStatus) => {
@@ -353,9 +321,7 @@ export const VerificationBadges: React.FC<VerificationBadgesProps> = ({
     setShowModal(true);
   };
 
-  const verifiedBadges = Object.values(verifications).filter(
-    (v) => v?.verified
-  );
+  const verifiedBadges = Object.values(verifications).filter((v) => v?.verified);
 
   if (verifiedBadges.length === 0) {
     return null;
@@ -458,9 +424,7 @@ export const VerificationChecklist: React.FC<{
       </View>
 
       <View style={styles.progressBarContainer}>
-        <View
-          style={[styles.progressBarFill, { width: `${progressPercentage}%` }]}
-        />
+        <View style={[styles.progressBarFill, { width: `${progressPercentage}%` }]} />
       </View>
 
       <View style={styles.checklistItems}>
@@ -472,9 +436,7 @@ export const VerificationChecklist: React.FC<{
             <TouchableOpacity
               key={type}
               style={styles.checklistItem}
-              onPress={() =>
-                !verification?.verified && onStartVerification(type)
-              }
+              onPress={() => !verification?.verified && onStartVerification(type)}
             >
               <View
                 style={[
@@ -492,15 +454,11 @@ export const VerificationChecklist: React.FC<{
               <View style={styles.checklistInfo}>
                 <Text style={styles.checklistLabel}>{info.label}</Text>
                 <Text style={styles.checklistDescription}>
-                  {verification?.verified
-                    ? 'Verified'
-                    : 'Not verified yet'}
+                  {verification?.verified ? 'Verified' : 'Not verified yet'}
                 </Text>
               </View>
 
-              {!verification?.verified && (
-                <Text style={styles.checklistChevron}>›</Text>
-              )}
+              {!verification?.verified && <Text style={styles.checklistChevron}>›</Text>}
             </TouchableOpacity>
           );
         })}

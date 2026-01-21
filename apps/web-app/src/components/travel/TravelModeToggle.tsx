@@ -7,10 +7,7 @@ interface TravelModeToggleProps {
   onToggle?: (enabled: boolean) => void;
 }
 
-export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({
-  userId,
-  onToggle,
-}) => {
+export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({ userId, onToggle }) => {
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isTraveling, setIsTraveling] = useState(false);
@@ -89,16 +86,12 @@ export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({
               enabled ? 'bg-red-50' : 'bg-gray-100'
             }`}
           >
-            <Plane
-              className={`w-6 h-6 ${enabled ? 'text-red-500' : 'text-gray-400'}`}
-            />
+            <Plane className={`w-6 h-6 ${enabled ? 'text-red-500' : 'text-gray-400'}`} />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Travel Mode</h3>
             <p className="text-sm text-gray-600">
-              {isTraveling
-                ? 'Currently traveling'
-                : 'Find matches in different locations'}
+              {isTraveling ? 'Currently traveling' : 'Find matches in different locations'}
             </p>
           </div>
         </div>

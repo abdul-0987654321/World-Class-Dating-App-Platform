@@ -130,22 +130,14 @@ export const useGeolocation = (options: UseGeolocationOptions = {}): UseGeolocat
   const calculateDistance = useCallback(
     (lat: number, lon: number): number | null => {
       if (!location) return null;
-      return GeolocationService.calculateDistance(
-        location.latitude,
-        location.longitude,
-        lat,
-        lon
-      );
+      return GeolocationService.calculateDistance(location.latitude, location.longitude, lat, lon);
     },
     [location]
   );
 
-  const formatDistance = useCallback(
-    (distanceInKm: number, useMetric: boolean = true): string => {
-      return GeolocationService.formatDistance(distanceInKm, useMetric);
-    },
-    []
-  );
+  const formatDistance = useCallback((distanceInKm: number, useMetric: boolean = true): string => {
+    return GeolocationService.formatDistance(distanceInKm, useMetric);
+  }, []);
 
   return {
     location,

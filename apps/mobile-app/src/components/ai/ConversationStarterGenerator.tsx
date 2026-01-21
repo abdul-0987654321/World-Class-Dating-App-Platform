@@ -34,9 +34,7 @@ interface ConversationStarterGeneratorProps {
   maxSuggestions?: number;
 }
 
-export const ConversationStarterGenerator: React.FC<
-  ConversationStarterGeneratorProps
-> = ({
+export const ConversationStarterGenerator: React.FC<ConversationStarterGeneratorProps> = ({
   profile,
   onGenerateStarters,
   onSelectStarter,
@@ -75,9 +73,7 @@ export const ConversationStarterGenerator: React.FC<
     }
   };
 
-  const generateDefaultStarters = async (
-    profile: UserProfile
-  ): Promise<ConversationStarter[]> => {
+  const generateDefaultStarters = async (profile: UserProfile): Promise<ConversationStarter[]> => {
     // Simulate API call delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -121,9 +117,7 @@ export const ConversationStarterGenerator: React.FC<
     // Generate based on prompts
     if (profile.answerPrompts && profile.answerPrompts.length > 0) {
       const randomPrompt =
-        profile.answerPrompts[
-          Math.floor(Math.random() * profile.answerPrompts.length)
-        ];
+        profile.answerPrompts[Math.floor(Math.random() * profile.answerPrompts.length)];
       starters.push({
         id: 'prompt_1',
         text: `I loved your answer about "${randomPrompt.question}"! Tell me more about that?`,
@@ -217,9 +211,7 @@ export const ConversationStarterGenerator: React.FC<
               { backgroundColor: getConfidenceColor(starter.confidence) },
             ]}
           />
-          <Text style={styles.confidenceText}>
-            {Math.round(starter.confidence * 100)}%
-          </Text>
+          <Text style={styles.confidenceText}>{Math.round(starter.confidence * 100)}%</Text>
         </View>
       </View>
 
@@ -243,12 +235,8 @@ export const ConversationStarterGenerator: React.FC<
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E91E63" />
-          <Text style={styles.loadingText}>
-            Analyzing {profile.name}'s profile...
-          </Text>
-          <Text style={styles.loadingSubtext}>
-            Creating personalized conversation starters
-          </Text>
+          <Text style={styles.loadingText}>Analyzing {profile.name}'s profile...</Text>
+          <Text style={styles.loadingSubtext}>Creating personalized conversation starters</Text>
         </View>
       );
     }
@@ -293,25 +281,17 @@ export const ConversationStarterGenerator: React.FC<
             <Text style={styles.headerIcon}>✨</Text>
             <View>
               <Text style={styles.headerTitle}>AI-Generated Starters</Text>
-              <Text style={styles.headerSubtitle}>
-                {starters.length} personalized suggestions
-              </Text>
+              <Text style={styles.headerSubtitle}>{starters.length} personalized suggestions</Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={() => setIsExpanded(!isExpanded)}
-            style={styles.expandButton}
-          >
+          <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={styles.expandButton}>
             <Text style={styles.expandButtonText}>
               {isExpanded ? 'Hide Details' : 'Show Details'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          style={styles.startersList}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={styles.startersList} showsVerticalScrollIndicator={false}>
           {starters.map(renderStarter)}
 
           <Button
@@ -326,8 +306,8 @@ export const ConversationStarterGenerator: React.FC<
           <View style={styles.tipCard}>
             <Text style={styles.tipIcon}>💡</Text>
             <Text style={styles.tipText}>
-              These starters are tailored to {profile.name}'s interests and
-              profile. Choose one that feels natural to you!
+              These starters are tailored to {profile.name}'s interests and profile. Choose one that
+              feels natural to you!
             </Text>
           </View>
         </ScrollView>

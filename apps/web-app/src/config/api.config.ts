@@ -79,21 +79,31 @@ export const MESSAGE_ENDPOINTS = {
   BASE: `${API_PREFIX}/messages`,
   CONVERSATIONS: `${API_PREFIX}/messages/conversations`,
   UNREAD_COUNT: `${API_PREFIX}/messages/unread-count`,
-  conversation: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}`,
-  messages: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/messages`,
-  sendMessage: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/messages`,
-  sendImage: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/messages/image`,
-  sendVoice: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/messages/voice`,
-  markRead: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/read`,
-  markAllRead: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/read-all`,
+  conversation: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}`,
+  messages: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/messages`,
+  sendMessage: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/messages`,
+  sendImage: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/messages/image`,
+  sendVoice: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/messages/voice`,
+  markRead: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/read`,
+  markAllRead: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/read-all`,
   message: (conversationId: string, messageId: string) =>
     `${API_PREFIX}/messages/conversations/${conversationId}/messages/${messageId}`,
   reportMessage: (conversationId: string, messageId: string) =>
     `${API_PREFIX}/messages/conversations/${conversationId}/messages/${messageId}/report`,
-  blockInConversation: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/block`,
-  search: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/search`,
+  blockInConversation: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/block`,
+  search: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/search`,
   media: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/media`,
-  report: (conversationId: string) => `${API_PREFIX}/messages/conversations/${conversationId}/report`,
+  report: (conversationId: string) =>
+    `${API_PREFIX}/messages/conversations/${conversationId}/report`,
 } as const;
 
 /**
@@ -309,7 +319,8 @@ export const ADMIN_ENDPOINTS = {
   USERS: `${API_PREFIX}/admin/users`,
   MODERATION_QUEUE: `${API_PREFIX}/admin/moderation/queue`,
   MODERATION_STATISTICS: `${API_PREFIX}/admin/moderation/statistics`,
-  moderationReview: (moderationLogId: string) => `${API_PREFIX}/admin/moderation/review/${moderationLogId}`,
+  moderationReview: (moderationLogId: string) =>
+    `${API_PREFIX}/admin/moderation/review/${moderationLogId}`,
 } as const;
 
 /**

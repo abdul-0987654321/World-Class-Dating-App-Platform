@@ -38,7 +38,7 @@ export function useSocket() {
     });
 
     socketRef.current.on('disconnect', () => {
-      setState(prev => ({ ...prev, isConnected: false }));
+      setState((prev) => ({ ...prev, isConnected: false }));
     });
 
     socketRef.current.on('connect_error', (error) => {

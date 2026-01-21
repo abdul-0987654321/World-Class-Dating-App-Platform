@@ -321,7 +321,7 @@ const SendButton = styled.button`
   height: 44px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #4ECDC4, #95E1D3);
+  background: linear-gradient(135deg, #4ecdc4, #95e1d3);
   color: white;
   font-size: 18px;
   cursor: pointer;
@@ -536,10 +536,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
               {index < currentIndex ? (
                 <ProgressComplete />
               ) : index === currentIndex ? (
-                <ProgressFill
-                  duration={story.durationSeconds}
-                  isPaused={isPaused}
-                />
+                <ProgressFill duration={story.durationSeconds} isPaused={isPaused} />
               ) : null}
             </ProgressBar>
           ))}
@@ -613,9 +610,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           </TouchZones>
         </MediaContainer>
 
-        {currentStory.caption && (
-          <Caption>{currentStory.caption}</Caption>
-        )}
+        {currentStory.caption && <Caption>{currentStory.caption}</Caption>}
 
         <ViewCount>
           <span>{currentStory.viewCount} views</span>

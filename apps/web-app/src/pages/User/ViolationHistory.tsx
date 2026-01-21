@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import {
-  FaExclamationTriangle,
-  FaBan,
-  FaCheckCircle,
-  FaClock,
-  FaShieldAlt,
-} from 'react-icons/fa';
+import { FaExclamationTriangle, FaBan, FaCheckCircle, FaClock, FaShieldAlt } from 'react-icons/fa';
 import { format } from 'date-fns';
 import moderationService, { ModerationStatus } from '../../services/moderation.service';
 
@@ -195,7 +189,10 @@ const ViolationHistory: React.FC = () => {
               <strong>Current Suspension</strong>
               <p>
                 Your account is suspended until{' '}
-                {format(new Date(moderationRecord.currentSuspensionEndsAt), 'MMMM dd, yyyy at h:mm a')}
+                {format(
+                  new Date(moderationRecord.currentSuspensionEndsAt),
+                  'MMMM dd, yyyy at h:mm a'
+                )}
               </p>
             </div>
           </SuspensionAlert>
@@ -207,7 +204,9 @@ const ViolationHistory: React.FC = () => {
             <div>
               <strong>Account Permanently Banned</strong>
               <p>
-                Banned on {moderationRecord.bannedAt && format(new Date(moderationRecord.bannedAt), 'MMMM dd, yyyy')}
+                Banned on{' '}
+                {moderationRecord.bannedAt &&
+                  format(new Date(moderationRecord.bannedAt), 'MMMM dd, yyyy')}
               </p>
               {moderationRecord.bannedReason && <p>Reason: {moderationRecord.bannedReason}</p>}
             </div>
@@ -219,7 +218,9 @@ const ViolationHistory: React.FC = () => {
       <Section>
         <SectionHeader>
           <h2>Violation History</h2>
-          {violations.length > 0 && <ViolationCount>{violations.length} total violations</ViolationCount>}
+          {violations.length > 0 && (
+            <ViolationCount>{violations.length} total violations</ViolationCount>
+          )}
         </SectionHeader>
 
         {violations.length === 0 ? (
@@ -241,11 +242,16 @@ const ViolationHistory: React.FC = () => {
                     <ViolationHeader>
                       <ViolationTitle>
                         <ViolationType>{violation.violationType.replace(/_/g, ' ')}</ViolationType>
-                        <SeverityBadge $color={severityConfig.color} $bgColor={severityConfig.bgColor}>
+                        <SeverityBadge
+                          $color={severityConfig.color}
+                          $bgColor={severityConfig.bgColor}
+                        >
                           {severityConfig.text} Severity
                         </SeverityBadge>
                       </ViolationTitle>
-                      <ViolationDate>{format(new Date(violation.createdAt), 'MMM dd, yyyy h:mm a')}</ViolationDate>
+                      <ViolationDate>
+                        {format(new Date(violation.createdAt), 'MMM dd, yyyy h:mm a')}
+                      </ViolationDate>
                     </ViolationHeader>
 
                     <ViolationBody>
@@ -282,7 +288,8 @@ const ViolationHistory: React.FC = () => {
             <a href="/community-guidelines" target="_blank">
               Community Guidelines
             </a>{' '}
-            to understand what's expected. Multiple violations may result in account suspension or permanent ban.
+            to understand what's expected. Multiple violations may result in account suspension or
+            permanent ban.
           </p>
         </div>
       </GuidelinesCard>

@@ -36,9 +36,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
 
   const audioRecorderPlayer = useRef<any>(null); // AudioRecorderPlayer instance
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const waveformAnims = useRef(
-    waveformData.map(() => new Animated.Value(1))
-  ).current;
+  const waveformAnims = useRef(waveformData.map(() => new Animated.Value(1))).current;
 
   useEffect(() => {
     // Animate waveform when playing
@@ -228,11 +226,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
   return (
     <View style={[styles.container, style]}>
       {/* Play/Pause Button */}
-      <TouchableOpacity
-        onPress={togglePlayback}
-        style={styles.playButton}
-        disabled={isLoading}
-      >
+      <TouchableOpacity onPress={togglePlayback} style={styles.playButton} disabled={isLoading}>
         {isLoading ? (
           <ActivityIndicator size="small" color="#FFF" />
         ) : (
@@ -258,9 +252,10 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
                       styles.waveformBar,
                       {
                         height: Math.max(4, amplitude / 2),
-                        backgroundColor: isPlaying && index <= currentTime * (waveformData.length / duration)
-                          ? '#FF6B6B'
-                          : '#DDD',
+                        backgroundColor:
+                          isPlaying && index <= currentTime * (waveformData.length / duration)
+                            ? '#FF6B6B'
+                            : '#DDD',
                       },
                     ]}
                   />

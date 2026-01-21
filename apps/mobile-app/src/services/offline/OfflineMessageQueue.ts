@@ -73,10 +73,7 @@ class OfflineMessageQueue {
 
   private async persist(): Promise<void> {
     try {
-      await AsyncStorage.setItem(
-        OFFLINE_MESSAGES_KEY,
-        JSON.stringify(this.messages)
-      );
+      await AsyncStorage.setItem(OFFLINE_MESSAGES_KEY, JSON.stringify(this.messages));
     } catch (error) {
       console.error('Failed to persist offline messages:', error);
     }

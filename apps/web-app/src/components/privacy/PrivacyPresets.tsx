@@ -53,45 +53,47 @@ export const PrivacyPresets: React.FC<PrivacyPresetsProps> = ({
           const showDistanceValue = preset.settings.showDistance ?? !preset.settings.hideDistance;
 
           return (
-          <div
-            key={presetId}
-            className={`preset-card ${currentPreset === presetId ? 'active' : ''}`}
-            style={{ '--preset-color': getPresetColor(presetId) } as React.CSSProperties}
-          >
-            <div className="preset-icon">{getPresetIcon(presetId)}</div>
-            <h3 className="preset-name">{preset.name}</h3>
-            <p className="preset-description">{preset.description}</p>
-
-            <div className="preset-settings">
-              <h4>Includes:</h4>
-              <ul>
-                {preset.settings.showAge !== undefined && (
-                  <li>{preset.settings.showAge ? '✓' : '✗'} Show age</li>
-                )}
-                {(preset.settings.showDistance !== undefined || preset.settings.hideDistance !== undefined) && (
-                  <li>{showDistanceValue ? '✓' : '✗'} Show distance</li>
-                )}
-                {preset.settings.hideOnlineStatus !== undefined && (
-                  <li>{preset.settings.hideOnlineStatus ? '✗' : '✓'} Online status visible</li>
-                )}
-                {preset.settings.hideFromSearch !== undefined && (
-                  <li>{preset.settings.hideFromSearch ? '✗' : '✓'} Visible in search</li>
-                )}
-                {preset.settings.incognitoMode !== undefined && (
-                  <li>{preset.settings.incognitoMode ? '✓' : '✗'} Incognito mode</li>
-                )}
-              </ul>
-            </div>
-
-            <button
-              className="apply-button"
-              onClick={() => onApplyPreset(presetId)}
-              disabled={loading || currentPreset === presetId}
+            <div
+              key={presetId}
+              className={`preset-card ${currentPreset === presetId ? 'active' : ''}`}
+              style={{ '--preset-color': getPresetColor(presetId) } as React.CSSProperties}
             >
-              {currentPreset === presetId ? 'Active' : 'Apply Preset'}
-            </button>
-          </div>
-        );})}
+              <div className="preset-icon">{getPresetIcon(presetId)}</div>
+              <h3 className="preset-name">{preset.name}</h3>
+              <p className="preset-description">{preset.description}</p>
+
+              <div className="preset-settings">
+                <h4>Includes:</h4>
+                <ul>
+                  {preset.settings.showAge !== undefined && (
+                    <li>{preset.settings.showAge ? '✓' : '✗'} Show age</li>
+                  )}
+                  {(preset.settings.showDistance !== undefined ||
+                    preset.settings.hideDistance !== undefined) && (
+                    <li>{showDistanceValue ? '✓' : '✗'} Show distance</li>
+                  )}
+                  {preset.settings.hideOnlineStatus !== undefined && (
+                    <li>{preset.settings.hideOnlineStatus ? '✗' : '✓'} Online status visible</li>
+                  )}
+                  {preset.settings.hideFromSearch !== undefined && (
+                    <li>{preset.settings.hideFromSearch ? '✗' : '✓'} Visible in search</li>
+                  )}
+                  {preset.settings.incognitoMode !== undefined && (
+                    <li>{preset.settings.incognitoMode ? '✓' : '✗'} Incognito mode</li>
+                  )}
+                </ul>
+              </div>
+
+              <button
+                className="apply-button"
+                onClick={() => onApplyPreset(presetId)}
+                disabled={loading || currentPreset === presetId}
+              >
+                {currentPreset === presetId ? 'Active' : 'Apply Preset'}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <style>{`

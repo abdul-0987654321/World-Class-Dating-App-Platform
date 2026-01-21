@@ -17,7 +17,11 @@ export interface ScamPattern {
   description: string;
 }
 
-export const detectScamRisk = (profile: any, messages: any[], behavior: any): ScamRiskAssessment => {
+export const detectScamRisk = (
+  profile: any,
+  messages: any[],
+  behavior: any
+): ScamRiskAssessment => {
   const patterns: ScamPattern[] = [];
   let risk_score = 0;
 
@@ -48,15 +52,32 @@ export const detectScamRisk = (profile: any, messages: any[], behavior: any): Sc
 
   // Message analysis - scam keywords
   const scam_keywords = [
-    'investment', 'crypto', 'bitcoin', 'trading', 'money', 'send', 'gift card',
-    'itunes', 'steam', 'paypal', 'venmo', 'cashapp', 'western union',
-    'my phone is broken', 'can\'t access my account', 'emergency', 'hospital',
-    'stranded', 'need help', 'wire transfer', 'bank account'
+    'investment',
+    'crypto',
+    'bitcoin',
+    'trading',
+    'money',
+    'send',
+    'gift card',
+    'itunes',
+    'steam',
+    'paypal',
+    'venmo',
+    'cashapp',
+    'western union',
+    'my phone is broken',
+    "can't access my account",
+    'emergency',
+    'hospital',
+    'stranded',
+    'need help',
+    'wire transfer',
+    'bank account',
   ];
 
-  messages.forEach(msg => {
+  messages.forEach((msg) => {
     const lowerText = msg.text.toLowerCase();
-    scam_keywords.forEach(keyword => {
+    scam_keywords.forEach((keyword) => {
       if (lowerText.includes(keyword)) {
         patterns.push({
           type: 'message',
@@ -105,7 +126,7 @@ export const detectScamRisk = (profile: any, messages: any[], behavior: any): Sc
       type: 'behavior',
       pattern: 'inconsistent_story',
       severity: 'medium',
-      description: 'Story or details don\'t add up',
+      description: "Story or details don't add up",
     });
     risk_score += 15;
   }
@@ -132,8 +153,8 @@ export const detectScamRisk = (profile: any, messages: any[], behavior: any): Sc
   const recommendations: string[] = [];
 
   if (risk_score > 0) {
-    recommendations.push('Never send money or gift cards to someone you haven\'t met in person');
-    recommendations.push('Don\'t share financial information or account details');
+    recommendations.push("Never send money or gift cards to someone you haven't met in person");
+    recommendations.push("Don't share financial information or account details");
   }
 
   if (risk_level === 'high' || risk_level === 'critical') {
@@ -163,11 +184,16 @@ const EnhancedScamDetection: React.FC<{
 }> = ({ assessment, onReport, onBlock }) => {
   const getColor = () => {
     switch (assessment.risk_level) {
-      case 'critical': return '#991b1b';
-      case 'high': return '#dc2626';
-      case 'moderate': return '#ea580c';
-      case 'low': return '#f59e0b';
-      default: return '#10b981';
+      case 'critical':
+        return '#991b1b';
+      case 'high':
+        return '#dc2626';
+      case 'moderate':
+        return '#ea580c';
+      case 'low':
+        return '#f59e0b';
+      default:
+        return '#10b981';
     }
   };
 
@@ -177,7 +203,14 @@ const EnhancedScamDetection: React.FC<{
         '🚨 CRITICAL SCAM RISK',
         'This user exhibits multiple scam indicators. We strongly recommend blocking and reporting them immediately.',
         [
-          { text: 'Report & Block', onPress: () => { onReport?.(); onBlock?.(); }, style: 'destructive' },
+          {
+            text: 'Report & Block',
+            onPress: () => {
+              onReport?.();
+              onBlock?.();
+            },
+            style: 'destructive',
+          },
           { text: 'Cancel', style: 'cancel' },
         ]
       );
@@ -214,7 +247,9 @@ const EnhancedScamDetection: React.FC<{
         <View style={styles.recommendationsSection}>
           <Text style={styles.sectionTitle}>🔒 Safety Recommendations:</Text>
           {assessment.recommendations.map((rec, i) => (
-            <Text key={i} style={styles.recommendation}>• {rec}</Text>
+            <Text key={i} style={styles.recommendation}>
+              • {rec}
+            </Text>
           ))}
         </View>
       )}
@@ -249,15 +284,38 @@ const styles = StyleSheet.create({
   riskScore: { color: '#fff', fontSize: 28, fontWeight: '700' },
   patternsSection: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
-  patternCard: { backgroundColor: '#fef2f2', padding: 12, borderRadius: 8, marginBottom: 8, borderLeftWidth: 4 },
+  patternCard: {
+    backgroundColor: '#fef2f2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+  },
   patternType: { fontSize: 11, fontWeight: '600', color: '#991b1b', marginBottom: 4 },
   patternDesc: { fontSize: 14, color: '#7f1d1d' },
-  recommendationsSection: { backgroundColor: '#fffbeb', padding: 16, borderRadius: 12, marginBottom: 16 },
+  recommendationsSection: {
+    backgroundColor: '#fffbeb',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
   recommendation: { fontSize: 14, color: '#78350f', marginBottom: 6, lineHeight: 20 },
   actionsContainer: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  reportButton: { flex: 1, backgroundColor: '#f59e0b', padding: 14, borderRadius: 8, alignItems: 'center' },
+  reportButton: {
+    flex: 1,
+    backgroundColor: '#f59e0b',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   reportButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  blockButton: { flex: 1, backgroundColor: '#dc2626', padding: 14, borderRadius: 8, alignItems: 'center' },
+  blockButton: {
+    flex: 1,
+    backgroundColor: '#dc2626',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   blockButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   disclaimer: { fontSize: 12, color: '#6b7280', fontStyle: 'italic', textAlign: 'center' },
 });

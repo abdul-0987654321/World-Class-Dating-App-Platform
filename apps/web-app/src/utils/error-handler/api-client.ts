@@ -84,9 +84,9 @@ export function createApiClient(config: ApiClientConfig) {
    * Extract correlation ID from response headers
    */
   function getCorrelationId(response: Response): string | undefined {
-    return response.headers.get('X-Correlation-ID') ||
-           response.headers.get('X-Request-ID') ||
-           undefined;
+    return (
+      response.headers.get('X-Correlation-ID') || response.headers.get('X-Request-ID') || undefined
+    );
   }
 
   /**
@@ -146,9 +146,7 @@ export function createApiClient(config: ApiClientConfig) {
 
     // Create abort controller for timeout
     const controller = new AbortController();
-    const timeoutId = timeout
-      ? setTimeout(() => controller.abort(), timeout)
-      : null;
+    const timeoutId = timeout ? setTimeout(() => controller.abort(), timeout) : null;
 
     // Merge signals if custom signal provided
     const signal = customSignal || controller.signal;
@@ -158,9 +156,9 @@ export function createApiClient(config: ApiClientConfig) {
 
     try {
       // Determine if CSRF token is needed
-      const needsCsrf = !skipCsrf && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(
-        fetchOptions.method?.toUpperCase() || 'GET'
-      );
+      const needsCsrf =
+        !skipCsrf &&
+        ['POST', 'PUT', 'PATCH', 'DELETE'].includes(fetchOptions.method?.toUpperCase() || 'GET');
 
       // Build headers
       const authHeader = !skipAuth ? await getAuthHeader() : {};
@@ -315,11 +313,7 @@ export function createApiClient(config: ApiClientConfig) {
   /**
    * PUT request
    */
-  async function put<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: ApiRequestOptions
-  ): Promise<T> {
+  async function put<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return request<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -377,9 +371,7 @@ export function initializeApiClient(config: ApiClientConfig): void {
  */
 export function getApiClient(): ReturnType<typeof createApiClient> {
   if (!defaultClient) {
-    throw new Error(
-      'API client not initialized. Call initializeApiClient() first.'
-    );
+    throw new Error('API client not initialized. Call initializeApiClient() first.');
   }
   return defaultClient;
 }

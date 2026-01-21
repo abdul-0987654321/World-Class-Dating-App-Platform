@@ -71,13 +71,29 @@ interface UseStreaksReturn {
 const MILESTONES: StreakMilestone[] = [
   { days: 3, name: 'Getting Started', reward: { coins: 10 }, isAchieved: false, icon: 'flame' },
   { days: 7, name: 'Week Warrior', reward: { coins: 25, gems: 1 }, isAchieved: false, icon: 'zap' },
-  { days: 14, name: 'Two Week Titan', reward: { coins: 50, gems: 2 }, isAchieved: false, icon: 'award' },
-  { days: 30, name: 'Monthly Master', reward: { coins: 100, gems: 5, superLikes: 1 }, isAchieved: false, icon: 'trophy' },
+  {
+    days: 14,
+    name: 'Two Week Titan',
+    reward: { coins: 50, gems: 2 },
+    isAchieved: false,
+    icon: 'award',
+  },
+  {
+    days: 30,
+    name: 'Monthly Master',
+    reward: { coins: 100, gems: 5, superLikes: 1 },
+    isAchieved: false,
+    icon: 'trophy',
+  },
 ];
 
 export const useStreaks = (): UseStreaksReturn => {
   const { token } = useAuth();
-  const [streaks, setStreaks] = useState<{ login: Streak | null; conversation: Streak | null; match: Streak | null }>({ login: null, conversation: null, match: null });
+  const [streaks, setStreaks] = useState<{
+    login: Streak | null;
+    conversation: Streak | null;
+    match: Streak | null;
+  }>({ login: null, conversation: null, match: null });
   const [calendar, setCalendar] = useState<StreakCalendarDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,9 +103,37 @@ export const useStreaks = (): UseStreaksReturn => {
   const fireAnimation = useRef(new Animated.Value(0)).current;
 
   const getMockStreaks = () => ({
-    login: { id: '1', userId: 'u1', streakType: 'login' as const, currentStreak: 12, longestStreak: 18, streakStartDate: '', lastActivityDate: '', isProtected: false },
-    conversation: { id: '2', userId: 'u1', streakType: 'conversation' as const, currentStreak: 5, longestStreak: 14, streakStartDate: '', lastActivityDate: '', isProtected: false },
-    match: { id: '3', userId: 'u1', streakType: 'match' as const, currentStreak: 3, longestStreak: 7, streakStartDate: '', lastActivityDate: '', isProtected: true, protectionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() },
+    login: {
+      id: '1',
+      userId: 'u1',
+      streakType: 'login' as const,
+      currentStreak: 12,
+      longestStreak: 18,
+      streakStartDate: '',
+      lastActivityDate: '',
+      isProtected: false,
+    },
+    conversation: {
+      id: '2',
+      userId: 'u1',
+      streakType: 'conversation' as const,
+      currentStreak: 5,
+      longestStreak: 14,
+      streakStartDate: '',
+      lastActivityDate: '',
+      isProtected: false,
+    },
+    match: {
+      id: '3',
+      userId: 'u1',
+      streakType: 'match' as const,
+      currentStreak: 3,
+      longestStreak: 7,
+      streakStartDate: '',
+      lastActivityDate: '',
+      isProtected: true,
+      protectionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+    },
   });
 
   const loadStreaks = useCallback(async () => {
@@ -119,12 +163,15 @@ export const useStreaks = (): UseStreaksReturn => {
     await loadStreaks();
   }, [loadStreaks]);
 
-  const protectStreak = useCallback(async (streakType: string, durationHours: number = 24): Promise<boolean> => {
-    setProtecting(true);
-    await loadStreaks();
-    setProtecting(false);
-    return true;
-  }, [loadStreaks]);
+  const protectStreak = useCallback(
+    async (streakType: string, durationHours: number = 24): Promise<boolean> => {
+      setProtecting(true);
+      await loadStreaks();
+      setProtecting(false);
+      return true;
+    },
+    [loadStreaks]
+  );
 
   const getStreakLevel = useCallback((currentStreak: number) => {
     if (currentStreak >= 365) return { level: 'Legendary', color: '#9B59B6', icon: 'crown' };
@@ -135,13 +182,16 @@ export const useStreaks = (): UseStreaksReturn => {
   }, []);
 
   const getNextMilestone = useCallback((currentStreak: number) => {
-    return MILESTONES.find(m => m.days > currentStreak) || null;
+    return MILESTONES.find((m) => m.days > currentStreak) || null;
   }, []);
 
-  const getDaysUntilMilestone = useCallback((currentStreak: number) => {
-    const next = getNextMilestone(currentStreak);
-    return next ? next.days - currentStreak : 0;
-  }, [getNextMilestone]);
+  const getDaysUntilMilestone = useCallback(
+    (currentStreak: number) => {
+      const next = getNextMilestone(currentStreak);
+      return next ? next.days - currentStreak : 0;
+    },
+    [getNextMilestone]
+  );
 
   const getCalendarForMonth = useCallback((year: number, month: number): StreakCalendarDay[] => {
     const days: StreakCalendarDay[] = [];
@@ -150,7 +200,15 @@ export const useStreaks = (): UseStreaksReturn => {
     const today = new Date();
 
     for (let i = 0; i < firstDay.getDay(); i++) {
-      days.push({ date: '', dayOfWeek: i, dayOfMonth: 0, hasActivity: false, isToday: false, isFuture: false, streakCount: 0 });
+      days.push({
+        date: '',
+        dayOfWeek: i,
+        dayOfMonth: 0,
+        hasActivity: false,
+        isToday: false,
+        isFuture: false,
+        streakCount: 0,
+      });
     }
 
     for (let day = 1; day <= lastDay.getDate(); day++) {
@@ -169,7 +227,7 @@ export const useStreaks = (): UseStreaksReturn => {
     return days;
   }, []);
 
-  const milestones = MILESTONES.map(m => ({
+  const milestones = MILESTONES.map((m) => ({
     ...m,
     isAchieved: streaks.login ? streaks.login.currentStreak >= m.days : false,
   }));

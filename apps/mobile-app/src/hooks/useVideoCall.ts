@@ -75,105 +75,107 @@ export const useVideoCall = (config?: VideoCallConfig) => {
   /**
    * Initialize Agora RTC Engine
    */
-  const initializeEngine = useCallback(async (appId: string) => {
-    try {
-      const hasPermission = await requestPermissions();
-      if (!hasPermission) {
-        throw new Error('Permissions not granted');
-      }
+  const initializeEngine = useCallback(
+    async (appId: string) => {
+      try {
+        const hasPermission = await requestPermissions();
+        if (!hasPermission) {
+          throw new Error('Permissions not granted');
+        }
 
-      const rtcEngine = await RtcEngine.createWithContext(
-        new RtcEngineContext(appId)
-      );
+        const rtcEngine = await RtcEngine.createWithContext(new RtcEngineContext(appId));
 
-      // Enable video if not audio-only
-      if (!config?.isAudioOnly) {
-        await rtcEngine.enableVideo();
-      }
+        // Enable video if not audio-only
+        if (!config?.isAudioOnly) {
+          await rtcEngine.enableVideo();
+        }
 
-      await rtcEngine.enableAudio();
+        await rtcEngine.enableAudio();
 
-      // Set channel profile
-      await rtcEngine.setChannelProfile(ChannelProfile.Communication);
+        // Set channel profile
+        await rtcEngine.setChannelProfile(ChannelProfile.Communication);
 
-      // Set client role
-      await rtcEngine.setClientRole(ClientRole.Broadcaster);
+        // Set client role
+        await rtcEngine.setClientRole(ClientRole.Broadcaster);
 
-      // Enable HD if premium user
-      if (config?.enableHD) {
-        await rtcEngine.setVideoEncoderConfiguration({
-          dimensions: { width: 1280, height: 720 },
-          frameRate: 30,
-          bitrate: 2000,
-          minBitrate: 1000,
-          orientationMode: 0,
-          degradationPreference: 2,
-          mirrorMode: 0,
+        // Enable HD if premium user
+        if (config?.enableHD) {
+          await rtcEngine.setVideoEncoderConfiguration({
+            dimensions: { width: 1280, height: 720 },
+            frameRate: 30,
+            bitrate: 2000,
+            minBitrate: 1000,
+            orientationMode: 0,
+            degradationPreference: 2,
+            mirrorMode: 0,
+          });
+        } else {
+          // Standard definition
+          await rtcEngine.setVideoEncoderConfiguration({
+            dimensions: { width: 640, height: 480 },
+            frameRate: 15,
+            bitrate: 800,
+            minBitrate: 400,
+            orientationMode: 0,
+            degradationPreference: 2,
+            mirrorMode: 0,
+          });
+        }
+
+        // Event listeners
+        rtcEngine.addListener('UserJoined', (uid, elapsed) => {
+          setRemoteUids((prev) => [...prev, uid]);
         });
-      } else {
-        // Standard definition
-        await rtcEngine.setVideoEncoderConfiguration({
-          dimensions: { width: 640, height: 480 },
-          frameRate: 15,
-          bitrate: 800,
-          minBitrate: 400,
-          orientationMode: 0,
-          degradationPreference: 2,
-          mirrorMode: 0,
+
+        rtcEngine.addListener('UserOffline', (uid, reason) => {
+          setRemoteUids((prev) => prev.filter((id) => id !== uid));
         });
+
+        rtcEngine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
+          setIsJoined(true);
+
+          // Start duration timer
+          durationTimerRef.current = setInterval(() => {
+            setCallDuration((prev) => prev + 1);
+          }, 1000);
+
+          // Start stats collection
+          statsTimerRef.current = setInterval(() => {
+            collectCallStats(rtcEngine);
+          }, 2000);
+        });
+
+        rtcEngine.addListener('RemoteVideoStateChanged', (uid, state, reason, elapsed) => {
+          // Video state changed - no action needed
+        });
+
+        rtcEngine.addListener('NetworkQuality', (uid, txQuality, rxQuality) => {
+          // Update quality based on network
+          const quality =
+            txQuality <= 2 && rxQuality <= 2
+              ? 'excellent'
+              : txQuality <= 4 && rxQuality <= 4
+                ? 'good'
+                : txQuality <= 5 && rxQuality <= 5
+                  ? 'fair'
+                  : 'poor';
+
+          setCallStats((prev) => ({ ...prev, quality }));
+        });
+
+        rtcEngine.addListener('Error', (errorCode) => {
+          console.error('Agora error:', errorCode);
+        });
+
+        setEngine(rtcEngine);
+        return rtcEngine;
+      } catch (error) {
+        console.error('Engine initialization error:', error);
+        throw error;
       }
-
-      // Event listeners
-      rtcEngine.addListener('UserJoined', (uid, elapsed) => {
-        setRemoteUids((prev) => [...prev, uid]);
-      });
-
-      rtcEngine.addListener('UserOffline', (uid, reason) => {
-        setRemoteUids((prev) => prev.filter((id) => id !== uid));
-      });
-
-      rtcEngine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
-        setIsJoined(true);
-
-        // Start duration timer
-        durationTimerRef.current = setInterval(() => {
-          setCallDuration((prev) => prev + 1);
-        }, 1000);
-
-        // Start stats collection
-        statsTimerRef.current = setInterval(() => {
-          collectCallStats(rtcEngine);
-        }, 2000);
-      });
-
-      rtcEngine.addListener('RemoteVideoStateChanged', (uid, state, reason, elapsed) => {
-        // Video state changed - no action needed
-      });
-
-      rtcEngine.addListener('NetworkQuality', (uid, txQuality, rxQuality) => {
-        // Update quality based on network
-        const quality = txQuality <= 2 && rxQuality <= 2
-          ? 'excellent'
-          : txQuality <= 4 && rxQuality <= 4
-          ? 'good'
-          : txQuality <= 5 && rxQuality <= 5
-          ? 'fair'
-          : 'poor';
-
-        setCallStats((prev) => ({ ...prev, quality }));
-      });
-
-      rtcEngine.addListener('Error', (errorCode) => {
-        console.error('Agora error:', errorCode);
-      });
-
-      setEngine(rtcEngine);
-      return rtcEngine;
-    } catch (error) {
-      console.error('Engine initialization error:', error);
-      throw error;
-    }
-  }, [config]);
+    },
+    [config]
+  );
 
   /**
    * Join a video call channel

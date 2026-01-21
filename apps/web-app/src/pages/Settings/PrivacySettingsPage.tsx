@@ -83,7 +83,9 @@ export const PrivacySettingsPage: React.FC = () => {
         <p className="font-medium text-gray-800 flex items-center gap-2">
           {label}
           {premium && (
-            <span className="bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">Premium</span>
+            <span className="bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">
+              Premium
+            </span>
           )}
         </p>
         {description && <p className="text-sm text-gray-500 mt-0.5">{description}</p>}
@@ -119,7 +121,12 @@ export const PrivacySettingsPage: React.FC = () => {
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Profile
         </button>
@@ -147,7 +154,9 @@ export const PrivacySettingsPage: React.FC = () => {
                   className="sr-only"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-800 capitalize">{visibility.replace('_', ' ')}</p>
+                  <p className="font-medium text-gray-800 capitalize">
+                    {visibility.replace('_', ' ')}
+                  </p>
                   <p className="text-sm text-gray-500">
                     {visibility === 'public' && 'Anyone can see your profile'}
                     {visibility === 'matches_only' && 'Only your matches can see your profile'}

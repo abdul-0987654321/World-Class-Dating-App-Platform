@@ -47,7 +47,9 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
         // Check file size
         const fileSizeInMB = file.size / (1024 * 1024);
         if (fileSizeInMB > maxSizeInMB) {
-          setError(`File size must be less than ${maxSizeInMB}MB. Your file is ${fileSizeInMB.toFixed(1)}MB.`);
+          setError(
+            `File size must be less than ${maxSizeInMB}MB. Your file is ${fileSizeInMB.toFixed(1)}MB.`
+          );
           resolve(false);
           return;
         }
@@ -61,7 +63,9 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
           const duration = video.duration;
 
           if (duration > maxDurationInSeconds) {
-            setError(`Video must be ${maxDurationInSeconds} seconds or less. Your video is ${Math.round(duration)}s.`);
+            setError(
+              `Video must be ${maxDurationInSeconds} seconds or less. Your video is ${Math.round(duration)}s.`
+            );
             resolve(false);
             return;
           }
@@ -208,9 +212,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
           </UploadIcon>
           <DropText>
             Drag and drop your video here, or{' '}
-            <BrowseButton onClick={() => fileInputRef.current?.click()}>
-              browse
-            </BrowseButton>
+            <BrowseButton onClick={() => fileInputRef.current?.click()}>browse</BrowseButton>
           </DropText>
           <Requirements>
             <li>Max duration: {maxDurationInSeconds} seconds</li>

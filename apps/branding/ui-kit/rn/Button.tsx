@@ -172,13 +172,7 @@ export const Button: React.FC<ButtonProps> = ({
       ) : (
         <>
           {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
-          <Text
-            style={[
-              styles.text,
-              { fontSize: config.fontSize, color: textColor },
-              textStyle,
-            ]}
-          >
+          <Text style={[styles.text, { fontSize: config.fontSize, color: textColor }, textStyle]}>
             {children}
           </Text>
           {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
@@ -200,10 +194,7 @@ export const Button: React.FC<ButtonProps> = ({
           colors={[colors.flameRed, colors.emberOrange]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[
-            getContainerStyle(),
-            styles.shadow,
-          ]}
+          style={[getContainerStyle(), styles.shadow]}
         >
           {content}
         </LinearGradient>

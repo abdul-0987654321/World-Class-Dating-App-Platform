@@ -65,31 +65,94 @@ export const Icebreakers: React.FC<IcebreakersProps> = ({
     // Casual
     { id: 'c1', text: `Hey ${profile.name}! How's your day going?`, category: 'casual' },
     { id: 'c2', text: `Hi ${profile.name}! What are you up to today?`, category: 'casual' },
-    { id: 'c3', text: `Hey! Love your profile. What's keeping you busy these days?`, category: 'casual' },
+    {
+      id: 'c3',
+      text: `Hey! Love your profile. What's keeping you busy these days?`,
+      category: 'casual',
+    },
 
     // Witty
     { id: 'w1', text: `So... do you come here often? 😄`, category: 'witty', isPremium: true },
-    { id: 'w2', text: `I'd say we matched by accident, but I don't believe in accidents 😉`, category: 'witty', isPremium: true },
-    { id: 'w3', text: `Plot twist: we're both the catch of the day 🎣`, category: 'witty', isPremium: true },
+    {
+      id: 'w2',
+      text: `I'd say we matched by accident, but I don't believe in accidents 😉`,
+      category: 'witty',
+      isPremium: true,
+    },
+    {
+      id: 'w3',
+      text: `Plot twist: we're both the catch of the day 🎣`,
+      category: 'witty',
+      isPremium: true,
+    },
 
     // Thoughtful
-    { id: 't1', text: `Your profile caught my attention. What's something you're passionate about?`, category: 'thoughtful' },
-    { id: 't2', text: `I'd love to know more about you. What's been making you smile lately?`, category: 'thoughtful' },
-    { id: 't3', text: `What's something you've always wanted to try but haven't yet?`, category: 'thoughtful' },
+    {
+      id: 't1',
+      text: `Your profile caught my attention. What's something you're passionate about?`,
+      category: 'thoughtful',
+    },
+    {
+      id: 't2',
+      text: `I'd love to know more about you. What's been making you smile lately?`,
+      category: 'thoughtful',
+    },
+    {
+      id: 't3',
+      text: `What's something you've always wanted to try but haven't yet?`,
+      category: 'thoughtful',
+    },
 
     // Flirty
-    { id: 'f1', text: `Well hello there 😊 What brings someone like you to a place like this?`, category: 'flirty', isPremium: true },
-    { id: 'f2', text: `Okay, I'll admit it - your smile is dangerously attractive 😉`, category: 'flirty', isPremium: true },
-    { id: 'f3', text: `I had to swipe right. Some opportunities you just don't pass up 😏`, category: 'flirty', isPremium: true },
+    {
+      id: 'f1',
+      text: `Well hello there 😊 What brings someone like you to a place like this?`,
+      category: 'flirty',
+      isPremium: true,
+    },
+    {
+      id: 'f2',
+      text: `Okay, I'll admit it - your smile is dangerously attractive 😉`,
+      category: 'flirty',
+      isPremium: true,
+    },
+    {
+      id: 'f3',
+      text: `I had to swipe right. Some opportunities you just don't pass up 😏`,
+      category: 'flirty',
+      isPremium: true,
+    },
 
     // Funny
-    { id: 'fu1', text: `Quick: pineapple on pizza - yay or nay? (This is important)`, category: 'funny' },
-    { id: 'fu2', text: `I promise I'm not a serial killer. That's what a serial killer would say though... 🤔`, category: 'funny' },
-    { id: 'fu3', text: `What's your go-to karaoke song? (Asking for a friend who can't sing)`, category: 'funny' },
+    {
+      id: 'fu1',
+      text: `Quick: pineapple on pizza - yay or nay? (This is important)`,
+      category: 'funny',
+    },
+    {
+      id: 'fu2',
+      text: `I promise I'm not a serial killer. That's what a serial killer would say though... 🤔`,
+      category: 'funny',
+    },
+    {
+      id: 'fu3',
+      text: `What's your go-to karaoke song? (Asking for a friend who can't sing)`,
+      category: 'funny',
+    },
 
     // Deep
-    { id: 'd1', text: `What's a life experience that changed your perspective?`, category: 'deep', isPremium: true },
-    { id: 'd2', text: `If you could have dinner with anyone, living or dead, who would it be?`, category: 'deep', isPremium: true },
+    {
+      id: 'd1',
+      text: `What's a life experience that changed your perspective?`,
+      category: 'deep',
+      isPremium: true,
+    },
+    {
+      id: 'd2',
+      text: `If you could have dinner with anyone, living or dead, who would it be?`,
+      category: 'deep',
+      isPremium: true,
+    },
     { id: 'd3', text: `What's your biggest dream right now?`, category: 'deep', isPremium: true },
   ];
 
@@ -114,7 +177,12 @@ export const Icebreakers: React.FC<IcebreakersProps> = ({
     }
   };
 
-  const categories: { key: IcebreakerCategory; label: string; icon: string; isPremium?: boolean }[] = [
+  const categories: {
+    key: IcebreakerCategory;
+    label: string;
+    icon: string;
+    isPremium?: boolean;
+  }[] = [
     { key: 'contextual', label: 'AI Suggested', icon: '✨', isPremium: true },
     { key: 'casual', label: 'Casual', icon: '👋' },
     { key: 'thoughtful', label: 'Thoughtful', icon: '💭' },
@@ -161,9 +229,12 @@ export const Icebreakers: React.FC<IcebreakersProps> = ({
     }
   };
 
-  const renderCategoryTab = (
-    category: { key: IcebreakerCategory; label: string; icon: string; isPremium?: boolean }
-  ) => {
+  const renderCategoryTab = (category: {
+    key: IcebreakerCategory;
+    label: string;
+    icon: string;
+    isPremium?: boolean;
+  }) => {
     const isActive = selectedCategory === category.key;
     const isLocked = category.isPremium && !isPremium;
 
@@ -238,8 +309,8 @@ export const Icebreakers: React.FC<IcebreakersProps> = ({
           <Text style={styles.emptyIcon}>✨</Text>
           <Text style={styles.emptyTitle}>AI-Powered Suggestions</Text>
           <Text style={styles.emptyDescription}>
-            Our AI analyzes {profile.name}'s profile to suggest personalized conversation
-            starters that are more likely to get a response.
+            Our AI analyzes {profile.name}'s profile to suggest personalized conversation starters
+            that are more likely to get a response.
           </Text>
           {onGenerateContextual && (
             <Button
@@ -260,12 +331,7 @@ export const Icebreakers: React.FC<IcebreakersProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>

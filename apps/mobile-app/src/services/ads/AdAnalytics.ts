@@ -5,13 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import {
-  AdEvent,
-  AdEventType,
-  AdType,
-  AdNetwork,
-  RewardEarned,
-} from './types';
+import { AdEvent, AdEventType, AdType, AdNetwork, RewardEarned } from './types';
 
 const AD_ANALYTICS_STORAGE_KEY = '@flamoral/ad_analytics';
 const AD_REVENUE_STORAGE_KEY = '@flamoral/ad_revenue';
@@ -288,26 +282,30 @@ class AdAnalyticsService {
       // Filter by date range
       let events = allEvents;
       if (startDate) {
-        events = events.filter(e => e.timestamp >= startDate.getTime());
+        events = events.filter((e) => e.timestamp >= startDate.getTime());
       }
       if (endDate) {
-        events = events.filter(e => e.timestamp <= endDate.getTime());
+        events = events.filter((e) => e.timestamp <= endDate.getTime());
       }
 
       // Calculate impressions
       const impressions = {
-        banner: events.filter(e => e.eventType === 'impression' && e.adType === 'banner').length,
-        interstitial: events.filter(e => e.eventType === 'impression' && e.adType === 'interstitial').length,
-        rewarded: events.filter(e => e.eventType === 'impression' && e.adType === 'rewarded').length,
+        banner: events.filter((e) => e.eventType === 'impression' && e.adType === 'banner').length,
+        interstitial: events.filter(
+          (e) => e.eventType === 'impression' && e.adType === 'interstitial'
+        ).length,
+        rewarded: events.filter((e) => e.eventType === 'impression' && e.adType === 'rewarded')
+          .length,
         total: 0,
       };
       impressions.total = impressions.banner + impressions.interstitial + impressions.rewarded;
 
       // Calculate clicks
       const clicks = {
-        banner: events.filter(e => e.eventType === 'click' && e.adType === 'banner').length,
-        interstitial: events.filter(e => e.eventType === 'click' && e.adType === 'interstitial').length,
-        rewarded: events.filter(e => e.eventType === 'click' && e.adType === 'rewarded').length,
+        banner: events.filter((e) => e.eventType === 'click' && e.adType === 'banner').length,
+        interstitial: events.filter((e) => e.eventType === 'click' && e.adType === 'interstitial')
+          .length,
+        rewarded: events.filter((e) => e.eventType === 'click' && e.adType === 'rewarded').length,
         total: 0,
       };
       clicks.total = clicks.banner + clicks.interstitial + clicks.rewarded;
@@ -315,17 +313,18 @@ class AdAnalyticsService {
       // Calculate CTR
       const ctr = {
         banner: impressions.banner > 0 ? (clicks.banner / impressions.banner) * 100 : 0,
-        interstitial: impressions.interstitial > 0 ? (clicks.interstitial / impressions.interstitial) * 100 : 0,
+        interstitial:
+          impressions.interstitial > 0 ? (clicks.interstitial / impressions.interstitial) * 100 : 0,
         rewarded: impressions.rewarded > 0 ? (clicks.rewarded / impressions.rewarded) * 100 : 0,
         overall: impressions.total > 0 ? (clicks.total / impressions.total) * 100 : 0,
       };
 
       // Calculate rewards
-      const rewardEvents = events.filter(e => e.eventType === 'reward_earned');
+      const rewardEvents = events.filter((e) => e.eventType === 'reward_earned');
       const rewardsByType: Record<string, number> = {};
       let totalRewardValue = 0;
 
-      rewardEvents.forEach(e => {
+      rewardEvents.forEach((e) => {
         const type = e.metadata?.rewardType || 'unknown';
         const amount = e.metadata?.rewardAmount || 0;
         rewardsByType[type] = (rewardsByType[type] || 0) + amount;
@@ -333,11 +332,11 @@ class AdAnalyticsService {
       });
 
       // Calculate errors
-      const errorEvents = events.filter(e => e.eventType === 'failed');
+      const errorEvents = events.filter((e) => e.eventType === 'failed');
       const errors = {
-        loadFailures: errorEvents.filter(e => e.metadata?.stage === 'load').length,
-        showFailures: errorEvents.filter(e => e.metadata?.stage === 'show').length,
-        networkErrors: errorEvents.filter(e => e.metadata?.error?.includes('network')).length,
+        loadFailures: errorEvents.filter((e) => e.metadata?.stage === 'load').length,
+        showFailures: errorEvents.filter((e) => e.metadata?.stage === 'show').length,
+        networkErrors: errorEvents.filter((e) => e.metadata?.error?.includes('network')).length,
       };
 
       // Session metrics
@@ -347,9 +346,8 @@ class AdAnalyticsService {
 
       const rewardedImpressions = impressions.rewarded;
       const rewardsEarned = rewardEvents.length;
-      const completionRate = rewardedImpressions > 0
-        ? (rewardsEarned / rewardedImpressions) * 100
-        : 0;
+      const completionRate =
+        rewardedImpressions > 0 ? (rewardsEarned / rewardedImpressions) * 100 : 0;
 
       return {
         date: new Date().toISOString().split('T')[0],
@@ -400,7 +398,7 @@ class AdAnalyticsService {
       const byNetwork: Record<string, number> = {};
       const byAdType: Record<string, number> = {};
 
-      revenueEvents.forEach(e => {
+      revenueEvents.forEach((e) => {
         total += e.estimatedRevenue;
         byNetwork[e.network] = (byNetwork[e.network] || 0) + e.estimatedRevenue;
         byAdType[e.adType] = (byAdType[e.adType] || 0) + e.estimatedRevenue;
@@ -424,10 +422,7 @@ class AdAnalyticsService {
   async clearAnalytics(): Promise<void> {
     this.eventBuffer = [];
     this.revenueBuffer = [];
-    await AsyncStorage.multiRemove([
-      AD_ANALYTICS_STORAGE_KEY,
-      AD_REVENUE_STORAGE_KEY,
-    ]);
+    await AsyncStorage.multiRemove([AD_ANALYTICS_STORAGE_KEY, AD_REVENUE_STORAGE_KEY]);
   }
 
   /**

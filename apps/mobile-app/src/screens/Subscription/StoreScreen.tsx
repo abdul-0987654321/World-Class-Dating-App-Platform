@@ -113,10 +113,7 @@ const SUPERLIKE_PACKAGES: StoreProduct[] = [
   },
 ];
 
-export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
-  navigation,
-  route,
-}) => {
+export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [wallet, setWallet] = useState<any>(null);
@@ -154,8 +151,7 @@ export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
       setPurchasing(product.id);
 
       // Determine product ID based on platform
-      const productId =
-        Platform.OS === 'ios' ? `com.flamoral.${product.id}` : product.id;
+      const productId = Platform.OS === 'ios' ? `com.flamoral.${product.id}` : product.id;
 
       // Find the IAP product
       const iapProduct = products.find((p) => p.productId === productId);
@@ -169,16 +165,12 @@ export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
       const purchase = await paymentService.purchaseConsumable(productId);
 
       if (purchase) {
-        Alert.alert(
-          'Success',
-          `${product.name} added to your account!`,
-          [
-            {
-              text: 'OK',
-              onPress: () => loadStore(), // Reload to update wallet
-            },
-          ]
-        );
+        Alert.alert('Success', `${product.name} added to your account!`, [
+          {
+            text: 'OK',
+            onPress: () => loadStore(), // Reload to update wallet
+          },
+        ]);
       }
     } catch (error: any) {
       console.error('Purchase failed:', error);
@@ -192,9 +184,7 @@ export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
   };
 
   const renderProduct = (product: StoreProduct) => {
-    const iapProduct = products.find((p) =>
-      p.productId.includes(product.id)
-    );
+    const iapProduct = products.find((p) => p.productId.includes(product.id));
 
     return (
       <View key={product.id} style={styles.productCard}>
@@ -284,14 +274,8 @@ export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
           style={[styles.tab, selectedTab === 'coins' && styles.tabActive]}
           onPress={() => setSelectedTab('coins')}
         >
-          <Ionicons
-            name="disc"
-            size={20}
-            color={selectedTab === 'coins' ? '#EC4899' : '#9CA3AF'}
-          />
-          <Text
-            style={[styles.tabText, selectedTab === 'coins' && styles.tabTextActive]}
-          >
+          <Ionicons name="disc" size={20} color={selectedTab === 'coins' ? '#EC4899' : '#9CA3AF'} />
+          <Text style={[styles.tabText, selectedTab === 'coins' && styles.tabTextActive]}>
             Coins
           </Text>
         </TouchableOpacity>
@@ -305,9 +289,7 @@ export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
             size={20}
             color={selectedTab === 'boosts' ? '#EC4899' : '#9CA3AF'}
           />
-          <Text
-            style={[styles.tabText, selectedTab === 'boosts' && styles.tabTextActive]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'boosts' && styles.tabTextActive]}>
             Boosts
           </Text>
         </TouchableOpacity>
@@ -321,9 +303,7 @@ export const StoreScreen: React.FC<{ navigation: any; route: any }> = ({
             size={20}
             color={selectedTab === 'superlikes' ? '#EC4899' : '#9CA3AF'}
           />
-          <Text
-            style={[styles.tabText, selectedTab === 'superlikes' && styles.tabTextActive]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'superlikes' && styles.tabTextActive]}>
             Super Likes
           </Text>
         </TouchableOpacity>

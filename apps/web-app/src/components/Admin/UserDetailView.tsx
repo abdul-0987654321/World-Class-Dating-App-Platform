@@ -27,7 +27,10 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
   const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'subscription'>('overview');
 
   const { data: user, isLoading: userLoading } = useAdminUser(userId);
-  const { data: activity, isLoading: activityLoading } = useUserActivity(userId, activeTab === 'activity');
+  const { data: activity, isLoading: activityLoading } = useUserActivity(
+    userId,
+    activeTab === 'activity'
+  );
 
   if (userLoading) {
     return (
@@ -76,7 +79,8 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
               />
             ) : (
               <div className="w-20 h-20 rounded-full border-4 border-white bg-white/20 flex items-center justify-center text-2xl font-bold">
-                {user.firstName[0]}{user.lastName[0]}
+                {user.firstName[0]}
+                {user.lastName[0]}
               </div>
             )}
             <div>
@@ -84,27 +88,32 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
                 <h2 className="text-2xl font-bold">
                   {user.firstName} {user.lastName}
                 </h2>
-                {user.isVerified && (
-                  <FaShieldAlt className="text-blue-300" title="Verified User" />
-                )}
+                {user.isVerified && <FaShieldAlt className="text-blue-300" title="Verified User" />}
               </div>
               <p className="text-white/90 mb-1">{user.email}</p>
               <p className="text-white/70 text-sm">User ID: {user.id}</p>
               <div className="flex items-center gap-2 mt-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(user)}`}>
-                  {user.isBanned ? 'Banned' : user.isSuspended ? 'Suspended' : user.isActive ? 'Active' : 'Inactive'}
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(user)}`}
+                >
+                  {user.isBanned
+                    ? 'Banned'
+                    : user.isSuspended
+                      ? 'Suspended'
+                      : user.isActive
+                        ? 'Active'
+                        : 'Inactive'}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getSubscriptionColor(user.subscription)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getSubscriptionColor(user.subscription)}`}
+                >
                   {user.subscription}
                 </span>
               </div>
             </div>
           </div>
           {onClose && (
-            <button
-              onClick={onClose}
-              className="text-white/80 hover:text-white text-2xl"
-            >
+            <button onClick={onClose} className="text-white/80 hover:text-white text-2xl">
               ×
             </button>
           )}
@@ -190,7 +199,9 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
                   <FaEnvelope className={user.emailVerified ? 'text-green-500' : 'text-gray-400'} />
                   <div>
                     <p className="text-xs text-gray-500">Email Verification</p>
-                    <p className="font-medium">{user.emailVerified ? 'Verified' : 'Not Verified'}</p>
+                    <p className="font-medium">
+                      {user.emailVerified ? 'Verified' : 'Not Verified'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -246,13 +257,15 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
 
             {/* Warnings/Alerts */}
             {(user.isSuspended || user.isBanned) && (
-              <div className={`p-4 rounded-lg border-l-4 ${
-                user.isBanned
-                  ? 'bg-red-50 border-red-500'
-                  : 'bg-orange-50 border-orange-500'
-              }`}>
+              <div
+                className={`p-4 rounded-lg border-l-4 ${
+                  user.isBanned ? 'bg-red-50 border-red-500' : 'bg-orange-50 border-orange-500'
+                }`}
+              >
                 <div className="flex items-start gap-3">
-                  <FaExclamationTriangle className={user.isBanned ? 'text-red-500' : 'text-orange-500'} />
+                  <FaExclamationTriangle
+                    className={user.isBanned ? 'text-red-500' : 'text-orange-500'}
+                  />
                   <div>
                     <h4 className="font-semibold text-gray-900">
                       {user.isBanned ? 'Account Banned' : 'Account Suspended'}
@@ -303,11 +316,15 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <span className="text-gray-700">Last Login</span>
-                      <span className="font-medium">{new Date(activity.lastLogin).toLocaleString()}</span>
+                      <span className="font-medium">
+                        {new Date(activity.lastLogin).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <span className="text-gray-700">Last Active</span>
-                      <span className="font-medium">{new Date(activity.lastActive).toLocaleString()}</span>
+                      <span className="font-medium">
+                        {new Date(activity.lastActive).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -327,7 +344,9 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
                       </div>
                       <div className="p-3 bg-gray-50 rounded-lg">
                         <p className="text-xs text-gray-500">Last IP</p>
-                        <p className="font-medium font-mono text-sm">{activity.deviceInfo.lastIP || 'Unknown'}</p>
+                        <p className="font-medium font-mono text-sm">
+                          {activity.deviceInfo.lastIP || 'Unknown'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -353,7 +372,9 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
                       <p className="text-sm text-gray-600">Current Plan</p>
                     </div>
                   </div>
-                  <span className={`px-4 py-2 rounded-full font-semibold ${getSubscriptionColor(user.subscription)}`}>
+                  <span
+                    className={`px-4 py-2 rounded-full font-semibold ${getSubscriptionColor(user.subscription)}`}
+                  >
                     {user.subscription === 'FREE' ? 'Free Tier' : 'Premium'}
                   </span>
                 </div>

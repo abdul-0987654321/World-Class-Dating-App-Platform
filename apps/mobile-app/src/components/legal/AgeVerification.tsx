@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -16,11 +9,7 @@ interface AgeVerificationProps {
   onCancel: () => void;
 }
 
-const AgeVerification: React.FC<AgeVerificationProps> = ({
-  visible,
-  onVerified,
-  onCancel,
-}) => {
+const AgeVerification: React.FC<AgeVerificationProps> = ({ visible, onVerified, onCancel }) => {
   const [birthdate, setBirthdate] = useState<Date>(
     new Date(2000, 0, 1) // Default to Jan 1, 2000
   );
@@ -57,20 +46,13 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onCancel}
-    >
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
             <Icon name="shield-checkmark" size={48} color="#FF6B6B" />
             <Text style={styles.title}>Age Verification Required</Text>
-            <Text style={styles.subtitle}>
-              You must be 18 years or older to use Flamoral
-            </Text>
+            <Text style={styles.subtitle}>You must be 18 years or older to use Flamoral</Text>
           </View>
 
           <View style={styles.content}>
@@ -83,15 +65,12 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Select birthdate"
               >
-                <Text style={styles.dateButtonText}>
-                  {birthdate.toLocaleDateString()}
-                </Text>
+                <Text style={styles.dateButtonText}>{birthdate.toLocaleDateString()}</Text>
                 <Icon name="calendar-outline" size={24} color="#FF6B6B" />
               </TouchableOpacity>
             )}
 
             {(Platform.OS === 'ios' || showPicker) && (
-              // @ts-expect-error DateTimePicker has JSX element type incompatibility with React 18 types
               <DateTimePicker
                 value={birthdate}
                 mode="date"
@@ -99,27 +78,18 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({
                 onChange={handleDateChange}
                 maximumDate={new Date()}
                 minimumDate={new Date(1924, 0, 1)}
-                accessibilityLabel="Birthdate picker"
               />
             )}
 
             <View
-              style={[
-                styles.ageIndicator,
-                isEligible ? styles.ageEligible : styles.ageIneligible,
-              ]}
+              style={[styles.ageIndicator, isEligible ? styles.ageEligible : styles.ageIneligible]}
             >
               <Icon
                 name={isEligible ? 'checkmark-circle' : 'alert-circle'}
                 size={20}
                 color={isEligible ? '#34C759' : '#FF3B30'}
               />
-              <Text
-                style={[
-                  styles.ageText,
-                  { color: isEligible ? '#34C759' : '#FF3B30' },
-                ]}
-              >
+              <Text style={[styles.ageText, { color: isEligible ? '#34C759' : '#FF3B30' }]}>
                 Age: {calculateAge(birthdate)} years old
               </Text>
             </View>
@@ -127,9 +97,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({
             {!isEligible && (
               <View style={styles.warningBox}>
                 <Icon name="information-circle" size={20} color="#FF9500" />
-                <Text style={styles.warningText}>
-                  You must be 18 or older to continue
-                </Text>
+                <Text style={styles.warningText}>You must be 18 or older to continue</Text>
               </View>
             )}
           </View>
@@ -145,31 +113,22 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.button,
-                styles.confirmButton,
-                !isEligible && styles.buttonDisabled,
-              ]}
+              style={[styles.button, styles.confirmButton, !isEligible && styles.buttonDisabled]}
               onPress={handleConfirm}
               disabled={!isEligible}
               accessibilityRole="button"
               accessibilityLabel="Confirm age"
               accessibilityState={{ disabled: !isEligible }}
             >
-              <Text
-                style={[
-                  styles.confirmButtonText,
-                  !isEligible && styles.buttonTextDisabled,
-                ]}
-              >
+              <Text style={[styles.confirmButtonText, !isEligible && styles.buttonTextDisabled]}>
                 Confirm
               </Text>
             </TouchableOpacity>
           </View>
 
           <Text style={styles.disclaimer}>
-            By continuing, you agree to our Terms of Service and confirm that
-            you are 18 years or older.
+            By continuing, you agree to our Terms of Service and confirm that you are 18 years or
+            older.
           </Text>
         </View>
       </View>

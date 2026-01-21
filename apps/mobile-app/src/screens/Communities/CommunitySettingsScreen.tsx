@@ -99,20 +99,19 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [newRuleTitle, newRuleDescription, addRule]);
 
-  const handleRemoveRule = useCallback((rule: CommunityRule) => {
-    Alert.alert(
-      'Remove Rule',
-      `Are you sure you want to remove "${rule.title}"?`,
-      [
+  const handleRemoveRule = useCallback(
+    (rule: CommunityRule) => {
+      Alert.alert('Remove Rule', `Are you sure you want to remove "${rule.title}"?`, [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Remove',
           style: 'destructive',
           onPress: () => removeRule(rule.id),
         },
-      ]
-    );
-  }, [removeRule]);
+      ]);
+    },
+    [removeRule]
+  );
 
   const handleDeleteCommunity = useCallback(async () => {
     setShowDeleteConfirm(false);
@@ -161,13 +160,8 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.accessDenied}>
           <Icon name="lock-closed" size={64} color="#ccc" />
           <Text style={styles.accessDeniedTitle}>Access Denied</Text>
-          <Text style={styles.accessDeniedText}>
-            Only community admins can access settings
-          </Text>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <Text style={styles.accessDeniedText}>Only community admins can access settings</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -179,10 +173,7 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Community Settings</Text>
@@ -254,10 +245,7 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Community Rules</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowAddRule(true)}
-            >
+            <TouchableOpacity style={styles.addButton} onPress={() => setShowAddRule(true)}>
               <Icon name="add-circle" size={24} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
@@ -313,23 +301,16 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
             <Icon name="people-outline" size={22} color="#666" />
             <View style={styles.actionInfo}>
               <Text style={styles.actionLabel}>Manage Members</Text>
-              <Text style={styles.actionDescription}>
-                View, promote, or remove members
-              </Text>
+              <Text style={styles.actionDescription}>View, promote, or remove members</Text>
             </View>
             <Icon name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.actionRow}
-            onPress={handleTransferOwnership}
-          >
+          <TouchableOpacity style={styles.actionRow} onPress={handleTransferOwnership}>
             <Icon name="swap-horizontal-outline" size={22} color="#666" />
             <View style={styles.actionInfo}>
               <Text style={styles.actionLabel}>Transfer Ownership</Text>
-              <Text style={styles.actionDescription}>
-                Transfer admin role to another member
-              </Text>
+              <Text style={styles.actionDescription}>Transfer admin role to another member</Text>
             </View>
             <Icon name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
@@ -339,10 +320,7 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={[styles.section, styles.dangerSection]}>
           <Text style={styles.dangerTitle}>Danger Zone</Text>
 
-          <TouchableOpacity
-            style={styles.dangerButton}
-            onPress={() => setShowDeleteConfirm(true)}
-          >
+          <TouchableOpacity style={styles.dangerButton} onPress={() => setShowDeleteConfirm(true)}>
             <Icon name="trash" size={20} color="#FF3B30" />
             <Text style={styles.dangerButtonText}>Delete Community</Text>
           </TouchableOpacity>
@@ -410,8 +388,8 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
             <Text style={styles.confirmTitle}>Delete Community?</Text>
             <Text style={styles.confirmText}>
-              This will permanently delete "{community.name}" and all its content.
-              This action cannot be undone.
+              This will permanently delete "{community.name}" and all its content. This action
+              cannot be undone.
             </Text>
             <View style={styles.confirmActions}>
               <TouchableOpacity
@@ -420,10 +398,7 @@ const CommunitySettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <Text style={styles.confirmCancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmDelete}
-                onPress={handleDeleteCommunity}
-              >
+              <TouchableOpacity style={styles.confirmDelete} onPress={handleDeleteCommunity}>
                 <Text style={styles.confirmDeleteText}>Delete</Text>
               </TouchableOpacity>
             </View>

@@ -5,11 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Platform, PermissionsAndroid, Vibration } from 'react-native';
-import RtcEngine, {
-  ChannelProfile,
-  ClientRole,
-  RtcEngineContext,
-} from 'react-native-agora';
+import RtcEngine, { ChannelProfile, ClientRole, RtcEngineContext } from 'react-native-agora';
 import InCallManager from 'react-native-incall-manager';
 import type {
   SpeedDatingSession,
@@ -135,9 +131,7 @@ export const useSpeedDatingSession = (
         throw new Error('Camera/microphone permissions not granted');
       }
 
-      const rtcEngine = await RtcEngine.createWithContext(
-        new RtcEngineContext(videoConfig.appId)
-      );
+      const rtcEngine = await RtcEngine.createWithContext(new RtcEngineContext(videoConfig.appId));
 
       await rtcEngine.enableVideo();
       await rtcEngine.enableAudio();
@@ -159,11 +153,11 @@ export const useSpeedDatingSession = (
 
       // Event listeners
       rtcEngine.addListener('UserJoined', (uid) => {
-        setRemoteUids(prev => [...prev, uid]);
+        setRemoteUids((prev) => [...prev, uid]);
       });
 
       rtcEngine.addListener('UserOffline', (uid) => {
-        setRemoteUids(prev => prev.filter(id => id !== uid));
+        setRemoteUids((prev) => prev.filter((id) => id !== uid));
       });
 
       rtcEngine.addListener('JoinChannelSuccess', (channel, uid) => {
@@ -171,15 +165,16 @@ export const useSpeedDatingSession = (
       });
 
       rtcEngine.addListener('NetworkQuality', (uid, txQuality, rxQuality) => {
-        const quality = txQuality <= 2 && rxQuality <= 2
-          ? 'excellent'
-          : txQuality <= 4 && rxQuality <= 4
-          ? 'good'
-          : txQuality <= 5 && rxQuality <= 5
-          ? 'fair'
-          : 'poor';
+        const quality =
+          txQuality <= 2 && rxQuality <= 2
+            ? 'excellent'
+            : txQuality <= 4 && rxQuality <= 4
+              ? 'good'
+              : txQuality <= 5 && rxQuality <= 5
+                ? 'fair'
+                : 'poor';
 
-        setCallStats(prev => ({ ...prev, quality }));
+        setCallStats((prev) => ({ ...prev, quality }));
       });
 
       rtcEngine.addListener('Error', (errorCode) => {
@@ -204,12 +199,7 @@ export const useSpeedDatingSession = (
       InCallManager.start({ media: 'video' });
       InCallManager.setForceSpeakerphoneOn(isSpeakerOn);
 
-      await engine.joinChannel(
-        videoConfig.token,
-        videoConfig.channel,
-        null,
-        videoConfig.uid || 0
-      );
+      await engine.joinChannel(videoConfig.token, videoConfig.channel, null, videoConfig.uid || 0);
     } catch (error) {
       console.error('Join channel error:', error);
     }
@@ -261,36 +251,39 @@ export const useSpeedDatingSession = (
   /**
    * Handle voting (like/skip)
    */
-  const vote = useCallback((like: boolean) => {
-    if (!currentPartner) return;
+  const vote = useCallback(
+    (like: boolean) => {
+      if (!currentPartner) return;
 
-    if (like) {
-      setLikes(prev => new Set(prev).add(currentPartner.id));
-      playHaptic('heavy');
+      if (like) {
+        setLikes((prev) => new Set(prev).add(currentPartner.id));
+        playHaptic('heavy');
 
-      // Check for mutual match (in real app, this would come from server)
-      // Simulating match detection
-      if (Math.random() > 0.5) {
-        onMatchFound?.(currentPartner.id);
+        // Check for mutual match (in real app, this would come from server)
+        // Simulating match detection
+        if (Math.random() > 0.5) {
+          onMatchFound?.(currentPartner.id);
+        }
       }
-    }
 
-    // Record round
-    const round: SpeedDatingRound = {
-      roundNumber: currentRound,
-      partnerId: currentPartner.id,
-      partner: currentPartner,
-      startTime: new Date(Date.now() - config.roundDuration * 1000).toISOString(),
-      endTime: new Date().toISOString(),
-      liked: like,
-    };
-    setRounds(prev => [...prev, round]);
+      // Record round
+      const round: SpeedDatingRound = {
+        roundNumber: currentRound,
+        partnerId: currentPartner.id,
+        partner: currentPartner,
+        startTime: new Date(Date.now() - config.roundDuration * 1000).toISOString(),
+        endTime: new Date().toISOString(),
+        liked: like,
+      };
+      setRounds((prev) => [...prev, round]);
 
-    // Move to break or end
-    setSessionState('break');
-    setTimeRemaining(config.breakDuration);
-    playHaptic('light');
-  }, [currentPartner, currentRound, config.roundDuration, config.breakDuration, onMatchFound]);
+      // Move to break or end
+      setSessionState('break');
+      setTimeRemaining(config.breakDuration);
+      playHaptic('light');
+    },
+    [currentPartner, currentRound, config.roundDuration, config.breakDuration, onMatchFound]
+  );
 
   /**
    * Skip current round
@@ -397,7 +390,7 @@ export const useSpeedDatingSession = (
     }
 
     timerRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
+      setTimeRemaining((prev) => {
         if (prev <= 1) {
           if (sessionState === 'countdown') {
             playHaptic('medium');
@@ -410,8 +403,8 @@ export const useSpeedDatingSession = (
           } else if (sessionState === 'break') {
             // Move to next partner
             if (currentPartnerIndex < config.participants.length - 1) {
-              setCurrentPartnerIndex(prev => prev + 1);
-              setCurrentRound(prev => prev + 1);
+              setCurrentPartnerIndex((prev) => prev + 1);
+              setCurrentRound((prev) => prev + 1);
               setSessionState('countdown');
 
               // Notify about round change
@@ -442,15 +435,7 @@ export const useSpeedDatingSession = (
         clearInterval(timerRef.current);
       }
     };
-  }, [
-    sessionState,
-    currentPartnerIndex,
-    currentRound,
-    config,
-    likes,
-    onRoundChange,
-    onSessionEnd,
-  ]);
+  }, [sessionState, currentPartnerIndex, currentRound, config, likes, onRoundChange, onSessionEnd]);
 
   // Cleanup on unmount
   useEffect(() => {

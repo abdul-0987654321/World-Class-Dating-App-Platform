@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -270,8 +263,8 @@ const NotificationSettingsScreen: React.FC = () => {
         <View style={styles.infoBox}>
           <Icon name="information-circle" size={24} color="#007AFF" />
           <Text style={styles.infoText}>
-            Some notifications may still come through for important account or
-            security updates, even if disabled.
+            Some notifications may still come through for important account or security updates,
+            even if disabled.
           </Text>
         </View>
       </ScrollView>

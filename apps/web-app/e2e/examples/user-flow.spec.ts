@@ -87,7 +87,7 @@ test.describe('Matching Flow', () => {
     // Check if we got a match
     const matchModal = page.locator('[data-testid="match-modal"]');
     if (await matchModal.isVisible()) {
-      await expect(matchModal).toContainText('It\'s a Match!');
+      await expect(matchModal).toContainText("It's a Match!");
       await page.click('[data-testid="send-message-button"]');
       await page.waitForURL(/\/messages\//);
     }
@@ -124,7 +124,7 @@ test.describe('Messaging Flow', () => {
 
     // Select first conversation
     const conversations = page.locator('[data-testid="conversation-item"]');
-    if (await conversations.count() > 0) {
+    if ((await conversations.count()) > 0) {
       await conversations.first().click();
 
       // Wait for conversation to load
@@ -147,7 +147,7 @@ test.describe('Messaging Flow', () => {
     await page.goto('/messages');
 
     const conversations = page.locator('[data-testid="conversation-item"]');
-    if (await conversations.count() > 0) {
+    if ((await conversations.count()) > 0) {
       await conversations.first().click();
 
       // Start typing

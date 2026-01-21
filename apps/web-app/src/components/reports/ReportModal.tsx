@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ReportCategorySelector } from './ReportCategorySelector';
-import {
-  reportService,
-  ReportCategory,
-  ReportCategoryInfo,
-} from '../../services/report.service';
+import { reportService, ReportCategory, ReportCategoryInfo } from '../../services/report.service';
 
 interface ReportModalProps {
   userId: string;
@@ -86,7 +82,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
             {error && (
               <div className="error-banner">
                 <span>{error}</span>
-                <button type="button" onClick={() => setError(null)}>×</button>
+                <button type="button" onClick={() => setError(null)}>
+                  ×
+                </button>
               </div>
             )}
 
@@ -124,21 +122,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                     rows={4}
                     maxLength={500}
                   />
-                  <div className="char-count">
-                    {description.length}/500 characters
-                  </div>
+                  <div className="char-count">{description.length}/500 characters</div>
                 </div>
               </>
             )}
           </div>
 
           <div className="modal-footer">
-            <button
-              type="button"
-              className="btn-cancel"
-              onClick={onClose}
-              disabled={submitting}
-            >
+            <button type="button" className="btn-cancel" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
             <button

@@ -6,9 +6,7 @@ export default defineConfig(({ mode }): UserConfig => {
   const isProduction = mode === 'production';
 
   return {
-    plugins: [
-      react() as any,
-    ],
+    plugins: [react() as any],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

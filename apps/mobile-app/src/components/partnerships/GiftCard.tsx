@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 
 interface GiftProduct {
   id: string;
@@ -78,20 +71,14 @@ export const GiftCard: React.FC<GiftCardProps> = ({
           <Text style={styles.compactName} numberOfLines={2}>
             {product.name}
           </Text>
-          <Text style={styles.compactPrice}>
-            {formatPrice(product.price, product.currency)}
-          </Text>
+          <Text style={styles.compactPrice}>{formatPrice(product.price, product.currency)}</Text>
         </View>
       </TouchableOpacity>
     );
   }
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => onPress(product)}
-      activeOpacity={0.9}
-    >
+    <TouchableOpacity style={styles.container} onPress={() => onPress(product)} activeOpacity={0.9}>
       <Image
         source={{
           uri: product.imageUrls[0] || 'https://via.placeholder.com/300x300',
@@ -113,9 +100,7 @@ export const GiftCard: React.FC<GiftCardProps> = ({
       )}
 
       <View style={styles.content}>
-        <Text style={styles.category}>
-          {product.category.toUpperCase()}
-        </Text>
+        <Text style={styles.category}>{product.category.toUpperCase()}</Text>
 
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
@@ -130,17 +115,13 @@ export const GiftCard: React.FC<GiftCardProps> = ({
         <View style={styles.tagsContainer}>
           {product.occasionTags.slice(0, 3).map((tag) => (
             <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>
-                {tag.replace('_', ' ')}
-              </Text>
+              <Text style={styles.tagText}>{tag.replace('_', ' ')}</Text>
             </View>
           ))}
         </View>
 
         <View style={styles.priceContainer}>
-          <Text style={styles.price}>
-            {formatPrice(product.price, product.currency)}
-          </Text>
+          <Text style={styles.price}>{formatPrice(product.price, product.currency)}</Text>
           {hasDiscount && (
             <Text style={styles.originalPrice}>
               {formatPrice(product.originalPrice!, product.currency)}
@@ -149,10 +130,7 @@ export const GiftCard: React.FC<GiftCardProps> = ({
         </View>
 
         {onSendGift && (
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={() => onSendGift(product)}
-          >
+          <TouchableOpacity style={styles.sendButton} onPress={() => onSendGift(product)}>
             <Text style={styles.sendButtonText}>Send as Gift</Text>
           </TouchableOpacity>
         )}

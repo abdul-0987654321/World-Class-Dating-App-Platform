@@ -143,10 +143,44 @@ class AdminUserService {
 
   // Mock data generation
   private generateMockUsers(count: number = 20): AdminUser[] {
-    const firstNames = ['Alex', 'Sarah', 'Mike', 'Emma', 'John', 'Lisa', 'David', 'Maria', 'Chris', 'Anna'];
-    const lastNames = ['Johnson', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas'];
-    const tiers: Array<'FREE' | 'GOLD' | 'PLATINUM' | 'DIAMOND'> = ['FREE', 'GOLD', 'PLATINUM', 'DIAMOND'];
-    const locations = ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Miami, FL'];
+    const firstNames = [
+      'Alex',
+      'Sarah',
+      'Mike',
+      'Emma',
+      'John',
+      'Lisa',
+      'David',
+      'Maria',
+      'Chris',
+      'Anna',
+    ];
+    const lastNames = [
+      'Johnson',
+      'Williams',
+      'Brown',
+      'Davis',
+      'Miller',
+      'Wilson',
+      'Moore',
+      'Taylor',
+      'Anderson',
+      'Thomas',
+    ];
+    const tiers: Array<'FREE' | 'GOLD' | 'PLATINUM' | 'DIAMOND'> = [
+      'FREE',
+      'GOLD',
+      'PLATINUM',
+      'DIAMOND',
+    ];
+    const locations = [
+      'New York, NY',
+      'Los Angeles, CA',
+      'Chicago, IL',
+      'Houston, TX',
+      'Phoenix, AZ',
+      'Miami, FL',
+    ];
 
     return Array.from({ length: count }, (_, i) => ({
       id: `user-${i + 1}`,
@@ -163,9 +197,10 @@ class AdminUserService {
       isActive: i % 5 !== 0,
       isBanned: i % 20 === 0,
       isSuspended: i % 15 === 0,
-      suspendedUntil: i % 15 === 0 ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : undefined,
-      createdAt: new Date(Date.now() - (i * 7 * 24 * 60 * 60 * 1000)).toISOString(),
-      lastActive: new Date(Date.now() - (i * 60 * 60 * 1000)).toISOString(),
+      suspendedUntil:
+        i % 15 === 0 ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+      createdAt: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      lastActive: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
       reportCount: i % 10 === 0 ? Math.floor(Math.random() * 5) + 1 : 0,
       totalMatches: Math.floor(Math.random() * 50),
       totalMessages: Math.floor(Math.random() * 200),
@@ -177,7 +212,7 @@ class AdminUserService {
 
   async getUsers(params: UsersListParams = {}): Promise<UsersListResponse> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const {
         page = 1,
@@ -192,15 +227,22 @@ class AdminUserService {
 
       // Apply filters
       if (filter !== 'all') {
-        users = users.filter(u => {
+        users = users.filter((u) => {
           switch (filter) {
-            case 'verified': return u.isVerified;
-            case 'premium': return u.subscription !== 'FREE';
-            case 'banned': return u.isBanned;
-            case 'reported': return u.reportCount > 0;
-            case 'suspended': return u.isSuspended;
-            case 'active': return u.isActive && !u.isBanned && !u.isSuspended;
-            default: return true;
+            case 'verified':
+              return u.isVerified;
+            case 'premium':
+              return u.subscription !== 'FREE';
+            case 'banned':
+              return u.isBanned;
+            case 'reported':
+              return u.reportCount > 0;
+            case 'suspended':
+              return u.isSuspended;
+            case 'active':
+              return u.isActive && !u.isBanned && !u.isSuspended;
+            default:
+              return true;
           }
         });
       }
@@ -208,11 +250,12 @@ class AdminUserService {
       // Apply search
       if (search) {
         const searchLower = search.toLowerCase();
-        users = users.filter(u =>
-          u.firstName.toLowerCase().includes(searchLower) ||
-          u.lastName.toLowerCase().includes(searchLower) ||
-          u.email.toLowerCase().includes(searchLower) ||
-          u.id.toLowerCase().includes(searchLower)
+        users = users.filter(
+          (u) =>
+            u.firstName.toLowerCase().includes(searchLower) ||
+            u.lastName.toLowerCase().includes(searchLower) ||
+            u.email.toLowerCase().includes(searchLower) ||
+            u.id.toLowerCase().includes(searchLower)
         );
       }
 
@@ -254,9 +297,9 @@ class AdminUserService {
 
   async getUserById(userId: string): Promise<AdminUser> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const users = this.generateMockUsers(50);
-      const user = users.find(u => u.id === userId) || users[0];
+      const user = users.find((u) => u.id === userId) || users[0];
       return user;
     }
 
@@ -265,7 +308,7 @@ class AdminUserService {
 
   async getUserActivity(userId: string): Promise<AdminUserActivity> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         userId,
         lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
@@ -290,7 +333,7 @@ class AdminUserService {
 
   async getUserMatches(userId: string): Promise<UserMatch[]> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const matchCount = Math.floor(Math.random() * 10) + 1;
       return Array.from({ length: matchCount }, (_, i) => ({
         id: `match-${i + 1}`,
@@ -302,7 +345,8 @@ class AdminUserService {
           profilePhoto: `https://randomuser.me/api/portraits/women/${i % 50}.jpg`,
         },
         matchedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-        lastMessageAt: i % 2 === 0 ? new Date(Date.now() - i * 12 * 60 * 60 * 1000).toISOString() : undefined,
+        lastMessageAt:
+          i % 2 === 0 ? new Date(Date.now() - i * 12 * 60 * 60 * 1000).toISOString() : undefined,
         messageCount: i % 2 === 0 ? Math.floor(Math.random() * 50) : 0,
         isBlocked: false,
       }));
@@ -313,16 +357,19 @@ class AdminUserService {
 
   async getUserConversations(userId: string): Promise<UserConversation[]> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const convCount = Math.floor(Math.random() * 8) + 1;
       return Array.from({ length: convCount }, (_, i) => ({
         id: `conv-${i + 1}`,
         participants: [userId, `user-${200 + i}`],
-        lastMessage: i % 2 === 0 ? {
-          content: 'Hey, how are you doing?',
-          senderId: i % 4 === 0 ? userId : `user-${200 + i}`,
-          timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
-        } : undefined,
+        lastMessage:
+          i % 2 === 0
+            ? {
+                content: 'Hey, how are you doing?',
+                senderId: i % 4 === 0 ? userId : `user-${200 + i}`,
+                timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
+              }
+            : undefined,
         messageCount: Math.floor(Math.random() * 50),
         createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
         updatedAt: new Date(Date.now() - i * 12 * 60 * 60 * 1000).toISOString(),
@@ -334,7 +381,7 @@ class AdminUserService {
 
   async getUserReports(userId: string): Promise<UserReport[]> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const reportCount = Math.floor(Math.random() * 5);
       return Array.from({ length: reportCount }, (_, i) => ({
         id: `report-${i + 1}`,
@@ -350,7 +397,8 @@ class AdminUserService {
         description: 'User violated community guidelines',
         status: ['pending', 'investigating', 'resolved', 'dismissed'][i % 4] as any,
         createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-        resolvedAt: i % 2 === 0 ? new Date(Date.now() - i * 12 * 60 * 60 * 1000).toISOString() : undefined,
+        resolvedAt:
+          i % 2 === 0 ? new Date(Date.now() - i * 12 * 60 * 60 * 1000).toISOString() : undefined,
         actionTaken: i % 2 === 0 ? 'User warned' : undefined,
       }));
     }
@@ -360,7 +408,7 @@ class AdminUserService {
 
   async updateUser(userId: string, data: UpdateUserRequest): Promise<AdminUser> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const user = await this.getUserById(userId);
       return { ...user, ...data };
     }
@@ -370,7 +418,7 @@ class AdminUserService {
 
   async performModerationAction(userId: string, action: ModerationAction): Promise<void> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return;
     }
 
@@ -379,13 +427,15 @@ class AdminUserService {
 
   async updateSubscription(userId: string, data: SubscriptionUpdateRequest): Promise<AdminUser> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const user = await this.getUserById(userId);
       return {
         ...user,
         subscription: data.tier,
         subscriptionStartDate: new Date().toISOString(),
-        subscriptionEndDate: data.duration ? new Date(Date.now() + data.duration * 30 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+        subscriptionEndDate: data.duration
+          ? new Date(Date.now() + data.duration * 30 * 24 * 60 * 60 * 1000).toISOString()
+          : undefined,
       };
     }
 
@@ -394,7 +444,7 @@ class AdminUserService {
 
   async deleteUser(userId: string): Promise<void> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return;
     }
 
@@ -403,7 +453,7 @@ class AdminUserService {
 
   async verifyUser(userId: string): Promise<AdminUser> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const user = await this.getUserById(userId);
       return { ...user, isVerified: true };
     }
@@ -413,7 +463,7 @@ class AdminUserService {
 
   async resetPassword(userId: string): Promise<void> {
     if (this.isMock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return;
     }
 

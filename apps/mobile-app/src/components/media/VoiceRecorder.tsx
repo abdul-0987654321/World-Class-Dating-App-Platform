@@ -330,7 +330,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       <View style={styles.controls}>
         {!isRecording ? (
           <TouchableOpacity onPress={startRecording} style={styles.recordButton}>
-            <Animated.View style={[styles.recordButtonInner, { transform: [{ scale: pulseAnim }] }]}>
+            <Animated.View
+              style={[styles.recordButtonInner, { transform: [{ scale: pulseAnim }] }]}
+            >
               <Icon name="microphone" size={32} color="#FFF" />
             </Animated.View>
           </TouchableOpacity>

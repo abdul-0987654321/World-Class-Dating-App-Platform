@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -44,75 +37,39 @@ const AppTrackingTransparency: React.FC<AppTrackingTransparencyProps> = ({
   }
 
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={handleDeny}
-    >
+    <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={handleDeny}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.iconContainer}>
             <Icon name="analytics-outline" size={64} color="#FF6B6B" />
           </View>
 
-          <Text style={styles.title}>
-            Help Us Improve Your Experience
-          </Text>
+          <Text style={styles.title}>Help Us Improve Your Experience</Text>
 
           <Text style={styles.description}>
-            We'd like to use data from other companies' apps and websites to
-            provide you with a better, more personalized experience. This
-            includes:
+            We'd like to use data from other companies' apps and websites to provide you with a
+            better, more personalized experience. This includes:
           </Text>
 
           <View style={styles.benefitsList}>
             <View style={styles.benefitItem}>
-              <Icon
-                name="checkmark-circle"
-                size={20}
-                color="#34C759"
-                style={styles.benefitIcon}
-              />
-              <Text style={styles.benefitText}>
-                Personalized match recommendations
-              </Text>
+              <Icon name="checkmark-circle" size={20} color="#34C759" style={styles.benefitIcon} />
+              <Text style={styles.benefitText}>Personalized match recommendations</Text>
             </View>
 
             <View style={styles.benefitItem}>
-              <Icon
-                name="checkmark-circle"
-                size={20}
-                color="#34C759"
-                style={styles.benefitIcon}
-              />
-              <Text style={styles.benefitText}>
-                Relevant content and features
-              </Text>
+              <Icon name="checkmark-circle" size={20} color="#34C759" style={styles.benefitIcon} />
+              <Text style={styles.benefitText}>Relevant content and features</Text>
             </View>
 
             <View style={styles.benefitItem}>
-              <Icon
-                name="checkmark-circle"
-                size={20}
-                color="#34C759"
-                style={styles.benefitIcon}
-              />
-              <Text style={styles.benefitText}>
-                Better ads (if applicable)
-              </Text>
+              <Icon name="checkmark-circle" size={20} color="#34C759" style={styles.benefitIcon} />
+              <Text style={styles.benefitText}>Better ads (if applicable)</Text>
             </View>
 
             <View style={styles.benefitItem}>
-              <Icon
-                name="checkmark-circle"
-                size={20}
-                color="#34C759"
-                style={styles.benefitIcon}
-              />
-              <Text style={styles.benefitText}>
-                Improved app performance
-              </Text>
+              <Icon name="checkmark-circle" size={20} color="#34C759" style={styles.benefitIcon} />
+              <Text style={styles.benefitText}>Improved app performance</Text>
             </View>
           </View>
 

@@ -4,8 +4,17 @@
  */
 
 import { Platform, PermissionsAndroid, Alert } from 'react-native';
-import { launchCamera, launchImageLibrary, ImagePickerResponse, CameraOptions, ImageLibraryOptions } from 'react-native-image-picker';
-import ImageCropPicker, { Image as CroppedImage, Options as CropOptions } from 'react-native-image-crop-picker';
+import {
+  launchCamera,
+  launchImageLibrary,
+  ImagePickerResponse,
+  CameraOptions,
+  ImageLibraryOptions,
+} from 'react-native-image-picker';
+import ImageCropPicker, {
+  Image as CroppedImage,
+  Options as CropOptions,
+} from 'react-native-image-crop-picker';
 import { check, request, PERMISSIONS, RESULTS, Permission } from 'react-native-permissions';
 
 export interface CapturePhotoOptions {
@@ -41,16 +50,13 @@ class CameraServiceClass {
   async requestCameraPermission(): Promise<boolean> {
     try {
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: 'Camera Permission',
-            message: 'Flamoral needs access to your camera to take photos',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
-        );
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+          title: 'Camera Permission',
+          message: 'Flamoral needs access to your camera to take photos',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        });
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       } else {
         const permission: Permission = PERMISSIONS.IOS.CAMERA;
@@ -156,7 +162,7 @@ class CameraServiceClass {
         maxWidth: options.maxWidth || 1200,
         maxHeight: options.maxHeight || 1200,
         quality: options.quality || 0.8,
-        selectionLimit: options.multiple ? (options.maxFiles || 6) : 1,
+        selectionLimit: options.multiple ? options.maxFiles || 6 : 1,
       };
 
       const response: ImagePickerResponse = await launchImageLibrary(libraryOptions);
@@ -165,7 +171,7 @@ class CameraServiceClass {
         return [];
       }
 
-      return response.assets.map(asset => ({
+      return response.assets.map((asset) => ({
         uri: asset.uri!,
         type: asset.type || 'image/jpeg',
         fileName: asset.fileName,
@@ -272,7 +278,7 @@ class CameraServiceClass {
         includeBase64: false,
       });
 
-      return images.map(image => ({
+      return images.map((image) => ({
         uri: image.path,
         type: image.mime,
         fileName: image.filename,
@@ -351,10 +357,7 @@ class CameraServiceClass {
       });
 
       if (video.duration && video.duration > maxDuration * 1000) {
-        Alert.alert(
-          'Video Too Long',
-          `Please select a video shorter than ${maxDuration} seconds.`
-        );
+        Alert.alert('Video Too Long', `Please select a video shorter than ${maxDuration} seconds.`);
         return null;
       }
 
@@ -379,10 +382,7 @@ class CameraServiceClass {
   /**
    * Show photo selection action sheet
    */
-  showPhotoSelectionActionSheet(
-    onCamera: () => void,
-    onGallery: () => void
-  ): void {
+  showPhotoSelectionActionSheet(onCamera: () => void, onGallery: () => void): void {
     Alert.alert(
       'Select Photo',
       'Choose a photo from:',

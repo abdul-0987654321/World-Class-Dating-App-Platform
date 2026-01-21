@@ -15,7 +15,7 @@ export const CardHeader = styled.div`
 `;
 
 export const CardTitle = styled.h1`
-  font-size: ${({ theme}) => theme.fontSize['3xl']};
+  font-size: ${({ theme }) => theme.fontSize['3xl']};
   font-weight: ${({ theme }) => theme.fontWeight.bold};
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: ${({ theme }) => theme.spacing.sm};

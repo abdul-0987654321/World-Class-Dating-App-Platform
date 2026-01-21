@@ -23,9 +23,7 @@ describe('UpgradeModal', () => {
 
   describe('Rendering', () => {
     it('does not render when isOpen is false', () => {
-      renderWithProviders(
-        <UpgradeModal isOpen={false} onClose={() => {}} />
-      );
+      renderWithProviders(<UpgradeModal isOpen={false} onClose={() => {}} />);
       expect(screen.queryByText('Premium Feature')).not.toBeInTheDocument();
     });
 
@@ -41,25 +39,19 @@ describe('UpgradeModal', () => {
 
     it('displays custom message when provided', () => {
       renderWithProviders(
-        <UpgradeModal
-          isOpen={true}
-          onClose={() => {}}
-          message="Custom upgrade message"
-        />
+        <UpgradeModal isOpen={true} onClose={() => {}} message="Custom upgrade message" />
       );
-      expect(screen.getByText('Custom upgrade message')).toBeInTheDocument();
+      // Message appears in the feature description and/or the content section
+      const messages = screen.getAllByText(/Custom upgrade message/);
+      expect(messages.length).toBeGreaterThan(0);
     });
   });
 
   describe('Feature Specific Content', () => {
     it('displays super_like feature info', () => {
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={() => {}} feature="super_like" />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={() => {}} feature="super_like" />);
       expect(screen.getByText('Super Like')).toBeInTheDocument();
-      expect(
-        screen.getByText(/Stand out from the crowd/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Stand out from the crowd/)).toBeInTheDocument();
     });
 
     it('displays unlimited_likes feature info', () => {
@@ -71,37 +63,25 @@ describe('UpgradeModal', () => {
 
     it('displays see_who_likes_you feature info', () => {
       renderWithProviders(
-        <UpgradeModal
-          isOpen={true}
-          onClose={() => {}}
-          feature="see_who_likes_you"
-        />
+        <UpgradeModal isOpen={true} onClose={() => {}} feature="see_who_likes_you" />
       );
       expect(screen.getByText('See Who Likes You')).toBeInTheDocument();
     });
 
     it('displays video_call feature info', () => {
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={() => {}} feature="video_call" />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={() => {}} feature="video_call" />);
       expect(screen.getByText('Video Calls')).toBeInTheDocument();
     });
 
     it('displays advanced_filters feature info', () => {
       renderWithProviders(
-        <UpgradeModal
-          isOpen={true}
-          onClose={() => {}}
-          feature="advanced_filters"
-        />
+        <UpgradeModal isOpen={true} onClose={() => {}} feature="advanced_filters" />
       );
       expect(screen.getByText('Advanced Filters')).toBeInTheDocument();
     });
 
     it('displays boost feature info', () => {
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={() => {}} feature="boost" />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={() => {}} feature="boost" />);
       expect(screen.getByText('Profile Boost')).toBeInTheDocument();
     });
   });
@@ -114,11 +94,7 @@ describe('UpgradeModal', () => {
 
     it('displays specified tier', () => {
       renderWithProviders(
-        <UpgradeModal
-          isOpen={true}
-          onClose={() => {}}
-          requiredTier="PLATINUM"
-        />
+        <UpgradeModal isOpen={true} onClose={() => {}} requiredTier="PLATINUM" />
       );
       expect(screen.getByText(/Upgrade to PLATINUM/)).toBeInTheDocument();
     });
@@ -149,9 +125,7 @@ describe('UpgradeModal', () => {
 
     it('calls onClose when backdrop is clicked', () => {
       const handleClose = vi.fn();
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={handleClose} />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={handleClose} />);
 
       // Click on the backdrop (the outer div)
       const backdrop = screen.getByText('Premium Feature').closest('.fixed');
@@ -163,9 +137,7 @@ describe('UpgradeModal', () => {
 
     it('does not close when modal content is clicked', () => {
       const handleClose = vi.fn();
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={handleClose} />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={handleClose} />);
 
       const modalContent = screen.getByText('Premium Benefits:');
       fireEvent.click(modalContent);
@@ -175,9 +147,7 @@ describe('UpgradeModal', () => {
 
     it('navigates to subscription page when Upgrade Now is clicked', () => {
       const handleClose = vi.fn();
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={handleClose} />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={handleClose} />);
 
       fireEvent.click(screen.getByText('Upgrade Now'));
 
@@ -187,9 +157,7 @@ describe('UpgradeModal', () => {
 
     it('navigates to coins page when Buy Coins is clicked', () => {
       const handleClose = vi.fn();
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={handleClose} />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={handleClose} />);
 
       fireEvent.click(screen.getByText('Buy Coins Instead'));
 
@@ -199,9 +167,7 @@ describe('UpgradeModal', () => {
 
     it('calls onClose when Maybe Later is clicked', () => {
       const handleClose = vi.fn();
-      renderWithProviders(
-        <UpgradeModal isOpen={true} onClose={handleClose} />
-      );
+      renderWithProviders(<UpgradeModal isOpen={true} onClose={handleClose} />);
 
       fireEvent.click(screen.getByText('Maybe Later'));
 

@@ -24,13 +24,17 @@ test.describe('Messages Page', () => {
 
   test('should display conversation list', async ({ page }) => {
     // Wait for conversations to load
-    const conversationList = page.locator('[data-testid="conversation-list"], [class*="conversation"]');
+    const conversationList = page.locator(
+      '[data-testid="conversation-list"], [class*="conversation"]'
+    );
     await expect(conversationList).toBeVisible({ timeout: 10000 });
   });
 
   test('should display empty state when no conversations', async ({ page }) => {
     // If no conversations, should show empty state
-    const emptyState = page.locator('[data-testid="no-conversations"], text=/no messages|start matching/i');
+    const emptyState = page.locator(
+      '[data-testid="no-conversations"], text=/no messages|start matching/i'
+    );
 
     // This depends on test data
   });
@@ -77,7 +81,9 @@ test.describe('Conversation View', () => {
       await conversationItem.click();
 
       // Should show message thread
-      await expect(page.locator('[data-testid="message-thread"], [class*="message-list"]')).toBeVisible();
+      await expect(
+        page.locator('[data-testid="message-thread"], [class*="message-list"]')
+      ).toBeVisible();
     }
   });
 
@@ -88,7 +94,9 @@ test.describe('Conversation View', () => {
       await conversationItem.click();
 
       // Message input should be visible
-      await expect(page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]')).toBeVisible();
+      await expect(
+        page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]')
+      ).toBeVisible();
     }
   });
 
@@ -99,7 +107,9 @@ test.describe('Conversation View', () => {
       await conversationItem.click();
 
       // Send button should be visible
-      await expect(page.locator('button[type="submit"], [data-testid="send-button"]')).toBeVisible();
+      await expect(
+        page.locator('button[type="submit"], [data-testid="send-button"]')
+      ).toBeVisible();
     }
   });
 
@@ -132,7 +142,9 @@ test.describe('Sending Messages', () => {
       await conversationItem.click();
 
       // Type message
-      const messageInput = page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]');
+      const messageInput = page.locator(
+        'input[placeholder*="message" i], textarea[placeholder*="message" i]'
+      );
       const messageText = `Test message ${Date.now()}`;
       await messageInput.fill(messageText);
 
@@ -150,7 +162,9 @@ test.describe('Sending Messages', () => {
     if (await conversationItem.isVisible()) {
       await conversationItem.click();
 
-      const messageInput = page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]');
+      const messageInput = page.locator(
+        'input[placeholder*="message" i], textarea[placeholder*="message" i]'
+      );
       const messageText = `Enter test ${Date.now()}`;
       await messageInput.fill(messageText);
       await messageInput.press('Enter');
@@ -165,7 +179,9 @@ test.describe('Sending Messages', () => {
     if (await conversationItem.isVisible()) {
       await conversationItem.click();
 
-      const messageInput = page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]');
+      const messageInput = page.locator(
+        'input[placeholder*="message" i], textarea[placeholder*="message" i]'
+      );
       await messageInput.fill('Test message');
       await messageInput.press('Enter');
 
@@ -180,7 +196,9 @@ test.describe('Sending Messages', () => {
     if (await conversationItem.isVisible()) {
       await conversationItem.click();
 
-      const messageInput = page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]');
+      const messageInput = page.locator(
+        'input[placeholder*="message" i], textarea[placeholder*="message" i]'
+      );
       const initialMessageCount = await page.locator('[data-testid="message-item"]').count();
 
       await messageInput.fill('   ');
@@ -211,7 +229,9 @@ test.describe('Message Display', () => {
 
       // Sent messages should be on one side, received on the other
       const sentMessages = page.locator('[data-testid="message-sent"], [class*="sent"]');
-      const receivedMessages = page.locator('[data-testid="message-received"], [class*="received"]');
+      const receivedMessages = page.locator(
+        '[data-testid="message-received"], [class*="received"]'
+      );
 
       // Both types should have different styling
     }
@@ -224,7 +244,9 @@ test.describe('Message Display', () => {
       await conversationItem.click();
 
       // Messages should show time
-      await expect(page.locator('[data-testid="message-time"], [class*="time"]').first()).toBeVisible();
+      await expect(
+        page.locator('[data-testid="message-time"], [class*="time"]').first()
+      ).toBeVisible();
     }
   });
 
@@ -269,7 +291,9 @@ test.describe('Typing Indicator', () => {
     if (await conversationItem.isVisible()) {
       await conversationItem.click();
 
-      const messageInput = page.locator('input[placeholder*="message" i], textarea[placeholder*="message" i]');
+      const messageInput = page.locator(
+        'input[placeholder*="message" i], textarea[placeholder*="message" i]'
+      );
       await messageInput.fill('Typing...');
 
       // Typing indicator should be shown (for other user in real scenario)

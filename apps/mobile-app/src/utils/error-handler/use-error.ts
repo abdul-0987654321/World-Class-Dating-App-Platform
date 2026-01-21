@@ -211,15 +211,9 @@ export function useValidationErrors(error: ProcessedError | null): {
     }
   }, [error]);
 
-  const getError = useCallback(
-    (field: string): string | undefined => errors[field],
-    [errors]
-  );
+  const getError = useCallback((field: string): string | undefined => errors[field], [errors]);
 
-  const hasError = useCallback(
-    (field: string): boolean => field in errors,
-    [errors]
-  );
+  const hasError = useCallback((field: string): boolean => field in errors, [errors]);
 
   const clearErrors = useCallback(() => {
     setErrors({});
@@ -275,10 +269,7 @@ export function useRetryTimer(retryAfter: number | undefined): {
  * useErrorCode hook
  * Check if current error matches specific error codes
  */
-export function useErrorCode(
-  error: ProcessedError | null,
-  codes: (ErrorCode | string)[]
-): boolean {
+export function useErrorCode(error: ProcessedError | null, codes: (ErrorCode | string)[]): boolean {
   return error !== null && codes.includes(error.errorCode as ErrorCode);
 }
 

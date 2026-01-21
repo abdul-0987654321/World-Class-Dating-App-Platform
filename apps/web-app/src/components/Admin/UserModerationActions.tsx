@@ -110,10 +110,7 @@ export const UserModerationActions: React.FC<UserModerationActionsProps> = ({
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition"
-              >
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
                 <FaTimes className="text-xl" />
               </button>
             </div>
@@ -131,7 +128,8 @@ export const UserModerationActions: React.FC<UserModerationActionsProps> = ({
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                    {user.firstName[0]}{user.lastName[0]}
+                    {user.firstName[0]}
+                    {user.lastName[0]}
                   </div>
                 )}
                 <div>
@@ -169,7 +167,8 @@ export const UserModerationActions: React.FC<UserModerationActionsProps> = ({
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  User will be suspended until {new Date(Date.now() + suspensionDays * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                  User will be suspended until{' '}
+                  {new Date(Date.now() + suspensionDays * 24 * 60 * 60 * 1000).toLocaleDateString()}
                 </p>
               </div>
             )}

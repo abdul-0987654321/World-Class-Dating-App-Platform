@@ -73,7 +73,12 @@ const PRICING_PLANS = [
     price: '$39.99',
     period: '/month',
     cta: 'Choose Premium+',
-    features: ['All Premium features', 'Passport (travel)', 'Message before match', 'Priority support'],
+    features: [
+      'All Premium features',
+      'Passport (travel)',
+      'Message before match',
+      'Priority support',
+    ],
     highlighted: false,
   },
   {
@@ -140,15 +145,8 @@ const AnimatedLandingPage: React.FC = () => {
   return (
     <div className="flamoral-animated-landing">
       {/* Preload fonts for better performance - link element is non-blocking */}
-      <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-      />
-      <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossOrigin="anonymous"
-      />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap"
@@ -868,10 +866,12 @@ const AnimatedLandingPage: React.FC = () => {
       <section ref={heroRef} className="hero">
         <div
           className="hero-gradient"
-          style={{
-            '--gradient-x': `${gradientPos.x}%`,
-            '--gradient-y': `${gradientPos.y}%`
-          } as React.CSSProperties}
+          style={
+            {
+              '--gradient-x': `${gradientPos.x}%`,
+              '--gradient-y': `${gradientPos.y}%`,
+            } as React.CSSProperties
+          }
         />
         <div className="hero-noise" />
 
@@ -889,8 +889,14 @@ const AnimatedLandingPage: React.FC = () => {
               <FlamoralLogo variant="horizontal" size="sm" />
             </Link>
             <div className="nav-links">
-              <Link to="/login" className="nav-link">Log in</Link>
-              <Link to="/signup" className="btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>
+              <Link to="/login" className="nav-link">
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                className="btn-primary"
+                style={{ padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}
+              >
                 Get Started
               </Link>
             </div>
@@ -907,7 +913,8 @@ const AnimatedLandingPage: React.FC = () => {
               transition={{ duration: prefersReducedMotion ? 0.18 : 0.6, ease: MOTION_CONFIG.ease }}
             >
               <h1 className="hero-headline serif">
-                Real connections.<br />
+                Real connections.
+                <br />
                 <span className="italic">No noise.</span>
               </h1>
 
@@ -916,34 +923,60 @@ const AnimatedLandingPage: React.FC = () => {
               </p>
 
               <div className="hero-ctas">
-                <Link to="/signup" className="btn-primary">Start Free</Link>
+                <Link to="/signup" className="btn-primary">
+                  Start Free
+                </Link>
                 <a href="#pricing" className="btn-ghost">
                   See pricing
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M3 8h10M9 4l4 4-4 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </a>
               </div>
 
               <div className="hero-trust">
                 <div className="hero-trust-item">
-                  <svg className="hero-trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <svg
+                    className="hero-trust-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                   <span>Private by design</span>
                 </div>
                 <div className="hero-trust-item">
-                  <svg className="hero-trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  <svg
+                    className="hero-trust-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                   <span>Verified profiles</span>
                 </div>
                 <div className="hero-trust-item">
-                  <svg className="hero-trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                    <path d="M2 17l10 5 10-5"/>
-                    <path d="M2 12l10 5 10-5"/>
+                  <svg
+                    className="hero-trust-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                    <path d="M2 17l10 5 10-5" />
+                    <path d="M2 12l10 5 10-5" />
                   </svg>
                   <span>Upgrade anytime</span>
                 </div>
@@ -968,12 +1001,19 @@ const AnimatedLandingPage: React.FC = () => {
           <div className="pillars">
             <AnimatedPillar index={0}>
               <div className="pillar-visual">
-                <div className="pillar-pulse" style={{ background: 'radial-gradient(circle, var(--color-pink-glow) 0%, transparent 70%)' }} />
+                <div
+                  className="pillar-pulse"
+                  style={{
+                    background:
+                      'radial-gradient(circle, var(--color-pink-glow) 0%, transparent 70%)',
+                  }}
+                />
                 <span className="pillar-visual-icon">🧠</span>
               </div>
               <h3 className="pillar-title serif">AI-Powered Compatibility</h3>
               <p className="pillar-description">
-                Advanced neural networks analyze 50+ compatibility factors to match you with people who truly align with your values and goals.
+                Advanced neural networks analyze 50+ compatibility factors to match you with people
+                who truly align with your values and goals.
               </p>
               <a href="#learn-more" className="pillar-link">
                 Learn more →
@@ -982,12 +1022,19 @@ const AnimatedLandingPage: React.FC = () => {
 
             <AnimatedPillar index={1}>
               <div className="pillar-visual">
-                <div className="pillar-pulse" style={{ background: 'radial-gradient(circle, var(--color-blue-glow) 0%, transparent 70%)' }} />
+                <div
+                  className="pillar-pulse"
+                  style={{
+                    background:
+                      'radial-gradient(circle, var(--color-blue-glow) 0%, transparent 70%)',
+                  }}
+                />
                 <span className="pillar-visual-icon">📹</span>
               </div>
               <h3 className="pillar-title serif">Video Dating Experience</h3>
               <p className="pillar-description">
-                Build genuine connections through HD video calls before meeting in person. See chemistry in action.
+                Build genuine connections through HD video calls before meeting in person. See
+                chemistry in action.
               </p>
               <a href="#learn-more" className="pillar-link">
                 Learn more →
@@ -996,12 +1043,19 @@ const AnimatedLandingPage: React.FC = () => {
 
             <AnimatedPillar index={2}>
               <div className="pillar-visual">
-                <div className="pillar-pulse" style={{ background: 'radial-gradient(circle, rgba(201, 169, 98, 0.3) 0%, transparent 70%)' }} />
+                <div
+                  className="pillar-pulse"
+                  style={{
+                    background:
+                      'radial-gradient(circle, rgba(201, 169, 98, 0.3) 0%, transparent 70%)',
+                  }}
+                />
                 <span className="pillar-visual-icon">✓</span>
               </div>
               <h3 className="pillar-title serif">Verified & Authentic</h3>
               <p className="pillar-description">
-                Every profile goes through multi-layer verification so you connect with real people, every time.
+                Every profile goes through multi-layer verification so you connect with real people,
+                every time.
               </p>
               <a href="#learn-more" className="pillar-link">
                 Learn more →
@@ -1042,9 +1096,7 @@ const AnimatedLandingPage: React.FC = () => {
             <h2 className="section-title serif">
               Simple, <span className="italic">transparent</span> pricing
             </h2>
-            <p className="section-subtitle">
-              Start free, upgrade when you're ready.
-            </p>
+            <p className="section-subtitle">Start free, upgrade when you're ready.</p>
           </div>
 
           <div className="pricing-grid">
@@ -1054,7 +1106,9 @@ const AnimatedLandingPage: React.FC = () => {
                 className={`pricing-card ${plan.highlighted ? 'pricing-card-highlighted' : ''}`}
               >
                 {plan.badge && (
-                  <span className={`pricing-badge ${plan.badge === 'Best Value' ? 'pricing-badge-value' : ''}`}>
+                  <span
+                    className={`pricing-badge ${plan.badge === 'Best Value' ? 'pricing-badge-value' : ''}`}
+                  >
                     {plan.badge}
                   </span>
                 )}
@@ -1065,7 +1119,9 @@ const AnimatedLandingPage: React.FC = () => {
                 </div>
                 <ul className="pricing-features">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="pricing-feature">{feature}</li>
+                    <li key={feature} className="pricing-feature">
+                      {feature}
+                    </li>
                   ))}
                 </ul>
                 <Link
@@ -1130,34 +1186,60 @@ const AnimatedLandingPage: React.FC = () => {
             <div>
               <h4 className="footer-column-title">Product</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/subscription">Premium Plans</Link></li>
-                <li className="footer-link"><Link to="/tier-showcase">Features</Link></li>
-                <li className="footer-link"><Link to="/signup">Sign Up</Link></li>
-                <li className="footer-link"><Link to="/login">Log In</Link></li>
+                <li className="footer-link">
+                  <Link to="/subscription">Premium Plans</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/tier-showcase">Features</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/signup">Sign Up</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/login">Log In</Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="footer-column-title">Resources</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/support">Help Center</Link></li>
-                <li className="footer-link"><Link to="/safety-guidelines">Safety Tips</Link></li>
-                <li className="footer-link"><Link to="/community-guidelines">Community</Link></li>
+                <li className="footer-link">
+                  <Link to="/support">Help Center</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/safety-guidelines">Safety Tips</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/community-guidelines">Community</Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="footer-column-title">Legal</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/privacy-policy">Privacy Policy</Link></li>
-                <li className="footer-link"><Link to="/terms-of-service">Terms of Service</Link></li>
-                <li className="footer-link"><Link to="/cookie-policy">Cookie Policy</Link></li>
-                <li className="footer-link"><Link to="/refund-policy">Refund Policy</Link></li>
+                <li className="footer-link">
+                  <Link to="/privacy-policy">Privacy Policy</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/terms-of-service">Terms of Service</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/cookie-policy">Cookie Policy</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/refund-policy">Refund Policy</Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="footer-column-title">Connect</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/support">Contact Us</Link></li>
-                <li className="footer-link"><Link to="/referrals">Referral Program</Link></li>
+                <li className="footer-link">
+                  <Link to="/support">Contact Us</Link>
+                </li>
+                <li className="footer-link">
+                  <Link to="/referrals">Referral Program</Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -1166,7 +1248,9 @@ const AnimatedLandingPage: React.FC = () => {
             <Link to="/" className="footer-logo">
               <FlamoralLogo variant="horizontal" size="sm" showTagline />
             </Link>
-            <p className="footer-copyright">© {new Date().getFullYear()} Flamoral. All rights reserved.</p>
+            <p className="footer-copyright">
+              © {new Date().getFullYear()} Flamoral. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
@@ -1175,7 +1259,10 @@ const AnimatedLandingPage: React.FC = () => {
 };
 
 // Animated Pillar Component
-const AnimatedPillar: React.FC<{ children: React.ReactNode; index: number }> = ({ children, index }) => {
+const AnimatedPillar: React.FC<{ children: React.ReactNode; index: number }> = ({
+  children,
+  index,
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.25 });
   const prefersReducedMotion = useReducedMotion();
@@ -1198,7 +1285,10 @@ const AnimatedPillar: React.FC<{ children: React.ReactNode; index: number }> = (
 };
 
 // Animated Feature Component
-const AnimatedFeature: React.FC<{ children: React.ReactNode; index: number }> = ({ children, index }) => {
+const AnimatedFeature: React.FC<{ children: React.ReactNode; index: number }> = ({
+  children,
+  index,
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.25 });
   const prefersReducedMotion = useReducedMotion();
@@ -1207,7 +1297,11 @@ const AnimatedFeature: React.FC<{ children: React.ReactNode; index: number }> = 
     <motion.div
       ref={ref}
       className="feature-card"
-      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 12, scale: prefersReducedMotion ? 1 : 0.98 }}
+      initial={{
+        opacity: 0,
+        y: prefersReducedMotion ? 0 : 12,
+        scale: prefersReducedMotion ? 1 : 0.98,
+      }}
       animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{
         duration: prefersReducedMotion ? 0.18 : 0.26,
@@ -1221,7 +1315,10 @@ const AnimatedFeature: React.FC<{ children: React.ReactNode; index: number }> = 
 };
 
 // Animated Safety Card Component
-const AnimatedSafetyCard: React.FC<{ children: React.ReactNode; index: number }> = ({ children, index }) => {
+const AnimatedSafetyCard: React.FC<{ children: React.ReactNode; index: number }> = ({
+  children,
+  index,
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.25 });
   const prefersReducedMotion = useReducedMotion();

@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Share,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Share } from 'react-native';
 
 interface Reservation {
   id: string;
@@ -97,12 +89,7 @@ export const ReservationConfirmation: React.FC<ReservationConfirmationProps> = (
           </TouchableOpacity>
         )}
 
-        <View
-          style={[
-            styles.statusIconContainer,
-            { backgroundColor: statusConfig.color + '20' },
-          ]}
-        >
+        <View style={[styles.statusIconContainer, { backgroundColor: statusConfig.color + '20' }]}>
           <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
             {statusConfig.icon}
           </Text>
@@ -130,9 +117,7 @@ export const ReservationConfirmation: React.FC<ReservationConfirmationProps> = (
 
       <View style={styles.confirmationCard}>
         <Text style={styles.confirmationLabel}>Confirmation Number</Text>
-        <Text style={styles.confirmationNumber}>
-          {reservation.confirmationNumber}
-        </Text>
+        <Text style={styles.confirmationNumber}>{reservation.confirmationNumber}</Text>
       </View>
 
       <View style={styles.detailsCard}>
@@ -247,8 +232,8 @@ export const ReservationConfirmation: React.FC<ReservationConfirmationProps> = (
 
       <View style={styles.policyNote}>
         <Text style={styles.policyText}>
-          Please arrive 10-15 minutes before your reservation time. Reservations
-          may be released after 15 minutes past the booking time.
+          Please arrive 10-15 minutes before your reservation time. Reservations may be released
+          after 15 minutes past the booking time.
         </Text>
       </View>
     </ScrollView>

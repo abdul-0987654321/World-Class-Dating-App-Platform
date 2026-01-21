@@ -224,10 +224,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
       <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
-      <Stack.Screen
-        name="NotificationSettings"
-        component={NotificationSettingsScreen}
-      />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
 
       {/* Premium Features */}
       <Stack.Screen
@@ -266,7 +263,7 @@ const AppNavigator = () => {
         name="SpeedDatingSession"
         component={SpeedDatingSessionScreen}
         options={{
-          presentation: 'fullScreenModal',
+          presentation: 'modal' as const,
           gestureEnabled: false,
         }}
       />

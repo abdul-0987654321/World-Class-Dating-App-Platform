@@ -47,48 +47,51 @@ const LikesYouScreen: React.FC = () => {
     id: profile.id,
     name: profile.name,
     age: profile.age,
-    photos: profile.photos.map(p => p.url),
+    photos: profile.photos.map((p) => p.url),
     distance: profile.distance ?? 0,
     isBlurred: !isPremium,
   });
 
-  const fetchLikes = useCallback(async (pageNum: number = 1, refresh: boolean = false) => {
-    try {
-      if (refresh) {
-        setIsRefreshing(true);
-      } else if (pageNum === 1) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
-      setError(null);
-
-      const response = await discoveryService.getWhoLikedYou(pageNum, 20);
-
-      if (response.success && response.data) {
-        const mappedProfiles = response.data.profiles.map(mapDiscoveryProfileToLikeProfile);
-
-        if (pageNum === 1 || refresh) {
-          setLikes(mappedProfiles);
+  const fetchLikes = useCallback(
+    async (pageNum: number = 1, refresh: boolean = false) => {
+      try {
+        if (refresh) {
+          setIsRefreshing(true);
+        } else if (pageNum === 1) {
+          setIsLoading(true);
         } else {
-          setLikes(prev => [...prev, ...mappedProfiles]);
+          setIsLoadingMore(true);
         }
+        setError(null);
 
-        setTotalLikes(response.data.total);
-        setHasMore(mappedProfiles.length === 20);
-        setPage(pageNum);
-      } else {
-        throw new Error(response.error?.message || 'Failed to load likes');
+        const response = await discoveryService.getWhoLikedYou(pageNum, 20);
+
+        if (response.success && response.data) {
+          const mappedProfiles = response.data.profiles.map(mapDiscoveryProfileToLikeProfile);
+
+          if (pageNum === 1 || refresh) {
+            setLikes(mappedProfiles);
+          } else {
+            setLikes((prev) => [...prev, ...mappedProfiles]);
+          }
+
+          setTotalLikes(response.data.total);
+          setHasMore(mappedProfiles.length === 20);
+          setPage(pageNum);
+        } else {
+          throw new Error(response.error?.message || 'Failed to load likes');
+        }
+      } catch (err: any) {
+        console.error('Error fetching likes:', err);
+        setError(err.message || 'Something went wrong. Please try again.');
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+        setIsLoadingMore(false);
       }
-    } catch (err: any) {
-      console.error('Error fetching likes:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      setIsLoadingMore(false);
-    }
-  }, [isPremium]);
+    },
+    [isPremium]
+  );
 
   useEffect(() => {
     fetchLikes(1);
@@ -139,10 +142,7 @@ const LikesYouScreen: React.FC = () => {
             <Icon name="eye-off" size={32} color="#FFFFFF" />
           </View>
         )}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          style={styles.cardGradient}
-        >
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.cardGradient}>
           <Text style={styles.cardName}>
             {isPremium ? item.name : '***'}, {item.age}
           </Text>
@@ -182,9 +182,7 @@ const LikesYouScreen: React.FC = () => {
               <Icon name="star" size={24} color="#FFFFFF" />
               <View style={styles.premiumText}>
                 <Text style={styles.premiumTitle}>See Who Likes You</Text>
-                <Text style={styles.premiumSubtitle}>
-                  Upgrade to Premium to see all your likes
-                </Text>
+                <Text style={styles.premiumSubtitle}>Upgrade to Premium to see all your likes</Text>
               </View>
               <Icon name="chevron-forward" size={24} color="#FFFFFF" />
             </View>
@@ -198,9 +196,7 @@ const LikesYouScreen: React.FC = () => {
     <View style={styles.emptyContainer}>
       <Icon name="heart-outline" size={80} color="#E5E5EA" />
       <Text style={styles.emptyTitle}>No Likes Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        Keep swiping to get more matches!
-      </Text>
+      <Text style={styles.emptySubtitle}>Keep swiping to get more matches!</Text>
     </View>
   );
 

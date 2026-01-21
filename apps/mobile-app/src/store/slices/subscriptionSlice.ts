@@ -45,33 +45,26 @@ const initialState: SubscriptionState = {
 };
 
 // Async thunks
-export const fetchSubscriptionStatus = createAsyncThunk(
-  'subscription/fetchStatus',
-  async () => {
-    const response = await axios.get(`${process.env.API_URL}/api/subscriptions/status`);
-    return response.data;
-  }
-);
+export const fetchSubscriptionStatus = createAsyncThunk('subscription/fetchStatus', async () => {
+  const response = await axios.get(
+    `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/subscriptions/status`
+  );
+  return response.data;
+});
 
-export const fetchProducts = createAsyncThunk(
-  'subscription/fetchProducts',
-  async () => {
-    await InAppPurchaseService.initialize();
-    const [products, subscriptions] = await Promise.all([
-      InAppPurchaseService.getConsumableProducts(),
-      InAppPurchaseService.getSubscriptionProducts(),
-    ]);
-    return { products, subscriptions };
-  }
-);
+export const fetchProducts = createAsyncThunk('subscription/fetchProducts', async () => {
+  await InAppPurchaseService.initialize();
+  const [products, subscriptions] = await Promise.all([
+    InAppPurchaseService.getConsumableProducts(),
+    InAppPurchaseService.getSubscriptionProducts(),
+  ]);
+  return { products, subscriptions };
+});
 
-export const fetchBalances = createAsyncThunk(
-  'subscription/fetchBalances',
-  async () => {
-    const response = await axios.get(`${process.env.API_URL}/api/users/balance`);
-    return response.data;
-  }
-);
+export const fetchBalances = createAsyncThunk('subscription/fetchBalances', async () => {
+  const response = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/balance`);
+  return response.data;
+});
 
 export const purchaseProduct = createAsyncThunk(
   'subscription/purchaseProduct',
@@ -115,7 +108,7 @@ export const useSuperLike = createAsyncThunk(
     }
 
     try {
-      await axios.post(`${process.env.API_URL}/api/users/use-superlike`);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/use-superlike`);
       return true;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -133,7 +126,7 @@ export const useBoost = createAsyncThunk(
     }
 
     try {
-      await axios.post(`${process.env.API_URL}/api/users/use-boost`);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/use-boost`);
       return true;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -148,12 +141,15 @@ export const useRewind = createAsyncThunk(
 
     // Premium+ and Elite tiers have unlimited rewinds
     const unlimitedRewindTiers: SubscriptionTier[] = ['premium_plus', 'elite'];
-    if (state.subscription.rewindsBalance <= 0 && !unlimitedRewindTiers.includes(state.subscription.currentTier)) {
+    if (
+      state.subscription.rewindsBalance <= 0 &&
+      !unlimitedRewindTiers.includes(state.subscription.currentTier)
+    ) {
       return rejectWithValue('No Rewinds available');
     }
 
     try {
-      await axios.post(`${process.env.API_URL}/api/users/use-rewind`);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/use-rewind`);
       return true;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -168,11 +164,14 @@ const subscriptionSlice = createSlice({
     setCurrentTier: (state, action: PayloadAction<SubscriptionTier>) => {
       state.currentTier = action.payload;
     },
-    updateBalances: (state, action: PayloadAction<{
-      superLikes?: number;
-      boosts?: number;
-      rewinds?: number;
-    }>) => {
+    updateBalances: (
+      state,
+      action: PayloadAction<{
+        superLikes?: number;
+        boosts?: number;
+        rewinds?: number;
+      }>
+    ) => {
       if (action.payload.superLikes !== undefined) {
         state.superLikesBalance = action.payload.superLikes;
       }
@@ -238,7 +237,7 @@ const subscriptionSlice = createSlice({
       })
       .addCase(purchaseProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string || 'Purchase failed';
+        state.error = (action.payload as string) || 'Purchase failed';
       })
 
       // Purchase subscription
@@ -252,7 +251,7 @@ const subscriptionSlice = createSlice({
       })
       .addCase(purchaseSubscription.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string || 'Subscription purchase failed';
+        state.error = (action.payload as string) || 'Subscription purchase failed';
       })
 
       // Use Super Like
