@@ -7,7 +7,12 @@
     "base": {
       "node": "20.19.0",
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "CI": "1"
+      },
+      "cache": {
+        "key": "flamoral-mobile-v1",
+        "paths": ["node_modules"]
       }
     },
     "development": {
