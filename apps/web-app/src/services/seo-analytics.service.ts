@@ -143,16 +143,16 @@ function initGoogleAnalytics(): void {
 }
 
 function initMetaPixel(): void {
-  const fbq = function fbq() {
-    (fbq as { callMethod?: (...args: unknown[]) => void }).callMethod
-      ? (fbq as { callMethod: (...args: unknown[]) => void }).callMethod.apply(
-          fbq,
-          Array.prototype.slice.call(arguments) as unknown[]
-        )
-      : (fbq as { queue: unknown[] }).queue.push(arguments);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fbq: any = function () {
+    if (fbq.callMethod) {
+      fbq.callMethod.apply(fbq, arguments);
+    } else {
+      fbq.queue.push(arguments);
+    }
   };
-  (fbq as { queue: unknown[] }).queue = [];
-  window.fbq = fbq as typeof window.fbq;
+  fbq.queue = [];
+  window.fbq = fbq;
 
   window.fbq!('init', config.metaPixelId);
   window.fbq!('track', 'PageView');
@@ -164,10 +164,12 @@ function initMetaPixel(): void {
 }
 
 function initTikTokPixel(): void {
-  const ttq = (window.ttq = window.ttq || ({} as typeof window.ttq));
-  ttq!.track = ttq!.track || function () {};
-  ttq!.page = ttq!.page || function () {};
-  ttq!.identify = ttq!.identify || function () {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ttq: any = (window as any).ttq || {};
+  ttq.track = ttq.track || function () {};
+  ttq.page = ttq.page || function () {};
+  ttq.identify = ttq.identify || function () {};
+  (window as any).ttq = ttq;
 
   const script = document.createElement('script');
   script.async = true;
@@ -175,17 +177,16 @@ function initTikTokPixel(): void {
   document.head.appendChild(script);
 
   script.onload = () => {
-    window.ttq?.page();
+    (window as any).ttq?.page();
   };
 }
 
 function initLinkedInTag(): void {
-  (window as { _linkedin_partner_id?: string })._linkedin_partner_id = config.linkedinPartnerId;
-  (window as { _linkedin_data_partner_ids?: string[] })._linkedin_data_partner_ids =
-    (window as { _linkedin_data_partner_ids?: string[] })._linkedin_data_partner_ids || [];
-  (window as { _linkedin_data_partner_ids: string[] })._linkedin_data_partner_ids.push(
-    config.linkedinPartnerId!
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const win = window as any;
+  win._linkedin_partner_id = config.linkedinPartnerId;
+  win._linkedin_data_partner_ids = win._linkedin_data_partner_ids || [];
+  win._linkedin_data_partner_ids.push(config.linkedinPartnerId);
 
   const script = document.createElement('script');
   script.async = true;
@@ -194,16 +195,16 @@ function initLinkedInTag(): void {
 }
 
 function initSnapchatPixel(): void {
-  const snaptr = function snaptr() {
-    (snaptr as { handleRequest?: (...args: unknown[]) => void }).handleRequest
-      ? (snaptr as { handleRequest: (...args: unknown[]) => void }).handleRequest.apply(
-          snaptr,
-          Array.prototype.slice.call(arguments) as unknown[]
-        )
-      : (snaptr as { callQueue: unknown[] }).callQueue.push(arguments);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const snaptr: any = function () {
+    if (snaptr.handleRequest) {
+      snaptr.handleRequest.apply(snaptr, arguments);
+    } else {
+      snaptr.callQueue.push(arguments);
+    }
   };
-  (snaptr as { callQueue: unknown[] }).callQueue = [];
-  window.snaptr = snaptr as typeof window.snaptr;
+  snaptr.callQueue = [];
+  (window as any).snaptr = snaptr;
 
   const script = document.createElement('script');
   script.async = true;
@@ -211,23 +212,23 @@ function initSnapchatPixel(): void {
   document.head.appendChild(script);
 
   script.onload = () => {
-    window.snaptr?.('init', config.snapchatPixelId!);
-    window.snaptr?.('track', 'PAGE_VIEW');
+    (window as any).snaptr?.('init', config.snapchatPixelId);
+    (window as any).snaptr?.('track', 'PAGE_VIEW');
   };
 }
 
 function initTwitterPixel(): void {
-  const twq = function twq() {
-    (twq as { exe?: (...args: unknown[]) => void }).exe
-      ? (twq as { exe: (...args: unknown[]) => void }).exe.apply(
-          twq,
-          Array.prototype.slice.call(arguments) as unknown[]
-        )
-      : (twq as { queue: unknown[] }).queue.push(arguments);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const twq: any = function () {
+    if (twq.exe) {
+      twq.exe.apply(twq, arguments);
+    } else {
+      twq.queue.push(arguments);
+    }
   };
-  (twq as { queue: unknown[] }).queue = [];
-  (twq as { version: string }).version = '1.1';
-  window.twq = twq as typeof window.twq;
+  twq.queue = [];
+  twq.version = '1.1';
+  (window as any).twq = twq;
 
   const script = document.createElement('script');
   script.async = true;
@@ -235,17 +236,18 @@ function initTwitterPixel(): void {
   document.head.appendChild(script);
 
   script.onload = () => {
-    window.twq?.('config', config.twitterPixelId!);
+    (window as any).twq?.('config', config.twitterPixelId);
   };
 }
 
 function initPinterestTag(): void {
-  const pintrk = function pintrk() {
-    (pintrk as { queue: unknown[] }).queue.push(Array.prototype.slice.call(arguments));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pintrk: any = function () {
+    pintrk.queue.push(Array.prototype.slice.call(arguments));
   };
-  (pintrk as { queue: unknown[] }).queue = [];
-  (pintrk as { version: string }).version = '3.0';
-  window.pintrk = pintrk as typeof window.pintrk;
+  pintrk.queue = [];
+  pintrk.version = '3.0';
+  (window as any).pintrk = pintrk;
 
   const script = document.createElement('script');
   script.async = true;
@@ -253,22 +255,22 @@ function initPinterestTag(): void {
   document.head.appendChild(script);
 
   script.onload = () => {
-    window.pintrk?.('load', config.pinterestTagId!);
-    window.pintrk?.('page');
+    (window as any).pintrk?.('load', config.pinterestTagId);
+    (window as any).pintrk?.('page');
   };
 }
 
 function initRedditPixel(): void {
-  const rdt = function rdt() {
-    (rdt as { sendEvent?: (...args: unknown[]) => void }).sendEvent
-      ? (rdt as { sendEvent: (...args: unknown[]) => void }).sendEvent.apply(
-          rdt,
-          Array.prototype.slice.call(arguments) as unknown[]
-        )
-      : (rdt as { callQueue: unknown[] }).callQueue.push(arguments);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rdt: any = function () {
+    if (rdt.sendEvent) {
+      rdt.sendEvent.apply(rdt, arguments);
+    } else {
+      rdt.callQueue.push(arguments);
+    }
   };
-  (rdt as { callQueue: unknown[] }).callQueue = [];
-  window.rdt = rdt as typeof window.rdt;
+  rdt.callQueue = [];
+  (window as any).rdt = rdt;
 
   const script = document.createElement('script');
   script.async = true;
@@ -276,8 +278,8 @@ function initRedditPixel(): void {
   document.head.appendChild(script);
 
   script.onload = () => {
-    window.rdt?.('init', config.redditPixelId!);
-    window.rdt?.('track', 'PageVisit');
+    (window as any).rdt?.('init', config.redditPixelId);
+    (window as any).rdt?.('track', 'PageVisit');
   };
 }
 

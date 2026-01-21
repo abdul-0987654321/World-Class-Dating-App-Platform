@@ -14,7 +14,7 @@
 
 import React, { memo, useState, useCallback } from 'react';
 import { motion, AnimatePresence, Variants, useAnimation } from 'framer-motion';
-import { ANIMATION_CONFIG } from '@flamoral/shared/animations';
+import { ANIMATION_CONFIG } from '../../constants/animations';
 
 // ============================================================================
 // LIKE BUTTON WITH HEART BURST

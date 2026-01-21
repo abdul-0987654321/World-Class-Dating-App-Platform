@@ -12,7 +12,7 @@
 
 import React, { memo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { ANIMATION_CONFIG } from '@flamoral/shared/animations';
+import { ANIMATION_CONFIG } from '../../constants/animations';
 
 // ============================================================================
 // TYPES

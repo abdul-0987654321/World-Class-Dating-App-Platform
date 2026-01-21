@@ -19,7 +19,7 @@ import {
   PanInfo,
   AnimatePresence,
 } from 'framer-motion';
-import { SWIPE_CONFIG, ANIMATION_CONFIG } from '@flamoral/shared/animations';
+import { SWIPE_CONFIG, ANIMATION_CONFIG } from '../../constants/animations';
 
 // ============================================================================
 // TYPES
