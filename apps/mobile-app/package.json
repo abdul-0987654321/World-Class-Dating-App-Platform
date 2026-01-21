@@ -102,10 +102,10 @@
     "typescript": "^5.3.3"
   },
   "resolutions": {
-    "sharp": "npm:@aspect-build/empty-npm-package@*"
+    "sharp": "0.32.6"
   },
   "overrides": {
-    "sharp": "npm:@aspect-build/empty-npm-package@*"
+    "sharp": "0.32.6"
   },
   "engines": {
     "node": ">=18"

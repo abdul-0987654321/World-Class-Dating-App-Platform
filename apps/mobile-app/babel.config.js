@@ -3,13 +3,6 @@ module.exports = function (api) {
 
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Ignore fabric source files that cause codegen issues with old architecture
-  const ignore = [
-    /node_modules\/react-native-screens\/src\/fabric\/.*/,
-    /node_modules\/.*\/src\/fabric\/.*/,
-    /.*\/fabric\/.*NativeComponent.*/,
-  ];
-
   const plugins = [
     [
       'module-resolver',
@@ -25,6 +18,24 @@ module.exports = function (api) {
           '@store': './src/store',
           '@assets': './src/assets',
           '@utils': './src/utils',
+          // Redirect fabric module imports to our shims
+          './fabric/NativeScreensModule': './shims/react-native-screens/fabric/NativeScreensModule',
+          './fabric/ModalScreenNativeComponent':
+            './shims/react-native-screens/fabric/ModalScreenNativeComponent',
+          './fabric/ScreenNativeComponent':
+            './shims/react-native-screens/fabric/ScreenNativeComponent',
+          './fabric/ScreenContainerNativeComponent':
+            './shims/react-native-screens/fabric/ScreenContainerNativeComponent',
+          './fabric/ScreenStackNativeComponent':
+            './shims/react-native-screens/fabric/ScreenStackNativeComponent',
+          './fabric/ScreenStackHeaderConfigNativeComponent':
+            './shims/react-native-screens/fabric/ScreenStackHeaderConfigNativeComponent',
+          './fabric/ScreenStackHeaderSubviewNativeComponent':
+            './shims/react-native-screens/fabric/ScreenStackHeaderSubviewNativeComponent',
+          './fabric/SearchBarNativeComponent':
+            './shims/react-native-screens/fabric/SearchBarNativeComponent',
+          './fabric/ScreenNavigationContainerNativeComponent':
+            './shims/react-native-screens/fabric/ScreenNavigationContainerNativeComponent',
         },
       },
     ],
@@ -54,13 +65,5 @@ module.exports = function (api) {
       ],
     ],
     plugins,
-    ignore,
-    overrides: [
-      {
-        // Exclude all fabric-related files from codegen processing
-        test: /node_modules\/.*\/src\/fabric\/.*/,
-        plugins: [],
-      },
-    ],
   };
 };
