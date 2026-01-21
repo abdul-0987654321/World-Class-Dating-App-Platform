@@ -78,7 +78,7 @@ export default ({ config }) => ({
   android: {
     package: getUniqueIdentifier(),
     versionCode: 1,
-    googleServicesFile: './android/app/google-services.json',
+    googleServicesFile: './google-services.json',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#FFFFFF',
