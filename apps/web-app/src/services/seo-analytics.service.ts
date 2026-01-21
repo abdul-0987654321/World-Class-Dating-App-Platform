@@ -759,7 +759,14 @@ export async function trackWebVitals(): Promise<void> {
   if (typeof window === 'undefined') return;
 
   try {
-    const { onCLS, onFID, onLCP, onFCP, onTTFB, onINP } = await import('web-vitals');
+    // Dynamic import with fallback - web-vitals is optional
+    // @ts-expect-error - web-vitals may not be installed
+    const webVitals = await import('web-vitals').catch(() => null);
+    if (!webVitals) {
+      console.warn('web-vitals not available, skipping Core Web Vitals tracking');
+      return;
+    }
+    const { onCLS, onFID, onLCP, onFCP, onTTFB, onINP } = webVitals;
 
     const sendVital = (metric: { name: string; value: number; rating: string }) => {
       // Send to Google Analytics
