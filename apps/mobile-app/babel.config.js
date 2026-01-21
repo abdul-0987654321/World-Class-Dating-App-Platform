@@ -3,6 +3,13 @@ module.exports = function (api) {
 
   const isProduction = process.env.NODE_ENV === 'production';
 
+  // Ignore fabric source files that cause codegen issues with old architecture
+  const ignore = [
+    /node_modules\/react-native-screens\/src\/fabric\/.*/,
+    /node_modules\/.*\/src\/fabric\/.*/,
+    /.*\/fabric\/.*NativeComponent.*/,
+  ];
+
   const plugins = [
     [
       'module-resolver',
@@ -37,7 +44,23 @@ module.exports = function (api) {
   }
 
   return {
-    presets: ['module:@react-native/babel-preset'],
+    presets: [
+      [
+        'babel-preset-expo',
+        {
+          // Disable automatic React Native codegen for fabric files
+          unstable_transformProfile: 'default',
+        },
+      ],
+    ],
     plugins,
+    ignore,
+    overrides: [
+      {
+        // Exclude all fabric-related files from codegen processing
+        test: /node_modules\/.*\/src\/fabric\/.*/,
+        plugins: [],
+      },
+    ],
   };
 };

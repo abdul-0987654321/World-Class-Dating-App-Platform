@@ -9,7 +9,8 @@
 
 // EAS Project ID - Required for builds to appear on Expo dashboard
 // Falls back to hardcoded project ID if environment variable is not set
-const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID || '5c414d70-8a31-40aa-b669-fbdad07dee70';
+const EAS_PROJECT_ID =
+  process.env.EXPO_PUBLIC_EAS_PROJECT_ID || '5c414d70-8a31-40aa-b669-fbdad07dee70';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
@@ -57,16 +58,12 @@ export default {
     requireFullScreen: false,
     appleTeamId: 'VDR79P4T45',
     infoPlist: {
-      NSCameraUsageDescription:
-        'Take photos to add to your profile and verify your identity',
-      NSPhotoLibraryUsageDescription:
-        'Choose photos from your library to add to your profile',
+      NSCameraUsageDescription: 'Take photos to add to your profile and verify your identity',
+      NSPhotoLibraryUsageDescription: 'Choose photos from your library to add to your profile',
       NSLocationWhenInUseUsageDescription:
         'We use your location to show you potential matches nearby',
-      NSUserNotificationsUsageDescription:
-        'Get notified when you have new matches and messages',
-      NSMicrophoneUsageDescription:
-        'Enable audio for video calls with your matches',
+      NSUserNotificationsUsageDescription: 'Get notified when you have new matches and messages',
+      NSMicrophoneUsageDescription: 'Enable audio for video calls with your matches',
       UIBackgroundModes: ['voip', 'remote-notification'],
     },
     config: {
@@ -113,10 +110,28 @@ export default {
   plugins: [
     'expo-router',
     [
+      'expo-build-properties',
+      {
+        android: {
+          compileSdkVersion: 34,
+          targetSdkVersion: 34,
+          minSdkVersion: 24,
+          buildToolsVersion: '34.0.0',
+          kotlinVersion: '1.9.22',
+          enableProguardInReleaseBuilds: true,
+          extraProguardRules: '-keep class com.flamoral.** { *; }',
+          newArchEnabled: false,
+        },
+        ios: {
+          deploymentTarget: '15.1',
+          newArchEnabled: false,
+        },
+      },
+    ],
+    [
       'expo-camera',
       {
-        cameraPermission:
-          'Take photos to add to your profile and verify your identity',
+        cameraPermission: 'Take photos to add to your profile and verify your identity',
         microphonePermission: 'Enable audio for video calls with your matches',
         recordAudioAndroid: true,
       },
@@ -124,15 +139,13 @@ export default {
     [
       'expo-image-picker',
       {
-        photosPermission:
-          'Choose photos from your library to add to your profile',
+        photosPermission: 'Choose photos from your library to add to your profile',
       },
     ],
     [
       'expo-location',
       {
-        locationWhenInUsePermission:
-          'We use your location to show you potential matches nearby',
+        locationWhenInUsePermission: 'We use your location to show you potential matches nearby',
       },
     ],
     [
@@ -140,6 +153,7 @@ export default {
       {
         icon: './assets/notification-icon.png',
         color: '#FF4B6E',
+        mode: 'production',
       },
     ],
   ],
@@ -147,10 +161,11 @@ export default {
     enabled: true,
     checkAutomatically: 'ON_LOAD',
     fallbackToCacheTimeout: 0,
-    url: EAS_PROJECT_ID ? `https://u.expo.dev/${EAS_PROJECT_ID}` : undefined,
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
   },
-  // For bare workflow, runtime version must be a string, not a policy
-  runtimeVersion: '1.0.0',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.flamoral.com',
     authIssuer: process.env.EXPO_PUBLIC_AUTH_ISSUER || 'https://auth.flamoral.com',
