@@ -10,5 +10,6 @@ export { AdminSystemHealthPage } from './AdminSystemHealthPage';
 export { AdminABTestsPage } from './AdminABTestsPage';
 export { AdminSupportTicketsPage } from './AdminSupportTicketsPage';
 export { AdminAuditLogsPage } from './AdminAuditLogsPage';
+export { default as AdminSEOPage } from './AdminSEOPage';
 export { UserManagementPage } from './UserManagementPage';
 export { UserManagementDashboard } from './UserManagementDashboard';

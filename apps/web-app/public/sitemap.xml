@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Static pages sitemap -->
+  <sitemap>
+    <loc>https://flamoral.com/sitemap-static.xml</loc>
+    <lastmod>2026-01-21</lastmod>
+  </sitemap>
+
+  <!-- Blog posts sitemap (generated dynamically) -->
+  <sitemap>
+    <loc>https://flamoral.com/api/sitemap/blog.xml</loc>
+    <lastmod>2026-01-21</lastmod>
+  </sitemap>
+
+  <!-- Success stories sitemap (generated dynamically) -->
+  <sitemap>
+    <loc>https://flamoral.com/api/sitemap/success-stories.xml</loc>
+    <lastmod>2026-01-21</lastmod>
+  </sitemap>
+
+  <!-- FAQ/Help articles sitemap (generated dynamically) -->
+  <sitemap>
+    <loc>https://flamoral.com/api/sitemap/help.xml</loc>
+    <lastmod>2026-01-21</lastmod>
+  </sitemap>
+
+</sitemapindex>

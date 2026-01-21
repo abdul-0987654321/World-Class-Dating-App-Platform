@@ -1,0 +1,87 @@
+# Flamoral Dating Platform - robots.txt
+# https://flamoral.com/robots.txt
+
+# Allow all major search engine crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /matches/
+Disallow: /profile/edit
+Disallow: /verification/
+Disallow: /payment/
+Disallow: /checkout/
+Disallow: /subscription/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /matches/
+Disallow: /profile/edit
+Disallow: /verification/
+Disallow: /payment/
+Disallow: /checkout/
+Disallow: /subscription/
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /matches/
+Disallow: /profile/edit
+Disallow: /verification/
+Disallow: /payment/
+Disallow: /checkout/
+Disallow: /subscription/
+
+# Social media crawlers - allow for rich previews
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Pinterest
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+# General rules for all other bots
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /matches/
+Disallow: /profile/edit
+Disallow: /verification/
+Disallow: /payment/
+Disallow: /checkout/
+Disallow: /subscription/
+Disallow: /*.json$
+Disallow: /*?*utm_
+Disallow: /*?*ref=
+Disallow: /*?*fbclid=
+Disallow: /*?*gclid=
+
+# Sitemaps
+Sitemap: https://flamoral.com/sitemap.xml
+Sitemap: https://flamoral.com/sitemap-static.xml
+
+# Crawl delay for politeness (optional, most major crawlers ignore)
+Crawl-delay: 1
+
+# Host directive for Yandex
+Host: https://flamoral.com
