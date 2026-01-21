@@ -1,4 +1,5 @@
 {
-  "name": "Flamoral",
-  "displayName": "Flamoral"
+  "expo": {
+    "name": "Flamoral"
+  }
 }

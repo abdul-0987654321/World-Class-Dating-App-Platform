@@ -25,18 +25,22 @@ const getUniqueIdentifier = () => {
   return 'com.flamoral.app';
 };
 
-const getAppName = () => {
+const getAppName = (baseName) => {
   if (IS_DEV) {
-    return 'Flamoral (Dev)';
+    return `${baseName} (Dev)`;
   }
   if (IS_PREVIEW) {
-    return 'Flamoral (Preview)';
+    return `${baseName} (Preview)`;
   }
-  return 'Flamoral';
+  return baseName;
 };
 
-export default {
-  name: getAppName(),
+// Export function that receives app.json config (under expo key)
+export default ({ config }) => ({
+  // Spread base config from app.json (expo key)
+  ...config,
+  // Override with dynamic values
+  name: getAppName(config.name),
   slug: 'flamoral',
   version: '1.0.0',
   orientation: 'portrait',
@@ -179,4 +183,4 @@ export default {
       projectId: EAS_PROJECT_ID,
     },
   },
-};
+});
