@@ -142,8 +142,10 @@ export default ({ config }) => ({
     './plugins/withReactNativeModulesDir',
     // Custom plugin to fix react-native-iap store variant ambiguity (play vs amazon)
     ['./plugins/withIAPStoreVariant', { store: 'play' }],
-    // Custom plugin to suppress Kotlin/Compose version compatibility check
-    // Needed because expo-modules-core uses older Compose Compiler
+    // CRITICAL: Force Kotlin 1.9.24 - overrides React Native's version catalog
+    // Must run early to override libs.versions.toml kotlin = "1.9.25"
+    './plugins/withKotlinVersion',
+    // Custom plugin to validate Kotlin/Compose version compatibility
     './plugins/withComposeCompilerVersion',
     [
       'expo-build-properties',
