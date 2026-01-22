@@ -26,19 +26,22 @@ config.resolver.extraNodeModules = {
 };
 
 // Custom resolver to redirect ALL fabric module imports to our shims
+// This is needed because react-native-screens 4.x includes Fabric components
+// that cause codegen errors when New Architecture is disabled
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   // Handle any import that contains 'fabric' from react-native-screens
-  // This catches both direct imports and relative imports
+  // This catches both direct imports and relative imports (e.g., ../../fabric/...)
   if (moduleName.includes('fabric')) {
-    // Extract the module name after 'fabric/'
-    const match = moduleName.match(/fabric[/\\]([^/\\]+)/);
+    // Extract the full path after 'fabric/' (handles nested directories like bottom-tabs/)
+    const match = moduleName.match(/fabric[/\\](.+)/);
     if (match) {
-      const fabricModule = match[1].replace(/\.(ts|tsx|js|jsx)$/, '');
+      // Get the relative path after 'fabric/' and remove extension
+      const fabricRelativePath = match[1].replace(/\.(ts|tsx|js|jsx)$/, '');
       const shimPath = path.resolve(
         shimsRoot,
         'react-native-screens',
         'fabric',
-        fabricModule + '.ts'
+        fabricRelativePath + '.ts'
       );
       try {
         require.resolve(shimPath);
@@ -47,7 +50,17 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
           type: 'sourceFile',
         };
       } catch {
-        // Shim doesn't exist, continue with default resolution
+        // Shim doesn't exist, try with .tsx extension
+        const shimPathTsx = shimPath.replace(/\.ts$/, '.tsx');
+        try {
+          require.resolve(shimPathTsx);
+          return {
+            filePath: shimPathTsx,
+            type: 'sourceFile',
+          };
+        } catch {
+          // No shim found, continue with default resolution
+        }
       }
     }
   }

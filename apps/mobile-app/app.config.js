@@ -14,6 +14,29 @@ const EAS_PROJECT_ID =
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
+const IS_PRODUCTION = process.env.APP_VARIANT === 'production';
+
+// AdMob App IDs - Test IDs for dev/preview, real IDs required for production
+const ADMOB_TEST_ANDROID_ID = 'ca-app-pub-3940256099942544~3347511713';
+const ADMOB_TEST_IOS_ID = 'ca-app-pub-3940256099942544~1458002511';
+
+const getAdMobAndroidId = () => {
+  const envId = process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID;
+  if (IS_PRODUCTION && (!envId || envId === ADMOB_TEST_ANDROID_ID)) {
+    console.warn('⚠️  WARNING: Production build using test AdMob ID for Android!');
+    console.warn('   Set EXPO_PUBLIC_ADMOB_ANDROID_APP_ID environment variable.');
+  }
+  return envId || ADMOB_TEST_ANDROID_ID;
+};
+
+const getAdMobIosId = () => {
+  const envId = process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID;
+  if (IS_PRODUCTION && (!envId || envId === ADMOB_TEST_IOS_ID)) {
+    console.warn('⚠️  WARNING: Production build using test AdMob ID for iOS!');
+    console.warn('   Set EXPO_PUBLIC_ADMOB_IOS_APP_ID environment variable.');
+  }
+  return envId || ADMOB_TEST_IOS_ID;
+};
 
 const getUniqueIdentifier = () => {
   if (IS_DEV) {
@@ -61,6 +84,7 @@ export default ({ config }) => ({
     supportsTablet: true,
     requireFullScreen: false,
     appleTeamId: 'VDR79P4T45',
+    googleServicesFile: './GoogleService-Info.plist',
     infoPlist: {
       NSCameraUsageDescription: 'Take photos to add to your profile and verify your identity',
       NSPhotoLibraryUsageDescription: 'Choose photos from your library to add to your profile',
@@ -129,7 +153,7 @@ export default ({ config }) => ({
           targetSdkVersion: 34,
           minSdkVersion: 24,
           buildToolsVersion: '34.0.0',
-          kotlinVersion: '1.9.22',
+          kotlinVersion: '1.9.24',
           enableProguardInReleaseBuilds: true,
           extraProguardRules:
             '-keep class com.flamoral.** { *; }\n-keep class com.google.android.gms.** { *; }\n-keep class com.google.firebase.** { *; }',
@@ -146,14 +170,12 @@ export default ({ config }) => ({
     // React Native Firebase - requires google-services.json in android/app/
     '@react-native-firebase/app',
     // Google Mobile Ads - requires app ID configuration
-    // Test IDs are used as fallback; set EXPO_PUBLIC_ADMOB_*_APP_ID env vars for production
+    // Test IDs are used for dev/preview, production requires real IDs via env vars
     [
       'react-native-google-mobile-ads',
       {
-        androidAppId:
-          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID || 'ca-app-pub-3940256099942544~3347511713',
-        iosAppId:
-          process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID || 'ca-app-pub-3940256099942544~1458002511',
+        androidAppId: getAdMobAndroidId(),
+        iosAppId: getAdMobIosId(),
       },
     ],
     [
@@ -186,6 +208,8 @@ export default ({ config }) => ({
     ],
     // Custom plugin to fix Firebase manifest merger conflict (notification color)
     './plugins/withFirebaseManifestFix',
+    // Custom plugin to add iOS Privacy Manifest (required for iOS 17+)
+    './plugins/withPrivacyManifest',
   ],
   updates: {
     enabled: true,
