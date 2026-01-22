@@ -11,34 +11,42 @@ const { withSettingsGradle, withProjectBuildGradle } = require('expo/config-plug
 const KOTLIN_VERSION = '1.9.24';
 
 function withKotlinVersion(config) {
-  // Step 1: Modify settings.gradle to override the version catalog
+  // Step 1: Modify settings.gradle to inject resolutionStrategy into existing pluginManagement block
   config = withSettingsGradle(config, (config) => {
     let settingsGradle = config.modResults.contents;
 
     console.log('[withKotlinVersion] Overriding Kotlin version in settings.gradle...');
 
-    // Add version override BEFORE the version catalog is loaded
-    // We need to add a pluginManagement resolutionStrategy
-    const kotlinOverride = `
-// Force Kotlin version to ${KOTLIN_VERSION} (required for KSP 1.9.24 and Compose Compiler 1.5.14)
-pluginManagement {
+    // The resolutionStrategy to inject - must go INSIDE existing pluginManagement block
+    const resolutionStrategyBlock = `
+    // Force Kotlin version to ${KOTLIN_VERSION} (required for KSP 1.9.24 and Compose Compiler 1.5.14)
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id.startsWith("org.jetbrains.kotlin")) {
                 useVersion("${KOTLIN_VERSION}")
             }
         }
-    }
-}
-`;
+    }`;
 
     // Check if we already added the override
     if (settingsGradle.includes('Force Kotlin version')) {
       console.log('[withKotlinVersion] Kotlin override already present in settings.gradle');
+    } else if (settingsGradle.includes('pluginManagement {')) {
+      // Inject resolutionStrategy right after the first pluginManagement { opening
+      settingsGradle = settingsGradle.replace(
+        /pluginManagement\s*\{/,
+        `pluginManagement {${resolutionStrategyBlock}`
+      );
+      console.log(
+        '[withKotlinVersion] Injected resolutionStrategy into existing pluginManagement block'
+      );
     } else {
-      // Add at the very beginning of the file
-      settingsGradle = kotlinOverride + settingsGradle;
-      console.log('[withKotlinVersion] Added Kotlin version override to settings.gradle');
+      // No existing pluginManagement block - add one at the beginning
+      const newBlock = `pluginManagement {${resolutionStrategyBlock}
+}
+`;
+      settingsGradle = newBlock + settingsGradle;
+      console.log('[withKotlinVersion] Added new pluginManagement block with resolutionStrategy');
     }
 
     config.modResults.contents = settingsGradle;
