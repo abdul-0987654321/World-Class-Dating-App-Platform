@@ -32,17 +32,12 @@ function withKotlinVersion(config) {
         }
     }`;
 
-    // Override the version catalog BEFORE it's used
-    const versionCatalogOverride = `
-// CRITICAL: Override React Native's version catalog kotlin version
-dependencyResolutionManagement {
-    versionCatalogs {
+    // Inject into existing versionCatalogs block
+    const libsVersionOverride = `
+        // Force Kotlin version override
         libs {
             version("kotlin", "${KOTLIN_VERSION}")
-        }
-    }
-}
-`;
+        }`;
 
     // Check if we already added the override
     if (settingsGradle.includes('Force Kotlin version')) {
@@ -59,16 +54,16 @@ dependencyResolutionManagement {
         );
       }
 
-      // Add version catalog override at the end (before rootProject.name if it exists)
-      if (settingsGradle.includes('rootProject.name')) {
+      // Inject libs version override into existing versionCatalogs block
+      if (settingsGradle.includes('versionCatalogs {')) {
         settingsGradle = settingsGradle.replace(
-          /(rootProject\.name\s*=)/,
-          `${versionCatalogOverride}\n$1`
+          /versionCatalogs\s*\{/,
+          `versionCatalogs {${libsVersionOverride}`
         );
-      } else {
-        settingsGradle = settingsGradle + '\n' + versionCatalogOverride;
+        console.log(
+          '[withKotlinVersion] Injected libs version into existing versionCatalogs block'
+        );
       }
-      console.log('[withKotlinVersion] Added version catalog override');
     }
 
     config.modResults.contents = settingsGradle;
