@@ -18,7 +18,8 @@
         "EAS_SKIP_AUTO_FINGERPRINT": "1"
       },
       "cache": {
-        "disabled": true
+        "key": "flamoral-mobile-v6",
+        "paths": ["node_modules", ".expo"]
       }
     },
     "development": {
