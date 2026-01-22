@@ -181,6 +181,8 @@ export default ({ config }) => ({
         mode: 'production',
       },
     ],
+    // Custom plugin to fix Firebase manifest merger conflict (notification color)
+    './plugins/withFirebaseManifestFix',
   ],
   updates: {
     enabled: true,
