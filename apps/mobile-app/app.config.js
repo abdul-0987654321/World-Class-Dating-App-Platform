@@ -114,6 +114,8 @@ export default ({ config }) => ({
   },
   plugins: [
     'expo-router',
+    // Custom plugin to fix REACT_NATIVE_NODE_MODULES_DIR for native modules in monorepo
+    './plugins/withReactNativeModulesDir',
     [
       'expo-build-properties',
       {
