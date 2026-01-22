@@ -5,37 +5,46 @@
  * This version (1.3.2) of the Compose Compiler requires Kotlin version 1.7.20
  * but you appear to be using Kotlin version 1.9.25 which is not known to be compatible.
  *
- * This suppresses the Kotlin version compatibility check which is safe when using
- * compatible versions of Kotlin and Compose.
+ * This adds the suppressKotlinVersionCompatibilityCheck compiler argument.
  */
-const { withGradleProperties } = require('expo/config-plugins');
+const { withProjectBuildGradle, withAppBuildGradle } = require('expo/config-plugins');
 
-function withComposeCompilerVersion(config, { suppressKotlinVersionCheck = true } = {}) {
-  return withGradleProperties(config, (config) => {
-    // Add property to suppress Kotlin version compatibility check
-    // This is needed because expo-modules-core uses an older Compose Compiler
-    // that doesn't recognize newer Kotlin versions as compatible
-    if (suppressKotlinVersionCheck) {
-      // Remove existing property if present
-      config.modResults = config.modResults.filter(
-        (item) =>
-          !(
-            item.type === 'property' &&
-            item.key === 'kotlin.suppressKotlinVersionCompatibilityCheck'
-          )
+function withComposeCompilerVersion(config) {
+  // Add suppression to project build.gradle for all modules
+  config = withProjectBuildGradle(config, (config) => {
+    if (config.modResults.language === 'groovy') {
+      const contents = config.modResults.contents;
+
+      // Check if already configured
+      if (contents.includes('suppressKotlinVersionCompatibilityCheck')) {
+        console.log('[withComposeCompilerVersion] Already configured, skipping');
+        return config;
+      }
+
+      // Add allprojects configuration to suppress the version check for all modules
+      const suppressionConfig = `
+
+// Fix Kotlin/Compose Compiler version mismatch
+// Suppress version check for all modules that use Kotlin
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            freeCompilerArgs += ["-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.25"]
+        }
+    }
+}
+`;
+
+      config.modResults.contents = contents + suppressionConfig;
+      console.log(
+        '[withComposeCompilerVersion] Added suppressKotlinVersionCompatibilityCheck compiler argument'
       );
-
-      config.modResults.push({
-        type: 'property',
-        key: 'kotlin.suppressKotlinVersionCompatibilityCheck',
-        value: 'true',
-      });
-
-      console.log('[withComposeCompilerVersion] Suppressed Kotlin version compatibility check');
     }
 
     return config;
   });
+
+  return config;
 }
 
 module.exports = withComposeCompilerVersion;
