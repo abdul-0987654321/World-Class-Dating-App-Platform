@@ -1,51 +1,53 @@
 /**
- * Expo config plugin for Kotlin/Compose Compiler compatibility
+ * Expo config plugin to FORCE Kotlin version for Compose Compiler compatibility
  *
- * IMPORTANT: This plugin is now a validation check only.
+ * CRITICAL: expo-build-properties kotlinVersion is being ignored by EAS Build.
+ * This plugin directly modifies the root build.gradle to force Kotlin 1.9.24.
  *
- * Compose Compiler 1.5.14 (used by expo-modules-core) requires Kotlin 1.9.24.
- * KSP 1.9.24 also requires Kotlin 1.9.24.
- *
- * As long as kotlinVersion in expo-build-properties is set to '1.9.24',
- * no modifications are needed.
- *
- * This plugin logs a warning if an incompatible Kotlin version is detected.
+ * Required versions:
+ * - Kotlin: 1.9.24 (required by KSP 1.9.24-1.0.20 and Compose Compiler 1.5.14)
  */
-const { withAppBuildGradle } = require('expo/config-plugins');
+const { withProjectBuildGradle } = require('expo/config-plugins');
 
-// Expected versions for compatibility
-const EXPECTED_KOTLIN_VERSION = '1.9.24';
-const COMPOSE_COMPILER_VERSION = '1.5.14';
+const KOTLIN_VERSION = '1.9.24';
 
 function withComposeCompilerVersion(config) {
-  return withAppBuildGradle(config, (config) => {
-    // Log the configuration for debugging
-    console.log('[withComposeCompilerVersion] Validating Kotlin/Compose compatibility...');
-    console.log(`[withComposeCompilerVersion] Expected Kotlin: ${EXPECTED_KOTLIN_VERSION}`);
-    console.log(`[withComposeCompilerVersion] Compose Compiler: ${COMPOSE_COMPILER_VERSION}`);
+  return withProjectBuildGradle(config, (config) => {
+    let buildGradle = config.modResults.contents;
 
-    // Check if build.gradle contains incompatible Kotlin version references
-    const buildGradle = config.modResults.contents;
+    console.log('[withComposeCompilerVersion] Forcing Kotlin version to ' + KOTLIN_VERSION);
 
-    // Look for any hardcoded kotlin version that might conflict
-    const kotlinVersionMatch = buildGradle.match(/kotlinVersion\s*=\s*['"]([^'"]+)['"]/);
-    if (kotlinVersionMatch) {
-      const foundVersion = kotlinVersionMatch[1];
-      if (foundVersion !== EXPECTED_KOTLIN_VERSION) {
-        console.warn(
-          `[withComposeCompilerVersion] WARNING: Found kotlinVersion=${foundVersion}, expected ${EXPECTED_KOTLIN_VERSION}`
-        );
-        console.warn(
-          '[withComposeCompilerVersion] This may cause build failures due to Compose Compiler incompatibility'
-        );
-      } else {
-        console.log(
-          `[withComposeCompilerVersion] OK: Kotlin version ${foundVersion} is compatible`
-        );
-      }
+    // Replace the kotlinVersion line in ext block to force our version
+    // The template has: kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.25'
+    // We need to replace it with a hardcoded version
+
+    // Pattern 1: Replace findProperty fallback pattern
+    buildGradle = buildGradle.replace(
+      /kotlinVersion\s*=\s*findProperty\s*\(\s*['"]android\.kotlinVersion['"]\s*\)\s*\?:\s*['"][^'"]+['"]/g,
+      `kotlinVersion = '${KOTLIN_VERSION}'`
+    );
+
+    // Pattern 2: Replace any direct kotlinVersion assignment
+    buildGradle = buildGradle.replace(
+      /kotlinVersion\s*=\s*['"]1\.9\.\d+['"]/g,
+      `kotlinVersion = '${KOTLIN_VERSION}'`
+    );
+
+    // Verify the replacement worked
+    if (buildGradle.includes(`kotlinVersion = '${KOTLIN_VERSION}'`)) {
+      console.log(
+        '[withComposeCompilerVersion] SUCCESS: Kotlin version forced to ' + KOTLIN_VERSION
+      );
+    } else {
+      console.error('[withComposeCompilerVersion] FAILED: Could not find kotlinVersion to replace');
+      // Fallback: try to add it to ext block
+      buildGradle = buildGradle.replace(
+        /(ext\s*\{)/,
+        `$1\n        kotlinVersion = '${KOTLIN_VERSION}'`
+      );
     }
 
-    // No modifications needed - just validation
+    config.modResults.contents = buildGradle;
     return config;
   });
 }
