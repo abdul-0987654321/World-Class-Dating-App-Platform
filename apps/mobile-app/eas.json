@@ -12,7 +12,8 @@
         "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
         "npm_config_platform": "linux",
         "npm_config_arch": "x64",
-        "npm_config_libc": "glibc"
+        "npm_config_libc": "glibc",
+        "GRADLE_OPTS": "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
       },
       "cache": {
         "key": "flamoral-mobile-v3",
