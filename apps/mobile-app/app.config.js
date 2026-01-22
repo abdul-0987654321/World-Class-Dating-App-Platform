@@ -116,6 +116,8 @@ export default ({ config }) => ({
     'expo-router',
     // Custom plugin to fix REACT_NATIVE_NODE_MODULES_DIR for native modules in monorepo
     './plugins/withReactNativeModulesDir',
+    // Custom plugin to fix react-native-iap store variant ambiguity (play vs amazon)
+    ['./plugins/withIAPStoreVariant', { store: 'play' }],
     [
       'expo-build-properties',
       {
