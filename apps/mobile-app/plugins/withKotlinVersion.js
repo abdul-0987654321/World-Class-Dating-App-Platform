@@ -4,14 +4,18 @@
  * ROOT CAUSE: React Native 0.76.9 ships with libs.versions.toml that specifies kotlin = "1.9.25"
  * This version catalog is loaded in settings.gradle and overrides our build.gradle settings.
  *
- * SOLUTION: Add a resolutionStrategy to force Kotlin 1.9.24 for all configurations.
+ * SOLUTION: Multiple layers of enforcement:
+ * 1. Override version catalog in dependencyResolutionManagement
+ * 2. Add resolutionStrategy for plugin resolution
+ * 3. Force buildscript classpath dependencies
+ * 4. Force transitive kotlin-stdlib dependencies
  */
 const { withSettingsGradle, withProjectBuildGradle } = require('expo/config-plugins');
 
 const KOTLIN_VERSION = '1.9.24';
 
 function withKotlinVersion(config) {
-  // Step 1: Modify settings.gradle to inject resolutionStrategy into existing pluginManagement block
+  // Step 1: Modify settings.gradle to override version catalog AND inject plugin resolutionStrategy
   config = withSettingsGradle(config, (config) => {
     let settingsGradle = config.modResults.contents;
 
@@ -28,32 +32,50 @@ function withKotlinVersion(config) {
         }
     }`;
 
+    // Override the version catalog BEFORE it's used
+    const versionCatalogOverride = `
+// CRITICAL: Override React Native's version catalog kotlin version
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            version("kotlin", "${KOTLIN_VERSION}")
+        }
+    }
+}
+`;
+
     // Check if we already added the override
     if (settingsGradle.includes('Force Kotlin version')) {
       console.log('[withKotlinVersion] Kotlin override already present in settings.gradle');
-    } else if (settingsGradle.includes('pluginManagement {')) {
-      // Inject resolutionStrategy right after the first pluginManagement { opening
-      settingsGradle = settingsGradle.replace(
-        /pluginManagement\s*\{/,
-        `pluginManagement {${resolutionStrategyBlock}`
-      );
-      console.log(
-        '[withKotlinVersion] Injected resolutionStrategy into existing pluginManagement block'
-      );
     } else {
-      // No existing pluginManagement block - add one at the beginning
-      const newBlock = `pluginManagement {${resolutionStrategyBlock}
-}
-`;
-      settingsGradle = newBlock + settingsGradle;
-      console.log('[withKotlinVersion] Added new pluginManagement block with resolutionStrategy');
+      // Inject resolutionStrategy into pluginManagement block
+      if (settingsGradle.includes('pluginManagement {')) {
+        settingsGradle = settingsGradle.replace(
+          /pluginManagement\s*\{/,
+          `pluginManagement {${resolutionStrategyBlock}`
+        );
+        console.log(
+          '[withKotlinVersion] Injected resolutionStrategy into existing pluginManagement block'
+        );
+      }
+
+      // Add version catalog override at the end (before rootProject.name if it exists)
+      if (settingsGradle.includes('rootProject.name')) {
+        settingsGradle = settingsGradle.replace(
+          /(rootProject\.name\s*=)/,
+          `${versionCatalogOverride}\n$1`
+        );
+      } else {
+        settingsGradle = settingsGradle + '\n' + versionCatalogOverride;
+      }
+      console.log('[withKotlinVersion] Added version catalog override');
     }
 
     config.modResults.contents = settingsGradle;
     return config;
   });
 
-  // Step 2: Also modify build.gradle to force kotlin version and add resolution strategy
+  // Step 2: Also modify build.gradle to force kotlin version at multiple levels
   config = withProjectBuildGradle(config, (config) => {
     let buildGradle = config.modResults.contents;
 
@@ -69,12 +91,25 @@ function withKotlinVersion(config) {
       `kotlinVersion = '${KOTLIN_VERSION}'`
     );
 
-    // Add a resolution strategy to force Kotlin version for all dependencies
+    // Force buildscript classpath resolution AND subproject dependencies
     const resolutionStrategy = `
-// Force Kotlin ${KOTLIN_VERSION} for all configurations
+// Force Kotlin ${KOTLIN_VERSION} for ALL configurations including buildscript
+buildscript {
+    configurations.all {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-gradle-plugin:${KOTLIN_VERSION}"
+            force "org.jetbrains.kotlin:kotlin-stdlib:${KOTLIN_VERSION}"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${KOTLIN_VERSION}"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${KOTLIN_VERSION}"
+            force "org.jetbrains.kotlin:kotlin-reflect:${KOTLIN_VERSION}"
+        }
+    }
+}
+
 subprojects {
     configurations.all {
         resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-gradle-plugin:${KOTLIN_VERSION}"
             force "org.jetbrains.kotlin:kotlin-stdlib:${KOTLIN_VERSION}"
             force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${KOTLIN_VERSION}"
             force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${KOTLIN_VERSION}"
