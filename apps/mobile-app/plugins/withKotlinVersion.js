@@ -5,16 +5,68 @@
  * This version catalog is loaded in settings.gradle and overrides our build.gradle settings.
  *
  * SOLUTION: Multiple layers of enforcement:
- * 1. Override version catalog in dependencyResolutionManagement
- * 2. Add resolutionStrategy for plugin resolution
- * 3. Force buildscript classpath dependencies
- * 4. Force transitive kotlin-stdlib dependencies
+ * 1. PATCH the actual libs.versions.toml file to change kotlin version
+ * 2. Override version catalog in dependencyResolutionManagement
+ * 3. Add resolutionStrategy for plugin resolution
+ * 4. Force buildscript classpath dependencies
+ * 5. Force transitive kotlin-stdlib dependencies
  */
-const { withSettingsGradle, withProjectBuildGradle } = require('expo/config-plugins');
+const {
+  withSettingsGradle,
+  withProjectBuildGradle,
+  withDangerousMod,
+} = require('expo/config-plugins');
+const fs = require('fs');
+const path = require('path');
 
 const KOTLIN_VERSION = '1.9.24';
 
 function withKotlinVersion(config) {
+  // Step 0: PATCH the actual libs.versions.toml file in node_modules
+  config = withDangerousMod(config, [
+    'android',
+    async (config) => {
+      const projectRoot = config.modRequest.projectRoot;
+
+      // Find and patch the React Native libs.versions.toml
+      const possiblePaths = [
+        path.join(projectRoot, 'node_modules', 'react-native', 'gradle', 'libs.versions.toml'),
+        path.join(
+          projectRoot,
+          '..',
+          '..',
+          'node_modules',
+          'react-native',
+          'gradle',
+          'libs.versions.toml'
+        ),
+      ];
+
+      for (const tomlPath of possiblePaths) {
+        if (fs.existsSync(tomlPath)) {
+          console.log(`[withKotlinVersion] Patching ${tomlPath}...`);
+          let content = fs.readFileSync(tomlPath, 'utf-8');
+
+          // Replace kotlin = "1.9.25" with kotlin = "1.9.24"
+          if (content.includes('kotlin = "1.9.25"')) {
+            content = content.replace('kotlin = "1.9.25"', `kotlin = "${KOTLIN_VERSION}"`);
+            fs.writeFileSync(tomlPath, content);
+            console.log(
+              `[withKotlinVersion] PATCHED libs.versions.toml: kotlin = "${KOTLIN_VERSION}"`
+            );
+          } else if (content.includes(`kotlin = "${KOTLIN_VERSION}"`)) {
+            console.log('[withKotlinVersion] libs.versions.toml already patched');
+          } else {
+            console.log('[withKotlinVersion] Unexpected kotlin version in libs.versions.toml');
+          }
+          break;
+        }
+      }
+
+      return config;
+    },
+  ]);
+
   // Step 1: Modify settings.gradle to override version catalog AND inject plugin resolutionStrategy
   config = withSettingsGradle(config, (config) => {
     let settingsGradle = config.modResults.contents;
