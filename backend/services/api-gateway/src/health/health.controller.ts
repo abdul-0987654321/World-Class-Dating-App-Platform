@@ -12,6 +12,7 @@ import { SkipRateLimit } from '../decorators/rate-limit.decorator';
 import { ProxyService } from '../services/proxy.service';
 
 @Controller('health')
+@SkipRateLimit()
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
@@ -43,6 +44,7 @@ export class HealthController {
       status: 'ready',
       timestamp: new Date().toISOString(),
       environment: this.configService.get<string>('nodeEnv'),
+      version: 'v2.1.0-skiprl', // Deployment verification marker
     };
   }
 
