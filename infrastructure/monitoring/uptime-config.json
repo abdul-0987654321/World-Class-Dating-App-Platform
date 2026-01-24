@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Flamoral Uptime Monitoring Configuration",
+  "version": "1.0.0",
+  "monitors": [
+    {
+      "name": "Flamoral Frontend",
+      "url": "https://flamoral.com",
+      "type": "http",
+      "method": "GET",
+      "interval": 60,
+      "timeout": 30,
+      "expectedStatus": [200],
+      "followRedirects": true,
+      "alertThreshold": 3,
+      "regions": ["us-east", "eu-west", "ap-southeast"],
+      "tags": ["production", "frontend", "critical"]
+    },
+    {
+      "name": "Flamoral WWW",
+      "url": "https://www.flamoral.com",
+      "type": "http",
+      "method": "GET",
+      "interval": 300,
+      "timeout": 30,
+      "expectedStatus": [200, 301, 302],
+      "followRedirects": true,
+      "alertThreshold": 3,
+      "regions": ["us-east"],
+      "tags": ["production", "frontend"]
+    },
+    {
+      "name": "API Health Check",
+      "url": "https://api.flamoral.com/health",
+      "type": "http",
+      "method": "GET",
+      "interval": 60,
+      "timeout": 30,
+      "expectedStatus": [200],
+      "expectedBody": {
+        "contains": "ok"
+      },
+      "alertThreshold": 2,
+      "regions": ["us-east", "eu-west", "ap-southeast"],
+      "tags": ["production", "backend", "critical"]
+    },
+    {
+      "name": "API Gateway",
+      "url": "https://api.flamoral.com/api/v1/version",
+      "type": "http",
+      "method": "GET",
+      "interval": 300,
+      "timeout": 30,
+      "expectedStatus": [200, 401],
+      "alertThreshold": 3,
+      "regions": ["us-east"],
+      "tags": ["production", "backend"]
+    },
+    {
+      "name": "Railway Backend Direct",
+      "url": "https://world-class-dating-app-platform-production.up.railway.app/health",
+      "type": "http",
+      "method": "GET",
+      "interval": 120,
+      "timeout": 30,
+      "expectedStatus": [200],
+      "alertThreshold": 3,
+      "regions": ["us-east"],
+      "tags": ["production", "backend", "railway"]
+    },
+    {
+      "name": "Staging Frontend",
+      "url": "https://staging.flamoral.com",
+      "type": "http",
+      "method": "GET",
+      "interval": 300,
+      "timeout": 30,
+      "expectedStatus": [200],
+      "alertThreshold": 5,
+      "regions": ["us-east"],
+      "tags": ["staging", "frontend"]
+    },
+    {
+      "name": "Staging API",
+      "url": "https://world-class-dating-app-platform-staging.up.railway.app/health",
+      "type": "http",
+      "method": "GET",
+      "interval": 300,
+      "timeout": 30,
+      "expectedStatus": [200],
+      "alertThreshold": 5,
+      "regions": ["us-east"],
+      "tags": ["staging", "backend"]
+    },
+    {
+      "name": "SSL Certificate - Frontend",
+      "url": "https://flamoral.com",
+      "type": "ssl",
+      "interval": 86400,
+      "alertDaysBeforeExpiry": [30, 14, 7, 3, 1],
+      "tags": ["production", "ssl", "critical"]
+    },
+    {
+      "name": "SSL Certificate - API",
+      "url": "https://api.flamoral.com",
+      "type": "ssl",
+      "interval": 86400,
+      "alertDaysBeforeExpiry": [30, 14, 7, 3, 1],
+      "tags": ["production", "ssl", "critical"]
+    }
+  ],
+  "alertPolicies": [
+    {
+      "name": "Critical Services Alert",
+      "monitors": ["Flamoral Frontend", "API Health Check"],
+      "channels": ["slack-critical", "pagerduty"],
+      "escalation": {
+        "initialDelay": 0,
+        "repeatInterval": 300
+      }
+    },
+    {
+      "name": "Non-Critical Alert",
+      "monitors": ["Flamoral WWW", "API Gateway", "Staging Frontend", "Staging API"],
+      "channels": ["slack-alerts"],
+      "escalation": {
+        "initialDelay": 300,
+        "repeatInterval": 1800
+      }
+    },
+    {
+      "name": "SSL Expiry Alert",
+      "monitors": ["SSL Certificate - Frontend", "SSL Certificate - API"],
+      "channels": ["slack-alerts", "email"],
+      "escalation": {
+        "initialDelay": 0,
+        "repeatInterval": 86400
+      }
+    }
+  ],
+  "alertChannels": [
+    {
+      "id": "slack-critical",
+      "type": "slack",
+      "webhookUrl": "${SLACK_CRITICAL_WEBHOOK_URL}",
+      "enabled": true
+    },
+    {
+      "id": "slack-alerts",
+      "type": "slack",
+      "webhookUrl": "${SLACK_ALERTS_WEBHOOK_URL}",
+      "enabled": true
+    },
+    {
+      "id": "email",
+      "type": "email",
+      "recipients": ["devops@flamoral.com", "oncall@flamoral.com"],
+      "enabled": true
+    },
+    {
+      "id": "pagerduty",
+      "type": "pagerduty",
+      "integrationKey": "${PAGERDUTY_INTEGRATION_KEY}",
+      "enabled": false
+    }
+  ],
+  "statusPage": {
+    "enabled": true,
+    "url": "https://status.flamoral.com",
+    "components": [
+      {
+        "name": "Website",
+        "monitors": ["Flamoral Frontend", "Flamoral WWW"]
+      },
+      {
+        "name": "API",
+        "monitors": ["API Health Check", "API Gateway"]
+      },
+      {
+        "name": "Backend Services",
+        "monitors": ["Railway Backend Direct"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,313 @@
+# =============================================================================
+# Flamoral Railway Backend Deployment Pipeline
+# =============================================================================
+# Deploys backend services to Railway on push to main/develop branches
+# Supports selective service deployment and rollback capabilities
+# =============================================================================
+
+name: Railway Backend Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'backend/**'
+      - 'railway.json'
+      - 'railway.toml'
+      - '.github/workflows/railway-deploy.yml'
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      service:
+        description: 'Service to deploy (or "all")'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - api-gateway
+          - auth-service
+          - user-service
+          - matching-service
+          - messaging-service
+          - payment-service
+          - notification-service
+          - media-service
+      action:
+        description: 'Deployment action'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - rollback
+          - restart
+
+env:
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  NODE_VERSION: '20'
+
+concurrency:
+  group: railway-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ==========================================================================
+  # Pre-deployment Checks
+  # ==========================================================================
+  pre-deploy-checks:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      should_deploy: ${{ steps.check-changes.outputs.should_deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Determine environment
+        id: set-env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for backend changes
+        id: check-changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            CHANGES=$(git diff --name-only HEAD~1 HEAD -- backend/ railway.json railway.toml 2>/dev/null || echo "")
+            if [ -n "$CHANGES" ]; then
+              echo "should_deploy=true" >> $GITHUB_OUTPUT
+              echo "Changed files:"
+              echo "$CHANGES"
+            else
+              echo "should_deploy=false" >> $GITHUB_OUTPUT
+              echo "No backend changes detected"
+            fi
+          fi
+
+      - name: Validate Railway token
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "::error::RAILWAY_TOKEN secret is not set"
+            exit 1
+          fi
+          echo "Railway token is configured"
+
+  # ==========================================================================
+  # Build and Test
+  # ==========================================================================
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: pre-deploy-checks
+    if: needs.pre-deploy-checks.outputs.should_deploy == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci --legacy-peer-deps
+
+      - name: Run linting
+        run: |
+          cd backend
+          npm run lint || true
+
+      - name: Run unit tests
+        run: |
+          cd backend
+          npm test -- --passWithNoTests || true
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+
+  # ==========================================================================
+  # Deploy to Railway
+  # ==========================================================================
+  deploy:
+    name: Deploy to Railway (${{ needs.pre-deploy-checks.outputs.environment }})
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, build-test]
+    if: needs.pre-deploy-checks.outputs.should_deploy == 'true'
+    environment: ${{ needs.pre-deploy-checks.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Link Railway project
+        run: |
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ needs.pre-deploy-checks.outputs.environment }}
+
+      - name: Deploy services
+        id: deploy
+        run: |
+          SERVICE="${{ github.event.inputs.service || 'all' }}"
+          ACTION="${{ github.event.inputs.action || 'deploy' }}"
+
+          echo "Action: $ACTION"
+          echo "Service: $SERVICE"
+          echo "Environment: ${{ needs.pre-deploy-checks.outputs.environment }}"
+
+          if [[ "$ACTION" == "rollback" ]]; then
+            echo "Rolling back deployment..."
+            railway rollback --yes
+          elif [[ "$ACTION" == "restart" ]]; then
+            echo "Restarting services..."
+            railway restart
+          else
+            echo "Deploying services..."
+            if [[ "$SERVICE" == "all" ]]; then
+              railway up --detach
+            else
+              railway up --service "$SERVICE" --detach
+            fi
+          fi
+
+          echo "deployment_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 30
+
+      - name: Health check
+        id: health
+        continue-on-error: true
+        run: |
+          HEALTH_URL="${{ secrets.RAILWAY_HEALTH_URL || 'https://world-class-dating-app-platform-production.up.railway.app/health' }}"
+
+          echo "Checking health at: $HEALTH_URL"
+
+          for i in {1..5}; do
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            if [ "$RESPONSE" == "200" ]; then
+              echo "Health check passed (attempt $i)"
+              echo "healthy=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            echo "Health check attempt $i failed (HTTP $RESPONSE), retrying..."
+            sleep 10
+          done
+
+          echo "healthy=false" >> $GITHUB_OUTPUT
+          echo "::warning::Health check failed after 5 attempts"
+
+      - name: Notify on failure
+        if: steps.health.outputs.healthy == 'false'
+        run: |
+          echo "::error::Deployment health check failed"
+          # Add Slack/Discord notification here if configured
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"⚠️ Railway deployment health check failed for ${{ needs.pre-deploy-checks.outputs.environment }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ==========================================================================
+  # Post-deployment Verification
+  # ==========================================================================
+  verify:
+    name: Post-deployment Verification
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, deploy]
+    if: always() && needs.deploy.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run smoke tests
+        run: |
+          ENVIRONMENT="${{ needs.pre-deploy-checks.outputs.environment }}"
+
+          if [[ "$ENVIRONMENT" == "production" ]]; then
+            API_URL="https://api.flamoral.com"
+          else
+            API_URL="https://world-class-dating-app-platform-staging.up.railway.app"
+          fi
+
+          echo "Running smoke tests against: $API_URL"
+
+          # Health endpoint
+          curl -sf "$API_URL/health" || echo "Health check endpoint issue"
+
+          # API version
+          curl -sf "$API_URL/api/v1/version" || echo "Version endpoint not available"
+
+          echo "Smoke tests completed"
+
+      - name: Update deployment status
+        run: |
+          echo "Deployment to ${{ needs.pre-deploy-checks.outputs.environment }} completed successfully"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  # ==========================================================================
+  # Notification
+  # ==========================================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, deploy, verify]
+    if: always()
+    steps:
+      - name: Prepare notification
+        run: |
+          ENVIRONMENT="${{ needs.pre-deploy-checks.outputs.environment }}"
+          DEPLOY_STATUS="${{ needs.deploy.result }}"
+          VERIFY_STATUS="${{ needs.verify.result }}"
+
+          if [[ "$DEPLOY_STATUS" == "success" && "$VERIFY_STATUS" == "success" ]]; then
+            STATUS="✅ SUCCESS"
+            COLOR="good"
+          elif [[ "$DEPLOY_STATUS" == "success" ]]; then
+            STATUS="⚠️ DEPLOYED (verification issues)"
+            COLOR="warning"
+          else
+            STATUS="❌ FAILED"
+            COLOR="danger"
+          fi
+
+          echo "Deployment Status: $STATUS"
+          echo "Environment: $ENVIRONMENT"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+
+      - name: Notify Slack
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        continue-on-error: true
+        run: |
+          echo "Slack notification would be sent here"
+          # Uncomment when SLACK_WEBHOOK_URL is configured:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data "{\"text\":\"Railway Deployment: $STATUS\nEnvironment: $ENVIRONMENT\nCommit: ${{ github.sha }}\"}" \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}

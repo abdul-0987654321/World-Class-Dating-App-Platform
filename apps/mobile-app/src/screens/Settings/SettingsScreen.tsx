@@ -84,7 +84,7 @@ const LEGAL_URLS = {
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<SettingsNavigationProp>();
-  const { logout } = useAuth();
+  const { logout, deleteAccount } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = () => {
@@ -99,18 +99,13 @@ const SettingsScreen: React.FC = () => {
           onPress: async () => {
             try {
               await logout();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Auth' as never }],
-              });
+              // RootNavigator will automatically switch to Auth screen
+              // when isAuthenticated becomes false
             } catch (error) {
               console.error('Logout error:', error);
-              // Still navigate to auth on error - clear local state
+              // Clear local state on error to ensure user is logged out
               await TokenStorage.clear();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Auth' as never }],
-              });
+              // RootNavigator will automatically switch to Auth screen
             }
           },
         },
@@ -132,34 +127,15 @@ const SettingsScreen: React.FC = () => {
             try {
               setIsDeleting(true);
 
-              // Get token for authenticated API call
-              const token = await TokenStorage.getItem(ACCESS_TOKEN_KEY);
-
-              // Call account deletion API
-              const response = await fetch('https://api.flamoral.com/api/v1/auth/account', {
-                method: 'DELETE',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              });
-
-              if (!response.ok) {
-                throw new Error('Failed to delete account');
-              }
-
-              // Clear all local storage
-              await TokenStorage.clear();
+              // Use the deleteAccount method from useAuth which properly
+              // clears state and triggers RootNavigator to switch to Auth
+              await deleteAccount();
 
               Alert.alert('Account Deleted', 'Your account has been permanently deleted.', [
                 {
                   text: 'OK',
-                  onPress: () => {
-                    navigation.reset({
-                      index: 0,
-                      routes: [{ name: 'Auth' as never }],
-                    });
-                  },
+                  // RootNavigator will automatically switch to Auth screen
+                  // when isAuthenticated becomes false
                 },
               ]);
             } catch (error) {

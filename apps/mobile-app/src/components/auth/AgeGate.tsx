@@ -1,7 +1,23 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  TextInput as TextInputType,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
+import {
+  AUTH_COLORS,
+  AUTH_TYPOGRAPHY,
+  AUTH_SPACING,
+  AUTH_RADIUS,
+  moderateScale,
+} from '../../styles/auth.styles';
 
 interface AgeGateProps {
   onVerified: (birthDate: string) => void;
@@ -11,6 +27,23 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified }) => {
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [year, setYear] = useState('');
+
+  const dayRef = useRef<TextInputType>(null);
+  const yearRef = useRef<TextInputType>(null);
+
+  const handleMonthChange = (text: string) => {
+    setMonth(text);
+    if (text.length === 2) {
+      dayRef.current?.focus();
+    }
+  };
+
+  const handleDayChange = (text: string) => {
+    setDay(text);
+    if (text.length === 2) {
+      yearRef.current?.focus();
+    }
+  };
 
   const handleSubmit = () => {
     if (!month || !day || !year) {
@@ -31,44 +64,115 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified }) => {
     onVerified(birthDate);
   };
 
+  const isComplete = month.length >= 1 && day.length >= 1 && year.length === 4;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>When's your birthday?</Text>
-      <Text style={styles.subtitle}>You must be 18+ to use Flamoral</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoid}
+      >
+        <View style={styles.container}>
+          <Text style={styles.title} accessibilityRole="header">
+            When's your birthday?
+          </Text>
+          <Text style={styles.subtitle}>You must be 18+ to use Flamoral</Text>
 
-      <View style={styles.dateContainer}>
-        <Input
-          placeholder="MM"
-          keyboardType="number-pad"
-          maxLength={2}
-          value={month}
-          onChangeText={setMonth}
-          style={styles.dateInput}
-        />
-        <Text style={styles.dateSeparator}>/</Text>
-        <Input
-          placeholder="DD"
-          keyboardType="number-pad"
-          maxLength={2}
-          value={day}
-          onChangeText={setDay}
-          style={styles.dateInput}
-        />
-        <Text style={styles.dateSeparator}>/</Text>
-        <Input
-          placeholder="YYYY"
-          keyboardType="number-pad"
-          maxLength={4}
-          value={year}
-          onChangeText={setYear}
-          style={styles.yearInput}
-        />
-      </View>
+          <View
+            style={styles.dateContainer}
+            accessibilityRole="group"
+            accessibilityLabel="Date of birth entry"
+          >
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel} nativeID="monthLabel">
+                Month
+              </Text>
+              <Input
+                placeholder="MM"
+                keyboardType="number-pad"
+                maxLength={2}
+                value={month}
+                onChangeText={handleMonthChange}
+                style={styles.dateInput}
+                returnKeyType="next"
+                accessibilityLabel="Month"
+                accessibilityLabelledBy="monthLabel"
+                accessibilityHint="Enter birth month as 2 digits"
+              />
+            </View>
+            <Text
+              style={styles.dateSeparator}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            >
+              /
+            </Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel} nativeID="dayLabel">
+                Day
+              </Text>
+              <Input
+                ref={dayRef}
+                placeholder="DD"
+                keyboardType="number-pad"
+                maxLength={2}
+                value={day}
+                onChangeText={handleDayChange}
+                style={styles.dateInput}
+                returnKeyType="next"
+                accessibilityLabel="Day"
+                accessibilityLabelledBy="dayLabel"
+                accessibilityHint="Enter birth day as 2 digits"
+              />
+            </View>
+            <Text
+              style={styles.dateSeparator}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            >
+              /
+            </Text>
+            <View style={[styles.inputWrapper, styles.yearWrapper]}>
+              <Text style={styles.inputLabel} nativeID="yearLabel">
+                Year
+              </Text>
+              <Input
+                ref={yearRef}
+                placeholder="YYYY"
+                keyboardType="number-pad"
+                maxLength={4}
+                value={year}
+                onChangeText={setYear}
+                style={styles.yearInput}
+                returnKeyType="done"
+                onSubmitEditing={isComplete ? handleSubmit : undefined}
+                accessibilityLabel="Year"
+                accessibilityLabelledBy="yearLabel"
+                accessibilityHint="Enter birth year as 4 digits"
+              />
+            </View>
+          </View>
 
-      <Button title="Continue" onPress={handleSubmit} fullWidth style={styles.button} />
+          <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
+            <View style={styles.footer}>
+              <Button
+                title="Continue"
+                onPress={handleSubmit}
+                fullWidth
+                style={styles.button}
+                disabled={!isComplete}
+                accessibilityLabel="Continue"
+                accessibilityHint="Verify your age and continue"
+              />
 
-      <Text style={styles.disclaimer}>Your age will be public. Your birthday will not.</Text>
-    </View>
+              <Text style={styles.disclaimer} accessibilityRole="text">
+                Your age will be public. Your birthday will not.
+              </Text>
+            </View>
+          </SafeAreaView>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -82,45 +186,76 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
+// Styles using shared design tokens for consistency
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: AUTH_COLORS.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
   container: {
-    padding: 24,
+    flex: 1,
+    padding: AUTH_SPACING.lg,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['3xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
+    color: AUTH_COLORS.text.primary,
+    marginBottom: AUTH_SPACING.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 32,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
+    marginBottom: AUTH_SPACING.xl,
+    lineHeight: AUTH_TYPOGRAPHY.fontSize.base * AUTH_TYPOGRAPHY.lineHeight.relaxed,
   },
   dateContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 32,
+    alignItems: 'flex-end',
+    marginBottom: AUTH_SPACING.xl,
+  },
+  inputWrapper: {
+    flex: 1,
+  },
+  yearWrapper: {
+    flex: 1.5,
+  },
+  inputLabel: {
+    fontSize: AUTH_TYPOGRAPHY.fontSize.xs,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
+    color: AUTH_COLORS.text.secondary,
+    marginBottom: AUTH_SPACING.xs,
+    textAlign: 'center',
   },
   dateInput: {
-    flex: 1,
     textAlign: 'center',
+    minHeight: moderateScale(52),
   },
   yearInput: {
-    flex: 1.5,
     textAlign: 'center',
+    minHeight: moderateScale(52),
   },
   dateSeparator: {
-    fontSize: 24,
-    color: '#999',
-    marginHorizontal: 8,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['2xl'],
+    color: AUTH_COLORS.text.secondary,
+    marginHorizontal: AUTH_SPACING.sm,
+    marginBottom: moderateScale(20),
+  },
+  bottomSafeArea: {
+    marginTop: 'auto',
+  },
+  footer: {
+    paddingTop: AUTH_SPACING.md,
   },
   button: {
-    marginBottom: 16,
+    marginBottom: AUTH_SPACING.md,
   },
   disclaimer: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    color: AUTH_COLORS.text.secondary,
     textAlign: 'center',
+    lineHeight: AUTH_TYPOGRAPHY.fontSize.sm * AUTH_TYPOGRAPHY.lineHeight.normal,
   },
 });

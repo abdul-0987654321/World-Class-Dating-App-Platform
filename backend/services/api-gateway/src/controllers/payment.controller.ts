@@ -10,8 +10,10 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Request } from 'express';
 
 import { Public } from '../decorators/public.decorator';
 import { ProxyService } from '../services/proxy.service';
@@ -26,24 +28,39 @@ export class PaymentController {
 
   /**
    * Get all available subscription plans
+   * Public endpoint - users can view plans before authentication
    */
+  @Public()
   @Get('subscriptions/plans')
   @ApiOperation({ summary: 'Get all subscription plans' })
-  async getPlans(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('paymentService', '/api/v1/subscriptions/plans', {
-      Authorization: authorization,
-    });
+  async getPlans(@Headers('authorization') authorization?: string) {
+    const headers: Record<string, string> = {};
+    if (authorization) {
+      headers.Authorization = authorization;
+    }
+    return this.proxyService.get('paymentService', '/api/v1/subscriptions/plans', headers);
   }
 
   /**
    * Get a specific plan
+   * Public endpoint - users can view plan details before authentication
    */
+  @Public()
   @Get('subscriptions/plans/:planId')
   @ApiOperation({ summary: 'Get a specific subscription plan' })
-  async getPlan(@Headers('authorization') authorization: string, @Param('planId') planId: string) {
-    return this.proxyService.get('paymentService', `/api/v1/subscriptions/plans/${planId}`, {
-      Authorization: authorization,
-    });
+  async getPlan(
+    @Headers('authorization') authorization: string | undefined,
+    @Param('planId') planId: string
+  ) {
+    const headers: Record<string, string> = {};
+    if (authorization) {
+      headers.Authorization = authorization;
+    }
+    return this.proxyService.get(
+      'paymentService',
+      `/api/v1/subscriptions/plans/${planId}`,
+      headers
+    );
   }
 
   // ==================== User Subscription Endpoints ====================
@@ -65,7 +82,10 @@ export class PaymentController {
   @Post('subscriptions')
   @ApiOperation({ summary: 'Create a new subscription' })
   @HttpCode(HttpStatus.CREATED)
-  async createSubscription(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async createSubscription(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/payment/subscription/create', body, {
       Authorization: authorization,
     });
@@ -77,7 +97,10 @@ export class PaymentController {
   @Post('subscriptions/subscribe')
   @ApiOperation({ summary: 'Subscribe to a plan' })
   @HttpCode(HttpStatus.CREATED)
-  async subscribe(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async subscribe(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/payment/subscription/create', body, {
       Authorization: authorization,
     });
@@ -88,7 +111,10 @@ export class PaymentController {
    */
   @Put('subscriptions/me/upgrade')
   @ApiOperation({ summary: 'Upgrade current subscription' })
-  async upgradeSubscription(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async upgradeSubscription(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.put('paymentService', '/api/v1/subscriptions/me/upgrade', body, {
       Authorization: authorization,
     });
@@ -116,7 +142,10 @@ export class PaymentController {
   @Post('subscriptions/cancel')
   @ApiOperation({ summary: 'Cancel current subscription' })
   @HttpCode(HttpStatus.OK)
-  async cancelSubscriptionPost(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async cancelSubscriptionPost(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/payment/subscription/cancel', body, {
       Authorization: authorization,
     });
@@ -158,7 +187,10 @@ export class PaymentController {
   @Post('payment-methods')
   @ApiOperation({ summary: 'Add a new payment method' })
   @HttpCode(HttpStatus.CREATED)
-  async addPaymentMethod(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async addPaymentMethod(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/payment-methods', body, {
       Authorization: authorization,
     });
@@ -173,9 +205,13 @@ export class PaymentController {
     @Headers('authorization') authorization: string,
     @Param('paymentMethodId') paymentMethodId: string
   ) {
-    return this.proxyService.delete('paymentService', `/api/v1/payment-methods/${paymentMethodId}`, {
-      Authorization: authorization,
-    });
+    return this.proxyService.delete(
+      'paymentService',
+      `/api/v1/payment-methods/${paymentMethodId}`,
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -252,7 +288,10 @@ export class PaymentController {
   @Post('purchases')
   @ApiOperation({ summary: 'Purchase a product' })
   @HttpCode(HttpStatus.CREATED)
-  async purchaseProduct(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async purchaseProduct(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/purchases', body, {
       Authorization: authorization,
     });
@@ -318,13 +357,21 @@ export class PaymentController {
 
   /**
    * Stripe webhook
+   *
+   * IMPORTANT: This endpoint receives raw body (Buffer) for Stripe signature verification.
+   * The raw body is forwarded directly to the payment service which handles signature verification.
    */
   @Public()
   @Post('webhooks/stripe')
   @ApiOperation({ summary: 'Handle Stripe webhook events' })
   @HttpCode(HttpStatus.OK)
-  async stripeWebhook(@Body() body: Record<string, unknown>, @Headers() headers: Record<string, string>) {
-    return this.proxyService.post('paymentService', '/api/v1/webhooks/stripe', body, headers);
+  async stripeWebhook(@Req() req: Request, @Headers() headers: Record<string, string>) {
+    // Forward raw body to payment service for signature verification
+    // req.body is a Buffer when using express.raw() middleware
+    return this.proxyService.postRaw('paymentService', '/api/v1/webhooks/stripe', req.body, {
+      'stripe-signature': headers['stripe-signature'],
+      'content-type': 'application/json',
+    });
   }
 
   /**
@@ -334,8 +381,12 @@ export class PaymentController {
   @Post('webhooks/paystack')
   @ApiOperation({ summary: 'Handle Paystack webhook events' })
   @HttpCode(HttpStatus.OK)
-  async paystackWebhook(@Body() body: Record<string, unknown>, @Headers() headers: Record<string, string>) {
-    return this.proxyService.post('paymentService', '/api/v1/webhooks/paystack', body, headers);
+  async paystackWebhook(@Req() req: Request, @Headers() headers: Record<string, string>) {
+    // Paystack sends JSON body - parse it from raw buffer
+    const body = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString()) : req.body;
+    return this.proxyService.post('paymentService', '/api/v1/webhooks/paystack', body, {
+      'x-paystack-signature': headers['x-paystack-signature'],
+    });
   }
 
   /**
@@ -345,8 +396,12 @@ export class PaymentController {
   @Post('webhooks/flutterwave')
   @ApiOperation({ summary: 'Handle Flutterwave webhook events' })
   @HttpCode(HttpStatus.OK)
-  async flutterwaveWebhook(@Body() body: Record<string, unknown>, @Headers() headers: Record<string, string>) {
-    return this.proxyService.post('paymentService', '/api/v1/webhooks/flutterwave', body, headers);
+  async flutterwaveWebhook(@Req() req: Request, @Headers() headers: Record<string, string>) {
+    // Flutterwave sends JSON body - parse it from raw buffer
+    const body = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString()) : req.body;
+    return this.proxyService.post('paymentService', '/api/v1/webhooks/flutterwave', body, {
+      'verif-hash': headers['verif-hash'],
+    });
   }
 
   // ==================== Promo Code Endpoints ====================
@@ -357,7 +412,10 @@ export class PaymentController {
   @Post('promo-codes/apply')
   @ApiOperation({ summary: 'Apply a promo code' })
   @HttpCode(HttpStatus.OK)
-  async applyPromoCode(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async applyPromoCode(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/promo-codes/apply', body, {
       Authorization: authorization,
     });
@@ -369,7 +427,10 @@ export class PaymentController {
   @Post('promo-codes/validate')
   @ApiOperation({ summary: 'Validate a promo code' })
   @HttpCode(HttpStatus.OK)
-  async validatePromoCode(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async validatePromoCode(
+    @Headers('authorization') authorization: string,
+    @Body() body: Record<string, unknown>
+  ) {
     return this.proxyService.post('paymentService', '/api/v1/promo-codes/validate', body, {
       Authorization: authorization,
     });

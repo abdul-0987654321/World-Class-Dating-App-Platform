@@ -59,6 +59,7 @@ chmod +x 01-setup-backend.sh
 ```
 
 **What it does:**
+
 - Creates resource group: `datingapp-tfstate-rg`
 - Creates storage account: `datingapptfstate`
 - Creates blob container: `tfstate`
@@ -79,6 +80,7 @@ gh auth login
 ```
 
 **What it does:**
+
 - Creates Azure service principal: `datingapp-github-actions`
 - Configures OIDC federated credentials
 - Sets GitHub secrets:
@@ -97,6 +99,7 @@ Deploys the full infrastructure stack to Azure.
 ```
 
 **What it deploys:**
+
 - Azure Virtual Network (10.0.0.0/16)
 - AKS Cluster (3-20 nodes, autoscaling)
 - PostgreSQL Flexible Server
@@ -172,10 +175,12 @@ gh workflow view terraform-apply.yml --web
 **Purpose:** Create Terraform remote state storage
 
 **Requirements:**
+
 - Azure CLI installed and authenticated
 - Contributor permissions on subscription
 
 **Actions:**
+
 1. Checks Azure authentication
 2. Creates resource group for Terraform state
 3. Creates storage account with blob encryption
@@ -188,11 +193,13 @@ gh workflow view terraform-apply.yml --web
 **Purpose:** Configure GitHub Actions OIDC authentication
 
 **Requirements:**
+
 - Azure CLI installed and authenticated
 - GitHub CLI installed and authenticated
 - Admin access to GitHub repository
 
 **Actions:**
+
 1. Creates Azure service principal
 2. Configures OIDC federated credentials for main branch
 3. Configures OIDC federated credentials for PRs
@@ -205,11 +212,13 @@ gh workflow view terraform-apply.yml --web
 **Purpose:** Deploy complete infrastructure stack
 
 **Requirements:**
+
 - Terraform installed
 - Azure CLI authenticated
 - Backend storage created (script 01)
 
 **Actions:**
+
 1. Initializes Terraform with remote backend
 2. Validates configuration
 3. Creates deployment plan
@@ -321,6 +330,7 @@ This is expected if re-running scripts. Terraform and the scripts are designed t
 ### Insufficient Permissions
 
 Ensure your Azure account has:
+
 - Contributor role on subscription (for creating resources)
 - User Access Administrator role (for creating service principals)
 
@@ -365,12 +375,14 @@ terraform destroy -var-file=envs/dev.tfvars
 ## Next Steps After Deployment
 
 1. **Get AKS Access**
+
    ```bash
    az aks get-credentials --resource-group datingapp-dev-rg --name datingapp-dev-aks
    kubectl get nodes
    ```
 
 2. **Deploy Applications**
+
    ```bash
    # Via Helm
    helm install dating-api ./helm/dating-api --namespace datingapp --create-namespace
@@ -411,4 +423,93 @@ Scripts will use these if set:
 export AZURE_SUBSCRIPTION_ID="your-subscription-id"
 export AZURE_TENANT_ID="your-tenant-id"
 export TF_VAR_environment="dev"
+```
+
+## Stripe Products Setup
+
+The `setup-stripe-products.js` script creates subscription products and prices in Stripe.
+
+### Prerequisites
+
+1. **Node.js** (v20.0.0+)
+2. **Stripe Account** with API access
+3. **Stripe Secret Key** (starts with `sk_live_` or `sk_test_`)
+
+### Running the Script
+
+```bash
+# Navigate to project root
+cd World-Class-Dating-App-Platform
+
+# Install Stripe dependency (if not already installed)
+npm install stripe
+
+# Option 1: Dry run first (recommended) - preview what will be created
+# Windows (PowerShell)
+$env:STRIPE_SECRET_KEY="sk_live_your_key_here"
+$env:DRY_RUN="true"
+node infrastructure/scripts/setup-stripe-products.js
+
+# Windows (Command Prompt)
+set STRIPE_SECRET_KEY=sk_live_your_key_here
+set DRY_RUN=true
+node infrastructure/scripts/setup-stripe-products.js
+
+# Linux/Mac
+STRIPE_SECRET_KEY=sk_live_your_key_here DRY_RUN=true node infrastructure/scripts/setup-stripe-products.js
+
+# Option 2: Create actual products (live)
+# Windows (PowerShell)
+$env:STRIPE_SECRET_KEY="sk_live_your_key_here"
+node infrastructure/scripts/setup-stripe-products.js
+
+# Windows (Command Prompt)
+set STRIPE_SECRET_KEY=sk_live_your_key_here
+node infrastructure/scripts/setup-stripe-products.js
+
+# Linux/Mac
+STRIPE_SECRET_KEY=sk_live_your_key_here node infrastructure/scripts/setup-stripe-products.js
+```
+
+### What It Creates
+
+| Tier     | Price        | Product           |
+| -------- | ------------ | ----------------- |
+| Basic    | $9.99/month  | Flamoral Basic    |
+| Plus     | $19.99/month | Flamoral Plus     |
+| Premium  | $29.99/month | Flamoral Premium  |
+| Premium+ | $39.99/month | Flamoral Premium+ |
+| Elite    | $59.99/month | Flamoral Elite    |
+
+### Script Features
+
+- **Idempotent**: Safe to run multiple times - detects existing products/prices
+- **Dry Run Mode**: Preview changes without creating anything
+- **Metadata**: Products include tier metadata and marketing features
+- **Output**: Generates environment variables ready to copy/paste
+
+### After Running
+
+The script outputs environment variables to add to your configuration:
+
+```bash
+# Add to .env or Azure Key Vault
+STRIPE_PRODUCT_BASIC=prod_xxxxx
+STRIPE_PRICE_BASIC=price_xxxxx
+STRIPE_PRODUCT_PLUS=prod_xxxxx
+STRIPE_PRICE_PLUS=price_xxxxx
+STRIPE_PRODUCT_PREMIUM=prod_xxxxx
+STRIPE_PRICE_PREMIUM=price_xxxxx
+STRIPE_PRODUCT_PREMIUM_PLUS=prod_xxxxx
+STRIPE_PRICE_PREMIUM_PLUS=price_xxxxx
+STRIPE_PRODUCT_ELITE=prod_xxxxx
+STRIPE_PRICE_ELITE=price_xxxxx
+```
+
+### TypeScript Version
+
+A TypeScript version is also available at `setup-stripe-products.ts`. Run with:
+
+```bash
+npx ts-node infrastructure/scripts/setup-stripe-products.ts
 ```

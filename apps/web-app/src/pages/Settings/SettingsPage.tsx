@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../../components/Navigation';
 import { authTokenService } from '../../services/auth-token.service';
+import { authService } from '../../services/auth.service';
 
 interface Settings {
   notifications: {
@@ -187,15 +188,27 @@ export const SettingsPage: React.FC = () => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
+      // Clear all auth state after account deletion
+      authTokenService.clearTokens();
       localStorage.clear();
+      sessionStorage.clear();
       navigate('/login');
     } catch (err) {
       console.error('Failed to delete account:', err);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
+  const handleLogout = async () => {
+    try {
+      // Use authService to properly clear all session data
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if API call fails, clear local state
+      authTokenService.clearTokens();
+      localStorage.clear();
+      sessionStorage.clear();
+    }
     navigate('/login');
   };
 
@@ -516,10 +529,10 @@ export const SettingsPage: React.FC = () => {
                 </svg>
               </button>
               <button
-                onClick={() => navigate('/safety/data-export')}
+                onClick={() => navigate('/safety')}
                 className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition text-left"
               >
-                <span className="font-medium text-gray-800">Download My Data</span>
+                <span className="font-medium text-gray-800">Privacy & Safety Center</span>
                 <svg
                   className="w-5 h-5 text-gray-400"
                   fill="none"

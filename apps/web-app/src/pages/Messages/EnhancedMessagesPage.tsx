@@ -80,8 +80,11 @@ export const EnhancedMessagesPage: React.FC = () => {
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Read from sessionStorage (where auth service stores user data)
+  // Falls back to localStorage for legacy compatibility during migration
   const currentUserId =
-    JSON.parse(localStorage.getItem('currentUser') || '{}')?.id || 'test-user-1';
+    JSON.parse(sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || '{}')
+      ?.id || 'test-user-1';
 
   // Derived state
   const selectedParticipant = conversations.find((c) => c.id === selectedConversation)?.participant;

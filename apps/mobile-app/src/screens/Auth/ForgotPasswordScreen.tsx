@@ -6,13 +6,22 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '@navigation/AuthNavigator';
+import {
+  AUTH_COLORS,
+  AUTH_TYPOGRAPHY,
+  AUTH_SPACING,
+  AUTH_RADIUS,
+  moderateScale,
+} from '../../styles/auth.styles';
+import { API_BASE_URL } from '../../services/config';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
@@ -78,16 +87,28 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
     setLoading(true);
     try {
-      // API call to send verification code
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // API call to send password reset link
+      await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      // Simulate successful API response
-      Alert.alert('Code Sent', `A verification code has been sent to ${email}`, [
-        { text: 'OK', onPress: () => setStep('verify') },
-      ]);
-      setResendTimer(60); // 60 seconds cooldown
+      // Always show success for security (don't reveal if email exists)
+      Alert.alert(
+        'Reset Link Sent',
+        `If an account exists with ${email}, a password reset link has been sent. Please check your email and click the link to reset your password.`,
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send verification code');
+      // Still show success message for security - prevents email enumeration
+      Alert.alert(
+        'Reset Link Sent',
+        `If an account exists with ${email}, a password reset link has been sent. Please check your email.`,
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
     } finally {
       setLoading(false);
     }
@@ -123,13 +144,30 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
     setLoading(true);
     try {
-      // API call to verify code
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // API call to verify reset code
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/verify-reset-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, code }),
+      });
 
-      // For demo purposes, always accept any code
+      if (!response.ok) {
+        const data = await response.json();
+        if (data.message?.toLowerCase().includes('expired')) {
+          Alert.alert(
+            'Code Expired',
+            'Your verification code has expired. Please request a new one.'
+          );
+          return;
+        }
+        throw new Error(data.message || 'Invalid verification code');
+      }
+
       setStep('reset');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to verify code');
+      Alert.alert('Error', error.message || 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -140,12 +178,20 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // API call to resend password reset code
+      await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
       Alert.alert('Code Sent', 'A new verification code has been sent to your email');
       setResendTimer(60);
       setVerificationCode(['', '', '', '', '', '']);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to resend code');
+      Alert.alert('Error', error.message || 'Failed to resend code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -170,8 +216,32 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
     setLoading(true);
     try {
-      // API call to reset password
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // API call to reset password with verification code
+      const code = verificationCode.join('');
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          code,
+          newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        if (data.message?.toLowerCase().includes('expired')) {
+          Alert.alert(
+            'Session Expired',
+            'Your reset session has expired. Please start the process again.',
+            [{ text: 'OK', onPress: () => setStep('email') }]
+          );
+          return;
+        }
+        throw new Error(data.message || 'Failed to reset password');
+      }
 
       Alert.alert(
         'Success',
@@ -184,7 +254,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
         ]
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to reset password');
+      Alert.alert('Error', error.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -203,12 +273,14 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="Enter your email"
-            placeholderTextColor="#999"
+            placeholderTextColor={AUTH_COLORS.text.tertiary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
           />
         </View>
 
@@ -216,15 +288,20 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSendCode}
           disabled={loading}
+          activeOpacity={0.7}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={AUTH_COLORS.text.inverse} />
           ) : (
             <Text style={styles.buttonText}>Send Verification Code</Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
           <Text style={styles.backButtonText}>Back to Login</Text>
         </TouchableOpacity>
       </View>
@@ -257,9 +334,10 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleVerifyCode}
           disabled={loading}
+          activeOpacity={0.7}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={AUTH_COLORS.text.inverse} />
           ) : (
             <Text style={styles.buttonText}>Verify Code</Text>
           )}
@@ -267,14 +345,22 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Didn't receive the code?</Text>
-          <TouchableOpacity onPress={handleResendCode} disabled={resendTimer > 0 || loading}>
+          <TouchableOpacity
+            onPress={handleResendCode}
+            disabled={resendTimer > 0 || loading}
+            activeOpacity={0.7}
+          >
             <Text style={[styles.resendLink, resendTimer > 0 && styles.resendLinkDisabled]}>
               {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend Code'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.backButton} onPress={() => setStep('email')}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => setStep('email')}
+          activeOpacity={0.7}
+        >
           <Text style={styles.backButtonText}>Change Email</Text>
         </TouchableOpacity>
       </View>
@@ -295,15 +381,18 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
             <TextInput
               style={styles.passwordInput}
               placeholder="Enter new password"
-              placeholderTextColor="#999"
+              placeholderTextColor={AUTH_COLORS.text.tertiary}
               value={newPassword}
               onChangeText={setNewPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
+              autoComplete="new-password"
+              textContentType="newPassword"
             />
             <TouchableOpacity
               style={styles.eyeButton}
               onPress={() => setShowPassword(!showPassword)}
+              activeOpacity={0.7}
             >
               <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
             </TouchableOpacity>
@@ -313,16 +402,16 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
         <View style={styles.passwordRequirements}>
           <Text style={styles.requirementsTitle}>Password must contain:</Text>
           <Text style={[styles.requirement, newPassword.length >= 8 && styles.requirementMet]}>
-            {newPassword.length >= 8 ? '✓' : '○'} At least 8 characters
+            {newPassword.length >= 8 ? 'V' : 'o'} At least 8 characters
           </Text>
           <Text style={[styles.requirement, /[A-Z]/.test(newPassword) && styles.requirementMet]}>
-            {/[A-Z]/.test(newPassword) ? '✓' : '○'} One uppercase letter
+            {/[A-Z]/.test(newPassword) ? 'V' : 'o'} One uppercase letter
           </Text>
           <Text style={[styles.requirement, /[a-z]/.test(newPassword) && styles.requirementMet]}>
-            {/[a-z]/.test(newPassword) ? '✓' : '○'} One lowercase letter
+            {/[a-z]/.test(newPassword) ? 'V' : 'o'} One lowercase letter
           </Text>
           <Text style={[styles.requirement, /[0-9]/.test(newPassword) && styles.requirementMet]}>
-            {/[0-9]/.test(newPassword) ? '✓' : '○'} One number
+            {/[0-9]/.test(newPassword) ? 'V' : 'o'} One number
           </Text>
           <Text
             style={[
@@ -330,7 +419,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
               /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) && styles.requirementMet,
             ]}
           >
-            {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? '✓' : '○'} One special character
+            {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? 'V' : 'o'} One special character
           </Text>
         </View>
 
@@ -339,11 +428,13 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="Confirm new password"
-            placeholderTextColor="#999"
+            placeholderTextColor={AUTH_COLORS.text.tertiary}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={!showPassword}
             autoCapitalize="none"
+            autoComplete="new-password"
+            textContentType="newPassword"
           />
           {confirmPassword && (
             <Text
@@ -352,7 +443,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
                 newPassword === confirmPassword ? styles.matchSuccess : styles.matchError,
               ]}
             >
-              {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+              {newPassword === confirmPassword ? 'V Passwords match' : 'X Passwords do not match'}
             </Text>
           )}
         </View>
@@ -361,9 +452,10 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleResetPassword}
           disabled={loading}
+          activeOpacity={0.7}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={AUTH_COLORS.text.inverse} />
           ) : (
             <Text style={styles.buttonText}>Reset Password</Text>
           )}
@@ -373,7 +465,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -399,195 +491,227 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           <View style={[styles.progressDot, step === 'reset' && styles.progressDotActive]} />
         </View>
 
-        <View style={styles.content}>
-          {step === 'email' && renderEmailStep()}
-          {step === 'verify' && renderVerifyStep()}
-          {step === 'reset' && renderResetStep()}
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            {step === 'email' && renderEmailStep()}
+            {step === 'verify' && renderVerifyStep()}
+            {step === 'reset' && renderResetStep()}
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
+// Styles using shared design tokens for consistency
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: AUTH_COLORS.background,
   },
   keyboardView: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: AUTH_SPACING.md,
+    paddingTop: AUTH_SPACING.md,
   },
   progressDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#ddd',
+    width: moderateScale(12),
+    height: moderateScale(12),
+    borderRadius: moderateScale(6),
+    backgroundColor: AUTH_COLORS.border.default,
   },
   progressDotActive: {
-    backgroundColor: '#E91E63',
+    backgroundColor: AUTH_COLORS.primary,
     transform: [{ scale: 1.2 }],
   },
   progressDotCompleted: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: AUTH_COLORS.success,
   },
   progressLine: {
-    width: 40,
+    width: moderateScale(40),
     height: 2,
-    backgroundColor: '#ddd',
-    marginHorizontal: 8,
+    backgroundColor: AUTH_COLORS.border.default,
+    marginHorizontal: AUTH_SPACING.sm,
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: AUTH_SPACING.lg,
+    paddingVertical: AUTH_SPACING.md,
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['3xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
+    color: AUTH_COLORS.text.primary,
+    marginBottom: AUTH_SPACING.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 30,
-    lineHeight: 22,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
+    marginBottom: AUTH_SPACING.lg,
+    lineHeight: AUTH_TYPOGRAPHY.fontSize.base * AUTH_TYPOGRAPHY.lineHeight.relaxed,
   },
   form: {
-    gap: 20,
+    gap: AUTH_SPACING.md,
   },
   inputContainer: {
-    gap: 8,
+    gap: AUTH_SPACING.sm,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
+    color: AUTH_COLORS.text.primary,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    borderColor: AUTH_COLORS.border.default,
+    borderRadius: AUTH_RADIUS.lg,
+    paddingVertical: AUTH_SPACING.md,
+    paddingHorizontal: AUTH_SPACING.md,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    backgroundColor: AUTH_COLORS.surface,
+    color: AUTH_COLORS.text.primary,
+    minHeight: moderateScale(52),
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    backgroundColor: '#f9f9f9',
+    borderColor: AUTH_COLORS.border.default,
+    borderRadius: AUTH_RADIUS.lg,
+    backgroundColor: AUTH_COLORS.surface,
   },
   passwordInput: {
     flex: 1,
-    padding: 16,
-    fontSize: 16,
+    paddingVertical: AUTH_SPACING.md,
+    paddingHorizontal: AUTH_SPACING.md,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.primary,
   },
   eyeButton: {
-    padding: 16,
+    padding: AUTH_SPACING.md,
+    minWidth: moderateScale(44),
+    minHeight: moderateScale(44),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   eyeText: {
-    color: '#E91E63',
-    fontWeight: '600',
+    color: AUTH_COLORS.primary,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
   },
   button: {
-    backgroundColor: '#E91E63',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: AUTH_COLORS.primary,
+    paddingVertical: AUTH_SPACING.md,
+    paddingHorizontal: AUTH_SPACING.lg,
+    borderRadius: AUTH_RADIUS.lg,
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    marginTop: AUTH_SPACING.sm,
+    minHeight: moderateScale(52),
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: AUTH_COLORS.text.inverse,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
   },
   backButton: {
     alignItems: 'center',
-    padding: 10,
+    padding: AUTH_SPACING.sm,
+    minHeight: moderateScale(44),
+    justifyContent: 'center',
   },
   backButtonText: {
-    color: '#E91E63',
-    fontSize: 14,
-    fontWeight: '600',
+    color: AUTH_COLORS.primary,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
   },
   codeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 20,
+    marginVertical: AUTH_SPACING.md,
   },
   codeInput: {
-    width: 48,
-    height: 56,
+    width: moderateScale(48),
+    height: moderateScale(56),
     borderWidth: 2,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    fontSize: 24,
-    fontWeight: 'bold',
+    borderColor: AUTH_COLORS.border.default,
+    borderRadius: AUTH_RADIUS.lg,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['2xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
     textAlign: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: AUTH_COLORS.surface,
+    color: AUTH_COLORS.text.primary,
   },
   codeInputFilled: {
-    borderColor: '#E91E63',
-    backgroundColor: '#fff',
+    borderColor: AUTH_COLORS.primary,
+    backgroundColor: AUTH_COLORS.background,
   },
   resendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
+    gap: AUTH_SPACING.xs,
   },
   resendText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    color: AUTH_COLORS.text.secondary,
   },
   resendLink: {
-    fontSize: 14,
-    color: '#E91E63',
-    fontWeight: '600',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    color: AUTH_COLORS.primary,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
   },
   resendLinkDisabled: {
-    color: '#999',
+    color: AUTH_COLORS.text.tertiary,
   },
   passwordRequirements: {
-    backgroundColor: '#f9f9f9',
-    padding: 15,
-    borderRadius: 12,
+    backgroundColor: AUTH_COLORS.surface,
+    padding: AUTH_SPACING.md,
+    borderRadius: AUTH_RADIUS.lg,
   },
   requirementsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
+    color: AUTH_COLORS.text.primary,
+    marginBottom: AUTH_SPACING.sm,
   },
   requirement: {
-    fontSize: 13,
-    color: '#999',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.xs,
+    color: AUTH_COLORS.text.tertiary,
     marginVertical: 3,
   },
   requirementMet: {
-    color: '#4CAF50',
+    color: AUTH_COLORS.success,
   },
   matchIndicator: {
-    fontSize: 12,
-    marginTop: 5,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.xs,
+    marginTop: AUTH_SPACING.xs,
   },
   matchSuccess: {
-    color: '#4CAF50',
+    color: AUTH_COLORS.success,
   },
   matchError: {
-    color: '#F44336',
+    color: AUTH_COLORS.error,
   },
 });
 

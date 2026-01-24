@@ -1,0 +1,1146 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "services": {
+    "api-gateway": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/api-gateway/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/api-gateway/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/main.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3000",
+        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "MATCHING_SERVICE_URL": "${{matching-service.RAILWAY_PRIVATE_DOMAIN}}:3004",
+        "MESSAGING_SERVICE_URL": "${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
+        "NOTIFICATION_SERVICE_URL": "${{notification-service.RAILWAY_PRIVATE_DOMAIN}}:3006",
+        "PAYMENT_SERVICE_URL": "${{payment-service.RAILWAY_PRIVATE_DOMAIN}}:3007",
+        "SUBSCRIPTION_SERVICE_URL": "${{subscription-service.RAILWAY_PRIVATE_DOMAIN}}:3008",
+        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009",
+        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
+        "ANALYTICS_SERVICE_URL": "${{analytics-service.RAILWAY_PRIVATE_DOMAIN}}:3011",
+        "RECOMMENDATION_SERVICE_URL": "${{recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:3012",
+        "SEARCH_SERVICE_URL": "${{search-service.RAILWAY_PRIVATE_DOMAIN}}:3013",
+        "LOCATION_SERVICE_URL": "${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014",
+        "VERIFICATION_SERVICE_URL": "${{verification-service.RAILWAY_PRIVATE_DOMAIN}}:3015",
+        "ADMIN_SERVICE_URL": "${{admin-service.RAILWAY_PRIVATE_DOMAIN}}:3017",
+        "REALTIME_SERVICE_URL": "${{realtime-service.RAILWAY_PRIVATE_DOMAIN}}:3022",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "JWT_REFRESH_SECRET": "${{shared.JWT_REFRESH_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3000],
+        "publicDomain": true
+      }
+    },
+    "auth-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/auth-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/auth-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3001",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "JWT_REFRESH_SECRET": "${{shared.JWT_REFRESH_SECRET}}",
+        "JWT_ACCESS_EXPIRES_IN": "15m",
+        "JWT_REFRESH_EXPIRES_IN": "7d",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "TOTP_ENCRYPTION_KEY": "${{shared.TOTP_ENCRYPTION_KEY}}",
+        "ENCRYPTION_KEY": "${{shared.ENCRYPTION_KEY}}"
+      },
+      "networking": {
+        "ports": [3001]
+      }
+    },
+    "user-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/user-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/user-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3002",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009"
+      },
+      "networking": {
+        "ports": [3002]
+      }
+    },
+    "profile-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/profile-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/profile-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3003",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009"
+      },
+      "networking": {
+        "ports": [3003]
+      }
+    },
+    "matching-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/matching-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/matching-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3004",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "LOCATION_SERVICE_URL": "${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014",
+        "AI_RECOMMENDATION_URL": "${{ai-recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:8082"
+      },
+      "networking": {
+        "ports": [3004]
+      }
+    },
+    "messaging-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/messaging-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/messaging-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3005",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "NOTIFICATION_SERVICE_URL": "${{notification-service.RAILWAY_PRIVATE_DOMAIN}}:3006",
+        "REALTIME_SERVICE_URL": "${{realtime-service.RAILWAY_PRIVATE_DOMAIN}}:3022",
+        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010"
+      },
+      "networking": {
+        "ports": [3005]
+      }
+    },
+    "notification-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/notification-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/notification-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3006",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}",
+        "AWS_SNS_PLATFORM_APPLICATION_ARN_ANDROID": "${{shared.AWS_SNS_PLATFORM_APPLICATION_ARN_ANDROID}}",
+        "AWS_SNS_PLATFORM_APPLICATION_ARN_IOS": "${{shared.AWS_SNS_PLATFORM_APPLICATION_ARN_IOS}}"
+      },
+      "networking": {
+        "ports": [3006]
+      }
+    },
+    "payment-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/payment-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/payment-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3007",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "STRIPE_SECRET_KEY": "${{shared.STRIPE_SECRET_KEY}}",
+        "STRIPE_PUBLISHABLE_KEY": "${{shared.STRIPE_PUBLISHABLE_KEY}}",
+        "STRIPE_WEBHOOK_SECRET": "${{shared.STRIPE_WEBHOOK_SECRET}}",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "SUBSCRIPTION_SERVICE_URL": "${{subscription-service.RAILWAY_PRIVATE_DOMAIN}}:3008"
+      },
+      "networking": {
+        "ports": [3007],
+        "publicDomain": true
+      }
+    },
+    "subscription-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/subscription-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/subscription-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3008",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "STRIPE_SECRET_KEY": "${{shared.STRIPE_SECRET_KEY}}",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PAYMENT_SERVICE_URL": "${{payment-service.RAILWAY_PRIVATE_DOMAIN}}:3007"
+      },
+      "networking": {
+        "ports": [3008]
+      }
+    },
+    "media-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/media-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/media-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3009",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}",
+        "AWS_S3_BUCKET": "${{shared.AWS_S3_BUCKET}}",
+        "AWS_S3_BUCKET_PHOTOS": "${{shared.AWS_S3_BUCKET_PHOTOS}}",
+        "AWS_S3_BUCKET_VIDEOS": "${{shared.AWS_S3_BUCKET_VIDEOS}}",
+        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
+        "AI_PHOTO_ANALYSIS_URL": "${{ai-photo-analysis.RAILWAY_PRIVATE_DOMAIN}}:8003"
+      },
+      "networking": {
+        "ports": [3009]
+      }
+    },
+    "moderation-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/moderation-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/moderation-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3010",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}",
+        "AWS_REKOGNITION_REGION": "${{shared.AWS_REKOGNITION_REGION}}",
+        "AI_NLP_SERVICE_URL": "${{ai-nlp-service.RAILWAY_PRIVATE_DOMAIN}}:8085",
+        "AI_DEEPFAKE_DETECTION_URL": "${{ai-deepfake-detection.RAILWAY_PRIVATE_DOMAIN}}:8010"
+      },
+      "networking": {
+        "ports": [3010]
+      }
+    },
+    "analytics-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/analytics-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/analytics-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3011",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3011]
+      }
+    },
+    "recommendation-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/recommendation-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/recommendation-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3012",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "AI_RECOMMENDATION_URL": "${{ai-recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:8082"
+      },
+      "networking": {
+        "ports": [3012]
+      }
+    },
+    "search-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/search-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/search-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3013",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "LOCATION_SERVICE_URL": "${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014"
+      },
+      "networking": {
+        "ports": [3013]
+      }
+    },
+    "location-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/location-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/location-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3014",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3014]
+      }
+    },
+    "verification-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/verification-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/verification-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3015",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009",
+        "AI_PHOTO_ANALYSIS_URL": "${{ai-photo-analysis.RAILWAY_PRIVATE_DOMAIN}}:8003",
+        "AI_DEEPFAKE_DETECTION_URL": "${{ai-deepfake-detection.RAILWAY_PRIVATE_DOMAIN}}:8010"
+      },
+      "networking": {
+        "ports": [3015]
+      }
+    },
+    "report-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/report-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/report-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3016",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002"
+      },
+      "networking": {
+        "ports": [3016]
+      }
+    },
+    "admin-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/admin-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/admin-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3017",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "ANALYTICS_SERVICE_URL": "${{analytics-service.RAILWAY_PRIVATE_DOMAIN}}:3011",
+        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010"
+      },
+      "networking": {
+        "ports": [3017]
+      }
+    },
+    "webhook-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/webhook-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/webhook-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3018",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "STRIPE_WEBHOOK_SECRET": "${{shared.STRIPE_WEBHOOK_SECRET}}"
+      },
+      "networking": {
+        "ports": [3018],
+        "publicDomain": true
+      }
+    },
+    "scheduler-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/scheduler-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/scheduler-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3019",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3019]
+      }
+    },
+    "worker-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/worker-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/worker-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3020",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}",
+        "AWS_SQS_REGION": "${{shared.AWS_SQS_REGION}}"
+      },
+      "networking": {
+        "ports": [3020]
+      }
+    },
+    "email-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/email-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/email-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3021",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}",
+        "AWS_SES_REGION": "${{shared.AWS_SES_REGION}}",
+        "EMAIL_FROM": "${{shared.EMAIL_FROM}}",
+        "EMAIL_FROM_NAME": "${{shared.EMAIL_FROM_NAME}}"
+      },
+      "networking": {
+        "ports": [3021]
+      }
+    },
+    "realtime-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/realtime-service/Dockerfile",
+        "watchPatterns": ["backend/services/realtime-service/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3,
+        "numReplicas": 2
+      },
+      "variables": {
+        "PORT": "3022",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3022]
+      }
+    },
+    "workflow-engine": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/workflow-engine/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/workflow-engine/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3023",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3023]
+      }
+    },
+    "automation-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/automation-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/automation-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3024",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3024]
+      }
+    },
+    "advertising-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/advertising-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/advertising-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3025",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3025]
+      }
+    },
+    "partnership-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/partnership-service/Dockerfile",
+        "watchPatterns": ["backend/shared/**", "backend/services/partnership-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3026",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+      },
+      "networking": {
+        "ports": [3026]
+      }
+    },
+    "seo-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/seo-service/Dockerfile",
+        "watchPatterns": ["backend/services/seo-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3027",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}"
+      },
+      "networking": {
+        "ports": [3027]
+      }
+    },
+    "policy-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/policy-service/Dockerfile",
+        "watchPatterns": ["backend/services/policy-service/**"]
+      },
+      "deploy": {
+        "startCommand": "node dist/index.js",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3028",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}"
+      },
+      "networking": {
+        "ports": [3028]
+      }
+    },
+    "ai-fraud-detection": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/fraud-detection/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/fraud-detection/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 60,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8001",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}"
+      },
+      "networking": {
+        "ports": [8001]
+      }
+    },
+    "ai-recommendation-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/recommendation-service/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/recommendation-service/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 60,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8082",
+        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}"
+      },
+      "networking": {
+        "ports": [8082]
+      }
+    },
+    "ai-photo-analysis": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/photo-analysis/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/photo-analysis/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 60,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8003",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}"
+      },
+      "networking": {
+        "ports": [8003]
+      }
+    },
+    "ai-dating-coach": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/dating-coach-service/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/dating-coach-service/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 60,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8004",
+        "OPENAI_API_KEY": "${{shared.OPENAI_API_KEY}}",
+        "ANTHROPIC_API_KEY": "${{shared.ANTHROPIC_API_KEY}}",
+        "REDIS_URL": "${{redis.REDIS_URL}}"
+      },
+      "networking": {
+        "ports": [8004]
+      }
+    },
+    "ai-nlp-service": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/nlp-service/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/nlp-service/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 60,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8085"
+      },
+      "networking": {
+        "ports": [8085]
+      }
+    },
+    "ai-content-generator": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/content-generator/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/content-generator/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 60,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8087",
+        "OPENAI_API_KEY": "${{shared.OPENAI_API_KEY}}"
+      },
+      "networking": {
+        "ports": [8087]
+      }
+    },
+    "ai-deepfake-detection": {
+      "source": {
+        "repo": ".",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/services/ai-services/deepfake-detection/Dockerfile",
+        "watchPatterns": ["backend/services/ai-services/deepfake-detection/**"]
+      },
+      "deploy": {
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 120,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      },
+      "variables": {
+        "PORT": "8010",
+        "AWS_REGION": "${{shared.AWS_REGION}}",
+        "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
+        "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}"
+      },
+      "networking": {
+        "ports": [8010]
+      }
+    },
+    "postgres": {
+      "plugin": "postgresql",
+      "variables": {
+        "POSTGRES_DB": "flamoral",
+        "POSTGRES_USER": "flamoral_user"
+      }
+    },
+    "redis": {
+      "plugin": "redis"
+    }
+  }
+}

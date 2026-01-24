@@ -477,13 +477,18 @@ class AuthService {
     );
   }
 
-  async resendVerificationEmail(): Promise<void> {
+  async resendVerificationEmail(email?: string): Promise<void> {
     if (this.isMock) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return;
     }
 
-    await apiClient.post('/api/v1/auth/resend-verification');
+    // If email is provided, use it; otherwise, send without email (requires authentication)
+    const payload = email ? { email } : {};
+    await apiClient.post('/api/v1/auth/resend-verification', payload, {
+      skipAuth: !!email, // Skip auth if email is provided (public endpoint)
+      skipCsrf: !!email,
+    });
   }
 
   isAuthenticated(): boolean {

@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { OnboardingStackParamList } from './OnboardingNavigator';
@@ -44,24 +45,51 @@ const GenderScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.content}>
-        <View style={styles.progressContainer}>
+        <View
+          style={styles.progressContainer}
+          accessibilityRole="progressbar"
+          accessibilityLabel="Step 3 of 12"
+          accessibilityValue={{ min: 0, max: 12, now: 3 }}
+        >
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: '25%' }]} />
           </View>
           <Text style={styles.progressText}>3 of 12</Text>
         </View>
 
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>←</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Return to previous screen"
+        >
+          <Text
+            style={styles.backButtonText}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            ←
+          </Text>
         </TouchableOpacity>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <Text style={styles.title}>What's your gender?</Text>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Text style={styles.title} accessibilityRole="header">
+            What's your gender?
+          </Text>
           <Text style={styles.subtitle}>This helps us show you to the right people</Text>
 
-          <View style={styles.optionsContainer}>
+          <View
+            style={styles.optionsContainer}
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Gender options"
+          >
             {GENDER_OPTIONS.map((option) => (
               <TouchableOpacity
                 key={option.id}
@@ -70,6 +98,9 @@ const GenderScreen: React.FC<Props> = ({ navigation, route }) => {
                   selectedGender === option.id && styles.optionButtonSelected,
                 ]}
                 onPress={() => setSelectedGender(option.id)}
+                accessibilityRole="radio"
+                accessibilityLabel={option.label}
+                accessibilityState={{ selected: selectedGender === option.id }}
               >
                 <Text
                   style={[
@@ -79,43 +110,64 @@ const GenderScreen: React.FC<Props> = ({ navigation, route }) => {
                 >
                   {option.label}
                 </Text>
-                {selectedGender === option.id && <Text style={styles.checkmark}>✓</Text>}
+                {selectedGender === option.id && (
+                  <Text
+                    style={styles.checkmark}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                  >
+                    ✓
+                  </Text>
+                )}
               </TouchableOpacity>
             ))}
           </View>
 
-          <TouchableOpacity
-            style={styles.toggleContainer}
-            onPress={() => setShowOnProfile(!showOnProfile)}
-          >
+          <View style={styles.toggleContainer}>
             <View style={styles.toggleTextContainer}>
-              <Text style={styles.toggleLabel}>Show on my profile</Text>
+              <Text style={styles.toggleLabel} nativeID="showProfileLabel">
+                Show on my profile
+              </Text>
               <Text style={styles.toggleDescription}>Your gender will be visible to others</Text>
             </View>
-            <View style={[styles.toggle, showOnProfile && styles.toggleActive]}>
-              <View style={[styles.toggleKnob, showOnProfile && styles.toggleKnobActive]} />
-            </View>
-          </TouchableOpacity>
+            <Switch
+              value={showOnProfile}
+              onValueChange={setShowOnProfile}
+              trackColor={{ false: '#E5E5E5', true: '#D62839' }}
+              thumbColor="#fff"
+              ios_backgroundColor="#E5E5E5"
+              accessibilityLabel="Show gender on profile"
+              accessibilityRole="switch"
+              accessibilityState={{ checked: showOnProfile }}
+              accessibilityHint="Toggle to show or hide your gender on your profile"
+            />
+          </View>
         </ScrollView>
 
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.button, !selectedGender && styles.buttonDisabled]}
-            onPress={handleContinue}
-            disabled={!selectedGender}
-          >
-            <Text style={[styles.buttonText, !selectedGender && styles.buttonTextDisabled]}>
-              Continue
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.button, !selectedGender && styles.buttonDisabled]}
+              onPress={handleContinue}
+              disabled={!selectedGender}
+              accessibilityRole="button"
+              accessibilityLabel="Continue"
+              accessibilityState={{ disabled: !selectedGender }}
+              accessibilityHint="Proceed to the next step"
+            >
+              <Text style={[styles.buttonText, !selectedGender && styles.buttonTextDisabled]}>
+                Continue
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#fff',
   },
@@ -135,16 +187,19 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#D62839',
     borderRadius: 2,
   },
   progressText: {
     fontSize: 12,
-    color: '#999',
+    color: '#525252', // Improved contrast
     textAlign: 'center',
   },
   backButton: {
     marginBottom: 20,
+    minHeight: 44, // Minimum touch target
+    minWidth: 44,
+    justifyContent: 'center',
   },
   backButtonText: {
     fontSize: 28,
@@ -152,6 +207,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 16,
   },
   title: {
     fontSize: 28,
@@ -161,8 +219,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#525252', // Improved contrast
     marginBottom: 24,
+    lineHeight: 22,
   },
   optionsContainer: {
     marginBottom: 24,
@@ -177,9 +236,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E5E5E5',
     marginBottom: 12,
+    minHeight: 56, // Ensures good touch target
   },
   optionButtonSelected: {
-    borderColor: '#FF6B6B',
+    borderColor: '#D62839',
     backgroundColor: '#FFF5F5',
   },
   optionText: {
@@ -188,11 +248,11 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
   },
   optionTextSelected: {
-    color: '#FF6B6B',
+    color: '#D62839',
   },
   checkmark: {
     fontSize: 20,
-    color: '#FF6B6B',
+    color: '#D62839',
     fontWeight: '700',
   },
   toggleContainer: {
@@ -216,41 +276,27 @@ const styles = StyleSheet.create({
   },
   toggleDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#525252', // Improved contrast
+    lineHeight: 20,
   },
-  toggle: {
-    width: 52,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E5E5E5',
-    padding: 2,
-    justifyContent: 'center',
-  },
-  toggleActive: {
-    backgroundColor: '#FF6B6B',
-  },
-  toggleKnob: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  bottomSafeArea: {
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  toggleKnobActive: {
-    alignSelf: 'flex-end',
   },
   footer: {
-    paddingBottom: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   button: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#D62839',
     paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 30,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52, // Minimum touch target
   },
   buttonDisabled: {
     backgroundColor: '#FFD4D4',

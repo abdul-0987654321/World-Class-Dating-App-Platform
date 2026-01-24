@@ -13,6 +13,8 @@ import AnimatedLandingPage from './pages/Landing/AnimatedLandingPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
 import { ForgotPasswordPage } from './pages/Auth/ForgotPasswordPage';
+import { VerifyEmailPage } from './pages/Auth/VerifyEmailPage';
+import { ResetPasswordPage } from './pages/Auth/ResetPasswordPage';
 import { NotFoundPage } from './pages/NotFound';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
 import { DiscoveryFeaturePage } from './pages/Discovery/DiscoveryFeaturePage';
@@ -27,6 +29,7 @@ import { CommunitiesPage } from './pages/Communities/CommunitiesPage';
 import { SpeedDatingPage } from './pages/SpeedDating/SpeedDatingPage';
 import { ReferralPage } from './pages/Referral/ReferralPage';
 import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
+import { SubscriptionManagePage } from './pages/Subscription/SubscriptionManagePage';
 import { AdvancedFiltersPage } from './pages/Filters/AdvancedFiltersPage';
 import { VideoCallPage } from './pages/VideoCall/VideoCallPage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
@@ -183,6 +186,12 @@ const App: React.FC = () => {
                 }
               />
 
+              {/* Email verification - public, token in URL */}
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+              {/* Password reset - public, token in URL */}
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+
               {/* Public demo route */}
               <Route path="/tier-showcase" element={<TierShowcase />} />
 
@@ -292,6 +301,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <SubscriptionPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subscription/manage"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionManagePage />
                   </ProtectedRoute>
                 }
               />

@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   View,
+  AccessibilityState,
 } from 'react-native';
 
 interface ButtonProps {
@@ -21,6 +22,8 @@ interface ButtonProps {
   iconPosition?: 'left' | 'right';
   style?: ViewStyle;
   textStyle?: TextStyle;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -35,10 +38,25 @@ export const Button: React.FC<ButtonProps> = ({
   iconPosition = 'left',
   style,
   textStyle,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   const getSpinnerColor = () => {
-    if (variant === 'outline' || variant === 'ghost') return '#E91E63';
+    if (variant === 'outline' || variant === 'ghost') return '#D62839';
     return '#fff';
+  };
+
+  // Build accessibility state
+  const accessibilityState: AccessibilityState = {
+    disabled: disabled || loading,
+    busy: loading,
+  };
+
+  // Determine accessible label
+  const getAccessibilityLabel = () => {
+    if (accessibilityLabel) return accessibilityLabel;
+    if (loading) return `${title}, loading`;
+    return title;
   };
 
   return (
@@ -54,19 +72,39 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={getAccessibilityLabel()}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={accessibilityState}
     >
       {loading ? (
-        <ActivityIndicator color={getSpinnerColor()} />
+        <ActivityIndicator color={getSpinnerColor()} accessibilityLabel="Loading" />
       ) : (
         <View style={styles.buttonContent}>
           {icon && iconPosition === 'left' && (
-            <Text style={[styles.icon, styles.iconLeft]}>{icon}</Text>
+            <Text
+              style={[styles.icon, styles.iconLeft]}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            >
+              {icon}
+            </Text>
           )}
-          <Text style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`], textStyle]}>
+          <Text
+            style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`], textStyle]}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
             {title}
           </Text>
           {icon && iconPosition === 'right' && (
-            <Text style={[styles.icon, styles.iconRight]}>{icon}</Text>
+            <Text
+              style={[styles.icon, styles.iconRight]}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            >
+              {icon}
+            </Text>
           )}
         </View>
       )}
@@ -80,45 +118,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    minHeight: 44, // Minimum touch target (44pt iOS guideline)
   },
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Variants
+  // Variants - Using darker shades for better contrast
   primary: {
-    backgroundColor: '#E91E63',
+    backgroundColor: '#D62839', // Darker pink for better contrast (was #E91E63)
   },
   secondary: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: '#7B1FA2', // Darker purple for better contrast (was #9C27B0)
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#E91E63',
+    borderColor: '#D62839',
   },
   danger: {
-    backgroundColor: '#F44336',
+    backgroundColor: '#D32F2F', // Darker red for better contrast (was #F44336)
   },
   success: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#388E3C', // Darker green for better contrast (was #4CAF50)
   },
   ghost: {
     backgroundColor: 'transparent',
   },
-  // Sizes
+  // Sizes - Ensuring minimum 44pt touch targets
   small: {
-    paddingVertical: 8,
+    paddingVertical: 10, // Increased for touch target (was 8)
     paddingHorizontal: 16,
+    minHeight: 44,
   },
   medium: {
-    paddingVertical: 12,
+    paddingVertical: 14, // Increased for touch target (was 12)
     paddingHorizontal: 24,
+    minHeight: 48,
   },
   large: {
     paddingVertical: 16,
     paddingHorizontal: 32,
+    minHeight: 52,
   },
   fullWidth: {
     width: '100%',
@@ -137,7 +179,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   outlineText: {
-    color: '#E91E63',
+    color: '#D62839',
   },
   dangerText: {
     color: '#fff',
@@ -146,7 +188,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   ghostText: {
-    color: '#E91E63',
+    color: '#D62839',
   },
   smallText: {
     fontSize: 14,

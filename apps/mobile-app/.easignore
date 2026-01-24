@@ -12,16 +12,3 @@ coverage/
 !README.md
 .vscode/
 .idea/
-
-# Ignore other apps (we only need mobile-app)
-# Note: EAS will upload from monorepo root, these patterns are relative to that
-
-# Ignore large node_modules from other workspaces that aren't needed
-apps/web-app/node_modules/
-apps/branding/node_modules/
-backend/
-docs/
-infrastructure/
-playwright-report/
-test-results/
-allure-results/

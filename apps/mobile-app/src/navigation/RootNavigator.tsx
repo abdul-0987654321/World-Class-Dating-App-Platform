@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '@hooks/useAuth';
 
 import AuthNavigator from './AuthNavigator';
-import MainNavigator from './MainNavigator';
+import AppNavigator from './AppNavigator';
 import LoadingScreen from '@screens/LoadingScreen';
 
 export type RootStackParamList = {
@@ -23,7 +23,7 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator id="RootStack" screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-        <Stack.Screen name="Main" component={MainNavigator} />
+        <Stack.Screen name="Main" component={AppNavigator} />
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />
       )}

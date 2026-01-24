@@ -1,12 +1,342 @@
-# Railway Configuration for Flamoral Auth Service
-# This file tells Railway how to build and deploy the auth-service
+# Railway Configuration for Flamoral Dating Platform
+# This file provides TOML-based configuration for Railway deployment
+# For complete service mesh configuration, see railway.json
 
+# =============================================================================
+# GLOBAL BUILD SETTINGS
+# =============================================================================
 [build]
 builder = "dockerfile"
-dockerfilePath = "backend/services/auth-service/Dockerfile"
+watchPatterns = ["backend/shared/**"]
 
+# =============================================================================
+# GLOBAL DEPLOY SETTINGS
+# =============================================================================
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 10
+restartPolicyMaxRetries = 3
+
+# =============================================================================
+# SERVICE-SPECIFIC CONFIGURATIONS
+# Note: Railway will use railway.json for multi-service deployments
+# This TOML file is kept for backwards compatibility and single-service deploys
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# API Gateway - Main entry point for all client requests
+# Port: 3000 | Public: Yes
+# -----------------------------------------------------------------------------
+# [services.api-gateway.build]
+# dockerfilePath = "backend/services/api-gateway/Dockerfile"
+# [services.api-gateway.deploy]
+# startCommand = "node dist/main.js"
+# numReplicas = 2
+
+# -----------------------------------------------------------------------------
+# Auth Service - Authentication and authorization
+# Port: 3001 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.auth-service.build]
+# dockerfilePath = "backend/services/auth-service/Dockerfile"
+# [services.auth-service.deploy]
+# startCommand = "node dist/index.js"
+# numReplicas = 2
+
+# -----------------------------------------------------------------------------
+# User Service - User management
+# Port: 3002 | Dependencies: postgres, redis, auth-service
+# -----------------------------------------------------------------------------
+# [services.user-service.build]
+# dockerfilePath = "backend/services/user-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Profile Service - User profiles
+# Port: 3003 | Dependencies: postgres, redis, user-service, media-service
+# -----------------------------------------------------------------------------
+# [services.profile-service.build]
+# dockerfilePath = "backend/services/profile-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Matching Service - Match algorithm and recommendations
+# Port: 3004 | Dependencies: postgres, redis, user-service, ai-recommendation
+# -----------------------------------------------------------------------------
+# [services.matching-service.build]
+# dockerfilePath = "backend/services/matching-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Messaging Service - Real-time messaging
+# Port: 3005 | Dependencies: postgres, redis, realtime-service, moderation-service
+# -----------------------------------------------------------------------------
+# [services.messaging-service.build]
+# dockerfilePath = "backend/services/messaging-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Notification Service - Push notifications, email, SMS
+# Port: 3006 | Dependencies: redis, AWS SNS/SES
+# -----------------------------------------------------------------------------
+# [services.notification-service.build]
+# dockerfilePath = "backend/services/notification-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Payment Service - Stripe payment processing
+# Port: 3007 | Dependencies: postgres, redis, Stripe
+# -----------------------------------------------------------------------------
+# [services.payment-service.build]
+# dockerfilePath = "backend/services/payment-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Subscription Service - Subscription management
+# Port: 3008 | Dependencies: postgres, redis, payment-service
+# -----------------------------------------------------------------------------
+# [services.subscription-service.build]
+# dockerfilePath = "backend/services/subscription-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Media Service - Photo/video upload and processing
+# Port: 3009 | Dependencies: postgres, redis, AWS S3, moderation-service
+# -----------------------------------------------------------------------------
+# [services.media-service.build]
+# dockerfilePath = "backend/services/media-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Moderation Service - Content moderation with AI
+# Port: 3010 | Dependencies: postgres, redis, AWS Rekognition, ai-nlp-service
+# -----------------------------------------------------------------------------
+# [services.moderation-service.build]
+# dockerfilePath = "backend/services/moderation-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Analytics Service - Platform analytics and metrics
+# Port: 3011 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.analytics-service.build]
+# dockerfilePath = "backend/services/analytics-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Recommendation Service - User recommendations
+# Port: 3012 | Dependencies: postgres, redis, ai-recommendation
+# -----------------------------------------------------------------------------
+# [services.recommendation-service.build]
+# dockerfilePath = "backend/services/recommendation-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Search Service - User search functionality
+# Port: 3013 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.search-service.build]
+# dockerfilePath = "backend/services/search-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Location Service - Geolocation services
+# Port: 3014 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.location-service.build]
+# dockerfilePath = "backend/services/location-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Verification Service - User verification (photo, identity)
+# Port: 3015 | Dependencies: postgres, redis, ai-photo-analysis, ai-deepfake
+# -----------------------------------------------------------------------------
+# [services.verification-service.build]
+# dockerfilePath = "backend/services/verification-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Report Service - User reports and safety
+# Port: 3016 | Dependencies: postgres, redis, moderation-service
+# -----------------------------------------------------------------------------
+# [services.report-service.build]
+# dockerfilePath = "backend/services/report-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Admin Service - Admin dashboard API
+# Port: 3017 | Dependencies: postgres, redis, all services
+# -----------------------------------------------------------------------------
+# [services.admin-service.build]
+# dockerfilePath = "backend/services/admin-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Webhook Service - External webhook processing
+# Port: 3018 | Public: Yes | Dependencies: redis
+# -----------------------------------------------------------------------------
+# [services.webhook-service.build]
+# dockerfilePath = "backend/services/webhook-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Scheduler Service - Cron jobs and scheduled tasks
+# Port: 3019 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.scheduler-service.build]
+# dockerfilePath = "backend/services/scheduler-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Worker Service - Background job processing
+# Port: 3020 | Dependencies: postgres, redis, AWS SQS
+# -----------------------------------------------------------------------------
+# [services.worker-service.build]
+# dockerfilePath = "backend/services/worker-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Email Service - Email sending via AWS SES
+# Port: 3021 | Dependencies: redis, AWS SES
+# -----------------------------------------------------------------------------
+# [services.email-service.build]
+# dockerfilePath = "backend/services/email-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Realtime Service - WebSocket connections (Go)
+# Port: 3022 | Dependencies: redis
+# -----------------------------------------------------------------------------
+# [services.realtime-service.build]
+# dockerfilePath = "backend/services/realtime-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Workflow Engine - Business workflow automation
+# Port: 3023 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.workflow-engine.build]
+# dockerfilePath = "backend/services/workflow-engine/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Automation Service - Platform automation
+# Port: 3024 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.automation-service.build]
+# dockerfilePath = "backend/services/automation-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Advertising Service - Ad management
+# Port: 3025 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.advertising-service.build]
+# dockerfilePath = "backend/services/advertising-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Partnership Service - Partner integrations
+# Port: 3026 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.partnership-service.build]
+# dockerfilePath = "backend/services/partnership-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# SEO Service - SEO optimization
+# Port: 3027 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.seo-service.build]
+# dockerfilePath = "backend/services/seo-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# Policy Service - Terms, privacy policies
+# Port: 3028 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.policy-service.build]
+# dockerfilePath = "backend/services/policy-service/Dockerfile"
+
+# =============================================================================
+# AI SERVICES (Python/FastAPI)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# AI Fraud Detection - Fraud detection ML models
+# Port: 8001 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.ai-fraud-detection.build]
+# dockerfilePath = "backend/services/ai-services/fraud-detection/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# AI Recommendation Service - ML-based recommendations
+# Port: 8082 | Dependencies: postgres, redis
+# -----------------------------------------------------------------------------
+# [services.ai-recommendation-service.build]
+# dockerfilePath = "backend/services/ai-services/recommendation-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# AI Photo Analysis - Photo quality and analysis
+# Port: 8003 | Dependencies: AWS Rekognition
+# -----------------------------------------------------------------------------
+# [services.ai-photo-analysis.build]
+# dockerfilePath = "backend/services/ai-services/photo-analysis/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# AI Dating Coach - AI-powered dating advice
+# Port: 8004 | Dependencies: OpenAI/Anthropic APIs
+# -----------------------------------------------------------------------------
+# [services.ai-dating-coach.build]
+# dockerfilePath = "backend/services/ai-services/dating-coach-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# AI NLP Service - Natural language processing
+# Port: 8085 | Dependencies: None
+# -----------------------------------------------------------------------------
+# [services.ai-nlp-service.build]
+# dockerfilePath = "backend/services/ai-services/nlp-service/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# AI Content Generator - Content generation
+# Port: 8087 | Dependencies: OpenAI API
+# -----------------------------------------------------------------------------
+# [services.ai-content-generator.build]
+# dockerfilePath = "backend/services/ai-services/content-generator/Dockerfile"
+
+# -----------------------------------------------------------------------------
+# AI Deepfake Detection - Deepfake detection ML
+# Port: 8010 | Dependencies: AWS Rekognition
+# -----------------------------------------------------------------------------
+# [services.ai-deepfake-detection.build]
+# dockerfilePath = "backend/services/ai-services/deepfake-detection/Dockerfile"
+
+# =============================================================================
+# INFRASTRUCTURE SERVICES (Railway Plugins)
+# =============================================================================
+
+# PostgreSQL Database
+# Plugin: postgresql
+# Provides: DATABASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+
+# Redis Cache
+# Plugin: redis
+# Provides: REDIS_URL
+
+# =============================================================================
+# PORT MAPPING REFERENCE
+# =============================================================================
+# Node.js Services (3000-3099):
+#   api-gateway:          3000 (public)
+#   auth-service:         3001
+#   user-service:         3002
+#   profile-service:      3003
+#   matching-service:     3004
+#   messaging-service:    3005
+#   notification-service: 3006
+#   payment-service:      3007
+#   subscription-service: 3008
+#   media-service:        3009
+#   moderation-service:   3010
+#   analytics-service:    3011
+#   recommendation-svc:   3012
+#   search-service:       3013
+#   location-service:     3014
+#   verification-service: 3015
+#   report-service:       3016
+#   admin-service:        3017
+#   webhook-service:      3018 (public)
+#   scheduler-service:    3019
+#   worker-service:       3020
+#   email-service:        3021
+#   realtime-service:     3022 (Go)
+#   workflow-engine:      3023
+#   automation-service:   3024
+#   advertising-service:  3025
+#   partnership-service:  3026
+#   seo-service:          3027
+#   policy-service:       3028
+#
+# AI Services (8000-8099):
+#   ai-fraud-detection:   8001
+#   ai-recommendation:    8082
+#   ai-photo-analysis:    8003
+#   ai-dating-coach:      8004
+#   ai-nlp-service:       8085
+#   ai-content-generator: 8087
+#   ai-deepfake-detection:8010

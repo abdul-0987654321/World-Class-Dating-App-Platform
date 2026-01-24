@@ -38,8 +38,11 @@ export const MessagesPage: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Read from sessionStorage (where auth service stores user data)
+  // Falls back to localStorage for legacy compatibility during migration
   const currentUserId =
-    JSON.parse(localStorage.getItem('currentUser') || '{}')?.id || 'test-user-1';
+    JSON.parse(sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || '{}')
+      ?.id || 'test-user-1';
 
   useEffect(() => {
     loadConversations();

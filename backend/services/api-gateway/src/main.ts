@@ -4,8 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { json, raw } from 'body-parser';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
@@ -18,7 +20,10 @@ import { TracingMiddleware } from './middleware/tracing.middleware';
 import logger from './utils/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Create NestJS app with raw body option disabled (we'll handle it manually)
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false, // Disable default body parser to handle raw body for webhooks
+  });
   const configService = app.get(ConfigService);
 
   // WebSocket adapter
@@ -26,6 +31,19 @@ async function bootstrap() {
 
   // Cookie parser - Required for CSRF protection
   app.use(cookieParser());
+
+  // Raw body parsing for webhook routes (required for Stripe signature verification)
+  // This must come BEFORE JSON parsing
+  app.use('/api/v1/webhooks', raw({ type: 'application/json' }));
+
+  // JSON body parsing for all other routes
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Skip JSON parsing for webhook routes (already handled by raw parser above)
+    if (req.path.startsWith('/api/v1/webhooks')) {
+      return next();
+    }
+    json({ limit: '10mb' })(req, res, next);
+  });
 
   // Security Headers Middleware - Comprehensive CSP and security headers
   const securityHeadersMiddleware = app.get(SecurityHeadersMiddleware);
@@ -58,11 +76,16 @@ async function bootstrap() {
 
   // CORS - Enhanced configuration for CSRF protection
   const isProduction = configService.get<string>('nodeEnv') === 'production';
-  const corsOrigins = configService.get<string[]>('cors.origins') || (
-    isProduction
-      ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com', 'https://api.flamoral.com']
-      : ['http://localhost:5173', 'http://localhost:3000']
-  );
+  const corsOrigins =
+    configService.get<string[]>('cors.origins') ||
+    (isProduction
+      ? [
+          'https://flamoral.com',
+          'https://www.flamoral.com',
+          'https://app.flamoral.com',
+          'https://api.flamoral.com',
+        ]
+      : ['http://localhost:5173', 'http://localhost:3000']);
   const corsCredentials = configService.get<boolean>('cors.credentials') !== false; // Default to true for cookie-based auth
 
   app.enableCors({
@@ -87,6 +110,9 @@ async function bootstrap() {
       'X-Correlation-ID',
       'X-CSRF-Token', // Allow CSRF token header
       'x-csrf-token',
+      'stripe-signature', // Allow Stripe webhook signature header
+      'x-paystack-signature', // Allow Paystack webhook signature header
+      'verif-hash', // Allow Flutterwave webhook signature header
     ],
     exposedHeaders: [
       'X-Request-ID',
@@ -108,8 +134,10 @@ async function bootstrap() {
   const csrfMiddleware = app.get(CsrfMiddleware);
   app.use(csrfMiddleware.use.bind(csrfMiddleware));
 
-  // Global prefix
-  app.setGlobalPrefix('api/v1');
+  // Global prefix - exclude health endpoints for Docker/K8s health checks
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['health', 'health/ready', 'health/live', 'health/services'],
+  });
 
   // Validation
   app.useGlobalPipes(

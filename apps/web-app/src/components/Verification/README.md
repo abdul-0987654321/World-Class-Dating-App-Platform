@@ -5,15 +5,19 @@ Frontend components for the Photo Verification System. These components provide 
 ## Components Overview
 
 ### 1. VerificationBadge
+
 Displays verification status badges on user profiles.
 
 ### 2. PhotoVerificationFlow
+
 Complete verification wizard for uploading and verifying photos.
 
 ### 3. VerificationStatus
+
 Shows user's verification progress and statistics.
 
 ### 4. AdminVerificationDashboard
+
 Admin dashboard for reviewing duplicate flags and verification attempts.
 
 ---
@@ -21,6 +25,7 @@ Admin dashboard for reviewing duplicate flags and verification attempts.
 ## 1. VerificationBadge
 
 ### Description
+
 A reusable badge component that displays a user's verification level with a tooltip showing details.
 
 ### Props
@@ -36,12 +41,12 @@ interface VerificationBadgeProps {
 
 ### Verification Levels
 
-| Level | Color | Icon | Description |
-|-------|-------|------|-------------|
-| `none` | Gray | Clock | No photos verified yet |
-| `basic` | Blue | Shield | Photo meets quality standards |
-| `verified` | Green | Check Circle | Photos verified with face matching |
-| `premium` | Gold | Star | ID verified with video liveness check |
+| Level      | Color | Icon         | Description                           |
+| ---------- | ----- | ------------ | ------------------------------------- |
+| `none`     | Gray  | Clock        | No photos verified yet                |
+| `basic`    | Blue  | Shield       | Photo meets quality standards         |
+| `verified` | Green | Check Circle | Photos verified with face matching    |
+| `premium`  | Gold  | Star         | ID verified with video liveness check |
 
 ### Usage Example
 
@@ -68,13 +73,16 @@ import { VerificationBadge } from '@/components/Verification';
 ```
 
 ### Styling
+
 The component uses styled-components with:
+
 - Responsive sizing (12px/16px/20px icons)
 - Hover animations (1.05x scale)
 - Tooltip on hover with verification details
 - Color-coded backgrounds and text
 
 ### Integration
+
 Add to user profile cards, search results, or any user display component:
 
 ```tsx
@@ -94,6 +102,7 @@ function UserProfileCard({ user }) {
 ## 2. PhotoVerificationFlow
 
 ### Description
+
 A comprehensive 3-step wizard that guides users through the photo verification process.
 
 ### Props
@@ -131,6 +140,7 @@ interface VerificationResult {
 ### Steps
 
 #### Step 1: Upload
+
 - File selection via click or drag-and-drop
 - File type validation (images only)
 - File size validation (max 10MB)
@@ -138,6 +148,7 @@ interface VerificationResult {
 - Quality tips displayed
 
 #### Step 2: Processing
+
 - Upload progress indicator
 - Verification status with animated steps:
   1. Uploading photo
@@ -146,6 +157,7 @@ interface VerificationResult {
   4. Matching face (if reference photo provided)
 
 #### Step 3: Result
+
 - **Success**: Shows confidence scores, quality scores, and verification details
 - **Failure**: Shows specific failure reason with actionable solution
 
@@ -169,9 +181,7 @@ function VerificationPage() {
 
   return (
     <div>
-      <button onClick={() => setShowFlow(true)}>
-        Verify Photo
-      </button>
+      <button onClick={() => setShowFlow(true)}>Verify Photo</button>
 
       {showFlow && (
         <PhotoVerificationFlow
@@ -187,17 +197,22 @@ function VerificationPage() {
 ```
 
 ### API Integration
+
 The component automatically calls these endpoints:
+
 - `POST /api/media/upload` - Upload photo to storage
 - `POST /api/verification/comprehensive/:mediaId` - Verify photo
 
-Ensure your authentication token is stored in localStorage:
-```typescript
-localStorage.setItem('token', 'your-jwt-token');
-```
+**SECURITY NOTE:** Authentication tokens are handled via httpOnly cookies in production.
+The frontend does not need to manage tokens directly. The auth service handles this automatically.
+
+In development/mock mode, tokens are stored in sessionStorage (NOT localStorage for security).
+Never store sensitive authentication tokens in localStorage as they are vulnerable to XSS attacks.
 
 ### Error Handling
+
 The component handles these errors gracefully:
+
 - No face detected
 - Multiple faces detected
 - Photo quality too low
@@ -207,6 +222,7 @@ The component handles these errors gracefully:
 - Network errors
 
 ### Customization
+
 Override styles using styled-components:
 
 ```tsx
@@ -228,6 +244,7 @@ const CustomVerificationFlow = styled(PhotoVerificationFlow)`
 ## 3. VerificationStatus
 
 ### Description
+
 Displays a user's verification progress, statistics, and photo statuses.
 
 ### Props
@@ -242,27 +259,32 @@ interface VerificationStatusProps {
 ### Features
 
 #### Statistics Cards
+
 - Verified photos count
 - Pending verifications count
 - Failed verifications count
 - Total photos count
 
 #### Progress Bar
+
 - Visual progress indicator
 - Percentage of verified photos
 
 #### Informational Banners
+
 - **No Verification**: Encourages users to get verified
 - **Basic Verification**: Prompts upgrade to full verification
 - **Failed Photos**: Alerts user to retry failed verifications
 
 #### Photo Grid
+
 - Displays all user photos with status
 - Shows verification confidence scores
 - Displays failure reasons for rejected photos
 - Shows verification dates
 
 #### Benefits Section
+
 - Lists benefits of verification:
   - Increased trust
   - Higher visibility
@@ -283,21 +305,21 @@ function ProfilePage({ userId }) {
   return (
     <div className="profile-page">
       <h1>My Verification Status</h1>
-      <VerificationStatus
-        userId={userId}
-        onStartVerification={handleStartVerification}
-      />
+      <VerificationStatus userId={userId} onStartVerification={handleStartVerification} />
     </div>
   );
 }
 ```
 
 ### API Integration
+
 The component automatically fetches data from:
+
 - `GET /api/verification/user/:userId/stats` - User verification statistics
 - `GET /api/media/user/:userId` - User's photos with verification status
 
 ### Data Structure
+
 The component expects this response format:
 
 ```typescript
@@ -335,6 +357,7 @@ The component expects this response format:
 ## 4. AdminVerificationDashboard
 
 ### Description
+
 Admin dashboard for reviewing duplicate profile flags and verification attempts.
 
 ### Props
@@ -348,12 +371,14 @@ interface AdminVerificationDashboardProps {
 ### Features
 
 #### Statistics Overview
+
 - Total flags count
 - Pending review count
 - Confirmed duplicates count
 - Dismissed flags count
 
 #### Duplicate Flags Tab
+
 - **Search**: Search by name or email
 - **Filter**: Filter by status (flagged/reviewed/confirmed/dismissed)
 - **Flag Cards**: Display user comparisons with:
@@ -368,6 +393,7 @@ interface AdminVerificationDashboardProps {
   - Confirm duplicate or dismiss flag
 
 #### Verification Attempts Tab
+
 - Table view of all verification attempts
 - Columns:
   - User (name and email)
@@ -406,6 +432,7 @@ function AdminPage({ currentAdmin }) {
    - **Confirm**: Confirm as duplicate profile
 
 ### API Integration
+
 The component uses these admin-only endpoints:
 
 ```typescript
@@ -428,6 +455,7 @@ POST /api/admin/verification/duplicate-flags/:flagId/review
 ```
 
 ### Permissions
+
 This component should only be accessible to admin users. Implement route protection:
 
 ```tsx
@@ -510,7 +538,7 @@ import { AdminVerificationDashboard } from '@/components/Verification';
 // Or import all at once
 import * as Verification from '@/components/Verification';
 
-<Verification.VerificationBadge level="verified" />
+<Verification.VerificationBadge level="verified" />;
 ```
 
 ### 3. Complete User Flow Example
@@ -533,7 +561,7 @@ function UserProfilePage({ user, isCurrentUser }) {
       user.verificationLevel = result.details.matchScore ? 'verified' : 'basic';
 
       // Refresh verification status
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
 
       // Close flow
       setShowVerificationFlow(false);
@@ -549,10 +577,7 @@ function UserProfilePage({ user, isCurrentUser }) {
       <div className="profile-header">
         <img src={user.avatar} alt={user.name} />
         <h1>{user.name}</h1>
-        <VerificationBadge
-          level={user.verificationLevel}
-          verifiedDate={user.verifiedAt}
-        />
+        <VerificationBadge level={user.verificationLevel} verifiedDate={user.verifiedAt} />
       </div>
 
       {/* Show verification status for current user */}
@@ -610,11 +635,7 @@ const verificationTheme = {
 };
 
 function App() {
-  return (
-    <ThemeProvider theme={verificationTheme}>
-      {/* Your app components */}
-    </ThemeProvider>
-  );
+  return <ThemeProvider theme={verificationTheme}>{/* Your app components */}</ThemeProvider>;
 }
 ```
 
@@ -698,18 +719,21 @@ All components follow WCAG 2.1 AA guidelines:
 ## Troubleshooting
 
 ### Issue: "Authentication failed"
-**Solution**: Ensure JWT token is stored in localStorage:
-```typescript
-localStorage.setItem('token', yourAuthToken);
-```
+
+**Solution**: Authentication is handled automatically via httpOnly cookies in production.
+Ensure the user is logged in via the auth service. In development mode, tokens are
+stored in sessionStorage automatically by the auth service - no manual storage needed.
 
 ### Issue: "Failed to upload photo"
+
 **Solution**: Check CORS settings and file size limits on backend.
 
 ### Issue: "Verification stuck on processing"
+
 **Solution**: Check Azure Face API credentials and endpoint configuration.
 
 ### Issue: "Components not styled correctly"
+
 **Solution**: Ensure styled-components is installed and ThemeProvider is set up.
 
 ---
@@ -717,11 +741,12 @@ localStorage.setItem('token', yourAuthToken);
 ## Performance Optimization
 
 ### Lazy Loading
+
 ```tsx
 import { lazy, Suspense } from 'react';
 
-const AdminVerificationDashboard = lazy(() =>
-  import('@/components/Verification/AdminVerificationDashboard')
+const AdminVerificationDashboard = lazy(
+  () => import('@/components/Verification/AdminVerificationDashboard')
 );
 
 function AdminPage() {
@@ -734,6 +759,7 @@ function AdminPage() {
 ```
 
 ### Memoization
+
 ```tsx
 import { memo } from 'react';
 
@@ -753,6 +779,7 @@ See [PHOTO_VERIFICATION_COMPLETE.md](../../../../PHOTO_VERIFICATION_COMPLETE.md)
 ## Support
 
 For issues or questions:
+
 - Check the [main documentation](../../../../PHOTO_VERIFICATION_COMPLETE.md)
 - Review the [integration guide](#integration-guide)
 - Contact the development team

@@ -114,12 +114,49 @@ export const theme = {
     slow: '0.3s ease',
   },
   breakpoints: {
+    // Standard breakpoints in rem for better accessibility
+    mobile: '20rem', // 320px - minimum mobile
+    mobileMax: '30rem', // 480px - max mobile
+    tablet: '48rem', // 768px - tablet
+    desktop: '64rem', // 1024px - desktop
+    large: '90rem', // 1440px - large screens
+    // Legacy px values for compatibility
     xs: '320px',
     sm: '576px',
     md: '768px',
     lg: '992px',
     xl: '1200px',
     xxl: '1400px',
+  },
+  // Responsive container widths
+  containers: {
+    auth: {
+      mobile: '100%',
+      tablet: '28rem', // 448px
+      desktop: '32rem', // 512px
+      large: '36rem', // 576px
+    },
+    form: {
+      maxWidth: 'min(100%, 32rem)',
+    },
+  },
+  // Responsive spacing using clamp
+  responsiveSpacing: {
+    xs: 'clamp(0.25rem, 1vw, 0.5rem)',
+    sm: 'clamp(0.5rem, 2vw, 1rem)',
+    md: 'clamp(1rem, 3vw, 1.5rem)',
+    lg: 'clamp(1.5rem, 4vw, 2.5rem)',
+    xl: 'clamp(2rem, 5vw, 4rem)',
+  },
+  // Responsive typography using clamp
+  responsiveFontSize: {
+    xs: 'clamp(0.625rem, 2vw, 0.75rem)',
+    sm: 'clamp(0.75rem, 2.5vw, 0.875rem)',
+    base: 'clamp(0.875rem, 3vw, 1rem)',
+    lg: 'clamp(1rem, 3.5vw, 1.25rem)',
+    xl: 'clamp(1.25rem, 4vw, 1.5rem)',
+    '2xl': 'clamp(1.5rem, 5vw, 2rem)',
+    '3xl': 'clamp(2rem, 6vw, 3rem)',
   },
   zIndex: {
     dropdown: 1000,

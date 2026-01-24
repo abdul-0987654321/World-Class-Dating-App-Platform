@@ -1,10 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import Constants from 'expo-constants';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import { useSocialAuth } from '@hooks/useSocialAuth';
+import {
+  AUTH_COLORS,
+  AUTH_TYPOGRAPHY,
+  AUTH_SPACING,
+  AUTH_SHADOWS,
+  moderateScale,
+} from '../../styles/auth.styles';
 
 // Get Google client IDs from app config
 const GOOGLE_WEB_CLIENT_ID =
@@ -168,21 +183,35 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess, onEr
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.divider}>
+      <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no">
         <View style={styles.dividerLine} />
         <Text style={styles.dividerText}>Or continue with</Text>
         <View style={styles.dividerLine} />
       </View>
 
-      <View style={styles.buttonContainer}>
+      <View
+        style={styles.buttonContainer}
+        accessibilityRole="group"
+        accessibilityLabel="Social login options"
+      >
         {/* Google Button */}
         <TouchableOpacity
           style={[styles.socialButton, styles.googleButton]}
           onPress={handleGoogleLogin}
           disabled={loading !== null}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={
+            loading === 'google' ? 'Signing in with Google' : 'Continue with Google'
+          }
+          accessibilityState={{ disabled: loading !== null, busy: loading === 'google' }}
+          accessibilityHint="Sign in using your Google account"
         >
-          <GoogleIcon />
-          {loading === 'google' && <Text style={styles.loadingText}>...</Text>}
+          {loading === 'google' ? (
+            <ActivityIndicator color={AUTH_COLORS.text.primary} size="small" />
+          ) : (
+            <GoogleIcon />
+          )}
         </TouchableOpacity>
 
         {/* Apple Button - iOS only */}
@@ -191,9 +220,19 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess, onEr
             style={[styles.socialButton, styles.appleButton]}
             onPress={handleAppleLogin}
             disabled={loading !== null}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={
+              loading === 'apple' ? 'Signing in with Apple' : 'Continue with Apple'
+            }
+            accessibilityState={{ disabled: loading !== null, busy: loading === 'apple' }}
+            accessibilityHint="Sign in using your Apple ID"
           >
-            <AppleIcon />
-            {loading === 'apple' && <Text style={styles.loadingText}>...</Text>}
+            {loading === 'apple' ? (
+              <ActivityIndicator color={AUTH_COLORS.text.inverse} size="small" />
+            ) : (
+              <AppleIcon />
+            )}
           </TouchableOpacity>
         )}
 
@@ -202,97 +241,110 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess, onEr
           style={[styles.socialButton, styles.facebookButton]}
           onPress={handleFacebookLogin}
           disabled={loading !== null}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={
+            loading === 'facebook' ? 'Signing in with Facebook' : 'Continue with Facebook'
+          }
+          accessibilityState={{ disabled: loading !== null, busy: loading === 'facebook' }}
+          accessibilityHint="Sign in using your Facebook account"
         >
-          <FacebookIcon />
-          {loading === 'facebook' && <Text style={styles.loadingText}>...</Text>}
+          {loading === 'facebook' ? (
+            <ActivityIndicator color={AUTH_COLORS.text.inverse} size="small" />
+          ) : (
+            <FacebookIcon />
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-// Social Media Icons (simple SVG representations)
+// Social Media Icons (simple representations)
 const GoogleIcon = () => (
-  <View style={styles.icon}>
-    <Text style={styles.iconText}>G</Text>
+  <View style={styles.icon} accessibilityElementsHidden importantForAccessibility="no">
+    <Text style={[styles.iconText, styles.googleIconText]}>G</Text>
   </View>
 );
 
 const AppleIcon = () => (
-  <View style={styles.icon}>
-    <Text style={styles.iconText}></Text>
+  <View style={styles.icon} accessibilityElementsHidden importantForAccessibility="no">
+    <Text style={[styles.iconText, styles.appleIconText]}></Text>
   </View>
 );
 
 const FacebookIcon = () => (
-  <View style={styles.icon}>
-    <Text style={styles.iconText}>f</Text>
+  <View style={styles.icon} accessibilityElementsHidden importantForAccessibility="no">
+    <Text style={[styles.iconText, styles.facebookIconText]}>f</Text>
   </View>
 );
 
+// Styles using shared design tokens for consistency
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginTop: 20,
+    marginTop: AUTH_SPACING.md,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: AUTH_SPACING.md,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: AUTH_COLORS.border.default,
   },
   dividerText: {
-    marginHorizontal: 10,
-    color: '#666',
-    fontSize: 14,
+    marginHorizontal: AUTH_SPACING.sm,
+    color: AUTH_COLORS.text.secondary,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 15,
+    gap: AUTH_SPACING.lg,
   },
   socialButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: moderateScale(60),
+    height: moderateScale(60),
+    borderRadius: moderateScale(30),
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: AUTH_COLORS.border.default,
+    backgroundColor: AUTH_COLORS.background,
+    ...AUTH_SHADOWS.md,
+    minWidth: moderateScale(60),
+    minHeight: moderateScale(60),
   },
   googleButton: {
-    backgroundColor: '#fff',
+    backgroundColor: AUTH_COLORS.social.google,
   },
   appleButton: {
-    backgroundColor: '#000',
+    backgroundColor: AUTH_COLORS.social.apple,
+    borderColor: AUTH_COLORS.social.apple,
   },
   facebookButton: {
-    backgroundColor: '#1877F2',
+    backgroundColor: AUTH_COLORS.social.facebook,
+    borderColor: AUTH_COLORS.social.facebook,
   },
   icon: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: AUTH_TYPOGRAPHY.fontSize['2xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
   },
-  loadingText: {
-    position: 'absolute',
-    bottom: -20,
-    fontSize: 12,
-    color: '#666',
+  googleIconText: {
+    color: AUTH_COLORS.text.primary,
+  },
+  appleIconText: {
+    color: AUTH_COLORS.text.inverse,
+  },
+  facebookIconText: {
+    color: AUTH_COLORS.text.inverse,
   },
 });
 

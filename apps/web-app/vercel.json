@@ -4,10 +4,37 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "regions": ["iad1"],
   "rewrites": [
+    {
+      "source": "/stripe/webhook",
+      "destination": "https://world-class-dating-app-platform-production.up.railway.app/api/v1/webhooks/stripe"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.flamoral.com/api/:path*",
+      "has": [{ "type": "host", "value": "flamoral.com" }]
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.flamoral.com/api/:path*",
+      "has": [{ "type": "host", "value": "www.flamoral.com" }]
+    },
     {
       "source": "/api/:path*",
       "destination": "https://world-class-dating-app-platform-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/ws/:path*",
+      "destination": "https://world-class-dating-app-platform-production.up.railway.app/ws/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://world-class-dating-app-platform-production.up.railway.app/socket.io/:path*"
+    },
+    {
+      "source": "/graphql",
+      "destination": "https://world-class-dating-app-platform-production.up.railway.app/graphql"
     },
     {
       "source": "/health",
@@ -26,47 +53,77 @@
       "destination": "/support"
     },
     {
-      "source": "/((?!assets/|api/).*)",
+      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
     {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [{ "key": "Content-Type", "value": "application/json" }]
+    },
+    {
+      "source": "/stripe/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, stripe-signature" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization, X-CSRF-Token, X-Request-ID, stripe-signature"
+        },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=31536000; includeSubDomains; preload"
         },
         {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(self), geolocation=(self), payment=(self)"
+        },
+        {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.sentry.io https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.flamoral.com wss://api.flamoral.com https://world-class-dating-app-platform-production.up.railway.app wss://world-class-dating-app-platform-production.up.railway.app https://*.up.railway.app wss://*.up.railway.app https://api.stripe.com https://*.sentry.io https://www.google-analytics.com https://tenor.googleapis.com; media-src 'self' blob: data: https:; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://*.sentry.io https://browser.sentry-cdn.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://snap.licdn.com https://sc-static.net https://analytics.tiktok.com https://static.ads-twitter.com https://s.pinimg.com https://www.redditstatic.com https://ads.reddit.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.flamoral.com wss://api.flamoral.com https://staging-api.flamoral.com wss://staging-api.flamoral.com https://world-class-dating-app-platform-production.up.railway.app wss://world-class-dating-app-platform-production.up.railway.app https://world-class-dating-app-platform-staging.up.railway.app wss://world-class-dating-app-platform-staging.up.railway.app https://*.up.railway.app wss://*.up.railway.app https://api.stripe.com https://*.stripe.com https://*.sentry.io https://o*.ingest.sentry.io https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://tenor.googleapis.com https://maps.googleapis.com https://graph.facebook.com https://www.linkedin.com https://analytics.tiktok.com https://ads.reddit.com https://www.clarity.ms https://cdn.flamoral.com https://media.flamoral.com; media-src 'self' blob: data: https: https://cdn.flamoral.com https://media.flamoral.com; frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://www.google.com https://accounts.google.com https://www.facebook.com https://appleid.apple.com; frame-ancestors 'none'; worker-src 'self' blob:; upgrade-insecure-requests"
         }
       ]
     },
     {
       "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/sw.js",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
       ]
     }
   ]

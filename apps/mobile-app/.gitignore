@@ -15,11 +15,20 @@ node_modules/
 
 # Build artifacts
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
 *.orig.*
+
+# Credentials (SENSITIVE - never commit)
+credentials/
+credentials.json
+
+# Google Play Service Account (SENSITIVE - never commit)
+google-play-service-account.json
+*-service-account.json
 
 # Local env files
 .env*.local

@@ -78,9 +78,10 @@ export default ({ config }) => ({
   },
   assetBundlePatterns: ['**/*'],
   platforms: ['ios', 'android'],
+  newArchEnabled: false,
   ios: {
     bundleIdentifier: getUniqueIdentifier(),
-    buildNumber: '1',
+    buildNumber: '19',
     supportsTablet: true,
     requireFullScreen: false,
     appleTeamId: 'VDR79P4T45',
@@ -97,11 +98,17 @@ export default ({ config }) => ({
     config: {
       usesNonExemptEncryption: false,
     },
-    associatedDomains: ['applinks:flamoral.com', 'applinks:*.flamoral.com'],
+    // Associated Domains for iOS Universal Links (deep linking) and Shared Web Credentials
+    associatedDomains: [
+      'applinks:www.flamoral.com',
+      'applinks:flamoral.com',
+      'webcredentials:www.flamoral.com',
+      'webcredentials:flamoral.com',
+    ],
   },
   android: {
     package: getUniqueIdentifier(),
-    versionCode: 1,
+    versionCode: 2,
     googleServicesFile: './google-services.json',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
@@ -125,8 +132,13 @@ export default ({ config }) => ({
         data: [
           {
             scheme: 'https',
+            host: 'www.flamoral.com',
+            pathPrefix: '/',
+          },
+          {
+            scheme: 'https',
             host: 'flamoral.com',
-            pathPrefix: '/app',
+            pathPrefix: '/',
           },
           {
             scheme: 'flamoral',
@@ -159,11 +171,9 @@ export default ({ config }) => ({
           enableProguardInReleaseBuilds: true,
           extraProguardRules:
             '-keep class com.flamoral.** { *; }\n-keep class com.google.android.gms.** { *; }\n-keep class com.google.firebase.** { *; }',
-          newArchEnabled: false,
         },
         ios: {
           deploymentTarget: '15.1',
-          newArchEnabled: false,
           useFrameworks: 'static',
           ccacheEnabled: true,
         },
@@ -212,6 +222,18 @@ export default ({ config }) => ({
     './plugins/withFirebaseManifestFix',
     // Custom plugin to add iOS Privacy Manifest (required for iOS 17+)
     './plugins/withPrivacyManifest',
+    // Associated Domains plugin for Universal Links and Shared Web Credentials
+    [
+      './plugins/withAssociatedDomains',
+      {
+        domains: [
+          'applinks:www.flamoral.com',
+          'applinks:flamoral.com',
+          'webcredentials:www.flamoral.com',
+          'webcredentials:flamoral.com',
+        ],
+      },
+    ],
   ],
   updates: {
     enabled: true,

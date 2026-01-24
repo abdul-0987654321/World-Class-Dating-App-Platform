@@ -14,12 +14,14 @@ import { PaymentController } from './payment.controller';
 import { NotificationController } from './notification.controller';
 import { ModerationController } from './moderation.controller';
 import { PlatformController } from './platform.controller';
+import { RootController } from './root.controller';
 import { SafetyController } from './safety.controller';
 import { UserController } from './user.controller';
 import { VerificationController } from './verification.controller';
 
 @Module({
   controllers: [
+    RootController,
     AuthController,
     UserController,
     MatchingController,

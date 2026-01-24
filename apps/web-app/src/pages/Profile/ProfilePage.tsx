@@ -51,8 +51,10 @@ export const ProfilePage: React.FC = () => {
 
   const loadUser = async () => {
     try {
-      // First try to get from localStorage (set during login)
-      const storedUser = localStorage.getItem('currentUser');
+      // First try to get from sessionStorage (where auth service stores user data)
+      // Falls back to localStorage for legacy compatibility during migration
+      const storedUser =
+        sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         // Merge with profile data format - use actual user data, no defaults
@@ -124,11 +126,12 @@ export const ProfilePage: React.FC = () => {
     try {
       await profileService.updateProfile({ bio: editedBio });
       setUser({ ...user, bio: editedBio });
-      // Update localStorage as well
-      const storedUser = localStorage.getItem('currentUser');
+      // Update sessionStorage as well (for consistency with auth service)
+      const storedUser =
+        sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        localStorage.setItem('currentUser', JSON.stringify({ ...userData, bio: editedBio }));
+        sessionStorage.setItem('currentUser', JSON.stringify({ ...userData, bio: editedBio }));
       }
       setEditing(false);
     } catch (err) {

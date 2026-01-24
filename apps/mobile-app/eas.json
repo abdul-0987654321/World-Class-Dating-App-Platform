@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 12.0.0",
-    "appVersionSource": "remote",
+    "appVersionSource": "local",
     "requireCommit": false
   },
   "build": {
@@ -9,16 +9,18 @@
       "node": "20.19.0",
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "NPM_CONFIG_WORKSPACES": "false",
+        "NPM_CONFIG_FUND": "false",
+        "NPM_CONFIG_AUDIT": "false",
+        "NPM_CONFIG_PREFER_OFFLINE": "false",
+        "NPM_CONFIG_FETCH_RETRIES": "5",
         "CI": "1",
         "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
-        "npm_config_platform": "linux",
-        "npm_config_arch": "x64",
-        "npm_config_libc": "glibc",
         "GRADLE_OPTS": "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g",
         "EAS_SKIP_AUTO_FINGERPRINT": "1"
       },
       "cache": {
-        "key": "flamoral-mobile-v6",
+        "key": "flamoral-mobile-v13-clean",
         "paths": ["node_modules", ".expo"]
       }
     },
@@ -73,7 +75,7 @@
       },
       "ios": {
         "resourceClass": "m-medium",
-        "credentialsSource": "local"
+        "credentialsSource": "remote"
       },
       "android": {
         "buildType": "apk",
@@ -112,16 +114,23 @@
         "credentialsSource": "remote"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "credentialsSource": "remote"
+      }
+    },
+    "production:local-credentials": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle",
+        "credentialsSource": "local"
       }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "ascApiKeyIssuerId": "7c9455fe-4cac-4630-81b5-3ce1d95f57ca",
-        "ascApiKeyId": "LN6Y75PYK3",
-        "ascApiKeyPath": "${ASC_API_KEY_PATH}"
+        "ascAppId": "6741306730",
+        "appleTeamId": "VDR79P4T45"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",
@@ -131,9 +140,8 @@
     },
     "preview": {
       "ios": {
-        "ascApiKeyIssuerId": "7c9455fe-4cac-4630-81b5-3ce1d95f57ca",
-        "ascApiKeyId": "LN6Y75PYK3",
-        "ascApiKeyPath": "${ASC_API_KEY_PATH}"
+        "ascAppId": "6741306730",
+        "appleTeamId": "VDR79P4T45"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",

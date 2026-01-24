@@ -8,8 +8,19 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../common/Button';
+import {
+  AUTH_COLORS,
+  AUTH_TYPOGRAPHY,
+  AUTH_SPACING,
+  AUTH_RADIUS,
+  moderateScale,
+} from '../../styles/auth.styles';
 
 interface PhoneVerificationProps {
   onVerified: (phoneNumber: string) => void;
@@ -20,14 +31,14 @@ interface PhoneVerificationProps {
 type VerificationStep = 'phone' | 'code' | 'success';
 
 const COUNTRY_CODES = [
-  { code: '+1', country: 'US/CA', flag: '🇺🇸' },
-  { code: '+44', country: 'UK', flag: '🇬🇧' },
-  { code: '+91', country: 'IN', flag: '🇮🇳' },
-  { code: '+86', country: 'CN', flag: '🇨🇳' },
-  { code: '+81', country: 'JP', flag: '🇯🇵' },
-  { code: '+49', country: 'DE', flag: '🇩🇪' },
-  { code: '+33', country: 'FR', flag: '🇫🇷' },
-  { code: '+61', country: 'AU', flag: '🇦🇺' },
+  { code: '+1', country: 'United States/Canada', flag: '' },
+  { code: '+44', country: 'United Kingdom', flag: '' },
+  { code: '+91', country: 'India', flag: '' },
+  { code: '+86', country: 'China', flag: '' },
+  { code: '+81', country: 'Japan', flag: '' },
+  { code: '+49', country: 'Germany', flag: '' },
+  { code: '+33', country: 'France', flag: '' },
+  { code: '+61', country: 'Australia', flag: '' },
 ];
 
 export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
@@ -163,46 +174,75 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
   const renderPhoneInput = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>Enter your phone number</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Enter your phone number
+      </Text>
       <Text style={styles.subtitle}>We'll send you a verification code to confirm it's you</Text>
 
       <View style={styles.phoneInputContainer}>
         <TouchableOpacity
           style={styles.countryCodeButton}
           onPress={() => setShowCountryPicker(!showCountryPicker)}
+          accessibilityRole="button"
+          accessibilityLabel={`Country code ${countryCode}. Tap to change`}
+          accessibilityHint="Opens country code picker"
         >
           <Text style={styles.countryCodeText}>{countryCode}</Text>
-          <Text style={styles.countryCodeArrow}>▼</Text>
+          <Text
+            style={styles.countryCodeArrow}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            {showCountryPicker ? 'v' : '>'}
+          </Text>
         </TouchableOpacity>
 
         <TextInput
           style={styles.phoneInput}
           placeholder="(555) 123-4567"
-          placeholderTextColor="#999"
+          placeholderTextColor={AUTH_COLORS.text.tertiary}
           keyboardType="phone-pad"
           value={phoneNumber}
           onChangeText={setPhoneNumber}
           maxLength={15}
           autoFocus
+          textContentType="telephoneNumber"
+          autoComplete="tel"
+          accessibilityLabel="Phone number"
+          accessibilityHint="Enter your phone number"
         />
       </View>
 
       {showCountryPicker && (
-        <View style={styles.countryPicker}>
-          {COUNTRY_CODES.map((item) => (
-            <TouchableOpacity
-              key={item.code}
-              style={styles.countryPickerItem}
-              onPress={() => {
-                setCountryCode(item.code);
-                setShowCountryPicker(false);
-              }}
-            >
-              <Text style={styles.countryFlag}>{item.flag}</Text>
-              <Text style={styles.countryName}>{item.country}</Text>
-              <Text style={styles.countryCodeInPicker}>{item.code}</Text>
-            </TouchableOpacity>
-          ))}
+        <View
+          style={styles.countryPicker}
+          accessibilityRole="menu"
+          accessibilityLabel="Country code selector"
+        >
+          <ScrollView style={styles.countryPickerScroll}>
+            {COUNTRY_CODES.map((item) => (
+              <TouchableOpacity
+                key={item.code}
+                style={styles.countryPickerItem}
+                onPress={() => {
+                  setCountryCode(item.code);
+                  setShowCountryPicker(false);
+                }}
+                accessibilityRole="menuitem"
+                accessibilityLabel={`${item.country}, ${item.code}`}
+              >
+                <Text
+                  style={styles.countryFlag}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                >
+                  {item.flag}
+                </Text>
+                <Text style={styles.countryName}>{item.country}</Text>
+                <Text style={styles.countryCodeInPicker}>{item.code}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -213,9 +253,11 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
         disabled={phoneNumber.length < 10 || isLoading}
         fullWidth
         style={styles.button}
+        accessibilityLabel={isLoading ? 'Sending code' : 'Send Code'}
+        accessibilityHint="Sends verification code to your phone"
       />
 
-      <Text style={styles.disclaimer}>
+      <Text style={styles.disclaimer} accessibilityRole="text">
         By continuing, you agree to receive SMS messages. Message and data rates may apply.
       </Text>
     </View>
@@ -223,16 +265,27 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
   const renderCodeInput = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>Enter verification code</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Enter verification code
+      </Text>
       <Text style={styles.subtitle}>
         We sent a code to {countryCode} {phoneNumber}
       </Text>
 
-      <TouchableOpacity onPress={() => setStep('phone')}>
+      <TouchableOpacity
+        onPress={() => setStep('phone')}
+        style={styles.changeNumberButton}
+        accessibilityRole="link"
+        accessibilityLabel="Change phone number"
+        accessibilityHint="Go back to enter a different phone number"
+      >
         <Text style={styles.changeNumberText}>Change number</Text>
       </TouchableOpacity>
 
-      <View style={styles.codeInputContainer}>
+      <View
+        style={styles.codeInputContainer}
+        accessibilityLabel={`Verification code input. ${code.filter((d) => d).length} of 6 digits entered`}
+      >
         {code.map((digit, index) => (
           <TextInput
             key={index}
@@ -249,6 +302,8 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
             maxLength={1}
             editable={!isLoading}
             selectTextOnFocus
+            accessibilityLabel={`Digit ${index + 1} of 6`}
+            accessibilityHint={digit ? `Current value ${digit}` : 'Empty'}
           />
         ))}
       </View>
@@ -257,6 +312,12 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
         onPress={handleResendCode}
         disabled={resendTimer > 0 || isLoading}
         style={styles.resendButton}
+        accessibilityRole="button"
+        accessibilityLabel={
+          resendTimer > 0 ? `Resend code available in ${resendTimer} seconds` : 'Resend code'
+        }
+        accessibilityState={{ disabled: resendTimer > 0 || isLoading }}
+        accessibilityHint="Request a new verification code"
       >
         {resendTimer > 0 ? (
           <Text style={styles.resendTimerText}>Resend code in {resendTimer}s</Text>
@@ -266,8 +327,12 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
       </TouchableOpacity>
 
       {isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E91E63" />
+        <View
+          style={styles.loadingContainer}
+          accessibilityRole="progressbar"
+          accessibilityLabel="Verifying code"
+        >
+          <ActivityIndicator size="large" color={AUTH_COLORS.primaryDark} />
           <Text style={styles.loadingText}>Verifying...</Text>
         </View>
       )}
@@ -286,12 +351,22 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
     });
 
     return (
-      <View style={styles.stepContainer}>
+      <View
+        style={styles.stepContainer}
+        accessibilityRole="alert"
+        accessibilityLabel="Phone verified successfully"
+      >
         <Animated.View style={[styles.successContainer, { transform: [{ scale }], opacity }]}>
-          <View style={styles.successCircle}>
-            <Text style={styles.successIcon}>✓</Text>
+          <View
+            style={styles.successCircle}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            <Text style={styles.successIcon}>V</Text>
           </View>
-          <Text style={styles.successTitle}>Phone Verified!</Text>
+          <Text style={styles.successTitle} accessibilityRole="header">
+            Phone Verified!
+          </Text>
           <Text style={styles.successSubtitle}>
             Your phone number has been successfully verified
           </Text>
@@ -301,161 +376,188 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      {step === 'phone' && renderPhoneInput()}
-      {step === 'code' && renderCodeInput()}
-      {step === 'success' && renderSuccess()}
-    </View>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoid}
+      >
+        <View style={styles.container}>
+          {step === 'phone' && renderPhoneInput()}
+          {step === 'code' && renderCodeInput()}
+          {step === 'success' && renderSuccess()}
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
+// Styles using shared design tokens for consistency
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: AUTH_COLORS.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-    paddingHorizontal: 24,
-    paddingTop: 40,
+    backgroundColor: AUTH_COLORS.background,
+    paddingHorizontal: AUTH_SPACING.lg,
+    paddingTop: AUTH_SPACING.lg,
   },
   stepContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['3xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
+    color: AUTH_COLORS.text.primary,
+    marginBottom: AUTH_SPACING.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 32,
-    lineHeight: 22,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
+    marginBottom: AUTH_SPACING.xl,
+    lineHeight: AUTH_TYPOGRAPHY.fontSize.base * AUTH_TYPOGRAPHY.lineHeight.relaxed,
   },
   phoneInputContainer: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: AUTH_SPACING.lg,
   },
   countryCodeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: AUTH_SPACING.md,
+    paddingVertical: AUTH_SPACING.md,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    marginRight: 12,
-    backgroundColor: '#F5F5F5',
+    borderColor: AUTH_COLORS.border.default,
+    borderRadius: AUTH_RADIUS.lg,
+    marginRight: AUTH_SPACING.md,
+    backgroundColor: AUTH_COLORS.surface,
+    minHeight: moderateScale(52),
+    minWidth: moderateScale(80),
   },
   countryCodeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginRight: 8,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
+    color: AUTH_COLORS.text.primary,
+    marginRight: AUTH_SPACING.sm,
   },
   countryCodeArrow: {
-    fontSize: 10,
-    color: '#999',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.xs,
+    color: AUTH_COLORS.text.secondary,
   },
   phoneInput: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: AUTH_SPACING.md,
+    paddingVertical: AUTH_SPACING.md,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    fontSize: 16,
-    color: '#333',
+    borderColor: AUTH_COLORS.border.default,
+    borderRadius: AUTH_RADIUS.lg,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.primary,
+    minHeight: moderateScale(52),
   },
   countryPicker: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
+    backgroundColor: AUTH_COLORS.background,
+    borderRadius: AUTH_RADIUS.lg,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginBottom: 24,
+    borderColor: AUTH_COLORS.border.default,
+    marginBottom: AUTH_SPACING.lg,
+    maxHeight: 200,
+  },
+  countryPickerScroll: {
     maxHeight: 200,
   },
   countryPickerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: AUTH_SPACING.md,
+    paddingVertical: AUTH_SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: AUTH_COLORS.border.light,
+    minHeight: moderateScale(48),
   },
   countryFlag: {
-    fontSize: 24,
-    marginRight: 12,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['2xl'],
+    marginRight: AUTH_SPACING.md,
   },
   countryName: {
     flex: 1,
-    fontSize: 16,
-    color: '#333',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.primary,
   },
   countryCodeInPicker: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.medium,
   },
   button: {
-    marginBottom: 16,
+    marginBottom: AUTH_SPACING.md,
   },
   disclaimer: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    color: AUTH_COLORS.text.secondary,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: AUTH_TYPOGRAPHY.fontSize.sm * AUTH_TYPOGRAPHY.lineHeight.normal,
+  },
+  changeNumberButton: {
+    minHeight: moderateScale(44),
+    paddingVertical: AUTH_SPACING.sm,
+    marginBottom: AUTH_SPACING.lg,
   },
   changeNumberText: {
-    fontSize: 14,
-    color: '#E91E63',
-    fontWeight: '600',
-    marginBottom: 32,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.sm,
+    color: AUTH_COLORS.primaryDark,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
   },
   codeInputContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginBottom: AUTH_SPACING.xl,
   },
   codeInput: {
-    width: 48,
-    height: 56,
+    width: moderateScale(48),
+    height: moderateScale(56),
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    fontSize: 24,
-    fontWeight: 'bold',
+    borderColor: AUTH_COLORS.border.default,
+    borderRadius: AUTH_RADIUS.lg,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['2xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
     textAlign: 'center',
-    color: '#333',
-    backgroundColor: '#F5F5F5',
+    color: AUTH_COLORS.text.primary,
+    backgroundColor: AUTH_COLORS.surface,
   },
   codeInputFilled: {
-    borderColor: '#E91E63',
-    backgroundColor: '#FFF',
+    borderColor: AUTH_COLORS.primaryDark,
+    backgroundColor: AUTH_COLORS.background,
   },
   codeInputDisabled: {
     opacity: 0.5,
   },
   resendButton: {
-    paddingVertical: 12,
+    paddingVertical: AUTH_SPACING.md,
     alignItems: 'center',
+    minHeight: moderateScale(48),
   },
   resendText: {
-    fontSize: 16,
-    color: '#E91E63',
-    fontWeight: '600',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.primaryDark,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.semibold,
   },
   resendTimerText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
   },
   loadingContainer: {
-    marginTop: 32,
+    marginTop: AUTH_SPACING.xl,
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 12,
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
+    marginTop: AUTH_SPACING.md,
   },
   successContainer: {
     flex: 1,
@@ -463,28 +565,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   successCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#4CAF50',
+    width: moderateScale(120),
+    height: moderateScale(120),
+    borderRadius: moderateScale(60),
+    backgroundColor: AUTH_COLORS.success,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: AUTH_SPACING.xl,
   },
   successIcon: {
-    fontSize: 64,
-    color: '#FFF',
-    fontWeight: 'bold',
+    fontSize: moderateScale(64),
+    color: AUTH_COLORS.text.inverse,
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
   },
   successTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+    fontSize: AUTH_TYPOGRAPHY.fontSize['3xl'],
+    fontWeight: AUTH_TYPOGRAPHY.fontWeight.bold,
+    color: AUTH_COLORS.text.primary,
+    marginBottom: AUTH_SPACING.md,
   },
   successSubtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: AUTH_TYPOGRAPHY.fontSize.base,
+    color: AUTH_COLORS.text.secondary,
     textAlign: 'center',
   },
 });

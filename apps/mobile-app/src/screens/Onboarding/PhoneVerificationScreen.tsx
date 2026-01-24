@@ -14,6 +14,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -164,71 +165,148 @@ const PhoneVerificationScreen: React.FC<PhoneVerificationScreenProps> = ({ navig
     return phone;
   };
 
+  const isCodeComplete = code.join('').length === 6;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.content}
+        style={styles.keyboardAvoid}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Verify Phone Number</Text>
-          <Text style={styles.subtitle}>
-            Enter the 6-digit code sent to{'\n'}
-            {formatPhoneNumber(phoneNumber)}
-          </Text>
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Text style={styles.title} accessibilityRole="header">
+                Verify Phone Number
+              </Text>
+              <Text style={styles.subtitle}>
+                Enter the 6-digit code sent to{'\n'}
+                <Text style={styles.phoneNumber}>{formatPhoneNumber(phoneNumber)}</Text>
+              </Text>
+            </View>
 
-        <View style={styles.codeContainer}>
-          {code.map((digit, index) => (
-            <TextInput
-              key={index}
-              ref={(ref) => (inputRefs.current[index] = ref)}
-              style={[styles.codeInput, digit && styles.codeInputFilled]}
-              value={digit}
-              onChangeText={(text) => handleCodeChange(text, index)}
-              onKeyPress={(e) => handleKeyPress(e, index)}
-              keyboardType="number-pad"
-              maxLength={1}
-              selectTextOnFocus
-              autoFocus={index === 0}
-            />
-          ))}
-        </View>
+            <View
+              style={styles.codeContainer}
+              accessibilityLabel={`Verification code input. ${code.filter((d) => d).length} of 6 digits entered`}
+            >
+              {code.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={(ref) => (inputRefs.current[index] = ref)}
+                  style={[
+                    styles.codeInput,
+                    digit && styles.codeInputFilled,
+                    loading && styles.codeInputDisabled,
+                  ]}
+                  value={digit}
+                  onChangeText={(text) => handleCodeChange(text, index)}
+                  onKeyPress={(e) => handleKeyPress(e, index)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  selectTextOnFocus
+                  autoFocus={index === 0}
+                  editable={!loading}
+                  accessibilityLabel={`Digit ${index + 1} of 6`}
+                  accessibilityHint={digit ? `Current value ${digit}` : 'Empty'}
+                />
+              ))}
+            </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#FF6B6B" style={styles.loader} />
-        ) : (
-          <TouchableOpacity
-            style={[styles.verifyButton, code.join('').length !== 6 && styles.verifyButtonDisabled]}
-            onPress={() => handleVerify()}
-            disabled={code.join('').length !== 6}
-          >
-            <Text style={styles.verifyButtonText}>Verify</Text>
-          </TouchableOpacity>
-        )}
+            <View style={styles.resendContainer}>
+              {canResend ? (
+                <TouchableOpacity
+                  onPress={handleResendCode}
+                  disabled={resending}
+                  style={styles.resendButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={resending ? 'Sending code' : 'Resend Code'}
+                  accessibilityState={{ disabled: resending }}
+                  accessibilityHint="Request a new verification code"
+                >
+                  <Text style={styles.resendText}>{resending ? 'Sending...' : 'Resend Code'}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text
+                  style={styles.timerText}
+                  accessibilityRole="timer"
+                  accessibilityLabel={`Resend code available in ${timer} seconds`}
+                >
+                  Resend code in {timer}s
+                </Text>
+              )}
+            </View>
 
-        <View style={styles.resendContainer}>
-          {canResend ? (
-            <TouchableOpacity onPress={handleResendCode} disabled={resending}>
-              <Text style={styles.resendText}>{resending ? 'Sending...' : 'Resend Code'}</Text>
+            <TouchableOpacity
+              style={styles.changeNumberButton}
+              onPress={() => navigation.goBack()}
+              accessibilityRole="link"
+              accessibilityLabel="Change Phone Number"
+              accessibilityHint="Go back to enter a different phone number"
+            >
+              <Text style={styles.changeNumberText}>Change Phone Number</Text>
             </TouchableOpacity>
-          ) : (
-            <Text style={styles.timerText}>Resend code in {timer}s</Text>
-          )}
-        </View>
+          </View>
+        </ScrollView>
 
-        <TouchableOpacity style={styles.changeNumberButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.changeNumberText}>Change Phone Number</Text>
-        </TouchableOpacity>
+        <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
+          <View style={styles.footer}>
+            {loading ? (
+              <View
+                style={styles.loaderContainer}
+                accessibilityRole="progressbar"
+                accessibilityLabel="Verifying code"
+              >
+                <ActivityIndicator size="large" color="#D62839" />
+                <Text style={styles.loaderText}>Verifying...</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.verifyButton, !isCodeComplete && styles.verifyButtonDisabled]}
+                onPress={() => handleVerify()}
+                disabled={!isCodeComplete}
+                accessibilityRole="button"
+                accessibilityLabel="Verify"
+                accessibilityState={{ disabled: !isCodeComplete }}
+                accessibilityHint="Verify your phone number with the entered code"
+              >
+                <Text
+                  style={[
+                    styles.verifyButtonText,
+                    !isCodeComplete && styles.verifyButtonTextDisabled,
+                  ]}
+                >
+                  Verify
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
@@ -244,20 +322,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1A1A1A',
     marginBottom: 12,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: '#525252', // Improved contrast
     textAlign: 'center',
     lineHeight: 24,
+  },
+  phoneNumber: {
+    fontWeight: '600',
+    color: '#1A1A1A',
   },
   codeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 32,
+    paddingHorizontal: 8,
   },
   codeInput: {
-    width: 50,
+    width: 48,
     height: 60,
     borderWidth: 2,
     borderColor: '#E0E0E0',
@@ -266,17 +350,66 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#1A1A1A',
+    backgroundColor: '#F5F5F5',
   },
   codeInputFilled: {
-    borderColor: '#FF6B6B',
+    borderColor: '#D62839',
     backgroundColor: '#FFF5F5',
   },
+  codeInputDisabled: {
+    opacity: 0.5,
+  },
+  resendContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  resendButton: {
+    minHeight: 48, // Minimum touch target
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resendText: {
+    fontSize: 16,
+    color: '#D62839', // Improved contrast
+    fontWeight: '600',
+  },
+  timerText: {
+    fontSize: 16,
+    color: '#525252', // Improved contrast
+  },
+  changeNumberButton: {
+    padding: 12,
+    alignItems: 'center',
+    minHeight: 48, // Minimum touch target
+  },
+  changeNumberText: {
+    fontSize: 14,
+    color: '#525252', // Improved contrast
+    fontWeight: '500',
+  },
+  bottomSafeArea: {
+    backgroundColor: '#FFFFFF',
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
   verifyButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#D62839', // Consistent brand color
     paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 24,
+    justifyContent: 'center',
+    minHeight: 52, // Minimum touch target
   },
   verifyButtonDisabled: {
     backgroundColor: '#CCCCCC',
@@ -286,29 +419,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  loader: {
-    marginBottom: 24,
+  verifyButtonTextDisabled: {
+    color: '#FFFFFF',
   },
-  resendContainer: {
+  loaderContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    paddingVertical: 16,
   },
-  resendText: {
+  loaderText: {
+    marginTop: 8,
     fontSize: 16,
-    color: '#FF6B6B',
-    fontWeight: '600',
-  },
-  timerText: {
-    fontSize: 16,
-    color: '#999999',
-  },
-  changeNumberButton: {
-    padding: 12,
-    alignItems: 'center',
-  },
-  changeNumberText: {
-    fontSize: 14,
-    color: '#666666',
+    color: '#525252',
   },
 });
 

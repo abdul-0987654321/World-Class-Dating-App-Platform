@@ -132,6 +132,44 @@ export class ProxyService {
   }
 
   /**
+   * Forward POST request with raw body (Buffer)
+   * Used for webhook endpoints that require raw body for signature verification
+   */
+  async postRaw<T = any>(
+    serviceName: string,
+    path: string,
+    rawBody: Buffer | string,
+    headers?: Record<string, string>
+  ): Promise<T> {
+    const service = this.getService(serviceName);
+
+    const config: AxiosRequestConfig = {
+      method: 'POST',
+      url: path,
+      data: rawBody,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      // Prevent axios from transforming the raw body
+      transformRequest: [(data) => data],
+    };
+
+    try {
+      const response: AxiosResponse<T> = await service.request(config);
+      return response.data;
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status || 500;
+        const responseData = error.response?.data;
+        this.logger.error(`Error ${status} from ${serviceName}: ${JSON.stringify(responseData)}`);
+        throw new HttpException(responseData || { error: error.message }, status);
+      }
+      throw new HttpException('Service communication error', 500);
+    }
+  }
+
+  /**
    * Forward PUT request
    */
   async put<T = any>(

@@ -46,7 +46,7 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/v1/auth/social/google`, payload);
+      const response = await axios.post(`${API_URL}/api/v1/auth/google`, payload);
 
       if (response.data.success) {
         const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } =
@@ -74,7 +74,7 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/v1/auth/social/apple`, payload);
+      const response = await axios.post(`${API_URL}/api/v1/auth/apple`, payload);
 
       if (response.data.success) {
         const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } =
@@ -102,7 +102,7 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/v1/auth/social/facebook`, payload);
+      const response = await axios.post(`${API_URL}/api/v1/auth/facebook`, payload);
 
       if (response.data.success) {
         const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } =

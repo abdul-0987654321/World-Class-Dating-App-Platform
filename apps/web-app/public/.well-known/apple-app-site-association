@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["VDR79P4T45.com.flamoral.app"],
+        "paths": ["*"],
+        "components": [
+          {
+            "/": "/*",
+            "comment": "Matches all paths for universal links"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["VDR79P4T45.com.flamoral.app"]
+  },
+  "appclips": {
+    "apps": []
+  }
+}

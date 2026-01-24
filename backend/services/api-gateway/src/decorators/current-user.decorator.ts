@@ -6,6 +6,7 @@ export interface JwtPayload {
   roles: string[];
   subscription: string;
   deviceId: string;
+  emailVerified?: boolean;
   iat: number;
   exp: number;
 }

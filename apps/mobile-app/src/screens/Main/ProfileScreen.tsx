@@ -106,14 +106,13 @@ const ProfileScreen: React.FC = () => {
         onPress: async () => {
           try {
             await logout();
+            // RootNavigator will automatically switch to Auth screen
+            // when isAuthenticated becomes false
           } catch (error) {
             console.error('Logout error:', error);
             await TokenStorage.clear();
+            // RootNavigator will automatically switch to Auth screen
           }
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Auth' as never }],
-          });
         },
       },
     ]);

@@ -122,8 +122,10 @@ export const ProfileEditPage: React.FC = () => {
         }
       }
 
-      // Also load from currentUser in localStorage
-      const storedUser = localStorage.getItem('currentUser');
+      // Also load from currentUser in sessionStorage (where auth service stores user data)
+      // Falls back to localStorage for legacy compatibility
+      const storedUser =
+        sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         setProfile((prev) => ({
@@ -154,11 +156,12 @@ export const ProfileEditPage: React.FC = () => {
         body: JSON.stringify(profile),
       });
 
-      // Update localStorage
-      const storedUser = localStorage.getItem('currentUser');
+      // Update sessionStorage (for consistency with auth service)
+      const storedUser =
+        sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        localStorage.setItem(
+        sessionStorage.setItem(
           'currentUser',
           JSON.stringify({
             ...userData,
