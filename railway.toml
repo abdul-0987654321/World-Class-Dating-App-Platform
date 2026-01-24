@@ -14,9 +14,9 @@ watchPatterns = ["backend/shared/**"]
 # =============================================================================
 [deploy]
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+restartPolicyMaxRetries = 5
 
 # =============================================================================
 # SERVICE-SPECIFIC CONFIGURATIONS
