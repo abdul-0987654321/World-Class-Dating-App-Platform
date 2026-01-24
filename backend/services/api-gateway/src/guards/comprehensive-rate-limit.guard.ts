@@ -70,16 +70,16 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
         return true;
       }
 
-      // Development/testing bypass - check for X-Dev-Bypass header
+      // Get request and response objects
       const request = context.switchToHttp().getRequest<Request>();
+      const response = context.switchToHttp().getResponse<Response>();
+
+      // Development/testing bypass - check for X-Dev-Bypass header
       const devBypass = request.headers['x-dev-bypass'];
       if (devBypass === 'flamoral-dev-2026') {
         this.logger.debug('Development bypass activated');
         return true;
       }
-
-      const request = context.switchToHttp().getRequest<Request>();
-      const response = context.switchToHttp().getResponse<Response>();
 
       const clientIp = this.getClientIp(request);
 
