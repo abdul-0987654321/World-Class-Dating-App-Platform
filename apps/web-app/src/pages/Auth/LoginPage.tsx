@@ -88,9 +88,9 @@ export const LoginPage: React.FC = () => {
         }}
       />
 
-      {/* Main card - responsive width and padding */}
+      {/* Main card - optimized responsive width matching signup page */}
       <div
-        className="relative w-full max-w-[calc(100%-2rem)] sm:max-w-md md:max-w-lg backdrop-blur-xl rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden"
+        className="relative w-full max-w-[420px] sm:max-w-[480px] md:max-w-[520px] lg:max-w-[560px] backdrop-blur-xl rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden"
         style={{
           background: 'rgba(26, 26, 46, 0.8)',
           borderColor: 'rgba(139, 92, 246, 0.2)',
@@ -303,7 +303,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || !email.trim() || !password}
-              className="relative w-full py-4 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base text-white overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              className="relative w-full min-h-[48px] py-4 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base lg:text-lg text-white overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-400/50 focus:ring-offset-2 focus:ring-offset-transparent hover:scale-[1.01] active:scale-[0.99]"
               style={{
                 background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)',
               }}

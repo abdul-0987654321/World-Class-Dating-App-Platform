@@ -391,67 +391,72 @@ export const SignupPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center p-4 sm:p-6 lg:p-8 relative overflow-hidden"
+      className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-x-hidden"
       style={{
-        background: '#ffffff',
-        paddingTop: 'max(1rem, env(safe-area-inset-top))',
-        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+        background: 'linear-gradient(180deg, #ffffff 0%, #fafafa 100%)',
+        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
         paddingLeft: 'max(1rem, env(safe-area-inset-left))',
         paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}
     >
-      {/* Main content container - responsive max-width */}
-      <div className="relative w-full max-w-md sm:max-w-lg lg:max-w-xl my-auto flex-shrink-0">
-        {/* Card - clean white design matching mobile */}
-        <div className="rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 bg-white">
-          {/* Logo */}
-          <div className="text-center mb-6 sm:mb-8">
-            <Link to="/" className="inline-flex items-center justify-center mb-3">
+      {/* Main content container - optimized max-width for all screen sizes */}
+      <div className="relative w-full max-w-[420px] sm:max-w-[480px] md:max-w-[520px] lg:max-w-[560px] flex-shrink-0">
+        {/* Card - clean white design with subtle shadow for depth */}
+        <div className="rounded-3xl p-5 sm:p-7 md:p-8 lg:p-10 bg-white shadow-sm sm:shadow-md border border-gray-100">
+          {/* Logo - centered with proper spacing */}
+          <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+            <Link to="/" className="inline-flex items-center justify-center mb-2 sm:mb-3">
               <FlamoralLogo variant="primary" size="lg" showTagline={true} />
             </Link>
-            <p className="text-gray-500 text-sm sm:text-base mt-4">
+            <p className="text-gray-500 text-sm sm:text-base lg:text-lg mt-3 sm:mt-4 font-medium">
               {tierParam
                 ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}`
                 : 'Create your account'}
             </p>
           </div>
 
-          {/* Progress indicator - 3 steps - light theme */}
-          <div className="flex items-center justify-center mb-6 sm:mb-8 px-4 sm:px-8 lg:px-12">
+          {/* Progress indicator - 3 steps with improved sizing and spacing */}
+          <div className="flex items-center justify-center mb-6 sm:mb-8 lg:mb-10 px-2 sm:px-6 lg:px-8">
             <div
-              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+              className={`w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center text-sm sm:text-base lg:text-lg font-bold transition-all duration-300 ${
                 step >= 1
                   ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
                   : 'bg-gray-100 text-gray-400 border border-gray-200'
               }`}
+              aria-label={`Step 1${step >= 1 ? ' completed' : ''}`}
             >
               1
             </div>
             <div
-              className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
+              className={`flex-1 h-1.5 sm:h-2 mx-2.5 sm:mx-3 lg:mx-4 rounded-full transition-all duration-300 ${
                 step >= 2 ? 'bg-[#D62839]' : 'bg-gray-200'
               }`}
+              role="presentation"
             />
             <div
-              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+              className={`w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center text-sm sm:text-base lg:text-lg font-bold transition-all duration-300 ${
                 step >= 2
                   ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
                   : 'bg-gray-100 text-gray-400 border border-gray-200'
               }`}
+              aria-label={`Step 2${step >= 2 ? ' completed' : ''}`}
             >
               2
             </div>
             <div
-              className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
+              className={`flex-1 h-1.5 sm:h-2 mx-2.5 sm:mx-3 lg:mx-4 rounded-full transition-all duration-300 ${
                 step >= 3 ? 'bg-[#D62839]' : 'bg-gray-200'
               }`}
+              role="presentation"
             />
             <div
-              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+              className={`w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center text-sm sm:text-base lg:text-lg font-bold transition-all duration-300 ${
                 step >= 3
                   ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
                   : 'bg-gray-100 text-gray-400 border border-gray-200'
               }`}
+              aria-label={`Step 3${step >= 3 ? ' completed' : ''}`}
             >
               3
             </div>
@@ -729,7 +734,7 @@ export const SignupPage: React.FC = () => {
                   type="button"
                   onClick={handleNextStep}
                   disabled={stepLoading}
-                  className="w-full bg-[#D62839] text-white py-3.5 sm:py-4 rounded-xl font-semibold hover:bg-[#B82232] hover:shadow-lg transition-all duration-300 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#D62839] text-white min-h-[48px] py-3.5 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-[#B82232] hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 mt-6 sm:mt-8 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#D62839]/50 focus:ring-offset-2"
                 >
                   {stepLoading ? 'Please wait...' : 'Continue'}
                 </button>
@@ -847,12 +852,12 @@ export const SignupPage: React.FC = () => {
                   </p>
                 )}
 
-                <div className="flex gap-3 sm:gap-4 mt-8">
+                <div className="flex gap-3 sm:gap-4 mt-6 sm:mt-8">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
                     disabled={stepLoading}
-                    className="flex-1 px-4 py-4 border border-gray-300 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 min-h-[48px] px-4 py-3.5 sm:py-4 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-300 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
                   >
                     Back
                   </button>
@@ -860,7 +865,7 @@ export const SignupPage: React.FC = () => {
                     type="button"
                     onClick={handleNextStep}
                     disabled={stepLoading}
-                    className="flex-[1.5] bg-[#D62839] text-white py-4 rounded-xl font-semibold hover:bg-[#B82232] hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[1.5] min-h-[48px] bg-[#D62839] text-white py-3.5 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-[#B82232] hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#D62839]/50 focus:ring-offset-2"
                   >
                     {stepLoading ? 'Please wait...' : 'Continue'}
                   </button>
@@ -1087,13 +1092,13 @@ export const SignupPage: React.FC = () => {
                   photos for your first picture.
                 </p>
 
-                {/* Buttons with proper spacing and visual weight */}
-                <div className="flex gap-3 sm:gap-4 pt-4">
+                {/* Buttons with proper spacing, visual weight, and accessibility */}
+                <div className="flex gap-3 sm:gap-4 pt-4 sm:pt-6">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
                     disabled={loading || photoUploading}
-                    className="flex-1 px-4 py-3.5 sm:py-4 border border-gray-300 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 min-h-[48px] px-4 py-3.5 sm:py-4 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-300 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
                   >
                     Back
                   </button>
@@ -1101,7 +1106,7 @@ export const SignupPage: React.FC = () => {
                     type="submit"
                     disabled={loading || photoUploading}
                     aria-busy={loading || photoUploading}
-                    className="flex-[1.5] bg-[#D62839] text-white py-3.5 sm:py-4 rounded-xl font-bold text-base hover:bg-[#B82232] hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[1.5] min-h-[48px] bg-[#D62839] text-white py-3.5 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-[#B82232] hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#D62839]/50 focus:ring-offset-2"
                   >
                     {loading || photoUploading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1136,12 +1141,13 @@ export const SignupPage: React.FC = () => {
             )}
           </form>
 
-          <div className="mt-6 sm:mt-8 text-center">
-            <p className="text-sm text-gray-500">
+          {/* Footer link - consistent spacing */}
+          <div className="mt-6 sm:mt-8 lg:mt-10 text-center pb-2">
+            <p className="text-sm sm:text-base text-gray-500">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="text-[#D62839] hover:text-[#B82232] font-medium transition"
+                className="text-[#D62839] hover:text-[#B82232] font-semibold transition-colors underline-offset-2 hover:underline"
               >
                 Sign in
               </Link>
@@ -1150,8 +1156,14 @@ export const SignupPage: React.FC = () => {
         </div>
       </div>
 
-      {/* AI Avatar positioned to not overlap main content */}
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
+      {/* AI Avatar - positioned with safe area awareness */}
+      <div
+        className="fixed z-40"
+        style={{
+          bottom: 'max(1rem, env(safe-area-inset-bottom))',
+          right: 'max(1rem, env(safe-area-inset-right))',
+        }}
+      >
         <AIAvatarSystem initialContext="welcome" />
       </div>
     </div>
