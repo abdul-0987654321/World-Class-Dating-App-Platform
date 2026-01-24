@@ -1,4 +1,12 @@
-import { IsEmail, IsString, IsNotEmpty, MinLength, MaxLength, IsOptional, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
@@ -10,15 +18,18 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'Email is required' })
   email: string;
 
-  @ApiProperty({ description: 'Password (minimum 8 characters, must contain uppercase, lowercase, number, and special character)' })
+  @ApiProperty({
+    description:
+      'Password (minimum 8 characters, must contain uppercase, lowercase, number, and special character)',
+  })
   @IsString()
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   @MaxLength(128, { message: 'Password must not exceed 128 characters' })
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    { message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' }
-  )
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  })
   password: string;
 
   @ApiProperty({ description: 'User first name' })
@@ -48,25 +59,6 @@ export class RegisterDto {
 }
 
 /**
- * DTO for user login
- */
-export class LoginDto {
-  @ApiProperty({ description: 'User email address' })
-  @IsEmail({}, { message: 'Invalid email format' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
-
-  @ApiProperty({ description: 'User password' })
-  @IsString()
-  @IsNotEmpty({ message: 'Password is required' })
-  password: string;
-
-  @ApiPropertyOptional({ description: 'Device information for session tracking' })
-  @IsOptional()
-  deviceData?: DeviceDataDto;
-}
-
-/**
  * DTO for device information
  */
 export class DeviceDataDto {
@@ -87,6 +79,25 @@ export class DeviceDataDto {
   @IsString()
   @MaxLength(200)
   userAgent?: string;
+}
+
+/**
+ * DTO for user login
+ */
+export class LoginDto {
+  @ApiProperty({ description: 'User email address' })
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
+
+  @ApiProperty({ description: 'User password' })
+  @IsString()
+  @IsNotEmpty({ message: 'Password is required' })
+  password: string;
+
+  @ApiPropertyOptional({ description: 'Device information for session tracking' })
+  @IsOptional()
+  deviceData?: DeviceDataDto;
 }
 
 /**
@@ -143,9 +154,9 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'New password is required' })
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   @MaxLength(128, { message: 'Password must not exceed 128 characters' })
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    { message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' }
-  )
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  })
   newPassword: string;
 }
