@@ -60,7 +60,17 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      // Check if endpoint should skip rate limiting
+      // Get request early for path-based bypasses
+      const request = context.switchToHttp().getRequest<Request>();
+      const response = context.switchToHttp().getResponse<Response>();
+
+      // CRITICAL: Always skip rate limiting for health endpoints
+      // This ensures health checks work regardless of decorator metadata
+      if (request.path.startsWith('/health')) {
+        return true;
+      }
+
+      // Check if endpoint should skip rate limiting via decorator
       const skipRateLimit = this.reflector.getAllAndOverride<boolean>(SKIP_RATE_LIMIT_KEY, [
         context.getHandler(),
         context.getClass(),
@@ -69,10 +79,6 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
       if (skipRateLimit) {
         return true;
       }
-
-      // Get request and response objects
-      const request = context.switchToHttp().getRequest<Request>();
-      const response = context.switchToHttp().getResponse<Response>();
 
       // Development/testing bypass - check for X-Dev-Bypass header
       const devBypass = request.headers['x-dev-bypass'];
