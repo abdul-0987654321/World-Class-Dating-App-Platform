@@ -1,3 +1,0 @@
-{
-  "query": "mutation { variableCollectionUpsert(input: { projectId: \"af6bc3f4-b8e3-4501-b9ea-1f3e0e1d6beb\", environmentId: \"8aa9204e-60ef-4333-9ad3-90fa29fe762d\", serviceId: \"d414e740-0192-4d4a-a4e3-a76f57ded965\", variables: { JWT_SECRET: \"q9J+VKiVX3OLxU0TWH9dmlVCY1NT+NDYRNKsJzzzmcf2hOg+1oq0Vkhbvn4tV49s\", JWT_ACCESS_SECRET: \"q9J+VKiVX3OLxU0TWH9dmlVCY1NT+NDYRNKsJzzzmcf2hOg+1oq0Vkhbvn4tV49s\", JWT_REFRESH_SECRET: \"MP2Q0Y+yUZoEA2bi1pzFjwsHYg6S9v8RwduWgvBjFKF5cqk7Y8R+1WFARnzUO/Cw\", INTERNAL_SERVICE_KEY: \"IS1sPu2AEZhIDjaGqIN5bChldGbgInYiSt7Iwrgs+rQ=\", SERVICE_API_KEY: \"IS1sPu2AEZhIDjaGqIN5bChldGbgInYiSt7Iwrgs+rQ=\" } }) }"
-}
