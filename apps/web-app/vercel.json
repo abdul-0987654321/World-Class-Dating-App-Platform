@@ -31,6 +31,10 @@
       "destination": "https://api-gateway-production-1957.up.railway.app/health"
     },
     {
+      "source": "/health/:path*",
+      "destination": "https://api-gateway-production-1957.up.railway.app/health/:path*"
+    },
+    {
       "source": "/privacy",
       "destination": "/privacy-policy"
     },
@@ -43,7 +47,7 @@
       "destination": "/support"
     },
     {
-      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/).*)",
+      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/|health).*)",
       "destination": "/index.html"
     }
   ],

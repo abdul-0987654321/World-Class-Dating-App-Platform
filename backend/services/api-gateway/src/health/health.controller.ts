@@ -8,6 +8,7 @@ import {
 } from '@nestjs/terminus';
 
 import { Public } from '../decorators/public.decorator';
+import { SkipRateLimit } from '../decorators/rate-limit.decorator';
 import { ProxyService } from '../services/proxy.service';
 
 @Controller('health')
@@ -21,6 +22,7 @@ export class HealthController {
   ) {}
 
   @Public()
+  @SkipRateLimit()
   @Get()
   @HealthCheck()
   check() {
@@ -34,6 +36,7 @@ export class HealthController {
   }
 
   @Public()
+  @SkipRateLimit()
   @Get('ready')
   async readiness() {
     return {
@@ -44,6 +47,7 @@ export class HealthController {
   }
 
   @Public()
+  @SkipRateLimit()
   @Get('live')
   async liveness() {
     return {
@@ -54,6 +58,7 @@ export class HealthController {
   }
 
   @Public()
+  @SkipRateLimit()
   @Get('services')
   async servicesHealth() {
     const serviceNames = this.proxyService.getServiceNames();
