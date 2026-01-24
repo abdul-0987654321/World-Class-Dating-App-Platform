@@ -28,31 +28,12 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- Content Security Policy -->
-    <!-- Note: Primary CSP is set via HTTP headers in nginx/CDN. This is a fallback. -->
     <!--
-      CSP Security Notes:
-      - script-src: Does NOT use 'unsafe-inline' - only allows self and trusted domains
-      - style-src: Uses 'unsafe-inline' which is required for styled-components/CSS-in-JS
-        To remove 'unsafe-inline' from style-src, migrate to external CSS files or use
-        nonce-based CSP with styled-components' StyleSheetManager (requires SSR)
-      - For production, set stricter CSP via HTTP headers in nginx with nonce generation
+      CSP is set via HTTP headers in vercel.json for production.
+      This meta tag is REMOVED to avoid conflicts with the HTTP header.
+      The HTTP header CSP in vercel.json includes 'unsafe-inline' and 'unsafe-eval'
+      which are required for Vite/React bundled applications.
     -->
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' https://js.stripe.com https://www.google-analytics.com https://www.googletagmanager.com;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' data: https: blob:;
-      font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' ws://api.flamoral.com wss://api.flamoral.com http://api.flamoral.com https://api.flamoral.com https://*.sentry.io https://api.stripe.com https://www.google-analytics.com https://vitals.vercel-insights.com;
-      media-src 'self' blob: data: https:;
-      object-src 'none';
-      frame-src 'self' https://js.stripe.com;
-      frame-ancestors 'none';
-      base-uri 'self';
-      form-action 'self' https://api.flamoral.com;
-      
-      
-    " />
 
     <!-- Permissions Policy: Controls browser features -->
     <meta http-equiv="Permissions-Policy" content="
