@@ -391,33 +391,33 @@ export const SignupPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-x-hidden"
+      className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16 relative overflow-x-hidden"
       style={{
-        background: 'linear-gradient(180deg, #ffffff 0%, #fafafa 100%)',
-        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
-        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+        background: 'linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%)',
+        paddingTop: 'max(2rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(2rem, env(safe-area-inset-bottom))',
         paddingLeft: 'max(1rem, env(safe-area-inset-left))',
         paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}
     >
-      {/* Main content container - optimized max-width for all screen sizes */}
-      <div className="relative w-full max-w-[420px] sm:max-w-[480px] md:max-w-[520px] lg:max-w-[560px] flex-shrink-0">
-        {/* Card - clean white design with subtle shadow for depth */}
-        <div className="rounded-3xl p-5 sm:p-7 md:p-8 lg:p-10 bg-white shadow-sm sm:shadow-md border border-gray-100">
-          {/* Logo - centered with proper spacing */}
-          <div className="text-center mb-6 sm:mb-8 lg:mb-10">
-            <Link to="/" className="inline-flex items-center justify-center mb-2 sm:mb-3">
+      {/* Main content container - centered card with balanced proportions */}
+      <div className="relative w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto">
+        {/* Card - elevated white design with balanced padding */}
+        <div className="rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 bg-white shadow-lg sm:shadow-xl border border-gray-200/50">
+          {/* Logo - centered with balanced spacing */}
+          <div className="text-center mb-8 sm:mb-10">
+            <Link to="/" className="inline-flex items-center justify-center mb-4">
               <FlamoralLogo variant="primary" size="lg" showTagline={true} />
             </Link>
-            <p className="text-gray-500 text-sm sm:text-base lg:text-lg mt-3 sm:mt-4 font-medium">
+            <p className="text-gray-600 text-base sm:text-lg mt-4 font-medium">
               {tierParam
                 ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}`
                 : 'Create your account'}
             </p>
           </div>
 
-          {/* Progress indicator - 3 steps with improved sizing and spacing */}
-          <div className="flex items-center justify-center mb-6 sm:mb-8 lg:mb-10 px-2 sm:px-6 lg:px-8">
+          {/* Progress indicator - 3 steps with balanced proportions */}
+          <div className="flex items-center justify-center mb-8 sm:mb-10 px-4 sm:px-8 md:px-12 lg:px-16 max-w-sm mx-auto">
             <div
               className={`w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center text-sm sm:text-base lg:text-lg font-bold transition-all duration-300 ${
                 step >= 1
@@ -523,7 +523,7 @@ export const SignupPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             {step === 1 && (
-              <div className="space-y-4 sm:space-y-5">
+              <div className="space-y-5 sm:space-y-6">
                 <h2
                   ref={stepHeadingRef}
                   tabIndex={-1}
@@ -742,7 +742,7 @@ export const SignupPage: React.FC = () => {
             )}
 
             {step === 2 && (
-              <div className="space-y-4 sm:space-y-5">
+              <div className="space-y-5 sm:space-y-6">
                 <h2
                   ref={stepHeadingRef}
                   tabIndex={-1}
