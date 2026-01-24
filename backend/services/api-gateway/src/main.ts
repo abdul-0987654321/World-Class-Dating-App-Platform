@@ -187,9 +187,10 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 4000;
   await app.listen(port);
 
-  logger.info(`Heartly API Gateway running on: http://localhost:${port}`);
+  logger.info(`Flamoral API Gateway v2.0.0 running on port ${port}`);
+  logger.info(`Environment: ${configService.get<string>('NODE_ENV') || 'development'}`);
   logger.info(`API Documentation: http://localhost:${port}/api/docs`);
-  logger.info(`WebSocket endpoint: ws://localhost:${port}/ws`);
+  logger.info(`Health endpoint: http://localhost:${port}/health`);
 }
 
 bootstrap();
