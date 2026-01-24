@@ -359,13 +359,28 @@ export function getRateLimitRule(
  * @returns True if whitelisted
  */
 export function isWhitelisted(ip: string): boolean {
-  // Check explicit whitelist
+  // Check explicit whitelist from environment
   if (DDOS_PROTECTION.whitelist.includes(ip)) {
     return true;
   }
 
   // Allow private/internal IPs (Kubernetes internal traffic)
   const cleanIp = ip.replace('::ffff:', ''); // Remove IPv6 prefix
+
+  // Railway health check IPs and internal networking
+  if (
+    cleanIp.startsWith('100.64.') || // Railway CGNAT range
+    cleanIp.startsWith('100.65.') ||
+    cleanIp.startsWith('100.66.') ||
+    cleanIp.startsWith('100.67.') ||
+    cleanIp.startsWith('100.68.') ||
+    cleanIp.startsWith('100.69.') ||
+    cleanIp.startsWith('100.70.') ||
+    cleanIp.startsWith('100.71.') ||
+    cleanIp.startsWith('100.') // Broader Railway/Vercel edge range
+  ) {
+    return true;
+  }
 
   // Check private IP ranges
   if (
