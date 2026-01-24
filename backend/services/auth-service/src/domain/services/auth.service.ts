@@ -18,7 +18,7 @@ export interface RegisterDto {
   email: string;
   password: string;
   first_name: string;
-  last_name: string;
+  last_name?: string; // Optional - some users prefer single name
   date_of_birth: string;
   gender: string;
   phone_number?: string;
@@ -85,7 +85,7 @@ class AuthService {
       email: data.email,
       password_hash: passwordHash,
       first_name: data.first_name,
-      last_name: data.last_name,
+      last_name: data.last_name || '', // Default to empty string if not provided
       date_of_birth: new Date(data.date_of_birth),
       gender: data.gender,
       phone_number: data.phone_number,
@@ -549,13 +549,16 @@ class AuthService {
       throw new Error('First name must be at least 2 characters');
     }
 
-    if (!data.last_name || data.last_name.length < 2) {
-      throw new Error('Last name must be at least 2 characters');
+    // Last name is optional, but if provided must be at least 2 characters
+    if (data.last_name && data.last_name.length > 0 && data.last_name.length < 2) {
+      throw new Error('Last name must be at least 2 characters if provided');
     }
 
-    const validGenders = ['male', 'female', 'non-binary', 'other'];
+    const validGenders = ['male', 'female', 'non-binary', 'other', 'prefer_not_to_say'];
     if (!validGenders.includes(data.gender)) {
-      throw new Error('Invalid gender');
+      throw new Error(
+        'Invalid gender. Must be one of: male, female, non-binary, other, prefer_not_to_say'
+      );
     }
   }
 
