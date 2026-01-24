@@ -61,6 +61,7 @@ export class AuthController {
 
   /**
    * Register a new user
+   * Transforms camelCase fields to snake_case for auth service compatibility
    */
   @Public()
   @Post('register')
@@ -68,7 +69,16 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: RegisterDto })
   async register(@Body() body: RegisterDto) {
-    return this.proxyService.post('authService', '/api/v1/auth/register', body);
+    // Transform camelCase to snake_case for auth service
+    const transformedBody = {
+      email: body.email,
+      password: body.password,
+      first_name: body.firstName,
+      last_name: body.lastName || '',
+      date_of_birth: body.dateOfBirth,
+      gender: body.gender,
+    };
+    return this.proxyService.post('authService', '/api/v1/auth/register', transformedBody);
   }
 
   /**
