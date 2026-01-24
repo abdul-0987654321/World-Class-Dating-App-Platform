@@ -8,37 +8,27 @@
   "rewrites": [
     {
       "source": "/stripe/webhook",
-      "destination": "https://world-class-dating-app-platform-production.up.railway.app/api/v1/webhooks/stripe"
+      "destination": "https://api-gateway-production-1957.up.railway.app/api/v1/webhooks/stripe"
     },
     {
       "source": "/api/:path*",
-      "destination": "https://api.flamoral.com/api/:path*",
-      "has": [{ "type": "host", "value": "flamoral.com" }]
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://api.flamoral.com/api/:path*",
-      "has": [{ "type": "host", "value": "www.flamoral.com" }]
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://world-class-dating-app-platform-production.up.railway.app/api/:path*"
+      "destination": "https://api-gateway-production-1957.up.railway.app/api/:path*"
     },
     {
       "source": "/ws/:path*",
-      "destination": "https://world-class-dating-app-platform-production.up.railway.app/ws/:path*"
+      "destination": "https://api-gateway-production-1957.up.railway.app/ws/:path*"
     },
     {
       "source": "/socket.io/:path*",
-      "destination": "https://world-class-dating-app-platform-production.up.railway.app/socket.io/:path*"
+      "destination": "https://api-gateway-production-1957.up.railway.app/socket.io/:path*"
     },
     {
       "source": "/graphql",
-      "destination": "https://world-class-dating-app-platform-production.up.railway.app/graphql"
+      "destination": "https://api-gateway-production-1957.up.railway.app/graphql"
     },
     {
       "source": "/health",
-      "destination": "https://world-class-dating-app-platform-production.up.railway.app/health"
+      "destination": "https://api-gateway-production-1957.up.railway.app/health"
     },
     {
       "source": "/privacy",
