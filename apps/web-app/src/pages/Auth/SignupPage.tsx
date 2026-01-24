@@ -120,8 +120,13 @@ export const SignupPage: React.FC = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';
+    } else if (
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(
+        formData.password
+      )
+    ) {
+      newErrors.password =
+        'Password must contain uppercase, lowercase, number, and special character';
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -254,7 +259,11 @@ export const SignupPage: React.FC = () => {
           try {
             const photoFormData = new FormData();
             photos.forEach((photo, index) => {
-              photoFormData.append('photos', photo.file, `photo-${index}.${photo.file.type.split('/')[1] || 'jpg'}`);
+              photoFormData.append(
+                'photos',
+                photo.file,
+                `photo-${index}.${photo.file.type.split('/')[1] || 'jpg'}`
+              );
             });
 
             const photoResponse = await fetch(`${API_URL}/api/v1/users/photos`, {
@@ -296,8 +305,13 @@ export const SignupPage: React.FC = () => {
       let errorMessage = 'Registration failed. Please try again.';
 
       // Type guard for ApiError-like objects
-      const isApiError = (e: unknown): e is { status: number; message: string; data?: { retryAfter?: number } } =>
-        typeof e === 'object' && e !== null && 'status' in e && typeof (e as { status: unknown }).status === 'number';
+      const isApiError = (
+        e: unknown
+      ): e is { status: number; message: string; data?: { retryAfter?: number } } =>
+        typeof e === 'object' &&
+        e !== null &&
+        'status' in e &&
+        typeof (e as { status: unknown }).status === 'number';
 
       if (isApiError(err)) {
         // Handle rate limiting
@@ -313,8 +327,13 @@ export const SignupPage: React.FC = () => {
         }
       } else if (err instanceof Error) {
         // Handle specific error types
-        if (err.message.includes('fetch') || err.message.includes('network') || err.message.includes('connect')) {
-          errorMessage = 'Unable to connect to server. Please check your internet connection and try again.';
+        if (
+          err.message.includes('fetch') ||
+          err.message.includes('network') ||
+          err.message.includes('connect')
+        ) {
+          errorMessage =
+            'Unable to connect to server. Please check your internet connection and try again.';
         } else if (err.message.includes('timeout') || err.message.includes('timed out')) {
           errorMessage = 'Request timed out. Please try again.';
         } else if (err.message.includes('already exists') || err.message.includes('duplicate')) {
@@ -341,18 +360,20 @@ export const SignupPage: React.FC = () => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
 
     // Clear error when field is modified
     if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  const getPasswordStrength = (password: string): { strength: number; label: string; color: string } => {
+  const getPasswordStrength = (
+    password: string
+  ): { strength: number; label: string; color: string } => {
     let strength = 0;
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
@@ -370,66 +391,95 @@ export const SignupPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative overflow-hidden"
-      style={{ background: '#ffffff' }}
+      className="min-h-screen w-full flex flex-col items-center p-4 sm:p-6 lg:p-8 relative overflow-hidden"
+      style={{
+        background: '#ffffff',
+        paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right))',
+      }}
     >
       {/* Main content container - responsive max-width */}
-      <div className="relative w-full max-w-md sm:max-w-lg lg:max-w-xl">
+      <div className="relative w-full max-w-md sm:max-w-lg lg:max-w-xl my-auto flex-shrink-0">
         {/* Card - clean white design matching mobile */}
-        <div
-          className="rounded-3xl p-6 sm:p-8 lg:p-10 bg-white"
-        >
+        <div className="rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 bg-white">
           {/* Logo */}
           <div className="text-center mb-6 sm:mb-8">
             <Link to="/" className="inline-flex items-center justify-center mb-3">
               <FlamoralLogo variant="primary" size="lg" showTagline={true} />
             </Link>
             <p className="text-gray-500 text-sm sm:text-base mt-4">
-              {tierParam ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}` : 'Create your account'}
+              {tierParam
+                ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}`
+                : 'Create your account'}
             </p>
           </div>
 
           {/* Progress indicator - 3 steps - light theme */}
           <div className="flex items-center justify-center mb-6 sm:mb-8 px-4 sm:px-8 lg:px-12">
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
-              step >= 1
-                ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
-                : 'bg-gray-100 text-gray-400 border border-gray-200'
-            }`}>
+            <div
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+                step >= 1
+                  ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200'
+              }`}
+            >
               1
             </div>
-            <div className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
-              step >= 2 ? 'bg-[#D62839]' : 'bg-gray-200'
-            }`} />
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
-              step >= 2
-                ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
-                : 'bg-gray-100 text-gray-400 border border-gray-200'
-            }`}>
+            <div
+              className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
+                step >= 2 ? 'bg-[#D62839]' : 'bg-gray-200'
+              }`}
+            />
+            <div
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+                step >= 2
+                  ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200'
+              }`}
+            >
               2
             </div>
-            <div className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
-              step >= 3 ? 'bg-[#D62839]' : 'bg-gray-200'
-            }`} />
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
-              step >= 3
-                ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
-                : 'bg-gray-100 text-gray-400 border border-gray-200'
-            }`}>
+            <div
+              className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
+                step >= 3 ? 'bg-[#D62839]' : 'bg-gray-200'
+              }`}
+            />
+            <div
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+                step >= 3
+                  ? 'bg-[#D62839] text-white shadow-lg shadow-red-500/30'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200'
+              }`}
+            >
               3
             </div>
           </div>
 
           {/* Backend offline warning */}
           {backendStatus === 'offline' && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm mb-4" role="alert">
+            <div
+              className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm mb-4"
+              role="alert"
+            >
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-5 h-5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
                 <div>
-                  <strong>Connection issue detected.</strong> Our servers may be temporarily unavailable.
-                  You can still fill out the form, but submission may fail.
+                  <strong>Connection issue detected.</strong> Our servers may be temporarily
+                  unavailable. You can still fill out the form, but submission may fail.
                 </div>
               </div>
             </div>
@@ -438,15 +488,30 @@ export const SignupPage: React.FC = () => {
           {backendStatus === 'checking' && (
             <div className="bg-gray-50 border border-gray-200 text-gray-600 px-4 py-3 rounded-xl text-sm mb-4 flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               Checking connection...
             </div>
           )}
 
           {errors.general && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4" role="alert">
+            <div
+              className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4"
+              role="alert"
+            >
               {errors.general}
             </div>
           )}
@@ -454,7 +519,13 @@ export const SignupPage: React.FC = () => {
           <form onSubmit={handleSubmit}>
             {step === 1 && (
               <div className="space-y-4 sm:space-y-5">
-                <h2 ref={stepHeadingRef} tabIndex={-1} className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 outline-none">Basic Information</h2>
+                <h2
+                  ref={stepHeadingRef}
+                  tabIndex={-1}
+                  className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 outline-none"
+                >
+                  Basic Information
+                </h2>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
@@ -471,13 +542,15 @@ export const SignupPage: React.FC = () => {
                       aria-invalid={!!errors.firstName}
                       aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                       autoComplete="given-name"
-                      className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
+                      className={`w-full px-4 py-4 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
                         errors.firstName ? 'border-red-500' : 'border-gray-200'
                       }`}
                       placeholder="First name"
                     />
                     {errors.firstName && (
-                      <p id="firstName-error" role="alert" className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                      <p id="firstName-error" role="alert" className="text-red-500 text-xs mt-1">
+                        {errors.firstName}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -491,16 +564,14 @@ export const SignupPage: React.FC = () => {
                       value={formData.lastName}
                       onChange={handleChange}
                       autoComplete="family-name"
-                      className="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition"
+                      className="w-full px-4 py-4 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition"
                       placeholder="Last name"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Email *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email *</label>
                   <input
                     type="email"
                     name="email"
@@ -511,13 +582,15 @@ export const SignupPage: React.FC = () => {
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? 'email-error' : undefined}
                     autoComplete="email"
-                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
+                    className={`w-full px-4 py-4 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
                       errors.email ? 'border-red-500' : 'border-gray-200'
                     }`}
                     placeholder="your@email.com"
                   />
                   {errors.email && (
-                    <p id="email-error" role="alert" className="text-red-500 text-xs mt-1">{errors.email}</p>
+                    <p id="email-error" role="alert" className="text-red-500 text-xs mt-1">
+                      {errors.email}
+                    </p>
                   )}
                 </div>
 
@@ -536,7 +609,7 @@ export const SignupPage: React.FC = () => {
                       aria-invalid={!!errors.password}
                       aria-describedby={errors.password ? 'password-error' : 'password-strength'}
                       autoComplete="new-password"
-                      className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition pr-10 ${
+                      className={`w-full px-4 py-4 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition pr-10 ${
                         errors.password ? 'border-red-500' : 'border-gray-200'
                       }`}
                       placeholder="Create a strong password"
@@ -549,13 +622,38 @@ export const SignupPage: React.FC = () => {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
                     >
                       {showPassword ? (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                          />
                         </svg>
                       ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
                         </svg>
                       )}
                     </button>
@@ -563,23 +661,37 @@ export const SignupPage: React.FC = () => {
                   {formData.password && (
                     <div id="password-strength" className="mt-2" aria-live="polite">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden" role="progressbar" aria-valuenow={passwordStrength.strength} aria-valuemin={0} aria-valuemax={3} aria-label="Password strength">
+                        <div
+                          className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={passwordStrength.strength}
+                          aria-valuemin={0}
+                          aria-valuemax={3}
+                          aria-label="Password strength"
+                        >
                           <div
                             className={`h-full ${passwordStrength.color} transition-all`}
                             style={{ width: `${(passwordStrength.strength / 3) * 100}%` }}
                           />
                         </div>
-                        <span className={`text-xs font-medium ${
-                          passwordStrength.strength === 1 ? 'text-red-500' :
-                          passwordStrength.strength === 2 ? 'text-yellow-700' : 'text-green-600'
-                        }`}>
+                        <span
+                          className={`text-xs font-medium ${
+                            passwordStrength.strength === 1
+                              ? 'text-red-500'
+                              : passwordStrength.strength === 2
+                                ? 'text-yellow-700'
+                                : 'text-green-600'
+                          }`}
+                        >
                           {passwordStrength.label}
                         </span>
                       </div>
                     </div>
                   )}
                   {errors.password && (
-                    <p id="password-error" role="alert" className="text-red-500 text-xs mt-1">{errors.password}</p>
+                    <p id="password-error" role="alert" className="text-red-500 text-xs mt-1">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
 
@@ -597,13 +709,19 @@ export const SignupPage: React.FC = () => {
                     aria-invalid={!!errors.confirmPassword}
                     aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                     autoComplete="new-password"
-                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
+                    className={`w-full px-4 py-4 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
                       errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
                     }`}
                     placeholder="Confirm your password"
                   />
                   {errors.confirmPassword && (
-                    <p id="confirmPassword-error" role="alert" className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                    <p
+                      id="confirmPassword-error"
+                      role="alert"
+                      className="text-red-500 text-xs mt-1"
+                    >
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </div>
 
@@ -620,7 +738,13 @@ export const SignupPage: React.FC = () => {
 
             {step === 2 && (
               <div className="space-y-4 sm:space-y-5">
-                <h2 ref={stepHeadingRef} tabIndex={-1} className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 outline-none">About You</h2>
+                <h2
+                  ref={stepHeadingRef}
+                  tabIndex={-1}
+                  className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 outline-none"
+                >
+                  About You
+                </h2>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -632,25 +756,31 @@ export const SignupPage: React.FC = () => {
                     id="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleChange}
-                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    max={
+                      new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                        .toISOString()
+                        .split('T')[0]
+                    }
                     aria-required="true"
                     aria-invalid={!!errors.dateOfBirth}
                     aria-describedby={errors.dateOfBirth ? 'dateOfBirth-error' : 'dateOfBirth-hint'}
                     autoComplete="bday"
-                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
+                    className={`w-full px-4 py-4 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
                       errors.dateOfBirth ? 'border-red-500' : 'border-gray-200'
                     }`}
                   />
                   {errors.dateOfBirth && (
-                    <p id="dateOfBirth-error" role="alert" className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+                    <p id="dateOfBirth-error" role="alert" className="text-red-500 text-xs mt-1">
+                      {errors.dateOfBirth}
+                    </p>
                   )}
-                  <p id="dateOfBirth-hint" className="text-gray-500 text-xs mt-1">You must be at least 18 years old</p>
+                  <p id="dateOfBirth-hint" className="text-gray-500 text-xs mt-1">
+                    You must be at least 18 years old
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Gender *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
                   <select
                     name="gender"
                     id="gender"
@@ -660,7 +790,7 @@ export const SignupPage: React.FC = () => {
                     aria-invalid={!!errors.gender}
                     aria-describedby={errors.gender ? 'gender-error' : undefined}
                     autoComplete="sex"
-                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
+                    className={`w-full px-4 py-4 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D62839]/30 focus:border-[#D62839] transition ${
                       errors.gender ? 'border-red-500' : 'border-gray-200'
                     }`}
                   >
@@ -672,7 +802,9 @@ export const SignupPage: React.FC = () => {
                     <option value="prefer_not_to_say">Prefer not to say</option>
                   </select>
                   {errors.gender && (
-                    <p id="gender-error" role="alert" className="text-red-500 text-xs mt-1">{errors.gender}</p>
+                    <p id="gender-error" role="alert" className="text-red-500 text-xs mt-1">
+                      {errors.gender}
+                    </p>
                   )}
                 </div>
 
@@ -690,17 +822,29 @@ export const SignupPage: React.FC = () => {
                   />
                   <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
                     I agree to the{' '}
-                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-[#D62839] hover:text-[#B82232] hover:underline">
+                    <a
+                      href="/terms-of-service"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#D62839] hover:text-[#B82232] hover:underline"
+                    >
                       Terms of Service
                     </a>{' '}
                     and{' '}
-                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#D62839] hover:text-[#B82232] hover:underline">
+                    <a
+                      href="/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#D62839] hover:text-[#B82232] hover:underline"
+                    >
                       Privacy Policy
                     </a>
                   </label>
                 </div>
                 {errors.agreeToTerms && (
-                  <p id="agreeToTerms-error" role="alert" className="text-red-500 text-xs">{errors.agreeToTerms}</p>
+                  <p id="agreeToTerms-error" role="alert" className="text-red-500 text-xs">
+                    {errors.agreeToTerms}
+                  </p>
                 )}
 
                 <div className="flex gap-3 sm:gap-4 mt-8">
@@ -708,7 +852,7 @@ export const SignupPage: React.FC = () => {
                     type="button"
                     onClick={() => setStep(1)}
                     disabled={stepLoading}
-                    className="flex-1 px-4 py-3 sm:py-3.5 border border-gray-300 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-4 border border-gray-300 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Back
                   </button>
@@ -716,7 +860,7 @@ export const SignupPage: React.FC = () => {
                     type="button"
                     onClick={handleNextStep}
                     disabled={stepLoading}
-                    className="flex-[1.5] bg-[#D62839] text-white py-3 sm:py-3.5 rounded-xl font-semibold hover:bg-[#B82232] hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[1.5] bg-[#D62839] text-white py-4 rounded-xl font-semibold hover:bg-[#B82232] hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {stepLoading ? 'Please wait...' : 'Continue'}
                   </button>
@@ -727,11 +871,27 @@ export const SignupPage: React.FC = () => {
             {step === 3 && (
               <div className="space-y-5 sm:space-y-6">
                 <div>
-                  <h2 ref={stepHeadingRef} tabIndex={-1} className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 outline-none">Upload Your Photos</h2>
+                  <h2
+                    ref={stepHeadingRef}
+                    tabIndex={-1}
+                    className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 outline-none"
+                  >
+                    Upload Your Photos
+                  </h2>
                   {/* Enhanced instruction with better visibility */}
                   <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                    <svg className="w-5 h-5 text-[#D62839] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5 text-[#D62839] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     <p className="text-sm text-[#D62839] font-medium">
                       Add at least {MIN_PHOTOS_REQUIRED} photos to continue
@@ -741,7 +901,9 @@ export const SignupPage: React.FC = () => {
 
                 {/* Required Photos Section */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Required Photos</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Required Photos
+                  </p>
                   <div className="grid grid-cols-3 gap-3 sm:gap-4">
                     {[0, 1, 2].map((index) => (
                       <div
@@ -764,8 +926,18 @@ export const SignupPage: React.FC = () => {
                               onClick={() => handleRemovePhoto(index)}
                               className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg transition"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
                               </svg>
                             </button>
                             {index === 0 && (
@@ -780,8 +952,18 @@ export const SignupPage: React.FC = () => {
                             onClick={() => fileInputRef.current?.click()}
                             className="w-full h-full flex flex-col items-center justify-center text-[#D62839] hover:text-[#B82232] transition"
                           >
-                            <svg className="w-8 h-8 sm:w-10 sm:h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            <svg
+                              className="w-8 h-8 sm:w-10 sm:h-10 mb-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
                             </svg>
                             <span className="text-xs font-medium">Required</span>
                           </button>
@@ -793,7 +975,9 @@ export const SignupPage: React.FC = () => {
 
                 {/* Optional Photos Section */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Optional Photos</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                    Optional Photos
+                  </p>
                   <div className="grid grid-cols-3 gap-3 sm:gap-4">
                     {[3, 4, 5].map((index) => (
                       <div
@@ -816,8 +1000,18 @@ export const SignupPage: React.FC = () => {
                               onClick={() => handleRemovePhoto(index)}
                               className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg transition"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
                               </svg>
                             </button>
                           </>
@@ -827,8 +1021,18 @@ export const SignupPage: React.FC = () => {
                             onClick={() => fileInputRef.current?.click()}
                             className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition"
                           >
-                            <svg className="w-8 h-8 sm:w-10 sm:h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            <svg
+                              className="w-8 h-8 sm:w-10 sm:h-10 mb-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
                             </svg>
                             <span className="text-xs">Optional</span>
                           </button>
@@ -850,13 +1054,19 @@ export const SignupPage: React.FC = () => {
 
                 {/* Photo count indicator */}
                 <div className="flex items-center justify-between text-sm bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-                  <span className={`font-medium ${photos.length >= MIN_PHOTOS_REQUIRED ? 'text-green-600' : 'text-[#D62839]'}`}>
+                  <span
+                    className={`font-medium ${photos.length >= MIN_PHOTOS_REQUIRED ? 'text-green-600' : 'text-[#D62839]'}`}
+                  >
                     {photos.length} / {MIN_PHOTOS_REQUIRED} required photos
                   </span>
                   {photos.length >= MIN_PHOTOS_REQUIRED && (
                     <span className="flex items-center gap-1.5 text-green-600 font-medium">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Ready to continue!
                     </span>
@@ -864,13 +1074,17 @@ export const SignupPage: React.FC = () => {
                 </div>
 
                 {errors.photos && (
-                  <div role="alert" className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                  <div
+                    role="alert"
+                    className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm"
+                  >
                     {errors.photos}
                   </div>
                 )}
 
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Tips: Use clear, recent photos. Show your face in your main photo. Avoid group photos for your first picture.
+                  Tips: Use clear, recent photos. Show your face in your main photo. Avoid group
+                  photos for your first picture.
                 </p>
 
                 {/* Buttons with proper spacing and visual weight */}
@@ -891,13 +1105,31 @@ export const SignupPage: React.FC = () => {
                   >
                     {loading || photoUploading ? (
                       <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <svg
+                          className="animate-spin h-5 w-5"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
                         </svg>
                         {photoUploading ? 'Uploading photos...' : 'Creating account...'}
                       </span>
-                    ) : 'Create Account'}
+                    ) : (
+                      'Create Account'
+                    )}
                   </button>
                 </div>
               </div>
@@ -907,7 +1139,10 @@ export const SignupPage: React.FC = () => {
           <div className="mt-6 sm:mt-8 text-center">
             <p className="text-sm text-gray-500">
               Already have an account?{' '}
-              <Link to="/login" className="text-[#D62839] hover:text-[#B82232] font-medium transition">
+              <Link
+                to="/login"
+                className="text-[#D62839] hover:text-[#B82232] font-medium transition"
+              >
                 Sign in
               </Link>
             </p>

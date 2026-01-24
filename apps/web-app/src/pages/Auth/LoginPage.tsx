@@ -51,7 +51,13 @@ export const LoginPage: React.FC = () => {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-12 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)' }}
+      style={{
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right))',
+        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+      }}
     >
       {/* Animated background gradient orbs - responsive sizing */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -169,7 +175,7 @@ export const LoginPage: React.FC = () => {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-3.5 rounded-lg sm:rounded-xl transition-all duration-300 text-white placeholder-gray-500 focus:outline-none focus:ring-2 text-sm sm:text-base"
+                  className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-4 rounded-lg sm:rounded-xl transition-all duration-300 text-white placeholder-gray-500 focus:outline-none focus:ring-2 text-sm sm:text-base"
                   style={{
                     background: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid rgba(139, 92, 246, 0.2)',
@@ -220,7 +226,7 @@ export const LoginPage: React.FC = () => {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-3.5 rounded-lg sm:rounded-xl transition-all duration-300 text-white placeholder-gray-500 focus:outline-none focus:ring-2 text-sm sm:text-base"
+                  className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-4 rounded-lg sm:rounded-xl transition-all duration-300 text-white placeholder-gray-500 focus:outline-none focus:ring-2 text-sm sm:text-base"
                   style={{
                     background: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid rgba(139, 92, 246, 0.2)',
@@ -297,7 +303,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || !email.trim() || !password}
-              className="relative w-full py-3 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base text-white overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              className="relative w-full py-4 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base text-white overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
               style={{
                 background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)',
               }}
