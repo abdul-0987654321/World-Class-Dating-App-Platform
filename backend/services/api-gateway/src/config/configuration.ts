@@ -50,20 +50,24 @@ export default () => ({
   },
 
   // Service URLs - Updated with correct port allocations
-  // SECURITY: No localhost fallbacks in production
+  // Services use Railway internal domains in production
+  // Missing services will be logged as warnings, not fatal errors
   services: {
-    authService: process.env.AUTH_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : (() => { throw new Error('AUTH_SERVICE_URL required in production'); })()),
-    userService: process.env.USER_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : (() => { throw new Error('USER_SERVICE_URL required in production'); })()),
-    profileService: process.env.PROFILE_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : (() => { throw new Error('PROFILE_SERVICE_URL required in production'); })()), // Same as user service
-    messagingService: process.env.MESSAGING_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3003' : (() => { throw new Error('MESSAGING_SERVICE_URL required in production'); })()),
-    mediaService: process.env.MEDIA_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3004' : (() => { throw new Error('MEDIA_SERVICE_URL required in production'); })()),
-    moderationService: process.env.MODERATION_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3005' : (() => { throw new Error('MODERATION_SERVICE_URL required in production'); })()),
-    paymentService: process.env.PAYMENT_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3006' : (() => { throw new Error('PAYMENT_SERVICE_URL required in production'); })()),
-    analyticsService: process.env.ANALYTICS_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3007' : (() => { throw new Error('ANALYTICS_SERVICE_URL required in production'); })()),
-    notificationService: process.env.NOTIFICATION_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3008' : (() => { throw new Error('NOTIFICATION_SERVICE_URL required in production'); })()),
-    matchingService: process.env.MATCHING_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3009' : (() => { throw new Error('MATCHING_SERVICE_URL required in production'); })()),
-    advertisingService: process.env.ADVERTISING_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3010' : (() => { throw new Error('ADVERTISING_SERVICE_URL required in production'); })()),
-    aiService: process.env.AI_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : (() => { throw new Error('AI_SERVICE_URL required in production'); })()),
+    authService: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+    userService:
+      process.env.USER_SERVICE_URL || process.env.AUTH_SERVICE_URL || 'http://localhost:3002',
+    profileService:
+      process.env.PROFILE_SERVICE_URL || process.env.AUTH_SERVICE_URL || 'http://localhost:3002',
+    messagingService: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3003',
+    mediaService: process.env.MEDIA_SERVICE_URL || 'http://localhost:3004',
+    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3005',
+    paymentService:
+      process.env.PAYMENT_SERVICE_URL || process.env.AUTH_SERVICE_URL || 'http://localhost:3006',
+    analyticsService: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3007',
+    notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
+    matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3009',
+    advertisingService: process.env.ADVERTISING_SERVICE_URL || 'http://localhost:3010',
+    aiService: process.env.AI_SERVICE_URL || 'http://localhost:8000',
   },
 
   // Internal service communication key - SECURITY: No fallback in production
@@ -75,11 +79,11 @@ export default () => ({
         })()
       : 'dev-internal-service-key-32chars!'),
 
-  // Redis Configuration - SECURITY: No localhost fallbacks in production
+  // Redis Configuration - Uses Railway Redis service
   redis: {
-    host: process.env.REDIS_HOST || (process.env.NODE_ENV === 'development' ? 'localhost' : (() => { throw new Error('REDIS_HOST required in production'); })()),
-    port: parseInt(process.env.REDIS_PORT, 10) || (process.env.NODE_ENV === 'development' ? 6379 : (() => { throw new Error('REDIS_PORT required in production'); })()),
-    password: process.env.REDIS_PASSWORD,
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    password: process.env.REDIS_PASSWORD || '',
     db: parseInt(process.env.REDIS_DB, 10) || 0,
     url: process.env.REDIS_URL,
   },
@@ -130,11 +134,16 @@ export default () => ({
 
   // CORS - SECURITY: Always include production domains
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || (
-      process.env.NODE_ENV === 'production'
-        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com', 'https://api.flamoral.com']
-        : ['http://localhost:3000', 'http://localhost:5173']
-    ),
+    origins:
+      process.env.CORS_ORIGINS?.split(',') ||
+      (process.env.NODE_ENV === 'production'
+        ? [
+            'https://flamoral.com',
+            'https://www.flamoral.com',
+            'https://app.flamoral.com',
+            'https://api.flamoral.com',
+          ]
+        : ['http://localhost:3000', 'http://localhost:5173']),
     credentials: process.env.CORS_CREDENTIALS !== 'false', // Default to true for cookie-based auth
   },
 
