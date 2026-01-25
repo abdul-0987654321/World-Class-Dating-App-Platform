@@ -37,7 +37,7 @@ import { PrivacySettingsPage } from './pages/Settings/PrivacySettingsPage';
 import { NotificationSettingsPage } from './pages/Settings/NotificationSettingsPage';
 import { PhotoVerificationPage } from './pages/Verification/PhotoVerificationPage';
 import { HelpSupportPage } from './pages/Help/HelpSupportPage';
-import TierShowcase from './pages/TierShowcase';
+// TierShowcase removed - demo route disabled for production
 
 // Payment Pages
 import { CheckoutPage } from './pages/Payment/CheckoutPage';
@@ -164,9 +164,6 @@ const AppRoutes: React.FC = () => {
                 </ClerkProtectedRoute>
               }
             />
-
-            {/* Public demo route */}
-            <Route path="/tier-showcase" element={<TierShowcase />} />
 
             {/* Legal pages - public */}
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

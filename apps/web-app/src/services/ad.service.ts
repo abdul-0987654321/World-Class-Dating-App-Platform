@@ -142,7 +142,7 @@ class AdService {
     if (this.isMock) {
       return {
         enabled: true,
-        testMode: true,
+        testMode: false,
         frequencyCap: {
           interstitial: {
             minSecondsBetweenAds: 60,

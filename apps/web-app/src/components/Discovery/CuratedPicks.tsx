@@ -623,9 +623,7 @@ export const CuratedPicks: React.FC<CuratedPicksProps> = ({
             >
               <PickPhoto>
                 <img
-                  src={
-                    pick.profile.photos[0] || 'https://via.placeholder.com/100x120?text=No+Photo'
-                  }
+                  src={pick.profile.photos[0] || '/assets/default-avatar.svg'}
                   alt={pick.profile.displayName}
                   loading="lazy"
                 />

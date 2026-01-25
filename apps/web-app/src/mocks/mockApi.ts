@@ -1,12 +1,13 @@
-// Mock API for development without backend
-import {
-  mockUsers,
-  mockProfiles,
-  mockMatches,
-  mockConversations,
-  mockLikes,
-  mockStats,
-} from './mockData';
+/**
+ * Mock API - DISABLED FOR PRODUCTION
+ *
+ * This file previously contained mock API implementations with hardcoded test credentials.
+ * Mock login functionality has been disabled for security.
+ *
+ * All API calls should go through the real backend. Set VITE_API_URL in your .env file.
+ */
+
+import { mockProfiles, mockMatches, mockConversations, mockLikes, mockStats } from './mockData';
 
 // Simulate network delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -18,29 +19,14 @@ let matches = [...mockMatches];
 let conversations = [...mockConversations];
 
 export const mockApi = {
-  // Auth
-  async login(email: string, password: string) {
+  // Auth - DISABLED: No mock login allowed
+  async login(_email: string, _password: string) {
     await delay(500);
-
-    // Test user credentials mapping
-    const credentials: Record<string, { password: string; userId: string }> = {
-      'test1@flamoral.com': { password: 'TestUser1!', userId: 'test-user-1' },
-      'test2@flamoral.com': { password: 'TestUser2!', userId: 'test-user-2' },
-      'test3@flamoral.com': { password: 'TestUser3!', userId: 'test-user-3' },
-      'test4@flamoral.com': { password: 'TestUser4!', userId: 'test-user-4' },
-      'test5@flamoral.com': { password: 'TestUser5!', userId: 'test-user-5' },
-    };
-
-    const cred = credentials[email];
-    if (cred && cred.password === password) {
-      currentUser = mockUsers[cred.userId as keyof typeof mockUsers];
-      const token = `mock-token-${cred.userId}`;
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      return { user: currentUser, token };
-    }
-
-    throw new Error('Invalid email or password');
+    // Mock login is disabled for security
+    // All authentication must go through the real backend API
+    throw new Error(
+      'Mock login is disabled. Please configure VITE_API_URL to use the real backend.'
+    );
   },
 
   async logout() {

@@ -12,12 +12,8 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { authService } from '../../services';
 
-// SECURITY: Use API gateway URL in production, localhost only in development
-// In production, all API calls route through the main API gateway
-const MODERATION_API_URL =
-  import.meta.env.VITE_MODERATION_SERVICE_URL ||
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? 'http://localhost:3008' : '');
+// API URL - must be configured via environment variable
+const MODERATION_API_URL = import.meta.env.VITE_API_URL || '';
 
 interface UserModerationStatus {
   userId: string;

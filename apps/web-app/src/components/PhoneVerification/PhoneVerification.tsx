@@ -3,12 +3,8 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 
-// SECURITY: Use API gateway URL in production, localhost only in development
-// In production, all API calls route through the main API gateway
-const USER_SERVICE_URL =
-  import.meta.env.VITE_USER_SERVICE_URL ||
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? 'http://localhost:3001' : '');
+// API URL - must be configured via environment variable
+const USER_SERVICE_URL = import.meta.env.VITE_API_URL || '';
 
 interface PhoneVerificationProps {
   onVerificationComplete?: () => void;

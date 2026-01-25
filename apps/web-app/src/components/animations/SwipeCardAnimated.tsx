@@ -275,7 +275,7 @@ export const SwipeCardAnimated = memo<SwipeCardAnimatedProps>(
           <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-900 shadow-2xl">
             {/* Profile Image */}
             <OptimizedImage
-              src={primaryPhoto || 'https://via.placeholder.com/400'}
+              src={primaryPhoto || '/assets/default-avatar.svg'}
               alt={`${profile.name}'s photo`}
             />
 
