@@ -113,6 +113,9 @@ async function bootstrap() {
       'stripe-signature', // Allow Stripe webhook signature header
       'x-paystack-signature', // Allow Paystack webhook signature header
       'verif-hash', // Allow Flutterwave webhook signature header
+      'svix-id', // Clerk webhook headers (Svix)
+      'svix-timestamp',
+      'svix-signature',
     ],
     exposedHeaders: [
       'X-Request-ID',

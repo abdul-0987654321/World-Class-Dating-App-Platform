@@ -1,14 +1,36 @@
-import { Injectable, ExecutionContext, UnauthorizedException, CanActivate } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+  CanActivate,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
+import jwksClient from 'jwks-rsa';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
+// Clerk JWKS URL for key discovery
+const CLERK_JWKS_URL = 'https://endless-mollusk-23.clerk.accounts.dev/.well-known/jwks.json';
+const CLERK_ISSUER = 'https://endless-mollusk-23.clerk.accounts.dev';
+
+// Clerk RSA public key (fallback if JWKS fails)
+const CLERK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyWx8H0GQXD68V7UhjpP+
+1AJg3d+6N4LdP8OqfSPVeABvyJZ3hDHLI4iGLhCvmX3vR7m4nKNDiRKFn0OQYA9C
+m5K9IFGq2JXlwxpWCPKGQlCjDN3Cy2Gr2fNl0sKfhV2UKglUDqnm4sDVdVw5r0Qf
+C3VqQ0DG7j+4bEYJnHNmAf8hTRYHgdKIgXUyYzUFMhCz8QWPS+OQ5G5YJZG+hZjO
+O2mR0fmNUCNzRUmSqBVh7XL0m9gTLr3aVT3nScS0VnYX2v4YDJBV6ZCqGq2N3kw6
+2UjdQ/fBz9a7Y9xWnRM4j/L0A7hPG2mX7kP9xzU2i7p3RVFU2aGQ6K5bLHlPUQnO
+NQIDAQAB
+-----END PUBLIC KEY-----`;
+
 interface JwtTokenPayload {
-  sub: string; // User ID
-  userId?: string; // Alternative user ID field
-  email: string;
+  sub: string;
+  userId?: string;
+  email?: string;
   roles?: string[];
   subscription?: string;
   deviceId?: string;
@@ -16,14 +38,42 @@ interface JwtTokenPayload {
   exp: number;
 }
 
+interface ClerkTokenPayload {
+  sub: string;
+  iss: string;
+  azp?: string;
+  sid?: string;
+  email?: string;
+  email_verified?: boolean;
+  first_name?: string;
+  last_name?: string;
+  image_url?: string;
+  iat: number;
+  exp: number;
+  nbf?: number;
+}
+
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  private readonly logger = new Logger(JwtAuthGuard.name);
+  private jwksClient: jwksClient.JwksClient;
+
   constructor(
     private reflector: Reflector,
     private configService: ConfigService
-  ) {}
+  ) {
+    // Initialize JWKS client for Clerk key discovery
+    this.jwksClient = jwksClient({
+      jwksUri: CLERK_JWKS_URL,
+      cache: true,
+      cacheMaxEntries: 5,
+      cacheMaxAge: 600000, // 10 minutes
+      rateLimit: true,
+      jwksRequestsPerMinute: 10,
+    });
+  }
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check if route is marked as public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
@@ -45,23 +95,55 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      // Try to verify as Clerk token first (check issuer in decoded token)
+      const decoded = jwt.decode(token, { complete: true });
+
+      if (decoded && typeof decoded.payload === 'object' && 'iss' in decoded.payload) {
+        const issuer = (decoded.payload as ClerkTokenPayload).iss;
+
+        if (issuer === CLERK_ISSUER || issuer?.includes('clerk')) {
+          // Verify Clerk token
+          const payload = await this.verifyClerkToken(token, decoded);
+
+          // Normalize Clerk payload for downstream use
+          request.user = {
+            sub: payload.sub,
+            userId: payload.sub,
+            clerkUserId: payload.sub,
+            email: payload.email,
+            emailVerified: payload.email_verified,
+            firstName: payload.first_name,
+            lastName: payload.last_name,
+            imageUrl: payload.image_url,
+            roles: [], // Will be fetched from database
+            subscription: 'free', // Will be fetched from database
+            sessionId: payload.sid,
+            isClerkUser: true,
+            iat: payload.iat,
+            exp: payload.exp,
+          };
+
+          return true;
+        }
+      }
+
+      // Fall back to legacy JWT verification
       const secret = this.configService.get<string>('jwt.accessSecret');
       const payload = jwt.verify(token, secret) as JwtTokenPayload;
 
       // Normalize the payload for downstream use
-      const normalizedUser = {
+      request.user = {
         sub: payload.sub || payload.userId,
         userId: payload.sub || payload.userId,
         email: payload.email,
         roles: payload.roles || [],
         subscription: payload.subscription || 'free',
         deviceId: payload.deviceId,
+        isClerkUser: false,
         iat: payload.iat,
         exp: payload.exp,
       };
 
-      // Attach user to request for downstream use
-      request.user = normalizedUser;
       return true;
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -76,11 +158,67 @@ export class JwtAuthGuard implements CanActivate {
           message: 'Invalid authentication token. Please log in again.',
         });
       }
+
+      this.logger.error('JWT verification failed', { error: (error as Error).message });
+
       throw new UnauthorizedException({
         code: 'UNAUTHORIZED',
         message: 'Authentication failed. Please try logging in again.',
       });
     }
+  }
+
+  /**
+   * Verify Clerk JWT token
+   * Uses JWKS for key discovery with RSA public key fallback
+   */
+  private async verifyClerkToken(token: string, decoded: jwt.Jwt): Promise<ClerkTokenPayload> {
+    const kid = decoded.header?.kid;
+
+    // Try JWKS first
+    if (kid) {
+      try {
+        const key = await this.getSigningKey(kid);
+        const payload = jwt.verify(token, key, {
+          issuer: CLERK_ISSUER,
+          algorithms: ['RS256'],
+        }) as ClerkTokenPayload;
+
+        return payload;
+      } catch (jwksError) {
+        this.logger.warn('JWKS verification failed, trying public key fallback', {
+          error: (jwksError as Error).message,
+        });
+      }
+    }
+
+    // Fallback to static public key
+    const payload = jwt.verify(token, CLERK_PUBLIC_KEY, {
+      issuer: CLERK_ISSUER,
+      algorithms: ['RS256'],
+    }) as ClerkTokenPayload;
+
+    return payload;
+  }
+
+  /**
+   * Get signing key from JWKS
+   */
+  private getSigningKey(kid: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.jwksClient.getSigningKey(kid, (err, key) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        const signingKey = key?.getPublicKey();
+        if (!signingKey) {
+          reject(new Error('No public key found'));
+          return;
+        }
+        resolve(signingKey);
+      });
+    });
   }
 
   private extractToken(request: any): string | null {

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { UserButton, useAuth } from '@clerk/clerk-react';
 import { FlamoralLogo } from './Logo';
 
 export const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const { isSignedIn } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -220,6 +222,30 @@ export const Navigation: React.FC = () => {
               </>
             )}
           </div>
+
+          {/* User Account Button (Clerk) */}
+          {isSignedIn && (
+            <div className="ml-2">
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox:
+                      'w-9 h-9 ring-2 ring-[#EC4899]/30 hover:ring-[#EC4899]/60 transition-all',
+                    userButtonPopoverCard: 'bg-[#1A1D24] border border-white/10 shadow-xl',
+                    userButtonPopoverActions: 'bg-[#1A1D24]',
+                    userButtonPopoverActionButton:
+                      'text-white/80 hover:bg-white/5 hover:text-white',
+                    userButtonPopoverActionButtonText: 'text-white/80',
+                    userButtonPopoverActionButtonIcon: 'text-white/60',
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                }}
+                userProfileMode="navigation"
+                userProfileUrl="/settings"
+              />
+            </div>
+          )}
         </nav>
       </div>
     </header>
