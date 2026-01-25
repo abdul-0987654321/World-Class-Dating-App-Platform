@@ -12,19 +12,19 @@ import jwksClient from 'jwks-rsa';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
-// Clerk JWKS URL for key discovery
-const CLERK_JWKS_URL = 'https://endless-mollusk-23.clerk.accounts.dev/.well-known/jwks.json';
-const CLERK_ISSUER = 'https://endless-mollusk-23.clerk.accounts.dev';
+// Clerk JWKS URL for key discovery - LIVE PRODUCTION
+const CLERK_JWKS_URL = 'https://clerk.flamoral.com/.well-known/jwks.json';
+const CLERK_ISSUER = 'https://clerk.flamoral.com';
 
-// Clerk RSA public key (fallback if JWKS fails)
+// Clerk RSA public key (fallback if JWKS fails) - LIVE PRODUCTION KEY
 const CLERK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvOfFmN2T9HIC6NQdc58F
-IH1tjwhW9wP9s1TPlJX0mA3/eD/wgHY5RALx7Z3Ff8jfHlLgQ5U3Pd7RjpgG6b4b
-fTmNI+GBmoPfh3lvIpk2qwbpd+yvAZPD+2qluynWoPYEu83fVFd4Yjd67xYva/+N
-NEnYVD7DzLDZYpXfd/5U0b+RVAWQk/HoV2lfsYxIJmLpiTDkyrloYVi1H1KI1yNl
-hiHwIZcTqoSFE7WnT6WRdZ0Cf+lqEZtR0bnCXWuzdrB8rzNiAxSEbvoCD8O80vfC
-AX5G7VusHUd/E0CBVXEZ4cuAl14sdErfZOr+9w0g1p4sV+PmkknF3wN1cRW6ngHW
-/QIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAod8J5ePb/2vqUdyFxvDg
+AOM32N59lVnZrsaPnA3MJmjuun6o/sI3FiGeIkOuBLN66RMosQ1ayaZQHEU41loZ
+zCVla5esUAhXd/vQVK+l8YN1fdP9821fQCaAp2LoM3+ZM0eKjs/VMhZsVs9bAYRy
+GktN10eZeulJXmyALpGKVEYhMhStoncYFVOFawdXU8PDqCGH0ELQ7kNQJlfL5vy5
+47mly41QgrP3FVfknTN9LZAfW7kUpoPcwD5RxuLeAY2h3VhRz2DgmDIa1nT014g4
+vOdBnSpqO+bPKisFS00a330Lk67beatTcrKWMgbUm2tpreNdTkKrgCytCXMSJo2l
+0wIDAQAB
 -----END PUBLIC KEY-----`;
 
 interface JwtTokenPayload {
@@ -101,7 +101,7 @@ export class JwtAuthGuard implements CanActivate {
       if (decoded && typeof decoded.payload === 'object' && 'iss' in decoded.payload) {
         const issuer = (decoded.payload as ClerkTokenPayload).iss;
 
-        if (issuer === CLERK_ISSUER || issuer?.includes('clerk')) {
+        if (issuer === CLERK_ISSUER || issuer?.includes('clerk') || issuer?.includes('flamoral')) {
           // Verify Clerk token
           const payload = await this.verifyClerkToken(token, decoded);
 

@@ -17,8 +17,7 @@ import logger from '../utils/logger';
 
 // Clerk publishable key - loaded from environment
 const CLERK_PUBLISHABLE_KEY =
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
-  'pk_test_ZW5kbGVzcy1tb2xsdXNrLTIzLmNsZXJrLmFjY291bnRzLmRldiQ';
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuZmxhbW9yYWwuY29tJA';
 
 if (!CLERK_PUBLISHABLE_KEY) {
   logger.error('Missing VITE_CLERK_PUBLISHABLE_KEY environment variable');

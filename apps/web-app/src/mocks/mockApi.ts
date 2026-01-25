@@ -82,7 +82,7 @@ export const mockApi = {
         lastMessageAt: null as string | null,
         hasUnread: false,
       };
-      matches.unshift(newMatch as (typeof matches)[0]);
+      matches.unshift(newMatch);
     }
 
     return {
