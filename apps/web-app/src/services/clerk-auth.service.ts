@@ -6,6 +6,7 @@
  */
 
 import { useAuth, useUser, useClerk, useSession } from '@clerk/clerk-react';
+import logger from '../utils/logger';
 
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -28,10 +29,12 @@ export async function syncUserWithBackend(clerkUserId: string, token: string): P
     });
 
     if (!response.ok) {
-      console.warn('User sync failed:', response.status);
+      logger.warn('User sync failed', { status: response.status });
     }
   } catch (error) {
-    console.warn('User sync error:', error);
+    logger.warn('User sync error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -102,7 +105,9 @@ export function useUserProfile() {
         return response.json();
       }
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      logger.error('Failed to fetch profile', error instanceof Error ? error : undefined, {
+        clerkUserId: user?.id,
+      });
     }
 
     return null;
@@ -137,7 +142,7 @@ export async function checkProfileComplete(
       return data.isComplete;
     }
   } catch (error) {
-    console.error('Profile status check failed:', error);
+    logger.error('Profile status check failed', error instanceof Error ? error : undefined);
   }
 
   return false;
@@ -170,7 +175,7 @@ export async function getSubscriptionTier(
       return data.tier || 'free';
     }
   } catch (error) {
-    console.error('Subscription check failed:', error);
+    logger.error('Subscription check failed', error instanceof Error ? error : undefined);
   }
 
   return 'free';
@@ -199,7 +204,9 @@ export async function hasFeatureAccess(
       return data.hasAccess;
     }
   } catch (error) {
-    console.error('Feature access check failed:', error);
+    logger.error('Feature access check failed', error instanceof Error ? error : undefined, {
+      feature,
+    });
   }
 
   return false;

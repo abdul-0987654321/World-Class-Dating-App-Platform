@@ -1190,7 +1190,7 @@ const AnimatedLandingPage: React.FC = () => {
                   <Link to="/subscription">Premium Plans</Link>
                 </li>
                 <li className="footer-link">
-                  <Link to="/tier-showcase">Features</Link>
+                  <Link to="/subscription">Features</Link>
                 </li>
                 <li className="footer-link">
                   <Link to="/signup">Sign Up</Link>

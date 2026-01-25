@@ -13,6 +13,7 @@
 import React from 'react';
 import { ClerkProvider as ClerkProviderBase, ClerkLoaded, ClerkLoading } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import logger from '../utils/logger';
 
 // Clerk publishable key - loaded from environment
 const CLERK_PUBLISHABLE_KEY =
@@ -20,7 +21,7 @@ const CLERK_PUBLISHABLE_KEY =
   'pk_test_ZW5kbGVzcy1tb2xsdXNrLTIzLmNsZXJrLmFjY291bnRzLmRldiQ';
 
 if (!CLERK_PUBLISHABLE_KEY) {
-  console.error('Missing VITE_CLERK_PUBLISHABLE_KEY environment variable');
+  logger.error('Missing VITE_CLERK_PUBLISHABLE_KEY environment variable');
 }
 
 // Loading spinner component

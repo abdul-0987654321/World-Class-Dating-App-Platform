@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
+import logger from '../../utils/logger';
 
 // Gender options
 const GENDER_OPTIONS = [
@@ -153,7 +154,9 @@ export const ProfileSetupPage: React.FC = () => {
     } catch (err) {
       // During migration period, allow users to continue even if profile save fails
       // The profile data will be stored in Clerk's metadata
-      console.warn('Profile setup API not available yet:', err);
+      logger.warn('Profile setup API not available yet', {
+        error: err instanceof Error ? err.message : String(err),
+      });
 
       // Still navigate to discover - profile can be completed later
       const tierParam = searchParams.get('tier');
