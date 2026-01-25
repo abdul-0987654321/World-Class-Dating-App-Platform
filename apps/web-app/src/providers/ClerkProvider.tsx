@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { ClerkProvider as ClerkProviderBase, ClerkLoaded, ClerkLoading } from '@clerk/clerk-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Clerk publishable key - loaded from environment
 const CLERK_PUBLISHABLE_KEY =
@@ -68,8 +68,10 @@ export const ClerkProvider: React.FC<ClerkProviderProps> = ({ children }) => {
   return (
     <ClerkProviderBase
       publishableKey={CLERK_PUBLISHABLE_KEY}
-      afterSignInUrl="/discover"
-      afterSignUpUrl="/profile-setup"
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
+      signInFallbackRedirectUrl="/discover"
+      signUpFallbackRedirectUrl="/profile-setup"
       signInUrl="/login"
       signUpUrl="/signup"
       appearance={{
@@ -179,7 +181,6 @@ export const ClerkProvider: React.FC<ClerkProviderProps> = ({ children }) => {
           },
         },
       }}
-      navigate={(to) => navigate(to)}
     >
       <ClerkLoading>
         <LoadingSpinner />
