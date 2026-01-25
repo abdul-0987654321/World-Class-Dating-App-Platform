@@ -7,11 +7,6 @@
   "regions": ["iad1"],
   "rewrites": [
     {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "clerk.flamoral.com" }],
-      "destination": "https://clerk.services/:path*"
-    },
-    {
       "source": "/stripe/webhook",
       "destination": "https://api-gateway-production-1957.up.railway.app/api/v1/webhooks/stripe"
     },
