@@ -87,14 +87,19 @@ export class ClerkWebhookController {
 
     if (!this.webhookSecret) {
       if (isProduction) {
-        throw new Error(
-          'CLERK_WEBHOOK_SECRET is required in production for webhook signature validation. ' +
-            'Get this value from your Clerk dashboard webhooks section.'
+        // Log critical error but don't crash - allows the endpoint to exist and provide meaningful error responses
+        this.logger.error(
+          'CRITICAL: CLERK_WEBHOOK_SECRET is not configured in production! ' +
+            'Clerk webhooks will be rejected until this is set. ' +
+            'Get this value from your Clerk dashboard webhooks section and set it in Railway shared variables.'
+        );
+      } else {
+        this.logger.warn(
+          'CLERK_WEBHOOK_SECRET not set - webhook signature validation disabled (development only)'
         );
       }
-      this.logger.warn(
-        'CLERK_WEBHOOK_SECRET not set - webhook signature validation disabled (development only)'
-      );
+    } else {
+      this.logger.log('Clerk webhook controller initialized with signature validation enabled');
     }
   }
 
