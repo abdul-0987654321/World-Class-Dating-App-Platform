@@ -52,3 +52,15 @@ export {
   useIntent,
   useFeedback,
 } from './useConversationIntelligence';
+
+// Relationship Progression Hooks
+export {
+  useProgression,
+  useMilestones,
+  useTimeline,
+  useCompatibility as useRelationshipCompatibility,
+  useExperiences,
+} from './useRelationshipProgression';
+
+// Trust Hooks
+export { useTrustScore, useTrustProfile, useRatings, useEndorsements } from './useTrust';

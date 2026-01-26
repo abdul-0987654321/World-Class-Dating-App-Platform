@@ -151,6 +151,8 @@ export * from './ai';
 // Novel Feature Services
 export { wellnessService } from './wellness.service';
 export { conversationIntelligenceService } from './conversation-intelligence.service';
+export { relationshipProgressionService } from './relationship-progression.service';
+export { trustService } from './trust.service';
 
 // Re-export types from wellness service
 export type {
@@ -184,3 +186,37 @@ export type {
   IntentOption,
   AggregatedFeedback,
 } from './conversation-intelligence.service';
+
+// Re-export types from relationship progression service
+export type {
+  RelationshipStage,
+  StageInfo,
+  StageTransition,
+  RelationshipProgression,
+  MilestoneType,
+  MilestoneTemplate,
+  MilestoneMemory,
+  Milestone,
+  CelebrationSuggestion,
+  CelebrationPrompt,
+  ExperienceType,
+  ExperienceLocation,
+  SharedExperience,
+  TimelineEvent,
+  RelationshipTimeline,
+  CompatibilityInsight,
+} from './relationship-progression.service';
+
+// Re-export types from trust service
+export type {
+  TrustLevel,
+  TrustBadge,
+  TrustScore,
+  TrustProfile,
+  TrustHighlight,
+  RatingCategory,
+  UserRating,
+  RatingStats,
+  EndorsementType,
+  Endorsement,
+} from './trust.service';
