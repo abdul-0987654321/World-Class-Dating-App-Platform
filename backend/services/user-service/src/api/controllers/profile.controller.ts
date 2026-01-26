@@ -49,4 +49,43 @@ export class ProfileController {
       });
     }
   }
+
+  async setupProfile(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user.userId;
+      const profile = await this.profileService.setupProfile(userId, req.body);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Profile setup completed successfully',
+        data: profile,
+      });
+    } catch (error: any) {
+      logger.error('Profile setup error:', error);
+
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Failed to complete profile setup',
+      });
+    }
+  }
+
+  async getProfileStatus(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user.userId;
+      const status = await this.profileService.getProfileStatus(userId);
+
+      return res.status(200).json({
+        success: true,
+        ...status,
+      });
+    } catch (error: any) {
+      logger.error('Get profile status error:', error);
+
+      return res.status(200).json({
+        success: true,
+        isComplete: false,
+      });
+    }
+  }
 }

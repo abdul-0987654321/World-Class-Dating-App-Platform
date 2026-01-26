@@ -94,7 +94,8 @@ export class UserController {
     @Headers('authorization') authorization: string,
     @Body() body: Record<string, unknown>
   ) {
-    return this.proxyService.post('userService', '/api/v1/users/profile/setup', body, {
+    // User-service has profile routes at /api/v1/profile, not /api/v1/users/profile
+    return this.proxyService.post('userService', '/api/v1/profile/setup', body, {
       Authorization: authorization,
     });
   }
@@ -105,7 +106,8 @@ export class UserController {
   @Get('profile/status')
   @ApiOperation({ summary: 'Check if profile setup is complete' })
   async profileStatus(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/v1/users/profile/status', {
+    // User-service has profile routes at /api/v1/profile, not /api/v1/users/profile
+    return this.proxyService.get('userService', '/api/v1/profile/status', {
       Authorization: authorization,
     });
   }

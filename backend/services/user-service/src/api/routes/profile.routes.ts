@@ -32,6 +32,66 @@ router.get('/', authenticate, profileController.getProfile.bind(profileControlle
 
 /**
  * @swagger
+ * /api/profile/setup:
+ *   post:
+ *     summary: Complete initial profile setup after signup
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, non_binary, other, prefer_not_to_say]
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               interested_in:
+ *                 type: string
+ *                 enum: [men, women, everyone]
+ *               bio:
+ *                 type: string
+ *                 maxLength: 500
+ *               location:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Profile setup completed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/setup', authenticate, profileController.setupProfile.bind(profileController));
+
+/**
+ * @swagger
+ * /api/profile/status:
+ *   get:
+ *     summary: Check if user has completed profile setup
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isComplete:
+ *                   type: boolean
+ */
+router.get('/status', authenticate, profileController.getProfileStatus.bind(profileController));
+
+/**
+ * @swagger
  * /api/profile:
  *   put:
  *     summary: Update current user's profile
