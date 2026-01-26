@@ -41,3 +41,14 @@ export {
 
 // AI Coach Hook
 export { useCoach } from './useCoach';
+
+// Wellness Hooks
+export { useWellness, useReadiness } from './useWellness';
+
+// Conversation Intelligence Hooks
+export {
+  useConnectionScore,
+  useGhostPrevention,
+  useIntent,
+  useFeedback,
+} from './useConversationIntelligence';

@@ -147,3 +147,40 @@ export type {
 
 // AI Services
 export * from './ai';
+
+// Novel Feature Services
+export { wellnessService } from './wellness.service';
+export { conversationIntelligenceService } from './conversation-intelligence.service';
+
+// Re-export types from wellness service
+export type {
+  WellnessMetrics,
+  WellnessDashboardData,
+  MoodCheckin,
+  DatingSabbatical,
+  HealthAlert,
+  WellnessRecommendation,
+  ReadinessAssessment,
+  ReadinessQuestion,
+  RejectionEvent,
+  RejectionRecovery,
+} from './wellness.service';
+
+// Re-export types from conversation intelligence service
+export type {
+  ConnectionScore,
+  ConnectionHighlight,
+  ConversationAnalysis,
+  TopicAnalysis,
+  ConversationSuggestion,
+  GhostRiskAssessment,
+  GhostRiskFactor,
+  GhostIntervention,
+  GracefulExitRequest,
+  GracefulExitResponse,
+  ExitTemplate,
+  UserIntent,
+  IntentMatch,
+  IntentOption,
+  AggregatedFeedback,
+} from './conversation-intelligence.service';
