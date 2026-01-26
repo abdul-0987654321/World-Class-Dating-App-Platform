@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
@@ -7,6 +7,7 @@ import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { FlamoralBackground } from '@/components/theme';
 import { ClerkProvider } from './providers/ClerkProvider';
 import { ClerkProtectedRoute, PublicOnlyRoute } from './components/auth/ClerkProtectedRoute';
+import { authTokenService } from './services/auth-token.service';
 
 // Pages
 import LandingPage from './pages/Landing/LandingPage';
@@ -80,6 +81,41 @@ const LoadingScreen: React.FC = () => (
     />
   </div>
 );
+
+// Sync Clerk token with auth token service
+const ClerkTokenSync: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { getToken, isSignedIn, isLoaded } = useAuth();
+
+  useEffect(() => {
+    // Set up the token getter for async token fetching
+    authTokenService.setTokenGetter(getToken);
+  }, [getToken]);
+
+  useEffect(() => {
+    // Sync token whenever auth state changes
+    const syncToken = async () => {
+      if (isLoaded && isSignedIn) {
+        try {
+          const token = await getToken();
+          authTokenService.setClerkToken(token);
+        } catch (error) {
+          console.error('Failed to get Clerk token:', error);
+          authTokenService.setClerkToken(null);
+        }
+      } else if (isLoaded && !isSignedIn) {
+        authTokenService.clearTokens();
+      }
+    };
+
+    syncToken();
+
+    // Also set up a periodic refresh (every 50 seconds, tokens last 60 seconds)
+    const refreshInterval = setInterval(syncToken, 50000);
+    return () => clearInterval(refreshInterval);
+  }, [isLoaded, isSignedIn, getToken]);
+
+  return <>{children}</>;
+};
 
 // Landing page with auth redirect
 const LandingWithAuth: React.FC = () => {
@@ -458,7 +494,9 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <ClerkProvider>
-        <AppRoutes />
+        <ClerkTokenSync>
+          <AppRoutes />
+        </ClerkTokenSync>
       </ClerkProvider>
     </BrowserRouter>
   );
