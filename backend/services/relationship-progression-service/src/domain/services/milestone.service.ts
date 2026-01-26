@@ -220,7 +220,10 @@ class MilestoneService {
         }
         break;
       case 'conversation_duration':
-        if (!existingTypes.has('first_conversation_hour') && (metadata?.minutes ?? 0) >= 60) {
+        if (
+          !existingTypes.has('first_conversation_hour') &&
+          ((metadata?.minutes as number) ?? 0) >= 60
+        ) {
           milestoneType = 'first_conversation_hour';
         }
         break;
@@ -235,9 +238,12 @@ class MilestoneService {
         }
         break;
       case 'relationship_age':
-        if (!existingTypes.has('week_anniversary') && (metadata?.days ?? 0) >= 7) {
+        if (!existingTypes.has('week_anniversary') && ((metadata?.days as number) ?? 0) >= 7) {
           milestoneType = 'week_anniversary';
-        } else if (!existingTypes.has('month_anniversary') && (metadata?.days ?? 0) >= 30) {
+        } else if (
+          !existingTypes.has('month_anniversary') &&
+          ((metadata?.days as number) ?? 0) >= 30
+        ) {
           milestoneType = 'month_anniversary';
         }
         break;

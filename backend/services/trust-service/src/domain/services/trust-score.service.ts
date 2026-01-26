@@ -157,7 +157,7 @@ class TrustScoreService {
       source: request.source,
       metadata: request.metadata,
       createdAt: now,
-      expiresAt: signal.expires_at,
+      expiresAt: signal.expires_at ?? undefined,
     };
   }
 
