@@ -15,12 +15,20 @@ import { ClerkProvider as ClerkProviderBase, ClerkLoaded, ClerkLoading } from '@
 import { useNavigate, useLocation } from 'react-router-dom';
 import logger from '../utils/logger';
 
-// Clerk publishable key - loaded from environment
-const CLERK_PUBLISHABLE_KEY =
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuZmxhbW9yYWwuY29tJA';
+// Clerk publishable key - required from environment
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!CLERK_PUBLISHABLE_KEY) {
-  logger.error('Missing VITE_CLERK_PUBLISHABLE_KEY environment variable');
+  const errorMessage =
+    'Missing VITE_CLERK_PUBLISHABLE_KEY environment variable. ' +
+    'Please set this value in your .env file. ' +
+    'Get this from your Clerk dashboard at https://dashboard.clerk.com';
+  logger.error(errorMessage);
+
+  // In production, throw to prevent app from starting without auth
+  if (import.meta.env.PROD) {
+    throw new Error(errorMessage);
+  }
 }
 
 // Loading spinner component

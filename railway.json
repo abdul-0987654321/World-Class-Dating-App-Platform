@@ -48,7 +48,12 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "JWT_REFRESH_SECRET": "${{shared.JWT_REFRESH_SECRET}}",
-        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
+        "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
+        "CLERK_DOMAIN": "${{shared.CLERK_DOMAIN}}",
+        "CLERK_ISSUER": "${{shared.CLERK_ISSUER}}",
+        "CLERK_SECRET_KEY": "${{shared.CLERK_SECRET_KEY}}",
+        "CLERK_WEBHOOK_SECRET": "${{shared.CLERK_WEBHOOK_SECRET}}",
+        "CORS_ORIGINS": "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com,https://staging.flamoral.com"
       },
       "networking": {
         "ports": [3000],
@@ -85,7 +90,13 @@
         "JWT_REFRESH_EXPIRES_IN": "7d",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
         "TOTP_ENCRYPTION_KEY": "${{shared.TOTP_ENCRYPTION_KEY}}",
-        "ENCRYPTION_KEY": "${{shared.ENCRYPTION_KEY}}"
+        "ENCRYPTION_KEY": "${{shared.ENCRYPTION_KEY}}",
+        "CLERK_DOMAIN": "${{shared.CLERK_DOMAIN}}",
+        "CLERK_SECRET_KEY": "${{shared.CLERK_SECRET_KEY}}",
+        "JWT_ISSUER": "flamoral-auth-service",
+        "JWT_AUDIENCE": "flamoral-platform",
+        "REQUIRE_EMAIL_VERIFICATION": "true",
+        "VALIDATE_JWT_SECRETS": "true"
       },
       "networking": {
         "ports": [3001]

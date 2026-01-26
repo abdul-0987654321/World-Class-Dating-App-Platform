@@ -16,34 +16,52 @@ import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
-// Clerk configuration
-const CLERK_JWKS_URL = 'https://endless-mollusk-23.clerk.accounts.dev/.well-known/jwks.json';
-const CLERK_ISSUER = 'https://endless-mollusk-23.clerk.accounts.dev';
+// Clerk configuration - loaded from environment variables
+const getClerkConfig = () => {
+  const clerkDomain = process.env.CLERK_DOMAIN || process.env.CLERK_ISSUER;
 
-// RSA Public Key
-const CLERK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvOfFmN2T9HIC6NQdc58F
-IH1tjwhW9wP9s1TPlJX0mA3/eD/wgHY5RALx7Z3Ff8jfHlLgQ5U3Pd7RjpgG6b4b
-fTmNI+GBmoPfh3lvIpk2qwbpd+yvAZPD+2qluynWoPYEu83fVFd4Yjd67xYva/+N
-NEnYVD7DzLDZYpXfd/5U0b+RVAWQk/HoV2lfsYxIJmLpiTDkyrloYVi1H1KI1yNl
-hiHwIZcTqoSFE7WnT6WRdZ0Cf+lqEZtR0bnCXWuzdrB8rzNiAxSEbvoCD8O80vfC
-AX5G7VusHUd/E0CBVXEZ4cuAl14sdErfZOr+9w0g1p4sV+PmkknF3wN1cRW6ngHW
-/QIDAQAB
------END PUBLIC KEY-----`;
+  if (!clerkDomain && process.env.NODE_ENV === 'production') {
+    throw new Error('CLERK_DOMAIN or CLERK_ISSUER environment variable is required in production');
+  }
+
+  // Support both custom domains (clerk.flamoral.com) and Clerk-provided domains
+  const domain = clerkDomain || 'clerk.flamoral.com';
+
+  return {
+    jwksUrl: process.env.CLERK_JWKS_URL || `https://${domain}/.well-known/jwks.json`,
+    issuer: process.env.CLERK_ISSUER || `https://${domain}`,
+  };
+};
+
+// Lazy-loaded configuration
+let clerkConfig: { jwksUrl: string; issuer: string } | null = null;
+const getConfig = () => {
+  if (!clerkConfig) {
+    clerkConfig = getClerkConfig();
+  }
+  return clerkConfig;
+};
 
 // Decorator keys
 export const IS_PUBLIC_KEY = 'isPublic';
 export const SKIP_CLERK_AUTH_KEY = 'skipClerkAuth';
 
-// JWKS client with caching
-const jwksClientInstance = jwksClient({
-  jwksUri: CLERK_JWKS_URL,
-  cache: true,
-  cacheMaxEntries: 5,
-  cacheMaxAge: 600000,
-  rateLimit: true,
-  jwksRequestsPerMinute: 10,
-});
+// JWKS client factory with caching
+let jwksClientInstance: ReturnType<typeof jwksClient> | null = null;
+const getJwksClient = () => {
+  if (!jwksClientInstance) {
+    const config = getConfig();
+    jwksClientInstance = jwksClient({
+      jwksUri: config.jwksUrl,
+      cache: true,
+      cacheMaxEntries: 5,
+      cacheMaxAge: 600000,
+      rateLimit: true,
+      jwksRequestsPerMinute: 10,
+    });
+  }
+  return jwksClientInstance;
+};
 
 export interface ClerkUser {
   userId: string;
@@ -57,41 +75,38 @@ export interface ClerkUser {
 
 function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback): void {
   if (!header.kid) {
-    callback(null, CLERK_PUBLIC_KEY);
+    callback(new Error('Token missing key ID (kid) - cannot verify without JWKS'));
     return;
   }
 
-  jwksClientInstance.getSigningKey(header.kid, (err, key) => {
+  getJwksClient().getSigningKey(header.kid, (err, key) => {
     if (err) {
-      callback(null, CLERK_PUBLIC_KEY);
+      callback(err);
       return;
     }
     const signingKey = key?.getPublicKey();
-    callback(null, signingKey || CLERK_PUBLIC_KEY);
+    if (!signingKey) {
+      callback(new Error('No signing key found'));
+      return;
+    }
+    callback(null, signingKey);
   });
 }
 
 async function verifyClerkToken(token: string): Promise<jwt.JwtPayload> {
+  const config = getConfig();
+
   return new Promise((resolve, reject) => {
     jwt.verify(
       token,
       getKey,
       {
         algorithms: ['RS256'],
-        issuer: CLERK_ISSUER,
+        issuer: config.issuer,
       },
       (err, decoded) => {
         if (err) {
-          // Try direct public key as fallback
-          try {
-            const result = jwt.verify(token, CLERK_PUBLIC_KEY, {
-              algorithms: ['RS256'],
-              issuer: CLERK_ISSUER,
-            });
-            resolve(result as jwt.JwtPayload);
-          } catch (fallbackErr) {
-            reject(err);
-          }
+          reject(err);
         } else {
           resolve(decoded as jwt.JwtPayload);
         }

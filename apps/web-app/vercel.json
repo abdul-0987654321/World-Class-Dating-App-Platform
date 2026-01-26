@@ -11,6 +11,14 @@
       "destination": "https://api-gateway-production-1957.up.railway.app/api/v1/webhooks/stripe"
     },
     {
+      "source": "/clerk/webhook",
+      "destination": "https://api-gateway-production-1957.up.railway.app/webhooks/clerk"
+    },
+    {
+      "source": "/webhooks/clerk",
+      "destination": "https://api-gateway-production-1957.up.railway.app/webhooks/clerk"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://api-gateway-production-1957.up.railway.app/api/:path*"
     },
@@ -47,7 +55,7 @@
       "destination": "/support"
     },
     {
-      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/|health).*)",
+      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/|clerk/|webhooks/|health).*)",
       "destination": "/index.html"
     }
   ],
@@ -75,17 +83,16 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
         {
           "key": "Access-Control-Allow-Methods",
           "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "X-Requested-With, Content-Type, Authorization, X-CSRF-Token, X-Request-ID, stripe-signature"
+          "value": "X-Requested-With, Content-Type, Authorization, X-CSRF-Token, X-Request-ID, stripe-signature, svix-id, svix-timestamp, svix-signature"
         },
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Max-Age", "value": "86400" }
+        { "key": "Access-Control-Max-Age", "value": "86400" },
+        { "key": "Vary", "value": "Origin" }
       ]
     },
     {

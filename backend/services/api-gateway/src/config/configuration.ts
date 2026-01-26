@@ -49,25 +49,36 @@ export default () => ({
     refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || '7d',
   },
 
-  // Service URLs - Updated with correct port allocations
+  // Service URLs - Updated with correct port allocations matching railway.json
   // Services use Railway internal domains in production
   // Missing services will be logged as warnings, not fatal errors
   services: {
     authService: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
-    userService:
-      process.env.USER_SERVICE_URL || process.env.AUTH_SERVICE_URL || 'http://localhost:3002',
-    profileService:
-      process.env.PROFILE_SERVICE_URL || process.env.AUTH_SERVICE_URL || 'http://localhost:3002',
-    messagingService: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3003',
-    mediaService: process.env.MEDIA_SERVICE_URL || 'http://localhost:3004',
-    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3005',
-    paymentService:
-      process.env.PAYMENT_SERVICE_URL || process.env.AUTH_SERVICE_URL || 'http://localhost:3006',
-    analyticsService: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3007',
-    notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
-    matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3009',
-    advertisingService: process.env.ADVERTISING_SERVICE_URL || 'http://localhost:3010',
+    userService: process.env.USER_SERVICE_URL || 'http://localhost:3002',
+    profileService: process.env.PROFILE_SERVICE_URL || 'http://localhost:3003',
+    matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3004',
+    messagingService: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3005',
+    notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3006',
+    paymentService: process.env.PAYMENT_SERVICE_URL || 'http://localhost:3007',
+    subscriptionService: process.env.SUBSCRIPTION_SERVICE_URL || 'http://localhost:3008',
+    mediaService: process.env.MEDIA_SERVICE_URL || 'http://localhost:3009',
+    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3010',
+    analyticsService: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3011',
+    recommendationService: process.env.RECOMMENDATION_SERVICE_URL || 'http://localhost:3012',
+    searchService: process.env.SEARCH_SERVICE_URL || 'http://localhost:3013',
+    locationService: process.env.LOCATION_SERVICE_URL || 'http://localhost:3014',
+    verificationService: process.env.VERIFICATION_SERVICE_URL || 'http://localhost:3015',
+    adminService: process.env.ADMIN_SERVICE_URL || 'http://localhost:3017',
+    realtimeService: process.env.REALTIME_SERVICE_URL || 'http://localhost:3022',
+    advertisingService: process.env.ADVERTISING_SERVICE_URL || 'http://localhost:3025',
     aiService: process.env.AI_SERVICE_URL || 'http://localhost:8000',
+    // New services
+    wellnessService: process.env.WELLNESS_SERVICE_URL || 'http://localhost:3031',
+    conversationIntelligenceService:
+      process.env.CONVERSATION_INTELLIGENCE_SERVICE_URL || 'http://localhost:3032',
+    relationshipProgressionService:
+      process.env.RELATIONSHIP_PROGRESSION_SERVICE_URL || 'http://localhost:3033',
+    trustService: process.env.TRUST_SERVICE_URL || 'http://localhost:3034',
   },
 
   // Internal service communication key - SECURITY: No fallback in production

@@ -94,6 +94,11 @@ export function useUserProfile() {
 
     try {
       const token = await getToken();
+      if (!token) {
+        logger.warn('No auth token available for profile fetch');
+        return null;
+      }
+
       const response = await fetch(`${API_URL}/api/v1/users/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -130,6 +135,11 @@ export async function checkProfileComplete(
 
   try {
     const token = await getToken();
+    if (!token) {
+      logger.warn('No auth token available for profile status check');
+      return false;
+    }
+
     const response = await fetch(`${API_URL}/api/v1/users/profile/status`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -163,6 +173,11 @@ export async function getSubscriptionTier(
 
   try {
     const token = await getToken();
+    if (!token) {
+      logger.warn('No auth token available for subscription check');
+      return 'free';
+    }
+
     const response = await fetch(`${API_URL}/api/v1/subscriptions/current`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -192,6 +207,11 @@ export async function hasFeatureAccess(
 
   try {
     const token = await getToken();
+    if (!token) {
+      logger.warn('No auth token available for feature access check', { feature });
+      return false;
+    }
+
     const response = await fetch(`${API_URL}/api/v1/entitlements/check?feature=${feature}`, {
       headers: {
         Authorization: `Bearer ${token}`,

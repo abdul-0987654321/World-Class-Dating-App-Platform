@@ -83,8 +83,18 @@ export class ClerkWebhookController {
 
   constructor(private readonly proxyService: ProxyService) {
     this.webhookSecret = process.env.CLERK_WEBHOOK_SECRET || '';
+    const isProduction = process.env.NODE_ENV === 'production';
+
     if (!this.webhookSecret) {
-      this.logger.warn('CLERK_WEBHOOK_SECRET not set - webhook signature validation disabled');
+      if (isProduction) {
+        throw new Error(
+          'CLERK_WEBHOOK_SECRET is required in production for webhook signature validation. ' +
+            'Get this value from your Clerk dashboard webhooks section.'
+        );
+      }
+      this.logger.warn(
+        'CLERK_WEBHOOK_SECRET not set - webhook signature validation disabled (development only)'
+      );
     }
   }
 
@@ -106,8 +116,20 @@ export class ClerkWebhookController {
       svixId,
     });
 
-    // Validate webhook signature if secret is configured
+    // Validate webhook signature - required in production
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (!this.webhookSecret && isProduction) {
+      this.logger.error('Webhook rejected - CLERK_WEBHOOK_SECRET not configured in production');
+      throw new BadRequestException('Webhook signature validation is required');
+    }
+
     if (this.webhookSecret) {
+      if (!svixId || !svixTimestamp || !svixSignature) {
+        this.logger.error('Missing required Svix headers');
+        throw new BadRequestException('Missing required webhook signature headers');
+      }
+
       try {
         const wh = new Webhook(this.webhookSecret);
         const rawBody = req.rawBody?.toString() || JSON.stringify(body);
@@ -122,9 +144,12 @@ export class ClerkWebhookController {
       } catch (error) {
         this.logger.error('Webhook signature verification failed', {
           error: (error as Error).message,
+          svixId,
         });
         throw new BadRequestException('Invalid webhook signature');
       }
+    } else {
+      this.logger.warn('Processing webhook without signature validation (development mode)');
     }
 
     const event = body as ClerkWebhookEvent;
