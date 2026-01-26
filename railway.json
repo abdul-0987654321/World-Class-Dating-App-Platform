@@ -22,27 +22,27 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3000",
-        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
-        "MATCHING_SERVICE_URL": "${{matching-service.RAILWAY_PRIVATE_DOMAIN}}:3004",
-        "MESSAGING_SERVICE_URL": "${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
-        "NOTIFICATION_SERVICE_URL": "${{notification-service.RAILWAY_PRIVATE_DOMAIN}}:3006",
-        "PAYMENT_SERVICE_URL": "${{payment-service.RAILWAY_PRIVATE_DOMAIN}}:3007",
-        "SUBSCRIPTION_SERVICE_URL": "${{subscription-service.RAILWAY_PRIVATE_DOMAIN}}:3008",
-        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009",
-        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
-        "ANALYTICS_SERVICE_URL": "${{analytics-service.RAILWAY_PRIVATE_DOMAIN}}:3011",
-        "RECOMMENDATION_SERVICE_URL": "${{recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:3012",
-        "SEARCH_SERVICE_URL": "${{search-service.RAILWAY_PRIVATE_DOMAIN}}:3013",
-        "LOCATION_SERVICE_URL": "${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014",
-        "VERIFICATION_SERVICE_URL": "${{verification-service.RAILWAY_PRIVATE_DOMAIN}}:3015",
-        "ADMIN_SERVICE_URL": "${{admin-service.RAILWAY_PRIVATE_DOMAIN}}:3017",
-        "REALTIME_SERVICE_URL": "${{realtime-service.RAILWAY_PRIVATE_DOMAIN}}:3022",
-        "WELLNESS_SERVICE_URL": "${{wellness-service.RAILWAY_PRIVATE_DOMAIN}}:3031",
-        "CONVERSATION_INTELLIGENCE_SERVICE_URL": "${{conversation-intelligence-service.RAILWAY_PRIVATE_DOMAIN}}:3032",
-        "RELATIONSHIP_PROGRESSION_SERVICE_URL": "${{relationship-progression-service.RAILWAY_PRIVATE_DOMAIN}}:3033",
-        "TRUST_SERVICE_URL": "${{trust-service.RAILWAY_PRIVATE_DOMAIN}}:3034",
+        "AUTH_SERVICE_URL": "http://${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PROFILE_SERVICE_URL": "http://${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "MATCHING_SERVICE_URL": "http://${{matching-service.RAILWAY_PRIVATE_DOMAIN}}:3004",
+        "MESSAGING_SERVICE_URL": "http://${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
+        "NOTIFICATION_SERVICE_URL": "http://${{notification-service.RAILWAY_PRIVATE_DOMAIN}}:3006",
+        "PAYMENT_SERVICE_URL": "http://${{payment-service.RAILWAY_PRIVATE_DOMAIN}}:3007",
+        "SUBSCRIPTION_SERVICE_URL": "http://${{subscription-service.RAILWAY_PRIVATE_DOMAIN}}:3008",
+        "MEDIA_SERVICE_URL": "http://${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009",
+        "MODERATION_SERVICE_URL": "http://${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
+        "ANALYTICS_SERVICE_URL": "http://${{analytics-service.RAILWAY_PRIVATE_DOMAIN}}:3011",
+        "RECOMMENDATION_SERVICE_URL": "http://${{recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:3012",
+        "SEARCH_SERVICE_URL": "http://${{search-service.RAILWAY_PRIVATE_DOMAIN}}:3013",
+        "LOCATION_SERVICE_URL": "http://${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014",
+        "VERIFICATION_SERVICE_URL": "http://${{verification-service.RAILWAY_PRIVATE_DOMAIN}}:3015",
+        "ADMIN_SERVICE_URL": "http://${{admin-service.RAILWAY_PRIVATE_DOMAIN}}:3017",
+        "REALTIME_SERVICE_URL": "http://${{realtime-service.RAILWAY_PRIVATE_DOMAIN}}:3022",
+        "WELLNESS_SERVICE_URL": "http://${{wellness-service.RAILWAY_PRIVATE_DOMAIN}}:3031",
+        "CONVERSATION_INTELLIGENCE_SERVICE_URL": "http://${{conversation-intelligence-service.RAILWAY_PRIVATE_DOMAIN}}:3032",
+        "RELATIONSHIP_PROGRESSION_SERVICE_URL": "http://${{relationship-progression-service.RAILWAY_PRIVATE_DOMAIN}}:3033",
+        "TRUST_SERVICE_URL": "http://${{trust-service.RAILWAY_PRIVATE_DOMAIN}}:3034",
         "DATABASE_URL": "${{postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
@@ -128,8 +128,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
-        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009"
+        "AUTH_SERVICE_URL": "http://${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "MEDIA_SERVICE_URL": "http://${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009"
       },
       "networking": {
         "ports": [3002]
@@ -161,8 +161,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "MEDIA_SERVICE_URL": "http://${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009"
       },
       "networking": {
         "ports": [3003]
@@ -194,10 +194,10 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
-        "LOCATION_SERVICE_URL": "${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014",
-        "AI_RECOMMENDATION_URL": "${{ai-recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:8082"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PROFILE_SERVICE_URL": "http://${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "LOCATION_SERVICE_URL": "http://${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014",
+        "AI_RECOMMENDATION_URL": "http://${{ai-recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:8082"
       },
       "networking": {
         "ports": [3004]
@@ -229,11 +229,11 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "NOTIFICATION_SERVICE_URL": "${{notification-service.RAILWAY_PRIVATE_DOMAIN}}:3006",
-        "REALTIME_SERVICE_URL": "${{realtime-service.RAILWAY_PRIVATE_DOMAIN}}:3022",
-        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010"
+        "AUTH_SERVICE_URL": "http://${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "NOTIFICATION_SERVICE_URL": "http://${{notification-service.RAILWAY_PRIVATE_DOMAIN}}:3006",
+        "REALTIME_SERVICE_URL": "http://${{realtime-service.RAILWAY_PRIVATE_DOMAIN}}:3022",
+        "MODERATION_SERVICE_URL": "http://${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010"
       },
       "networking": {
         "ports": [3005]
@@ -304,8 +304,8 @@
         "STRIPE_SECRET_KEY": "${{shared.STRIPE_SECRET_KEY}}",
         "STRIPE_PUBLISHABLE_KEY": "${{shared.STRIPE_PUBLISHABLE_KEY}}",
         "STRIPE_WEBHOOK_SECRET": "${{shared.STRIPE_WEBHOOK_SECRET}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "SUBSCRIPTION_SERVICE_URL": "${{subscription-service.RAILWAY_PRIVATE_DOMAIN}}:3008"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "SUBSCRIPTION_SERVICE_URL": "http://${{subscription-service.RAILWAY_PRIVATE_DOMAIN}}:3008"
       },
       "networking": {
         "ports": [3007],
@@ -338,8 +338,8 @@
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
         "STRIPE_SECRET_KEY": "${{shared.STRIPE_SECRET_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "PAYMENT_SERVICE_URL": "${{payment-service.RAILWAY_PRIVATE_DOMAIN}}:3007"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PAYMENT_SERVICE_URL": "http://${{payment-service.RAILWAY_PRIVATE_DOMAIN}}:3007"
       },
       "networking": {
         "ports": [3008]
@@ -377,8 +377,8 @@
         "AWS_S3_BUCKET": "${{shared.AWS_S3_BUCKET}}",
         "AWS_S3_BUCKET_PHOTOS": "${{shared.AWS_S3_BUCKET_PHOTOS}}",
         "AWS_S3_BUCKET_VIDEOS": "${{shared.AWS_S3_BUCKET_VIDEOS}}",
-        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
-        "AI_PHOTO_ANALYSIS_URL": "${{ai-photo-analysis.RAILWAY_PRIVATE_DOMAIN}}:8003"
+        "MODERATION_SERVICE_URL": "http://${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
+        "AI_PHOTO_ANALYSIS_URL": "http://${{ai-photo-analysis.RAILWAY_PRIVATE_DOMAIN}}:8003"
       },
       "networking": {
         "ports": [3009]
@@ -414,8 +414,8 @@
         "AWS_ACCESS_KEY_ID": "${{shared.AWS_ACCESS_KEY_ID}}",
         "AWS_SECRET_ACCESS_KEY": "${{shared.AWS_SECRET_ACCESS_KEY}}",
         "AWS_REKOGNITION_REGION": "${{shared.AWS_REKOGNITION_REGION}}",
-        "AI_NLP_SERVICE_URL": "${{ai-nlp-service.RAILWAY_PRIVATE_DOMAIN}}:8085",
-        "AI_DEEPFAKE_DETECTION_URL": "${{ai-deepfake-detection.RAILWAY_PRIVATE_DOMAIN}}:8010"
+        "AI_NLP_SERVICE_URL": "http://${{ai-nlp-service.RAILWAY_PRIVATE_DOMAIN}}:8085",
+        "AI_DEEPFAKE_DETECTION_URL": "http://${{ai-deepfake-detection.RAILWAY_PRIVATE_DOMAIN}}:8010"
       },
       "networking": {
         "ports": [3010]
@@ -476,9 +476,9 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
-        "AI_RECOMMENDATION_URL": "${{ai-recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:8082"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "PROFILE_SERVICE_URL": "http://${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "AI_RECOMMENDATION_URL": "http://${{ai-recommendation-service.RAILWAY_PRIVATE_DOMAIN}}:8082"
       },
       "networking": {
         "ports": [3012]
@@ -509,8 +509,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "PROFILE_SERVICE_URL": "${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
-        "LOCATION_SERVICE_URL": "${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014"
+        "PROFILE_SERVICE_URL": "http://${{profile-service.RAILWAY_PRIVATE_DOMAIN}}:3003",
+        "LOCATION_SERVICE_URL": "http://${{location-service.RAILWAY_PRIVATE_DOMAIN}}:3014"
       },
       "networking": {
         "ports": [3013]
@@ -571,10 +571,10 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "MEDIA_SERVICE_URL": "${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009",
-        "AI_PHOTO_ANALYSIS_URL": "${{ai-photo-analysis.RAILWAY_PRIVATE_DOMAIN}}:8003",
-        "AI_DEEPFAKE_DETECTION_URL": "${{ai-deepfake-detection.RAILWAY_PRIVATE_DOMAIN}}:8010"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "MEDIA_SERVICE_URL": "http://${{media-service.RAILWAY_PRIVATE_DOMAIN}}:3009",
+        "AI_PHOTO_ANALYSIS_URL": "http://${{ai-photo-analysis.RAILWAY_PRIVATE_DOMAIN}}:8003",
+        "AI_DEEPFAKE_DETECTION_URL": "http://${{ai-deepfake-detection.RAILWAY_PRIVATE_DOMAIN}}:8010"
       },
       "networking": {
         "ports": [3015]
@@ -605,8 +605,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002"
+        "MODERATION_SERVICE_URL": "http://${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010",
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002"
       },
       "networking": {
         "ports": [3016]
@@ -637,10 +637,10 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "AUTH_SERVICE_URL": "${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "ANALYTICS_SERVICE_URL": "${{analytics-service.RAILWAY_PRIVATE_DOMAIN}}:3011",
-        "MODERATION_SERVICE_URL": "${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010"
+        "AUTH_SERVICE_URL": "http://${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:3001",
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "ANALYTICS_SERVICE_URL": "http://${{analytics-service.RAILWAY_PRIVATE_DOMAIN}}:3011",
+        "MODERATION_SERVICE_URL": "http://${{moderation-service.RAILWAY_PRIVATE_DOMAIN}}:3010"
       },
       "networking": {
         "ports": [3017]
@@ -997,8 +997,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "MESSAGING_SERVICE_URL": "${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "MESSAGING_SERVICE_URL": "http://${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005"
       },
       "networking": {
         "ports": [3031]
@@ -1032,8 +1032,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "MESSAGING_SERVICE_URL": "${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
-        "AI_NLP_SERVICE_URL": "${{ai-nlp-service.RAILWAY_PRIVATE_DOMAIN}}:8085",
+        "MESSAGING_SERVICE_URL": "http://${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
+        "AI_NLP_SERVICE_URL": "http://${{ai-nlp-service.RAILWAY_PRIVATE_DOMAIN}}:8085",
         "OPENAI_API_KEY": "${{shared.OPENAI_API_KEY}}"
       },
       "networking": {
@@ -1068,9 +1068,9 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "MESSAGING_SERVICE_URL": "${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
-        "MATCHING_SERVICE_URL": "${{matching-service.RAILWAY_PRIVATE_DOMAIN}}:3004"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "MESSAGING_SERVICE_URL": "http://${{messaging-service.RAILWAY_PRIVATE_DOMAIN}}:3005",
+        "MATCHING_SERVICE_URL": "http://${{matching-service.RAILWAY_PRIVATE_DOMAIN}}:3004"
       },
       "networking": {
         "ports": [3033]
@@ -1101,8 +1101,8 @@
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "USER_SERVICE_URL": "${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
-        "VERIFICATION_SERVICE_URL": "${{verification-service.RAILWAY_PRIVATE_DOMAIN}}:3015"
+        "USER_SERVICE_URL": "http://${{user-service.RAILWAY_PRIVATE_DOMAIN}}:3002",
+        "VERIFICATION_SERVICE_URL": "http://${{verification-service.RAILWAY_PRIVATE_DOMAIN}}:3015"
       },
       "networking": {
         "ports": [3034]
