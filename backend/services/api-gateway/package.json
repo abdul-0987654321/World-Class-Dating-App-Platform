@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",
-    "@clerk/backend": "^2.29.5",
+    "@okta/jwt-verifier": "^4.0.1",
+    "@okta/okta-sdk-nodejs": "^7.1.0",
     "@flamoral/backend-shared": "file:../../shared",
     "@nestjs/apollo": "^12.0.11",
     "@nestjs/common": "^10.3.0",
@@ -53,7 +54,6 @@
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.1",
-    "svix": "^1.84.1",
     "uuid": "^9.0.1",
     "zod": "^3.22.4"
   },

@@ -35,57 +35,57 @@ import {
 export class UserController {
   constructor(private readonly proxyService: ProxyService) {}
 
-  // ==================== Clerk Integration Endpoints ====================
+  // ==================== Okta Integration Endpoints ====================
 
   /**
-   * Sync user from Clerk webhook
+   * Sync user from Okta webhook
    */
   @Public()
-  @Post('clerk-sync')
+  @Post('okta-sync')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Sync user from Clerk (webhook)' })
-  async clerkSync(
+  @ApiOperation({ summary: 'Sync user from Okta (webhook)' })
+  async oktaSync(
     @Headers() headers: Record<string, string>,
     @Body() body: Record<string, unknown>
   ) {
-    return this.proxyService.post('userService', '/api/v1/users/clerk-sync', body, {
+    return this.proxyService.post('userService', '/api/v1/users/okta-sync', body, {
       'X-Internal-Service': headers['x-internal-service'] || 'webhook',
     });
   }
 
   /**
-   * Update user by Clerk ID
+   * Update user by Okta ID
    */
   @Public()
-  @Put('clerk/:clerkId')
-  @ApiOperation({ summary: 'Update user by Clerk ID (webhook)' })
-  async updateByClerkId(
+  @Put('okta/:oktaId')
+  @ApiOperation({ summary: 'Update user by Okta ID (webhook)' })
+  async updateByOktaId(
     @Headers() headers: Record<string, string>,
-    @Param('clerkId') clerkId: string,
+    @Param('oktaId') oktaId: string,
     @Body() body: Record<string, unknown>
   ) {
-    return this.proxyService.put('userService', `/api/v1/users/clerk/${clerkId}`, body, {
+    return this.proxyService.put('userService', `/api/v1/users/okta/${oktaId}`, body, {
       'X-Internal-Service': headers['x-internal-service'] || 'webhook',
     });
   }
 
   /**
-   * Delete user by Clerk ID
+   * Delete user by Okta ID
    */
   @Public()
-  @Delete('clerk/:clerkId')
-  @ApiOperation({ summary: 'Delete user by Clerk ID (webhook)' })
-  async deleteByClerkId(
+  @Delete('okta/:oktaId')
+  @ApiOperation({ summary: 'Delete user by Okta ID (webhook)' })
+  async deleteByOktaId(
     @Headers() headers: Record<string, string>,
-    @Param('clerkId') clerkId: string
+    @Param('oktaId') oktaId: string
   ) {
-    return this.proxyService.delete('userService', `/api/v1/users/clerk/${clerkId}`, {
+    return this.proxyService.delete('userService', `/api/v1/users/okta/${oktaId}`, {
       'X-Internal-Service': headers['x-internal-service'] || 'webhook',
     });
   }
 
   /**
-   * Profile setup after Clerk signup
+   * Profile setup after Okta signup
    */
   @Post('profile/setup')
   @HttpCode(HttpStatus.CREATED)
@@ -113,14 +113,14 @@ export class UserController {
   }
 
   /**
-   * Sync current user with backend (called after Clerk sign in)
+   * Sync current user with backend (called after Okta sign in)
    */
   @Post('sync')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sync current user with backend' })
   async syncUser(
     @Headers('authorization') authorization: string,
-    @Body() body: { clerkUserId: string }
+    @Body() body: { oktaUserId: string }
   ) {
     return this.proxyService.post('userService', '/api/v1/users/sync', body, {
       Authorization: authorization,

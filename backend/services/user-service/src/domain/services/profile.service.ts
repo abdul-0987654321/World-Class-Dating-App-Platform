@@ -9,7 +9,7 @@ export interface ProfileSetupDto {
   interested_in?: string;
   bio?: string;
   location?: string;
-  clerk_user_id?: string;
+  okta_user_id?: string;
 }
 
 export class ProfileService {

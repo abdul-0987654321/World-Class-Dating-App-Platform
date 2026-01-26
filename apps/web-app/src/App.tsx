@@ -1,20 +1,21 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useOktaAuth } from '@okta/okta-react';
 import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
 import { AIAssistantWidget } from '@/components/AIAssistant';
 import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { FlamoralBackground } from '@/components/theme';
-import { ClerkProvider } from './providers/ClerkProvider';
-import { ClerkProtectedRoute, PublicOnlyRoute } from './components/auth/ClerkProtectedRoute';
-import { authTokenService } from './services/auth-token.service';
+import { OktaProvider } from './providers/OktaProvider';
+import { OktaProtectedRoute, PublicOnlyRoute } from './components/auth/OktaProtectedRoute';
+import { OktaTokenSync } from './components/auth/OktaTokenSync';
 
 // Pages
 import LandingPage from './pages/Landing/LandingPage';
 import FuturisticLandingPage from './pages/Landing/FuturisticLandingPage';
 import AnimatedLandingPage from './pages/Landing/AnimatedLandingPage';
-import { ClerkLoginPage } from './pages/Auth/ClerkLoginPage';
-import { ClerkSignupPage } from './pages/Auth/ClerkSignupPage';
+import { OktaLoginPage } from './pages/Auth/OktaLoginPage';
+import { OktaSignupPage } from './pages/Auth/OktaSignupPage';
+import { OktaCallbackPage } from './pages/Auth/OktaCallbackPage';
 import { ProfileSetupPage } from './pages/Profile/ProfileSetupPage';
 import { NotFoundPage } from './pages/NotFound';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
@@ -76,63 +77,28 @@ const LoadingScreen: React.FC = () => (
       className="w-12 h-12 border-3 border-gray-700 border-t-pink-500 rounded-full animate-spin"
       style={{
         borderWidth: '3px',
-        borderTopColor: '#FF6B7A',
+        borderTopColor: '#D62839',
       }}
     />
   </div>
 );
 
-// Sync Clerk token with auth token service
-const ClerkTokenSync: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { getToken, isSignedIn, isLoaded } = useAuth();
-
-  useEffect(() => {
-    // Set up the token getter for async token fetching
-    authTokenService.setTokenGetter(getToken);
-  }, [getToken]);
-
-  useEffect(() => {
-    // Sync token whenever auth state changes
-    const syncToken = async () => {
-      if (isLoaded && isSignedIn) {
-        try {
-          const token = await getToken();
-          authTokenService.setClerkToken(token);
-        } catch (error) {
-          console.error('Failed to get Clerk token:', error);
-          authTokenService.setClerkToken(null);
-        }
-      } else if (isLoaded && !isSignedIn) {
-        authTokenService.clearTokens();
-      }
-    };
-
-    syncToken();
-
-    // Also set up a periodic refresh (every 50 seconds, tokens last 60 seconds)
-    const refreshInterval = setInterval(syncToken, 50000);
-    return () => clearInterval(refreshInterval);
-  }, [isLoaded, isSignedIn, getToken]);
-
-  return <>{children}</>;
-};
-
 // Landing page with auth redirect
 const LandingWithAuth: React.FC = () => {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { authState } = useOktaAuth();
 
-  if (!isLoaded) {
+  if (!authState || authState.isPending) {
     return <LoadingScreen />;
   }
 
-  if (isSignedIn) {
+  if (authState.isAuthenticated) {
     return <Navigate to="/discover" replace />;
   }
 
   return <AnimatedLandingPage />;
 };
 
-// App Routes (inside ClerkProvider context)
+// App Routes (inside OktaProvider context)
 const AppRoutes: React.FC = () => {
   return (
     <>
@@ -163,30 +129,31 @@ const AppRoutes: React.FC = () => {
               }
             />
 
-            {/* Auth routes - Clerk handles these */}
+            {/* Auth routes - Okta handles these */}
             <Route
               path="/login"
               element={
                 <PublicOnlyRoute redirectTo="/discover">
-                  <ClerkLoginPage />
+                  <OktaLoginPage />
                 </PublicOnlyRoute>
               }
             />
-            <Route path="/login/*" element={<ClerkLoginPage />} />
+            <Route path="/login/*" element={<OktaLoginPage />} />
+            <Route path="/login/callback" element={<OktaCallbackPage />} />
             <Route
               path="/signup"
               element={
                 <PublicOnlyRoute redirectTo="/discover">
-                  <ClerkSignupPage />
+                  <OktaSignupPage />
                 </PublicOnlyRoute>
               }
             />
-            <Route path="/signup/*" element={<ClerkSignupPage />} />
+            <Route path="/signup/*" element={<OktaSignupPage />} />
             <Route
               path="/register"
               element={
                 <PublicOnlyRoute redirectTo="/discover">
-                  <ClerkSignupPage />
+                  <OktaSignupPage />
                 </PublicOnlyRoute>
               }
             />
@@ -195,9 +162,9 @@ const AppRoutes: React.FC = () => {
             <Route
               path="/profile-setup"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <ProfileSetupPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
 
@@ -217,209 +184,209 @@ const AppRoutes: React.FC = () => {
             <Route
               path="/discover"
               element={
-                <ClerkProtectedRoute requireProfileComplete>
+                <OktaProtectedRoute requireProfileComplete>
                   <DiscoveryFeaturePage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/discover/simple"
               element={
-                <ClerkProtectedRoute requireProfileComplete>
+                <OktaProtectedRoute requireProfileComplete>
                   <DiscoveryPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/matches"
               element={
-                <ClerkProtectedRoute requireProfileComplete>
+                <OktaProtectedRoute requireProfileComplete>
                   <MatchesPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/messages"
               element={
-                <ClerkProtectedRoute requireProfileComplete>
+                <OktaProtectedRoute requireProfileComplete>
                   <MessagesPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/profile"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <ProfilePage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/safety"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <SafetyCenterPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/rewards"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <EnhancedGamificationPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/rewards/old"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <GamificationPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/communities"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <CommunitiesPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/speed-dating"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <SpeedDatingPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/referrals"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <ReferralPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/subscription"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <SubscriptionPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/subscription/manage"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <SubscriptionManagePage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/premium"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <SubscriptionPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/checkout"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <CheckoutPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/payment/success"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <PaymentSuccessPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/payment/cancel"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <PaymentCancelPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/coins"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <CoinShopPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/filters"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <AdvancedFiltersPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/video-call/:matchId"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <VideoCallPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/settings"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <SettingsPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/profile/edit"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <ProfileEditPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/verification"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <PhotoVerificationPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/privacy"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <PrivacySettingsPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/notifications"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <NotificationSettingsPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
             <Route
               path="/help"
               element={
-                <ClerkProtectedRoute>
+                <OktaProtectedRoute>
                   <HelpSupportPage />
-                </ClerkProtectedRoute>
+                </OktaProtectedRoute>
               }
             />
 
@@ -493,11 +460,11 @@ const AppRoutes: React.FC = () => {
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <ClerkProvider>
-        <ClerkTokenSync>
+      <OktaProvider>
+        <OktaTokenSync>
           <AppRoutes />
-        </ClerkTokenSync>
-      </ClerkProvider>
+        </OktaTokenSync>
+      </OktaProvider>
     </BrowserRouter>
   );
 };

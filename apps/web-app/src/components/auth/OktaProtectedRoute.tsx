@@ -1,5 +1,5 @@
 /**
- * Clerk Protected Route Component
+ * Okta Protected Route Component
  *
  * Wraps routes that require authentication.
  * Redirects unauthenticated users to login.
@@ -8,12 +8,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth, useUser, RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { useOktaAuth } from '@okta/okta-react';
 import {
   checkProfileComplete,
   getSubscriptionTier,
   SubscriptionTier,
-} from '../../services/clerk-auth.service';
+} from '../../services/okta-auth.service';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -26,7 +26,7 @@ const LoadingScreen: React.FC = () => (
         className="w-12 h-12 border-3 border-gray-700 border-t-pink-500 rounded-full animate-spin mx-auto mb-4"
         style={{
           borderWidth: '3px',
-          borderTopColor: '#FF6B7A',
+          borderTopColor: '#D62839',
         }}
       />
       <p className="text-gray-400 text-sm">Loading...</p>
@@ -43,17 +43,16 @@ interface ProtectedRouteProps {
 }
 
 /**
- * Protected Route with Clerk Authentication
+ * Protected Route with Okta Authentication
  */
-export const ClerkProtectedRoute: React.FC<ProtectedRouteProps> = ({
+export const OktaProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireEmailVerification = false,
   requireProfileComplete = false,
   requiredTier,
   fallbackPath = '/login',
 }) => {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
+  const { authState, oktaAuth } = useOktaAuth();
   const location = useLocation();
 
   const [isCheckingProfile, setIsCheckingProfile] = useState(requireProfileComplete);
@@ -61,9 +60,15 @@ export const ClerkProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isCheckingTier, setIsCheckingTier] = useState(!!requiredTier);
   const [userTier, setUserTier] = useState<SubscriptionTier>('free');
 
+  // Get access token function for API calls
+  const getToken = async (): Promise<string | null> => {
+    const accessToken = await oktaAuth.getAccessToken();
+    return accessToken || null;
+  };
+
   // Check profile completion
   useEffect(() => {
-    if (!requireProfileComplete || !isSignedIn) {
+    if (!requireProfileComplete || !authState?.isAuthenticated) {
       setIsCheckingProfile(false);
       return;
     }
@@ -75,11 +80,11 @@ export const ClerkProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
 
     checkProfile();
-  }, [isSignedIn, requireProfileComplete, getToken]);
+  }, [authState?.isAuthenticated, requireProfileComplete]);
 
   // Check subscription tier
   useEffect(() => {
-    if (!requiredTier || !isSignedIn) {
+    if (!requiredTier || !authState?.isAuthenticated) {
       setIsCheckingTier(false);
       return;
     }
@@ -91,10 +96,10 @@ export const ClerkProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
 
     checkTier();
-  }, [isSignedIn, requiredTier, getToken]);
+  }, [authState?.isAuthenticated, requiredTier]);
 
-  // Show loading while Clerk initializes
-  if (!isLoaded) {
+  // Show loading while Okta initializes
+  if (!authState || authState.isPending) {
     return <LoadingScreen />;
   }
 
@@ -104,12 +109,12 @@ export const ClerkProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Not signed in - redirect to login
-  if (!isSignedIn) {
+  if (!authState.isAuthenticated) {
     return <Navigate to={fallbackPath} state={{ from: location.pathname }} replace />;
   }
 
-  // Check email verification
-  if (requireEmailVerification && user && !user.primaryEmailAddress?.verification?.status) {
+  // Check email verification (if user info contains email_verified claim)
+  if (requireEmailVerification && authState.idToken?.claims?.email_verified === false) {
     return <Navigate to="/verify-email" state={{ from: location.pathname }} replace />;
   }
 
@@ -145,16 +150,18 @@ export const ClerkProtectedRoute: React.FC<ProtectedRouteProps> = ({
  * Simple signed-in only route
  */
 export const SignedInRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { authState } = useOktaAuth();
   const location = useLocation();
 
-  return (
-    <>
-      <SignedIn>{children}</SignedIn>
-      <SignedOut>
-        <Navigate to="/login" state={{ from: location.pathname }} replace />
-      </SignedOut>
-    </>
-  );
+  if (!authState || authState.isPending) {
+    return <LoadingScreen />;
+  }
+
+  if (!authState.isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  return <>{children}</>;
 };
 
 /**
@@ -164,17 +171,17 @@ export const PublicOnlyRoute: React.FC<{ children: React.ReactNode; redirectTo?:
   children,
   redirectTo = '/discover',
 }) => {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { authState } = useOktaAuth();
 
-  if (!isLoaded) {
+  if (!authState || authState.isPending) {
     return <LoadingScreen />;
   }
 
-  if (isSignedIn) {
+  if (authState.isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
 
   return <>{children}</>;
 };
 
-export default ClerkProtectedRoute;
+export default OktaProtectedRoute;

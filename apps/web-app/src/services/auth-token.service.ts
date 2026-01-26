@@ -1,92 +1,92 @@
 /**
- * Auth Token Service - Clerk Integration
+ * Auth Token Service - Okta Integration
  *
- * This service provides a bridge between Clerk's authentication and
- * the rest of the application. It stores the Clerk session token
+ * This service provides a bridge between Okta's authentication and
+ * the rest of the application. It stores the Okta access token
  * for use in API requests.
  *
  * USAGE:
- * - Call setClerkToken() after Clerk sign-in to store the token
+ * - Call setOktaToken() after Okta sign-in to store the token
  * - Call getToken() to retrieve the token for API requests
- * - The token is automatically refreshed by Clerk
+ * - The token is automatically refreshed by Okta
  */
 
 class AuthTokenService {
-  private clerkToken: string | null = null;
+  private oktaToken: string | null = null;
   private tokenPromise: (() => Promise<string | null>) | null = null;
 
   /**
-   * Set the Clerk token getter function
-   * This should be called once when the app initializes with Clerk
+   * Set the Okta token getter function
+   * This should be called once when the app initializes with Okta
    */
   setTokenGetter(getter: () => Promise<string | null>): void {
     this.tokenPromise = getter;
   }
 
   /**
-   * Set the current Clerk token
-   * Called after successful Clerk authentication
+   * Set the current Okta token
+   * Called after successful Okta authentication
    */
-  setClerkToken(token: string | null): void {
-    this.clerkToken = token;
+  setOktaToken(token: string | null): void {
+    this.oktaToken = token;
   }
 
   /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    return !!this.clerkToken;
+    return !!this.oktaToken;
   }
 
   /**
    * Get the current access token
-   * Returns the Clerk JWT token for API requests
+   * Returns the Okta JWT token for API requests
    */
   getToken(): string | null {
-    return this.clerkToken;
+    return this.oktaToken;
   }
 
   /**
    * Get token asynchronously (preferred method)
-   * This ensures we always have a fresh token from Clerk
+   * This ensures we always have a fresh token from Okta
    */
   async getTokenAsync(): Promise<string | null> {
     if (this.tokenPromise) {
       try {
         const token = await this.tokenPromise();
-        this.clerkToken = token;
+        this.oktaToken = token;
         return token;
       } catch (error) {
-        console.error('Failed to get Clerk token:', error);
-        return this.clerkToken;
+        console.error('Failed to get Okta token:', error);
+        return this.oktaToken;
       }
     }
-    return this.clerkToken;
+    return this.oktaToken;
   }
 
   /**
    * Legacy method - marks user as authenticated
-   * @deprecated Use setClerkToken instead
+   * @deprecated Use setOktaToken instead
    */
   setAuthenticated(authenticated: boolean): void {
     if (!authenticated) {
-      this.clerkToken = null;
+      this.oktaToken = null;
     }
   }
 
   /**
    * Legacy method - set tokens
-   * @deprecated Use setClerkToken instead
+   * @deprecated Use setOktaToken instead
    */
   setTokens(accessToken: string, _refreshToken?: string): void {
-    this.clerkToken = accessToken;
+    this.oktaToken = accessToken;
   }
 
   /**
    * Clear authentication state
    */
   clearTokens(): void {
-    this.clerkToken = null;
+    this.oktaToken = null;
 
     // Clear any legacy storage
     sessionStorage.removeItem('authToken');
@@ -99,7 +99,7 @@ class AuthTokenService {
 
   /**
    * Get the refresh token
-   * @deprecated Clerk handles token refresh automatically
+   * @deprecated Okta handles token refresh automatically
    */
   getRefreshToken(): string | null {
     return null;

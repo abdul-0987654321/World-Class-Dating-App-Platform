@@ -12,20 +12,14 @@ import jwksClient from 'jwks-rsa';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
-// Clerk JWKS URL for key discovery - LIVE PRODUCTION
-const CLERK_JWKS_URL = 'https://clerk.flamoral.com/.well-known/jwks.json';
-const CLERK_ISSUER = 'https://clerk.flamoral.com';
+// Get Okta configuration from environment
+const getOktaConfig = () => {
+  const domain = process.env.OKTA_DOMAIN;
+  const issuer = process.env.OKTA_ISSUER || (domain ? `https://${domain}/oauth2/default` : '');
+  const jwksUrl = issuer ? `${issuer}/v1/keys` : '';
 
-// Clerk RSA public key (fallback if JWKS fails) - LIVE PRODUCTION KEY
-const CLERK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAod8J5ePb/2vqUdyFxvDg
-AOM32N59lVnZrsaPnA3MJmjuun6o/sI3FiGeIkOuBLN66RMosQ1ayaZQHEU41loZ
-zCVla5esUAhXd/vQVK+l8YN1fdP9821fQCaAp2LoM3+ZM0eKjs/VMhZsVs9bAYRy
-GktN10eZeulJXmyALpGKVEYhMhStoncYFVOFawdXU8PDqCGH0ELQ7kNQJlfL5vy5
-47mly41QgrP3FVfknTN9LZAfW7kUpoPcwD5RxuLeAY2h3VhRz2DgmDIa1nT014g4
-vOdBnSpqO+bPKisFS00a330Lk67beatTcrKWMgbUm2tpreNdTkKrgCytCXMSJo2l
-0wIDAQAB
------END PUBLIC KEY-----`;
+  return { issuer, jwksUrl };
+};
 
 interface JwtTokenPayload {
   sub: string;
@@ -38,39 +32,44 @@ interface JwtTokenPayload {
   exp: number;
 }
 
-interface ClerkTokenPayload {
+interface OktaTokenPayload {
   sub: string;
   iss: string;
-  azp?: string;
-  sid?: string;
+  aud?: string;
+  cid?: string;
+  uid?: string;
+  scp?: string[];
   email?: string;
   email_verified?: boolean;
-  first_name?: string;
-  last_name?: string;
-  image_url?: string;
+  given_name?: string;
+  family_name?: string;
   iat: number;
   exp: number;
-  nbf?: number;
 }
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   private readonly logger = new Logger(JwtAuthGuard.name);
-  private jwksClient: jwksClient.JwksClient;
+  private jwksClient: jwksClient.JwksClient | null = null;
+  private oktaConfig: { issuer: string; jwksUrl: string };
 
   constructor(
     private reflector: Reflector,
     private configService: ConfigService
   ) {
-    // Initialize JWKS client for Clerk key discovery
-    this.jwksClient = jwksClient({
-      jwksUri: CLERK_JWKS_URL,
-      cache: true,
-      cacheMaxEntries: 5,
-      cacheMaxAge: 600000, // 10 minutes
-      rateLimit: true,
-      jwksRequestsPerMinute: 10,
-    });
+    this.oktaConfig = getOktaConfig();
+
+    // Initialize JWKS client for Okta key discovery
+    if (this.oktaConfig.jwksUrl) {
+      this.jwksClient = jwksClient({
+        jwksUri: this.oktaConfig.jwksUrl,
+        cache: true,
+        cacheMaxEntries: 5,
+        cacheMaxAge: 600000, // 10 minutes
+        rateLimit: true,
+        jwksRequestsPerMinute: 10,
+      });
+    }
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -95,30 +94,28 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      // Try to verify as Clerk token first (check issuer in decoded token)
+      // Try to verify as Okta token first (check issuer in decoded token)
       const decoded = jwt.decode(token, { complete: true });
 
       if (decoded && typeof decoded.payload === 'object' && 'iss' in decoded.payload) {
-        const issuer = (decoded.payload as ClerkTokenPayload).iss;
+        const issuer = (decoded.payload as OktaTokenPayload).iss;
 
-        if (issuer === CLERK_ISSUER || issuer?.includes('clerk') || issuer?.includes('flamoral')) {
-          // Verify Clerk token
-          const payload = await this.verifyClerkToken(token, decoded);
+        if (issuer && (issuer === this.oktaConfig.issuer || issuer.includes('okta'))) {
+          // Verify Okta token
+          const payload = await this.verifyOktaToken(token, decoded);
 
-          // Normalize Clerk payload for downstream use
+          // Normalize Okta payload for downstream use
           request.user = {
             sub: payload.sub,
             userId: payload.sub,
-            clerkUserId: payload.sub,
+            oktaUserId: payload.sub,
             email: payload.email,
             emailVerified: payload.email_verified,
-            firstName: payload.first_name,
-            lastName: payload.last_name,
-            imageUrl: payload.image_url,
+            firstName: payload.given_name,
+            lastName: payload.family_name,
             roles: [], // Will be fetched from database
             subscription: 'free', // Will be fetched from database
-            sessionId: payload.sid,
-            isClerkUser: true,
+            isOktaUser: true,
             iat: payload.iat,
             exp: payload.exp,
           };
@@ -129,7 +126,7 @@ export class JwtAuthGuard implements CanActivate {
 
       // Fall back to legacy JWT verification
       const secret = this.configService.get<string>('jwt.accessSecret');
-      const payload = jwt.verify(token, secret) as JwtTokenPayload;
+      const payload = jwt.verify(token, secret!) as JwtTokenPayload;
 
       // Normalize the payload for downstream use
       request.user = {
@@ -139,7 +136,7 @@ export class JwtAuthGuard implements CanActivate {
         roles: payload.roles || [],
         subscription: payload.subscription || 'free',
         deviceId: payload.deviceId,
-        isClerkUser: false,
+        isOktaUser: false,
         iat: payload.iat,
         exp: payload.exp,
       };
@@ -169,34 +166,21 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   /**
-   * Verify Clerk JWT token
-   * Uses JWKS for key discovery with RSA public key fallback
+   * Verify Okta JWT token
+   * Uses JWKS for key discovery
    */
-  private async verifyClerkToken(token: string, decoded: jwt.Jwt): Promise<ClerkTokenPayload> {
+  private async verifyOktaToken(token: string, decoded: jwt.Jwt): Promise<OktaTokenPayload> {
     const kid = decoded.header?.kid;
 
-    // Try JWKS first
-    if (kid) {
-      try {
-        const key = await this.getSigningKey(kid);
-        const payload = jwt.verify(token, key, {
-          issuer: CLERK_ISSUER,
-          algorithms: ['RS256'],
-        }) as ClerkTokenPayload;
-
-        return payload;
-      } catch (jwksError) {
-        this.logger.warn('JWKS verification failed, trying public key fallback', {
-          error: (jwksError as Error).message,
-        });
-      }
+    if (!kid || !this.jwksClient) {
+      throw new Error('Cannot verify Okta token: missing kid or JWKS client');
     }
 
-    // Fallback to static public key
-    const payload = jwt.verify(token, CLERK_PUBLIC_KEY, {
-      issuer: CLERK_ISSUER,
+    const key = await this.getSigningKey(kid);
+    const payload = jwt.verify(token, key, {
+      issuer: this.oktaConfig.issuer,
       algorithms: ['RS256'],
-    }) as ClerkTokenPayload;
+    }) as OktaTokenPayload;
 
     return payload;
   }
@@ -206,6 +190,10 @@ export class JwtAuthGuard implements CanActivate {
    */
   private getSigningKey(kid: string): Promise<string> {
     return new Promise((resolve, reject) => {
+      if (!this.jwksClient) {
+        reject(new Error('JWKS client not initialized'));
+        return;
+      }
       this.jwksClient.getSigningKey(kid, (err, key) => {
         if (err) {
           reject(err);

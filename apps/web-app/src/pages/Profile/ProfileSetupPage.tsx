@@ -1,7 +1,7 @@
 /**
  * Profile Setup Page
  *
- * Shown after Clerk signup to collect additional profile information.
+ * Shown after Okta signup to collect additional profile information.
  * Collects:
  * - Basic info (name, gender, date of birth)
  * - Location preferences
@@ -11,7 +11,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useOktaAuth } from '@okta/okta-react';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 import logger from '../../utils/logger';
 
@@ -42,8 +42,13 @@ interface ProfileFormData {
 export const ProfileSetupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isLoaded: isUserLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { authState, oktaAuth } = useOktaAuth();
+  const isUserLoaded = authState && !authState.isPending;
+  const user = authState?.idToken?.claims;
+
+  const getToken = async () => {
+    return oktaAuth.getAccessToken() || null;
+  };
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,7 +134,7 @@ export const ProfileSetupPage: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          clerk_user_id: user?.id,
+          okta_user_id: user?.sub,
           gender: formData.gender,
           date_of_birth: formData.dateOfBirth,
           interested_in: formData.interestedIn,
@@ -153,7 +158,7 @@ export const ProfileSetupPage: React.FC = () => {
       }
     } catch (err) {
       // During migration period, allow users to continue even if profile save fails
-      // The profile data will be stored in Clerk's metadata
+      // The profile data will be stored in Okta's metadata
       logger.warn('Profile setup API not available yet', {
         error: err instanceof Error ? err.message : String(err),
       });
@@ -224,7 +229,7 @@ export const ProfileSetupPage: React.FC = () => {
           {step === 1 && (
             <>
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                Welcome, {user?.firstName || 'there'}!
+                Welcome, {(user?.given_name as string) || (user?.name as string) || 'there'}!
               </h2>
               <p className="text-gray-600 mb-6">Let's set up your profile</p>
 

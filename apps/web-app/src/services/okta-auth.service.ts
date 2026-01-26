@@ -1,20 +1,19 @@
 /**
- * Clerk Authentication Service
+ * Okta Authentication Service
  *
- * Provides authentication utilities using Clerk.
+ * Provides authentication utilities using Okta.
  * Integrates with Flamoral backend for user sync.
  */
 
-import { useAuth, useUser, useClerk, useSession } from '@clerk/clerk-react';
 import logger from '../utils/logger';
 
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 /**
- * Sync Clerk user with Flamoral backend
+ * Sync Okta user with Flamoral backend
  */
-export async function syncUserWithBackend(clerkUserId: string, token: string): Promise<void> {
+export async function syncUserWithBackend(oktaUserId: string, token: string): Promise<void> {
   if (!API_URL) return;
 
   try {
@@ -24,7 +23,7 @@ export async function syncUserWithBackend(clerkUserId: string, token: string): P
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ clerkUserId }),
+      body: JSON.stringify({ oktaUserId }),
       credentials: 'include',
     });
 
@@ -80,49 +79,6 @@ export async function authenticatedFetch(
     headers,
     credentials: 'include',
   });
-}
-
-/**
- * Hook: Get current user's Flamoral profile
- */
-export function useUserProfile() {
-  const { user, isLoaded: isUserLoaded } = useUser();
-  const { getToken } = useAuth();
-
-  const fetchProfile = async () => {
-    if (!user || !API_URL) return null;
-
-    try {
-      const token = await getToken();
-      if (!token) {
-        logger.warn('No auth token available for profile fetch');
-        return null;
-      }
-
-      const response = await fetch(`${API_URL}/api/v1/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        return response.json();
-      }
-    } catch (error) {
-      logger.error('Failed to fetch profile', error instanceof Error ? error : undefined, {
-        clerkUserId: user?.id,
-      });
-    }
-
-    return null;
-  };
-
-  return {
-    user,
-    isUserLoaded,
-    fetchProfile,
-  };
 }
 
 /**
@@ -232,6 +188,38 @@ export async function hasFeatureAccess(
   return false;
 }
 
+/**
+ * Get user's Flamoral profile
+ */
+export async function getUserProfile(
+  getToken: () => Promise<string | null>
+): Promise<Record<string, any> | null> {
+  if (!API_URL) return null;
+
+  try {
+    const token = await getToken();
+    if (!token) {
+      logger.warn('No auth token available for profile fetch');
+      return null;
+    }
+
+    const response = await fetch(`${API_URL}/api/v1/users/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+
+    if (response.ok) {
+      return response.json();
+    }
+  } catch (error) {
+    logger.error('Failed to fetch profile', error instanceof Error ? error : undefined);
+  }
+
+  return null;
+}
+
 export default {
   syncUserWithBackend,
   getAuthHeaders,
@@ -239,4 +227,5 @@ export default {
   checkProfileComplete,
   getSubscriptionTier,
   hasFeatureAccess,
+  getUserProfile,
 };

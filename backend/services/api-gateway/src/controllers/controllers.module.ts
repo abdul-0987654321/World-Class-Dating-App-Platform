@@ -4,7 +4,7 @@ import { AnalyticsController } from './analytics.controller';
 import { AuditController } from './audit.controller';
 import { AuthController } from './auth.controller';
 import { CallsController } from './calls.controller';
-import { ClerkWebhookController } from './clerk-webhook.controller';
+import { OktaWebhookController } from './okta-webhook.controller';
 import { CommunityController } from './community.controller';
 import { CsrfController } from './csrf.controller';
 import { GemController } from './gem.controller';
@@ -40,7 +40,7 @@ import { VerificationController } from './verification.controller';
     SafetyController,
     GemController,
     CommunityController,
-    ClerkWebhookController,
+    OktaWebhookController,
   ],
 })
 export class ControllersModule {}

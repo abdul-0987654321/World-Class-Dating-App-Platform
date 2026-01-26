@@ -1,7 +1,7 @@
 /**
- * Clerk Login Page
+ * Okta Login Page
  *
- * Uses Clerk's SignIn component with Flamoral branding.
+ * Uses Okta Sign-In Widget with Flamoral branding.
  * Supports:
  * - Email/password login
  * - Social logins (Google, Apple, etc.)
@@ -9,20 +9,74 @@
  * - Session management
  */
 
-import React from 'react';
-import { SignIn, useAuth } from '@clerk/clerk-react';
+import React, { useEffect, useRef } from 'react';
+import { useOktaAuth } from '@okta/okta-react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
+import OktaSignIn from '@okta/okta-signin-widget';
+import '@okta/okta-signin-widget/css/okta-sign-in.min.css';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 
-export const ClerkLoginPage: React.FC = () => {
-  const { isSignedIn, isLoaded } = useAuth();
+const OKTA_CLIENT_ID = import.meta.env.VITE_OKTA_CLIENT_ID;
+const OKTA_DOMAIN = import.meta.env.VITE_OKTA_DOMAIN;
+const OKTA_REDIRECT_URI =
+  import.meta.env.VITE_OKTA_REDIRECT_URI || `${window.location.origin}/login/callback`;
+
+export const OktaLoginPage: React.FC = () => {
+  const { oktaAuth, authState } = useOktaAuth();
   const location = useLocation();
+  const widgetRef = useRef<HTMLDivElement>(null);
 
   // Get redirect path from location state
   const from = (location.state as { from?: string })?.from || '/discover';
 
+  useEffect(() => {
+    if (!widgetRef.current) return;
+
+    const widget = new OktaSignIn({
+      baseUrl: `https://${OKTA_DOMAIN}`,
+      clientId: OKTA_CLIENT_ID,
+      redirectUri: OKTA_REDIRECT_URI,
+      authParams: {
+        issuer: `https://${OKTA_DOMAIN}/oauth2/default`,
+        scopes: ['openid', 'profile', 'email'],
+        pkce: true,
+      },
+      useInteractionCodeFlow: true,
+      features: {
+        registration: false, // Disable registration on login page
+        rememberMe: true,
+        selfServiceUnlock: true,
+        multiOptionalFactorEnroll: true,
+      },
+      colors: {
+        brand: '#D62839',
+      },
+      i18n: {
+        en: {
+          'primaryauth.title': 'Sign in to Flamoral',
+          'primaryauth.submit': 'Sign In',
+        },
+      },
+    });
+
+    widget
+      .showSignInToGetTokens({
+        el: widgetRef.current,
+      })
+      .then((tokens) => {
+        oktaAuth.handleLoginRedirect(tokens);
+      })
+      .catch((err) => {
+        console.error('Sign in error:', err);
+      });
+
+    return () => {
+      widget.remove();
+    };
+  }, [oktaAuth]);
+
   // Loading state
-  if (!isLoaded) {
+  if (!authState) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -34,7 +88,7 @@ export const ClerkLoginPage: React.FC = () => {
           className="w-12 h-12 border-3 rounded-full animate-spin"
           style={{
             borderColor: '#2d2d3d',
-            borderTopColor: '#FF6B7A',
+            borderTopColor: '#D62839',
             borderWidth: '3px',
           }}
         />
@@ -43,7 +97,7 @@ export const ClerkLoginPage: React.FC = () => {
   }
 
   // Already signed in - redirect
-  if (isSignedIn) {
+  if (authState.isAuthenticated) {
     return <Navigate to={from} replace />;
   }
 
@@ -83,38 +137,16 @@ export const ClerkLoginPage: React.FC = () => {
           <p className="text-gray-400 text-sm">Welcome back! Sign in to continue.</p>
         </div>
 
-        {/* Clerk SignIn component */}
-        <div className="clerk-signin-wrapper">
-          <SignIn
-            appearance={{
-              elements: {
-                rootBox: 'w-full',
-                card: 'bg-white/95 backdrop-blur-xl shadow-2xl border-0 rounded-2xl',
-                headerTitle: 'text-gray-900 font-semibold',
-                headerSubtitle: 'text-gray-600',
-                socialButtonsBlockButton:
-                  'border border-gray-200 hover:bg-gray-50 transition-colors rounded-xl',
-                socialButtonsBlockButtonText: 'text-gray-700 font-medium',
-                dividerLine: 'bg-gray-200',
-                dividerText: 'text-gray-500 text-sm',
-                formFieldLabel: 'text-gray-700 font-medium',
-                formFieldInput:
-                  'border-gray-200 focus:border-[#D62839] focus:ring-[#D62839]/20 rounded-xl',
-                formButtonPrimary:
-                  'bg-[#D62839] hover:bg-[#B82232] text-white font-semibold rounded-xl min-h-[48px] transition-colors',
-                footerActionLink: 'text-[#D62839] hover:text-[#B82232] font-medium',
-                identityPreviewEditButton: 'text-[#D62839]',
-                formFieldAction: 'text-[#D62839] hover:text-[#B82232]',
-                alertText: 'text-sm',
-                formFieldInputShowPasswordButton: 'text-gray-500 hover:text-gray-700',
-              },
-            }}
-            routing="path"
-            path="/login"
-            signUpUrl="/signup"
-            afterSignInUrl={from}
-          />
-        </div>
+        {/* Okta Sign-In Widget container */}
+        <div
+          ref={widgetRef}
+          className="okta-signin-wrapper"
+          style={
+            {
+              '--okta-primary-color': '#D62839',
+            } as React.CSSProperties
+          }
+        />
 
         {/* Additional links */}
         <div className="mt-6 text-center">
@@ -143,8 +175,42 @@ export const ClerkLoginPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Custom styles for Okta widget */}
+      <style>{`
+        .okta-signin-wrapper #okta-sign-in {
+          margin: 0 auto;
+          border: none;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          border-radius: 1.5rem;
+        }
+        .okta-signin-wrapper #okta-sign-in .auth-content {
+          padding: 2rem;
+        }
+        .okta-signin-wrapper #okta-sign-in .o-form-button-bar .button-primary {
+          background: #D62839;
+          border-color: #D62839;
+          border-radius: 0.75rem;
+          min-height: 48px;
+          font-weight: 600;
+        }
+        .okta-signin-wrapper #okta-sign-in .o-form-button-bar .button-primary:hover {
+          background: #B82232;
+          border-color: #B82232;
+        }
+        .okta-signin-wrapper #okta-sign-in .o-form-input-name-identifier input,
+        .okta-signin-wrapper #okta-sign-in .o-form-input-name-credentials\\.passcode input {
+          border-radius: 0.75rem;
+        }
+        .okta-signin-wrapper #okta-sign-in .link {
+          color: #D62839;
+        }
+        .okta-signin-wrapper #okta-sign-in .link:hover {
+          color: #B82232;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default ClerkLoginPage;
+export default OktaLoginPage;
