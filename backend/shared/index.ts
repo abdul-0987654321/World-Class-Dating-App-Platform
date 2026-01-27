@@ -17,11 +17,7 @@ export {
   clearLogContext,
   sanitize,
 } from './utils/logger';
-export type {
-  ObservableLogger,
-  LogContext,
-  StructuredLogEntry,
-} from './utils/logger';
+export type { ObservableLogger, LogContext, StructuredLogEntry } from './utils/logger';
 
 export * from './utils/validation';
 export * from './utils/encryption';
@@ -35,6 +31,13 @@ export * from './config/environment';
 
 // Services
 export * from './src/services/service-client';
+
+// Platform Intelligence - Feature Flags
+export {
+  FeatureFlagService,
+  DEFAULT_FEATURE_FLAGS,
+} from './src/platform-intelligence/feature-flags';
+export type { FeatureFlag, FeatureFlagConfig } from './src/platform-intelligence/feature-flags';
 
 // Errors - Single source of truth for error handling
 export * from './errors';

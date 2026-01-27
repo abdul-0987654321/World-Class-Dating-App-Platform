@@ -15,7 +15,7 @@
 import { Message } from '../types';
 import { createLogger } from '../utils/logger';
 import redisClient from '../infrastructure/cache/redis';
-import { FeatureFlagService } from '@flamoral/backend-shared/platform-intelligence/feature-flags';
+import { FeatureFlagService } from '@flamoral/backend-shared';
 
 const logger = createLogger('conversation-momentum-service');
 
