@@ -136,9 +136,16 @@ async function bootstrap() {
   const csrfMiddleware = app.get(CsrfMiddleware);
   app.use(csrfMiddleware.use.bind(csrfMiddleware));
 
-  // Global prefix - exclude health endpoints for Docker/K8s health checks
+  // Global prefix - exclude health endpoints and webhooks for external services
   app.setGlobalPrefix('api/v1', {
-    exclude: ['health', 'health/ready', 'health/live', 'health/services'],
+    exclude: [
+      'health',
+      'health/ready',
+      'health/live',
+      'health/services',
+      'webhooks/okta',
+      'webhooks/(.*)',
+    ],
   });
 
   // Validation
