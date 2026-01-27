@@ -70,7 +70,9 @@
     "vitest": "^4.0.16"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.9.0"
+    "@rollup/rollup-linux-x64-gnu": "^4.9.0",
+    "lightningcss": "^1.28.0",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.1.18"
   },
   "engines": {
     "node": ">=20"
