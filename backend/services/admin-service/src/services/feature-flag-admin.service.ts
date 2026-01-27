@@ -1,8 +1,4 @@
-import {
-  FeatureFlag,
-  FeatureFlagConfig,
-  DEFAULT_FEATURE_FLAGS,
-} from '@flamoral/backend-shared/src/platform-intelligence/feature-flags';
+import { FeatureFlag, FeatureFlagConfig, DEFAULT_FEATURE_FLAGS } from '@flamoral/backend-shared';
 
 import { db } from '../infrastructure/database';
 import { redis } from '../infrastructure/redis';
