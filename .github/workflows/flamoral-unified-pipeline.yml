@@ -351,7 +351,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Run Snyk security scan
         uses: snyk/actions/node@0.4.0
@@ -416,7 +416,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: TypeScript compilation check
         run: npx tsc --noEmit
@@ -1266,7 +1266,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Build frontend
         run: npm run build:web
@@ -1444,7 +1444,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -1854,12 +1854,12 @@ jobs:
           cache: 'npm'
 
       - name: Install root dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Install mobile app dependencies
         run: |
           cd apps/mobile-app
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
 
       - name: Setup Java (for Android)
         uses: actions/setup-java@v4
@@ -2043,12 +2043,12 @@ jobs:
           cache: 'npm'
 
       - name: Install root dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Install mobile app dependencies
         run: |
           cd apps/mobile-app
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
 
       - name: Setup Expo CLI and EAS
         uses: expo/expo-github-action@v8
