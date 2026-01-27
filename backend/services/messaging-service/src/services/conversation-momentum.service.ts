@@ -15,7 +15,7 @@
 import { Message } from '../types';
 import { createLogger } from '../utils/logger';
 import redisClient from '../infrastructure/cache/redis';
-import { FeatureFlagService } from '../../../../shared/src/platform-intelligence/feature-flags';
+import { FeatureFlagService } from '@flamoral/backend-shared/platform-intelligence/feature-flags';
 
 const logger = createLogger('conversation-momentum-service');
 
@@ -108,10 +108,10 @@ const CONFIG = {
     responseTime: 0.25,
     messageLength: 0.15,
     questionRatio: 0.15,
-    emojiUsage: 0.10,
-    topicVariety: 0.10,
+    emojiUsage: 0.1,
+    topicVariety: 0.1,
     reciprocity: 0.15,
-    messageRate: 0.10,
+    messageRate: 0.1,
   },
 
   // Time decay for message relevance (in hours)
@@ -121,10 +121,10 @@ const CONFIG = {
   thresholds: {
     // Response time thresholds (seconds)
     responseTime: {
-      excellent: 60,      // < 1 minute
-      good: 300,          // < 5 minutes
-      average: 1800,      // < 30 minutes
-      slow: 3600,         // < 1 hour
+      excellent: 60, // < 1 minute
+      good: 300, // < 5 minutes
+      average: 1800, // < 30 minutes
+      slow: 3600, // < 1 hour
     },
     // Message length thresholds (characters)
     messageLength: {
@@ -142,7 +142,7 @@ const CONFIG = {
     },
     // Trend detection thresholds
     trend: {
-      risingVelocity: 5,   // points per hour
+      risingVelocity: 5, // points per hour
       fallingVelocity: -5,
     },
     // Shift detection (significant change)
@@ -205,16 +205,19 @@ export class ConversationMomentumService {
       const velocity = this.calculateVelocity(history, score);
 
       // Generate alerts
-      const alerts = this.generateMomentumAlerts({
-        conversationId,
-        currentScore: score,
-        trend,
-        velocity,
-        factors,
-        history,
-        alerts: [],
-        calculatedAt: new Date(),
-      }, previousMomentum);
+      const alerts = this.generateMomentumAlerts(
+        {
+          conversationId,
+          currentScore: score,
+          trend,
+          velocity,
+          factors,
+          history,
+          alerts: [],
+          calculatedAt: new Date(),
+        },
+        previousMomentum
+      );
 
       // Build momentum object
       const momentum: ConversationMomentum = {
@@ -262,7 +265,7 @@ export class ConversationMomentumService {
 
     // Calculate recent trend using linear regression on last 5 entries
     const recentEntries = scoreHistory.slice(0, 5);
-    const scores = recentEntries.map(e => e.score);
+    const scores = recentEntries.map((e) => e.score);
     const avgRecentScore = scores.reduce((a, b) => a + b, 0) / scores.length;
 
     const scoreDiff = currentScore - avgRecentScore;
@@ -364,7 +367,7 @@ export class ConversationMomentumService {
       const shift = this.detectMomentumShift(previousMomentum, momentum);
       if (shift.hasShift && shift.direction === 'negative') {
         // Only add if not already covered by other alerts
-        if (!alerts.some(a => a.type === 'momentum_dropping' || a.type === 'momentum_critical')) {
+        if (!alerts.some((a) => a.type === 'momentum_dropping' || a.type === 'momentum_critical')) {
           alerts.push({
             type: 'momentum_dropping',
             message: `Sudden drop in engagement detected (${Math.round(shift.magnitude)} points)`,
@@ -398,7 +401,7 @@ export class ConversationMomentumService {
       const cutoffTime = Date.now() - hours * 60 * 60 * 1000;
 
       return history
-        .filter(entry => new Date(entry.timestamp).getTime() > cutoffTime)
+        .filter((entry) => new Date(entry.timestamp).getTime() > cutoffTime)
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     } catch (error: any) {
       logger.error('Failed to get momentum history', { conversationId, error: error.message });
@@ -470,7 +473,8 @@ export class ConversationMomentumService {
           1000;
 
         // Apply time decay - recent messages weighted higher
-        const hoursAgo = (Date.now() - new Date(sortedByTime[i].sentAt).getTime()) / (1000 * 60 * 60);
+        const hoursAgo =
+          (Date.now() - new Date(sortedByTime[i].sentAt).getTime()) / (1000 * 60 * 60);
         const decayFactor = Math.exp(-hoursAgo / CONFIG.messageDecayHours);
 
         responseTimes.push(responseTime * (1 / (decayFactor + 0.1)));
@@ -499,8 +503,8 @@ export class ConversationMomentumService {
    */
   private calculateMessageLengthFactor(messages: Message[]): number {
     const lengths = messages
-      .filter(m => m.content && m.type === 'text')
-      .map(m => m.content.length);
+      .filter((m) => m.content && m.type === 'text')
+      .map((m) => m.content.length);
 
     if (lengths.length === 0) {
       return 0.5;
@@ -512,7 +516,7 @@ export class ConversationMomentumService {
     // Score based on optimal message length
     if (avgLength < tooShort) return 0.3;
     if (avgLength >= optimal && avgLength <= long) return 1.0;
-    if (avgLength < optimal) return 0.5 + (avgLength - tooShort) / (optimal - tooShort) * 0.5;
+    if (avgLength < optimal) return 0.5 + ((avgLength - tooShort) / (optimal - tooShort)) * 0.5;
     if (avgLength > long) return Math.max(0.6, 1.0 - (avgLength - long) / 500);
 
     return 0.7;
@@ -522,15 +526,18 @@ export class ConversationMomentumService {
    * Calculate question ratio factor (0-1)
    */
   private calculateQuestionRatioFactor(messages: Message[]): number {
-    const textMessages = messages.filter(m => m.content && m.type === 'text');
+    const textMessages = messages.filter((m) => m.content && m.type === 'text');
 
     if (textMessages.length === 0) {
       return 0.5;
     }
 
-    const questionCount = textMessages.filter(m =>
-      m.content.includes('?') ||
-      /^(who|what|when|where|why|how|do you|are you|have you|will you|would you|could you)/i.test(m.content)
+    const questionCount = textMessages.filter(
+      (m) =>
+        m.content.includes('?') ||
+        /^(who|what|when|where|why|how|do you|are you|have you|will you|would you|could you)/i.test(
+          m.content
+        )
     ).length;
 
     const ratio = questionCount / textMessages.length;
@@ -545,17 +552,18 @@ export class ConversationMomentumService {
    * Calculate emoji usage factor (0-1)
    */
   private calculateEmojiUsageFactor(messages: Message[]): number {
-    const textMessages = messages.filter(m => m.content && m.type === 'text');
+    const textMessages = messages.filter((m) => m.content && m.type === 'text');
 
     if (textMessages.length === 0) {
       return 0.5;
     }
 
     // Regex to match common emojis
-    const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+    const emojiRegex =
+      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
 
     let totalEmojis = 0;
-    textMessages.forEach(m => {
+    textMessages.forEach((m) => {
       const matches = m.content.match(emojiRegex);
       if (matches) {
         totalEmojis += matches.length;
@@ -576,7 +584,7 @@ export class ConversationMomentumService {
    * Calculate topic variety factor (0-1)
    */
   private calculateTopicVarietyFactor(messages: Message[]): number {
-    const textMessages = messages.filter(m => m.content && m.type === 'text');
+    const textMessages = messages.filter((m) => m.content && m.type === 'text');
 
     if (textMessages.length < 3) {
       return 0.5;
@@ -595,10 +603,10 @@ export class ConversationMomentumService {
     };
 
     const detectedTopics = new Set<string>();
-    const allContent = textMessages.map(m => m.content.toLowerCase()).join(' ');
+    const allContent = textMessages.map((m) => m.content.toLowerCase()).join(' ');
 
     for (const [topic, keywords] of Object.entries(topicKeywords)) {
-      if (keywords.some(kw => allContent.includes(kw))) {
+      if (keywords.some((kw) => allContent.includes(kw))) {
         detectedTopics.add(topic);
       }
     }
@@ -620,7 +628,7 @@ export class ConversationMomentumService {
 
     // Count messages per sender
     const senderCounts: Record<string, number> = {};
-    messages.forEach(m => {
+    messages.forEach((m) => {
       senderCounts[m.senderId] = (senderCounts[m.senderId] || 0) + 1;
     });
 
@@ -695,8 +703,7 @@ export class ConversationMomentumService {
     const recentHistory = history.slice(0, 5);
     const oldestRecent = recentHistory[recentHistory.length - 1];
 
-    const hoursDiff =
-      (Date.now() - new Date(oldestRecent.timestamp).getTime()) / (1000 * 60 * 60);
+    const hoursDiff = (Date.now() - new Date(oldestRecent.timestamp).getTime()) / (1000 * 60 * 60);
 
     if (hoursDiff < 0.01) {
       return 0;
@@ -757,11 +764,7 @@ export class ConversationMomentumService {
   private async cacheMomentum(momentum: ConversationMomentum): Promise<void> {
     try {
       const key = `${CONFIG.cache.keyPrefix}${momentum.conversationId}`;
-      await redisClient.getClient().setEx(
-        key,
-        CONFIG.cache.ttlSeconds,
-        JSON.stringify(momentum)
-      );
+      await redisClient.getClient().setEx(key, CONFIG.cache.ttlSeconds, JSON.stringify(momentum));
     } catch (error: any) {
       logger.error('Failed to cache momentum', { error: error.message });
     }
@@ -770,15 +773,13 @@ export class ConversationMomentumService {
   /**
    * Add entry to momentum history
    */
-  private async addToHistory(
-    conversationId: string,
-    entry: MomentumHistoryEntry
-  ): Promise<void> {
+  private async addToHistory(conversationId: string, entry: MomentumHistoryEntry): Promise<void> {
     try {
       const key = `${CONFIG.cache.historyKeyPrefix}${conversationId}`;
       const existingStr = await redisClient.getClient().get(key);
 
-      let history: MomentumHistoryEntry[] = existingStr && typeof existingStr === 'string' ? JSON.parse(existingStr) : [];
+      let history: MomentumHistoryEntry[] =
+        existingStr && typeof existingStr === 'string' ? JSON.parse(existingStr) : [];
 
       // Add new entry at the beginning
       history.unshift(entry);
