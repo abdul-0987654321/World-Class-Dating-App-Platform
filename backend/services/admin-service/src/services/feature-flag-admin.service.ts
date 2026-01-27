@@ -130,7 +130,8 @@ export class FeatureFlagAdminService {
     const previousValue = { rolloutPercentage: currentFlag.rolloutPercentage };
 
     // Create or update override
-    const override = await this.getOverride(category, name) || this.createEmptyOverride(category, name, adminId);
+    const override =
+      (await this.getOverride(category, name)) || this.createEmptyOverride(category, name, adminId);
     override.rolloutPercentage = percentage;
     override.createdBy = adminId;
     override.createdAt = new Date().toISOString();
@@ -174,7 +175,8 @@ export class FeatureFlagAdminService {
     const previousValue = { userSegments: currentFlag.userSegments };
 
     // Create or update override
-    const override = await this.getOverride(category, name) || this.createEmptyOverride(category, name, adminId);
+    const override =
+      (await this.getOverride(category, name)) || this.createEmptyOverride(category, name, adminId);
     override.userSegments = segments;
     override.createdBy = adminId;
     override.createdAt = new Date().toISOString();
@@ -218,7 +220,8 @@ export class FeatureFlagAdminService {
     const previousValue = { regions: currentFlag.regions };
 
     // Create or update override
-    const override = await this.getOverride(category, name) || this.createEmptyOverride(category, name, adminId);
+    const override =
+      (await this.getOverride(category, name)) || this.createEmptyOverride(category, name, adminId);
     override.regions = regions;
     override.createdBy = adminId;
     override.createdAt = new Date().toISOString();
@@ -262,7 +265,8 @@ export class FeatureFlagAdminService {
     const previousValue = { enabled: currentFlag.enabled };
 
     // Create or update override
-    const override = await this.getOverride(category, name) || this.createEmptyOverride(category, name, adminId);
+    const override =
+      (await this.getOverride(category, name)) || this.createEmptyOverride(category, name, adminId);
     override.enabled = enabled;
     override.createdBy = adminId;
     override.createdAt = new Date().toISOString();
@@ -281,7 +285,9 @@ export class FeatureFlagAdminService {
       reason,
     });
 
-    logger.info(`Feature flag ${category}/${name} ${enabled ? 'enabled' : 'disabled'} by ${adminId}`);
+    logger.info(
+      `Feature flag ${category}/${name} ${enabled ? 'enabled' : 'disabled'} by ${adminId}`
+    );
 
     const updatedFlag = await this.getFlag(category, name);
     if (!updatedFlag) {
@@ -308,7 +314,8 @@ export class FeatureFlagAdminService {
     const newValue: Partial<FeatureFlagDto> = {};
 
     // Create or update override
-    const override = await this.getOverride(category, name) || this.createEmptyOverride(category, name, adminId);
+    const override =
+      (await this.getOverride(category, name)) || this.createEmptyOverride(category, name, adminId);
 
     if (updates.enabled !== undefined) {
       previousValue.enabled = currentFlag.enabled;
@@ -436,9 +443,7 @@ export class FeatureFlagAdminService {
 
     // Also remove from database if stored there
     try {
-      await db('feature_flag_overrides')
-        .where({ category, flag_name: name })
-        .delete();
+      await db('feature_flag_overrides').where({ category, flag_name: name }).delete();
     } catch (error) {
       // Table might not exist
       logger.warn('Could not remove override from database:', error);
@@ -510,7 +515,10 @@ export class FeatureFlagAdminService {
   /**
    * Get runtime override from Redis
    */
-  private async getOverride(category: string, name: string): Promise<FeatureFlagOverrideDto | null> {
+  private async getOverride(
+    category: string,
+    name: string
+  ): Promise<FeatureFlagOverrideDto | null> {
     const overrideKey = `${OVERRIDE_PREFIX}${category}:${name}`;
     const overrideData = await redis.get(overrideKey);
 
@@ -605,8 +613,7 @@ export class FeatureFlagAdminService {
           ? override.rolloutPercentage
           : flag.rolloutPercentage,
       regions: override.regions !== undefined ? override.regions : flag.regions,
-      userSegments:
-        override.userSegments !== undefined ? override.userSegments : flag.userSegments,
+      userSegments: override.userSegments !== undefined ? override.userSegments : flag.userSegments,
       updatedAt: override.createdAt || flag.updatedAt,
     };
   }
@@ -662,10 +669,7 @@ export class FeatureFlagAdminService {
   /**
    * Calculate metrics for a feature flag
    */
-  private async calculateMetrics(
-    category: string,
-    name: string
-  ): Promise<FeatureFlagMetricsDto> {
+  private async calculateMetrics(category: string, name: string): Promise<FeatureFlagMetricsDto> {
     const flagKey = `${category}:${name}`;
 
     // Try to get real metrics from database
@@ -680,7 +684,7 @@ export class FeatureFlagAdminService {
 
     try {
       // Get aggregated metrics from feature_flag_evaluations table
-      const metrics = await db('feature_flag_evaluations')
+      const metrics = (await db('feature_flag_evaluations')
         .where({ flag_key: flagKey })
         .select(
           db.raw('COUNT(*) as total'),
@@ -689,14 +693,24 @@ export class FeatureFlagAdminService {
           db.raw('COUNT(DISTINCT user_id) as unique_users'),
           db.raw('MAX(evaluated_at) as last_evaluated')
         )
-        .first() as { total: string; enabled: string; disabled: string; unique_users: string; last_evaluated: Date | null } | undefined;
+        .first()) as unknown as
+        | {
+            total: string;
+            enabled: string;
+            disabled: string;
+            unique_users: string;
+            last_evaluated: Date | null;
+          }
+        | undefined;
 
       if (metrics) {
         totalEvaluations = parseInt(metrics.total) || 0;
         enabledEvaluations = parseInt(metrics.enabled) || 0;
         disabledEvaluations = parseInt(metrics.disabled) || 0;
         uniqueUsers = parseInt(metrics.unique_users) || 0;
-        lastEvaluatedAt = metrics.last_evaluated ? new Date(metrics.last_evaluated).toISOString() : lastEvaluatedAt;
+        lastEvaluatedAt = metrics.last_evaluated
+          ? new Date(metrics.last_evaluated).toISOString()
+          : lastEvaluatedAt;
       }
 
       // Get daily breakdown (last 30 days)

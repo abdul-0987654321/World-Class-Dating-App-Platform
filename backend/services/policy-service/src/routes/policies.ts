@@ -429,7 +429,7 @@ router.post(
     logger.info('Policy publication request', {
       policyId: req.body.policyId,
       version: req.body.version,
-      user: req.user?.id,
+      user: (req.user as any)?.id,
     });
 
     const result = await updateController.publishPolicy(req.body);
