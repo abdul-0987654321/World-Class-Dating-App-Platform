@@ -40,7 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setIsAuthenticated(false);
               setUser(null);
             }
-          } catch {
+          } catch (error) {
+            console.error('[AuthContext] Session verification failed:', error);
             setIsAuthenticated(false);
             setUser(null);
           }
@@ -72,8 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      console.warn('[AuthContext] Failed to refresh user:', error);
     }
   }, []);
 

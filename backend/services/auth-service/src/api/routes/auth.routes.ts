@@ -341,6 +341,38 @@ router.get('/me', authenticate, authController.me.bind(authController));
 
 /**
  * @swagger
+ * /api/auth/session:
+ *   get:
+ *     summary: Get current session with user info and entitlements
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Session info retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                     entitlements:
+ *                       type: object
+ *                     isAuthenticated:
+ *                       type: boolean
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/session', authenticate, authController.session.bind(authController));
+
+/**
+ * @swagger
  * /api/auth/validate-token:
  *   post:
  *     summary: Validate an access token (internal service use)

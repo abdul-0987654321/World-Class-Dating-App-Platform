@@ -114,7 +114,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('Registration failed', { error: error.message, correlationId });
-      return sendError(res, 400, 'VALIDATION_FAILED', error.message || 'Registration failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'VALIDATION_FAILED',
+        error.message || 'Registration failed',
+        correlationId
+      );
     }
   }
 
@@ -235,7 +241,13 @@ class AuthController {
       logger.error('Token refresh failed', { error: error.message, correlationId });
       // Clear cookies on refresh failure (token may be compromised)
       this.clearAuthCookies(res);
-      return sendError(res, 401, 'AUTH_REFRESH_TOKEN_INVALID', error.message || 'Invalid refresh token', correlationId);
+      return sendError(
+        res,
+        401,
+        'AUTH_REFRESH_TOKEN_INVALID',
+        error.message || 'Invalid refresh token',
+        correlationId
+      );
     }
   }
 
@@ -249,7 +261,13 @@ class AuthController {
       const { token } = req.body;
 
       if (!token) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Verification token is required', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Verification token is required',
+          correlationId
+        );
       }
 
       await authService.verifyEmail(token);
@@ -261,7 +279,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('Email verification failed', { error: error.message, correlationId });
-      return sendError(res, 400, 'AUTH_TOKEN_INVALID', error.message || 'Email verification failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'AUTH_TOKEN_INVALID',
+        error.message || 'Email verification failed',
+        correlationId
+      );
     }
   }
 
@@ -287,7 +311,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('Resend verification failed', { error: error.message, correlationId });
-      return sendError(res, 400, 'VALIDATION_FAILED', error.message || 'Failed to send verification email', correlationId);
+      return sendError(
+        res,
+        400,
+        'VALIDATION_FAILED',
+        error.message || 'Failed to send verification email',
+        correlationId
+      );
     }
   }
 
@@ -314,7 +344,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('Password reset request failed', { error: error.message, correlationId });
-      return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to process password reset request', correlationId);
+      return sendError(
+        res,
+        500,
+        'INTERNAL_ERROR',
+        'Failed to process password reset request',
+        correlationId
+      );
     }
   }
 
@@ -328,7 +364,13 @@ class AuthController {
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Token and new password are required', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Token and new password are required',
+          correlationId
+        );
       }
 
       await authService.resetPassword(token, newPassword);
@@ -340,7 +382,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('Password reset failed', { error: error.message, correlationId });
-      return sendError(res, 400, 'AUTH_TOKEN_INVALID', error.message || 'Password reset failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'AUTH_TOKEN_INVALID',
+        error.message || 'Password reset failed',
+        correlationId
+      );
     }
   }
 
@@ -367,6 +415,149 @@ class AuthController {
       logger.error('Failed to get user info', { error: error.message, correlationId });
       return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get user info', correlationId);
     }
+  }
+
+  /**
+   * GET /api/auth/session
+   * Get current session with user info and entitlements
+   * Returns full session data for frontend initialization
+   */
+  async session(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
+    try {
+      const userId = req.user.userId;
+      const user = await authService.getUserById(userId);
+
+      if (!user) {
+        return sendError(res, 404, 'RESOURCE_NOT_FOUND', 'User not found', correlationId);
+      }
+
+      // Get user's subscription tier (default to FREE if not set)
+      const subscriptionTier =
+        (user as any).subscription_tier || (user as any).premiumTier || 'FREE';
+
+      // Build entitlements based on subscription tier
+      const entitlements = this.getEntitlementsForTier(subscriptionTier);
+
+      res.setHeader('X-Correlation-ID', correlationId);
+      return res.status(200).json({
+        success: true,
+        data: {
+          user,
+          entitlements,
+          isAuthenticated: true,
+        },
+      });
+    } catch (error: any) {
+      logger.error('Failed to get session', { error: error.message, correlationId });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get session', correlationId);
+    }
+  }
+
+  /**
+   * Get entitlements for a subscription tier
+   */
+  private getEntitlementsForTier(tier: string): {
+    tier: string;
+    features: string[];
+    limits: Record<string, number | boolean>;
+  } {
+    const tierEntitlements: Record<
+      string,
+      { tier: string; features: string[]; limits: Record<string, number | boolean> }
+    > = {
+      FREE: {
+        tier: 'FREE',
+        features: ['basic_matching', 'messaging'],
+        limits: {
+          dailyLikes: 10,
+          dailySuperLikes: 0,
+          dailyBoosts: 0,
+          messagesBeforeMatch: false,
+          seeWhoLikesYou: false,
+          advancedFilters: false,
+          readReceipts: false,
+          incognitoMode: false,
+          videoCalls: false,
+          prioritySupport: false,
+        },
+      },
+      GOLD: {
+        tier: 'GOLD',
+        features: ['basic_matching', 'messaging', 'unlimited_likes', 'see_likes', 'rewind'],
+        limits: {
+          dailyLikes: -1,
+          dailySuperLikes: 5,
+          dailyBoosts: 1,
+          messagesBeforeMatch: false,
+          seeWhoLikesYou: true,
+          advancedFilters: true,
+          readReceipts: false,
+          incognitoMode: false,
+          videoCalls: false,
+          prioritySupport: false,
+        },
+      },
+      PLATINUM: {
+        tier: 'PLATINUM',
+        features: [
+          'basic_matching',
+          'messaging',
+          'unlimited_likes',
+          'see_likes',
+          'rewind',
+          'priority',
+          'read_receipts',
+          'incognito',
+        ],
+        limits: {
+          dailyLikes: -1,
+          dailySuperLikes: 10,
+          dailyBoosts: 3,
+          messagesBeforeMatch: true,
+          seeWhoLikesYou: true,
+          advancedFilters: true,
+          readReceipts: true,
+          incognitoMode: true,
+          videoCalls: true,
+          prioritySupport: false,
+        },
+      },
+      DIAMOND: {
+        tier: 'DIAMOND',
+        features: ['all'],
+        limits: {
+          dailyLikes: -1,
+          dailySuperLikes: -1,
+          dailyBoosts: -1,
+          messagesBeforeMatch: true,
+          seeWhoLikesYou: true,
+          advancedFilters: true,
+          readReceipts: true,
+          incognitoMode: true,
+          videoCalls: true,
+          prioritySupport: true,
+        },
+      },
+      ELITE: {
+        tier: 'ELITE',
+        features: ['all', 'vip'],
+        limits: {
+          dailyLikes: -1,
+          dailySuperLikes: -1,
+          dailyBoosts: -1,
+          messagesBeforeMatch: true,
+          seeWhoLikesYou: true,
+          advancedFilters: true,
+          readReceipts: true,
+          incognitoMode: true,
+          videoCalls: true,
+          prioritySupport: true,
+        },
+      },
+    };
+
+    return tierEntitlements[tier.toUpperCase()] || tierEntitlements.FREE;
   }
 
   /**
@@ -453,7 +644,13 @@ class AuthController {
       const { password } = req.body;
 
       if (!password) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Password is required to setup 2FA', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Password is required to setup 2FA',
+          correlationId
+        );
       }
 
       const result = await twoFactorService.setup2FA({ userId, password });
@@ -472,7 +669,13 @@ class AuthController {
         return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid password', correlationId);
       }
 
-      return sendError(res, 400, 'VALIDATION_FAILED', error.message || '2FA setup failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'VALIDATION_FAILED',
+        error.message || '2FA setup failed',
+        correlationId
+      );
     }
   }
 
@@ -487,7 +690,13 @@ class AuthController {
       const { token, tempSecret } = req.body;
 
       if (!token) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Verification token is required', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Verification token is required',
+          correlationId
+        );
       }
 
       const result = await twoFactorService.verifyAndEnable2FA({
@@ -507,7 +716,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('2FA verification failed', { error: error.message, correlationId });
-      return sendError(res, 400, 'AUTH_MFA_REQUIRED', error.message || '2FA verification failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'AUTH_MFA_REQUIRED',
+        error.message || '2FA verification failed',
+        correlationId
+      );
     }
   }
 
@@ -523,11 +738,23 @@ class AuthController {
       const { password, token } = req.body;
 
       if (!password) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Password is required to disable 2FA', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Password is required to disable 2FA',
+          correlationId
+        );
       }
 
       if (!token) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Verification code or backup code is required', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Verification code or backup code is required',
+          correlationId
+        );
       }
 
       const result = await twoFactorService.disable2FA({
@@ -553,7 +780,13 @@ class AuthController {
         return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid password', correlationId);
       }
 
-      return sendError(res, 400, 'AUTH_MFA_REQUIRED', error.message || '2FA disable failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'AUTH_MFA_REQUIRED',
+        error.message || '2FA disable failed',
+        correlationId
+      );
     }
   }
 
@@ -567,7 +800,13 @@ class AuthController {
       const { userId, token } = req.body;
 
       if (!userId || !token) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'User ID and verification code are required', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'User ID and verification code are required',
+          correlationId
+        );
       }
 
       const result = await twoFactorService.validate2FALogin({ userId, token });
@@ -583,7 +822,13 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('2FA validation failed', { error: error.message, correlationId });
-      return sendError(res, 400, 'AUTH_MFA_REQUIRED', error.message || '2FA validation failed', correlationId);
+      return sendError(
+        res,
+        400,
+        'AUTH_MFA_REQUIRED',
+        error.message || '2FA validation failed',
+        correlationId
+      );
     }
   }
 
@@ -599,7 +844,13 @@ class AuthController {
       const { password } = req.body;
 
       if (!password) {
-        return sendError(res, 400, 'VALIDATION_FAILED', 'Password is required to regenerate backup codes', correlationId);
+        return sendError(
+          res,
+          400,
+          'VALIDATION_FAILED',
+          'Password is required to regenerate backup codes',
+          correlationId
+        );
       }
 
       const backupCodes = await twoFactorService.regenerateBackupCodes(userId, password);
@@ -618,7 +869,13 @@ class AuthController {
         return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid password', correlationId);
       }
 
-      return sendError(res, 400, 'VALIDATION_FAILED', error.message || 'Failed to regenerate backup codes', correlationId);
+      return sendError(
+        res,
+        400,
+        'VALIDATION_FAILED',
+        error.message || 'Failed to regenerate backup codes',
+        correlationId
+      );
     }
   }
 }

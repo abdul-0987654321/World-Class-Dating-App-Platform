@@ -14,7 +14,7 @@
       "deploy": {
         "startCommand": "node dist/main.js",
         "healthcheckPath": "/health",
-        "healthcheckTimeout": 300,
+        "healthcheckTimeout": 60,
         "restartPolicyType": "ON_FAILURE",
         "restartPolicyMaxRetries": 5,
         "numReplicas": 2
@@ -55,7 +55,9 @@
         "OKTA_CLIENT_SECRET": "${{shared.OKTA_CLIENT_SECRET}}",
         "OKTA_AUDIENCE": "${{shared.OKTA_AUDIENCE}}",
         "OKTA_WEBHOOK_SECRET": "${{shared.OKTA_WEBHOOK_SECRET}}",
-        "CORS_ORIGINS": "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com,https://staging.flamoral.com"
+        "CORS_ORIGINS": "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com,https://staging.flamoral.com",
+        "COOKIE_DOMAIN": ".flamoral.com",
+        "FRONTEND_URL": "https://flamoral.com"
       },
       "networking": {
         "ports": [3000],
@@ -98,7 +100,10 @@
         "JWT_ISSUER": "flamoral-auth-service",
         "JWT_AUDIENCE": "flamoral-platform",
         "REQUIRE_EMAIL_VERIFICATION": "true",
-        "VALIDATE_JWT_SECRETS": "true"
+        "VALIDATE_JWT_SECRETS": "true",
+        "COOKIE_DOMAIN": ".flamoral.com",
+        "FRONTEND_URL": "https://flamoral.com",
+        "FRONTEND_URL_APP": "https://app.flamoral.com"
       },
       "networking": {
         "ports": [3001]
