@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useOktaAuth } from '@okta/okta-react';
-import { OktaUserButton } from './UserMenu/OktaUserButton';
+import { useAuth } from '../contexts/AuthContext';
+import { UserButton } from './UserMenu/UserButton';
 import { FlamoralLogo } from './Logo';
 
 export const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const { authState } = useOktaAuth();
-  const isSignedIn = authState?.isAuthenticated;
+  const { isAuthenticated } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -225,10 +224,10 @@ export const Navigation: React.FC = () => {
             )}
           </div>
 
-          {/* User Account Button (Okta) */}
-          {isSignedIn && (
+          {/* User Account Button */}
+          {isAuthenticated && (
             <div className="ml-2">
-              <OktaUserButton size="sm" />
+              <UserButton size="sm" />
             </div>
           )}
         </nav>

@@ -1,7 +1,7 @@
 /**
  * Profile Setup Page
  *
- * Shown after Okta signup to collect additional profile information.
+ * Shown after signup to collect additional profile information.
  * Collects:
  * - Basic info (name, gender, date of birth)
  * - Location preferences
@@ -11,9 +11,10 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useOktaAuth } from '@okta/okta-react';
+import { useAuth } from '../../contexts/AuthContext';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 import logger from '../../utils/logger';
+import apiClient from '../../services/api.client';
 
 // Gender options
 const GENDER_OPTIONS = [
@@ -42,13 +43,7 @@ interface ProfileFormData {
 export const ProfileSetupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { authState, oktaAuth } = useOktaAuth();
-  const isUserLoaded = authState && !authState.isPending;
-  const user = authState?.idToken?.claims;
-
-  const getToken = async () => {
-    return oktaAuth.getAccessToken() || null;
-  };
+  const { user, isAuthReady, refreshUser } = useAuth();
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,30 +119,17 @@ export const ProfileSetupPage: React.FC = () => {
     setError('');
 
     try {
-      const token = await getToken();
-      const apiUrl = import.meta.env.VITE_API_URL || '';
-
-      const response = await fetch(`${apiUrl}/api/v1/users/profile/setup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          okta_user_id: user?.sub,
-          gender: formData.gender,
-          date_of_birth: formData.dateOfBirth,
-          interested_in: formData.interestedIn,
-          bio: formData.bio || null,
-          location: formData.location || null,
-        }),
-        credentials: 'include',
+      await apiClient.post('/api/v1/users/profile/setup', {
+        user_id: user?.id,
+        gender: formData.gender,
+        date_of_birth: formData.dateOfBirth,
+        interested_in: formData.interestedIn,
+        bio: formData.bio || null,
+        location: formData.location || null,
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to save profile');
-      }
+      // Refresh user data to get updated profile completion
+      await refreshUser();
 
       // Check if user came from subscription flow
       const tierParam = searchParams.get('tier');
@@ -158,7 +140,6 @@ export const ProfileSetupPage: React.FC = () => {
       }
     } catch (err) {
       // During migration period, allow users to continue even if profile save fails
-      // The profile data will be stored in Okta's metadata
       logger.warn('Profile setup API not available yet', {
         error: err instanceof Error ? err.message : String(err),
       });
@@ -176,7 +157,7 @@ export const ProfileSetupPage: React.FC = () => {
   };
 
   // Loading state
-  if (!isUserLoaded) {
+  if (!isAuthReady) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -229,7 +210,7 @@ export const ProfileSetupPage: React.FC = () => {
           {step === 1 && (
             <>
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                Welcome, {(user?.given_name as string) || (user?.name as string) || 'there'}!
+                Welcome, {user?.firstName || 'there'}!
               </h2>
               <p className="text-gray-600 mb-6">Let's set up your profile</p>
 

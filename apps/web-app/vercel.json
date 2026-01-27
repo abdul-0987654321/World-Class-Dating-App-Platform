@@ -11,14 +11,6 @@
       "destination": "https://api-gateway-production-1957.up.railway.app/api/v1/webhooks/stripe"
     },
     {
-      "source": "/okta/webhook",
-      "destination": "https://api-gateway-production-1957.up.railway.app/webhooks/okta"
-    },
-    {
-      "source": "/webhooks/okta",
-      "destination": "https://api-gateway-production-1957.up.railway.app/webhooks/okta"
-    },
-    {
       "source": "/api/:path*",
       "destination": "https://api-gateway-production-1957.up.railway.app/api/:path*"
     },
@@ -55,7 +47,7 @@
       "destination": "/support"
     },
     {
-      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/|okta/|webhooks/|health).*)",
+      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/|webhooks/|health).*)",
       "destination": "/index.html"
     }
   ],

@@ -8,18 +8,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-
-// Get Okta configuration from environment
-const getOktaConfig = () => {
-  const domain = process.env.OKTA_DOMAIN;
-  const issuer = process.env.OKTA_ISSUER || (domain ? `https://${domain}/oauth2/default` : '');
-  const jwksUrl = issuer ? `${issuer}/v1/keys` : '';
-
-  return { issuer, jwksUrl };
-};
 
 interface JwtTokenPayload {
   sub: string;
@@ -32,45 +22,14 @@ interface JwtTokenPayload {
   exp: number;
 }
 
-interface OktaTokenPayload {
-  sub: string;
-  iss: string;
-  aud?: string;
-  cid?: string;
-  uid?: string;
-  scp?: string[];
-  email?: string;
-  email_verified?: boolean;
-  given_name?: string;
-  family_name?: string;
-  iat: number;
-  exp: number;
-}
-
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   private readonly logger = new Logger(JwtAuthGuard.name);
-  private jwksClient: jwksClient.JwksClient | null = null;
-  private oktaConfig: { issuer: string; jwksUrl: string };
 
   constructor(
     private reflector: Reflector,
     private configService: ConfigService
-  ) {
-    this.oktaConfig = getOktaConfig();
-
-    // Initialize JWKS client for Okta key discovery
-    if (this.oktaConfig.jwksUrl) {
-      this.jwksClient = jwksClient({
-        jwksUri: this.oktaConfig.jwksUrl,
-        cache: true,
-        cacheMaxEntries: 5,
-        cacheMaxAge: 600000, // 10 minutes
-        rateLimit: true,
-        jwksRequestsPerMinute: 10,
-      });
-    }
-  }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check if route is marked as public
@@ -94,39 +53,19 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      // Try to verify as Okta token first (check issuer in decoded token)
-      const decoded = jwt.decode(token, { complete: true });
+      const secret = this.configService.get<string>('jwt.accessSecret');
 
-      if (decoded && typeof decoded.payload === 'object' && 'iss' in decoded.payload) {
-        const issuer = (decoded.payload as OktaTokenPayload).iss;
-
-        if (issuer && (issuer === this.oktaConfig.issuer || issuer.includes('okta'))) {
-          // Verify Okta token
-          const payload = await this.verifyOktaToken(token, decoded);
-
-          // Normalize Okta payload for downstream use
-          request.user = {
-            sub: payload.sub,
-            userId: payload.sub,
-            oktaUserId: payload.sub,
-            email: payload.email,
-            emailVerified: payload.email_verified,
-            firstName: payload.given_name,
-            lastName: payload.family_name,
-            roles: [], // Will be fetched from database
-            subscription: 'free', // Will be fetched from database
-            isOktaUser: true,
-            iat: payload.iat,
-            exp: payload.exp,
-          };
-
-          return true;
-        }
+      if (!secret) {
+        this.logger.error('JWT access secret not configured');
+        throw new UnauthorizedException({
+          code: 'SERVER_ERROR',
+          message: 'Authentication service is not properly configured.',
+        });
       }
 
-      // Fall back to legacy JWT verification
-      const secret = this.configService.get<string>('jwt.accessSecret');
-      const payload = jwt.verify(token, secret!) as JwtTokenPayload;
+      const payload = jwt.verify(token, secret, {
+        algorithms: ['HS256'],
+      }) as JwtTokenPayload;
 
       // Normalize the payload for downstream use
       request.user = {
@@ -136,7 +75,6 @@ export class JwtAuthGuard implements CanActivate {
         roles: payload.roles || [],
         subscription: payload.subscription || 'free',
         deviceId: payload.deviceId,
-        isOktaUser: false,
         iat: payload.iat,
         exp: payload.exp,
       };
@@ -163,50 +101,6 @@ export class JwtAuthGuard implements CanActivate {
         message: 'Authentication failed. Please try logging in again.',
       });
     }
-  }
-
-  /**
-   * Verify Okta JWT token
-   * Uses JWKS for key discovery
-   */
-  private async verifyOktaToken(token: string, decoded: jwt.Jwt): Promise<OktaTokenPayload> {
-    const kid = decoded.header?.kid;
-
-    if (!kid || !this.jwksClient) {
-      throw new Error('Cannot verify Okta token: missing kid or JWKS client');
-    }
-
-    const key = await this.getSigningKey(kid);
-    const payload = jwt.verify(token, key, {
-      issuer: this.oktaConfig.issuer,
-      algorithms: ['RS256'],
-    }) as OktaTokenPayload;
-
-    return payload;
-  }
-
-  /**
-   * Get signing key from JWKS
-   */
-  private getSigningKey(kid: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!this.jwksClient) {
-        reject(new Error('JWKS client not initialized'));
-        return;
-      }
-      this.jwksClient.getSigningKey(kid, (err, key) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        const signingKey = key?.getPublicKey();
-        if (!signingKey) {
-          reject(new Error('No public key found'));
-          return;
-        }
-        resolve(signingKey);
-      });
-    });
   }
 
   private extractToken(request: any): string | null {
