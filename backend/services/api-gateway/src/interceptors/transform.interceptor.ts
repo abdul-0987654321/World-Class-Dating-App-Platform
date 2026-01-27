@@ -1,7 +1,7 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { map } = require('rxjs/operators');
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -21,14 +21,14 @@ export interface ApiResponse<T> {
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   private readonly logger = new Logger(TransformInterceptor.name);
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
+  intercept(context: ExecutionContext, next: CallHandler): any {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
     // Extract request ID from headers (added by tracing middleware)
     const requestId = request.headers['x-request-id'] as string;
 
-    return next.handle().pipe(
+    return (next.handle() as any).pipe(
       map((data) => {
         // If data is already wrapped (from microservices), unwrap it
         let responseData = data;
