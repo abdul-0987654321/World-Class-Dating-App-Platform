@@ -122,7 +122,9 @@ export const config = {
     // In production, default to true unless explicitly disabled
     if (isProduction) {
       if (envValue === 'false') {
-        console.warn('WARNING: Email verification is disabled in production. This is a security risk.');
+        console.warn(
+          'WARNING: Email verification is disabled in production. This is a security risk.'
+        );
       }
       return envValue !== 'false'; // Default true in production
     }
@@ -140,11 +142,11 @@ export const config = {
 
   // CORS - SECURITY: Always include production domains
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || (
-      process.env.NODE_ENV === 'production'
+    origins:
+      process.env.CORS_ORIGINS?.split(',') ||
+      (process.env.NODE_ENV === 'production'
         ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
-        : ['http://localhost:3000', 'http://localhost:5173']
-    ),
+        : ['http://localhost:3000', 'http://localhost:5173']),
   },
 
   // Rate limiting
@@ -160,11 +162,23 @@ export const config = {
       if (process.env.NODE_ENV === 'production') {
         throw new Error('INTERNAL_SERVICE_KEY must be set to a secure value in production');
       }
-      console.warn('WARNING: Using default INTERNAL_SERVICE_KEY. Set a secure value in INTERNAL_SERVICE_KEY environment variable.');
+      console.warn(
+        'WARNING: Using default INTERNAL_SERVICE_KEY. Set a secure value in INTERNAL_SERVICE_KEY environment variable.'
+      );
       return 'dev-internal-service-key-not-for-production';
     }
     return key;
   })(),
+
+  // Clerk Authentication
+  clerk: {
+    secretKey: process.env.CLERK_SECRET_KEY || '',
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+    webhookSecret: process.env.CLERK_WEBHOOK_SECRET || '',
+    domain: process.env.CLERK_DOMAIN || '',
+    jwksUrl: process.env.CLERK_JWKS_URL || '',
+    enabled: !!process.env.CLERK_SECRET_KEY,
+  },
 
   // Frontend URLs
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',

@@ -1,3 +1,4 @@
+import { createClerkClient } from '@clerk/backend';
 import { Request, Response, NextFunction } from 'express';
 
 import { config } from '../../config';
@@ -5,6 +6,11 @@ import { userRepository } from '../../domain/repositories/user.repository';
 import redisCache from '../../infrastructure/cache/redis';
 import jwtUtils from '../../utils/jwt';
 import logger from '../../utils/logger';
+
+// Initialize Clerk client if configured
+const clerkClient = config.clerk.enabled
+  ? createClerkClient({ secretKey: config.clerk.secretKey })
+  : null;
 
 /**
  * User roles for RBAC
@@ -58,6 +64,9 @@ export const authenticate = async (
     // Try to get token from httpOnly cookie first
     if (req.cookies?.access_token) {
       token = req.cookies.access_token;
+    } else if (req.cookies?.__session) {
+      // Clerk stores session token in __session cookie
+      token = req.cookies.__session;
     } else {
       // Fallback to Authorization header for backwards compatibility and mobile apps
       const authHeader = req.headers.authorization;
@@ -74,6 +83,75 @@ export const authenticate = async (
       });
     }
 
+    // Try Clerk verification first if enabled
+    if (clerkClient) {
+      try {
+        const { isSignedIn, toAuth } = await clerkClient.authenticateRequest(req, {
+          jwtKey: config.clerk.publishableKey,
+          authorizedParties: config.cors.origins,
+        });
+
+        if (isSignedIn) {
+          const auth = toAuth();
+          const clerkUserId = auth.userId;
+
+          // Look up user by clerk_id or create mapping
+          let user = await userRepository.findByClerkId(clerkUserId).catch(() => null);
+
+          if (!user) {
+            // Try to get user details from Clerk and find by email
+            const clerkUser = await clerkClient.users.getUser(clerkUserId);
+            const email = clerkUser.emailAddresses?.[0]?.emailAddress;
+            if (email) {
+              user = await userRepository.findByEmail(email).catch(() => null);
+              if (user) {
+                // Link existing user to Clerk ID
+                await userRepository.updateClerkId(user.id, clerkUserId).catch(() => {});
+              }
+            }
+          }
+
+          if (user) {
+            if (!user.is_active) {
+              return res.status(403).json({
+                success: false,
+                error: 'Account has been suspended or banned. Contact support for assistance.',
+                code: 'ACCOUNT_BANNED',
+                correlationId: req.correlationId,
+              });
+            }
+
+            req.user = {
+              id: user.id,
+              userId: user.id,
+              email: user.email,
+              role: user.role || 'user',
+              status: user.is_active ? 'active' : 'banned',
+            };
+            return next();
+          }
+
+          // User authenticated via Clerk but not yet in our database
+          // Allow request to proceed with Clerk user info for registration flow
+          const clerkUser = await clerkClient.users.getUser(clerkUserId);
+          req.user = {
+            id: clerkUserId,
+            userId: clerkUserId,
+            email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+            role: 'user',
+            status: 'active',
+          };
+          return next();
+        }
+      } catch (clerkError) {
+        // Clerk verification failed, fall through to custom JWT verification
+        logger.debug('Clerk token verification failed, trying custom JWT', {
+          correlationId: req.correlationId,
+        });
+      }
+    }
+
+    // Custom JWT verification (existing flow)
     // Check if token is blacklisted
     const isBlacklisted = await redisCache.isTokenBlacklisted(token);
     if (isBlacklisted) {

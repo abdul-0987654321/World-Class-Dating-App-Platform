@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.679.0",
+    "@clerk/backend": "^1.21.0",
     "@flamoral/backend-shared": "file:../../shared",
     "@nestjs/common": "^10.3.0",
     "class-transformer": "^0.5.1",
@@ -35,6 +36,7 @@
     "redis": "^5.0.0",
     "uuid": "^9.0.1",
     "speakeasy": "^2.0.0",
+    "svix": "^1.42.0",
     "qrcode": "^1.5.4",
     "rxjs": "^7.8.1"
   },

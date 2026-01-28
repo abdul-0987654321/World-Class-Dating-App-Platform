@@ -42,19 +42,17 @@
         "CONVERSATION_INTELLIGENCE_SERVICE_URL": "http://${{conversation-intelligence-service.RAILWAY_PRIVATE_DOMAIN}}:3032",
         "RELATIONSHIP_PROGRESSION_SERVICE_URL": "http://${{relationship-progression-service.RAILWAY_PRIVATE_DOMAIN}}:3033",
         "TRUST_SERVICE_URL": "http://${{trust-service.RAILWAY_PRIVATE_DOMAIN}}:3034",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
         "JWT_REFRESH_SECRET": "${{shared.JWT_REFRESH_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
-        "OKTA_DOMAIN": "${{shared.OKTA_DOMAIN}}",
-        "OKTA_ISSUER": "${{shared.OKTA_ISSUER}}",
-        "OKTA_CLIENT_ID": "${{shared.OKTA_CLIENT_ID}}",
-        "OKTA_CLIENT_SECRET": "${{shared.OKTA_CLIENT_SECRET}}",
-        "OKTA_AUDIENCE": "${{shared.OKTA_AUDIENCE}}",
-        "OKTA_WEBHOOK_SECRET": "${{shared.OKTA_WEBHOOK_SECRET}}",
-        "CORS_ORIGINS": "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com,https://staging.flamoral.com",
+        "CLERK_SECRET_KEY": "${{shared.CLERK_SECRET_KEY}}",
+        "CLERK_PUBLISHABLE_KEY": "${{shared.CLERK_PUBLISHABLE_KEY}}",
+        "CLERK_DOMAIN": "${{shared.CLERK_DOMAIN}}",
+        "CLERK_JWKS_URL": "${{shared.CLERK_JWKS_URL}}",
+        "CORS_ORIGINS": "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com,https://staging.flamoral.com,https://clerk.flamoral.com",
         "COOKIE_DOMAIN": ".flamoral.com",
         "FRONTEND_URL": "https://flamoral.com"
       },
@@ -83,7 +81,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3001",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -93,8 +91,11 @@
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
         "TOTP_ENCRYPTION_KEY": "${{shared.TOTP_ENCRYPTION_KEY}}",
         "ENCRYPTION_KEY": "${{shared.ENCRYPTION_KEY}}",
-        "OKTA_DOMAIN": "${{shared.OKTA_DOMAIN}}",
-        "OKTA_CLIENT_SECRET": "${{shared.OKTA_CLIENT_SECRET}}",
+        "CLERK_SECRET_KEY": "${{shared.CLERK_SECRET_KEY}}",
+        "CLERK_PUBLISHABLE_KEY": "${{shared.CLERK_PUBLISHABLE_KEY}}",
+        "CLERK_WEBHOOK_SECRET": "${{shared.CLERK_WEBHOOK_SECRET}}",
+        "CLERK_DOMAIN": "${{shared.CLERK_DOMAIN}}",
+        "CLERK_JWKS_URL": "${{shared.CLERK_JWKS_URL}}",
         "JWT_ISSUER": "flamoral-auth-service",
         "JWT_AUDIENCE": "flamoral-platform",
         "REQUIRE_EMAIL_VERIFICATION": "true",
@@ -127,7 +128,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3002",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -159,7 +160,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3003",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -191,7 +192,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3004",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -225,7 +226,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3005",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -260,7 +261,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3006",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -295,7 +296,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3007",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -330,7 +331,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3008",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -363,7 +364,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3009",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -401,7 +402,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3010",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -436,7 +437,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3011",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -465,7 +466,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3012",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -497,7 +498,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3013",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -528,7 +529,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3014",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -557,7 +558,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3015",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -590,7 +591,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3016",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -621,7 +622,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3017",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -654,7 +655,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3018",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
@@ -684,7 +685,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3019",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
@@ -713,7 +714,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3020",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
@@ -745,7 +746,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3021",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}",
@@ -806,7 +807,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3023",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
@@ -834,7 +835,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3024",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
@@ -862,7 +863,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3025",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
@@ -882,7 +883,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/partnership-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -891,7 +891,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3026",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "SERVICE_API_KEY": "${{shared.SERVICE_API_KEY}}"
@@ -911,7 +911,6 @@
         "watchPatterns": ["backend/services/seo-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -920,7 +919,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3027",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}"
       },
       "networking": {
@@ -938,7 +937,6 @@
         "watchPatterns": ["backend/services/policy-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -947,7 +945,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3028",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}"
       },
       "networking": {
@@ -965,7 +963,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/wellness-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -974,7 +971,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3031",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -1000,7 +997,6 @@
         ]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -1009,7 +1005,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3032",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -1036,7 +1032,6 @@
         ]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -1045,7 +1040,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3033",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -1069,7 +1064,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/trust-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -1078,7 +1072,7 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3034",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}",
         "JWT_SECRET": "${{shared.JWT_SECRET}}",
         "JWT_ACCESS_SECRET": "${{shared.JWT_ACCESS_SECRET}}",
@@ -1108,7 +1102,7 @@
       },
       "variables": {
         "PORT": "8001",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}"
       },
       "networking": {
@@ -1133,7 +1127,7 @@
       },
       "variables": {
         "PORT": "8082",
-        "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
         "REDIS_URL": "${{redis.REDIS_URL}}"
       },
       "networking": {
@@ -1265,11 +1259,11 @@
         "ports": [8010]
       }
     },
-    "postgres": {
+    "Postgres": {
       "plugin": "postgresql",
       "variables": {
-        "POSTGRES_DB": "flamoral",
-        "POSTGRES_USER": "flamoral_user"
+        "POSTGRES_DB": "railway",
+        "POSTGRES_USER": "postgres"
       }
     },
     "redis": {

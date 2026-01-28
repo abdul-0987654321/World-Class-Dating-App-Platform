@@ -23,6 +23,9 @@ export interface User {
   subscription_status?: string;
   // Role fields
   roles?: string[];
+  role?: string;
+  // Clerk integration
+  clerk_id?: string;
   // Two-Factor Authentication fields
   two_factor_enabled?: boolean;
   two_factor_secret?: string;
@@ -110,6 +113,9 @@ export class UserRepository {
       subscription_status: row.subscription_status || 'inactive',
       // Role fields
       roles: row.roles || ['USER'],
+      role: (row.roles || ['user'])[0]?.toLowerCase() || 'user',
+      // Clerk integration
+      clerk_id: row.clerk_id,
       // Two-Factor Authentication fields
       two_factor_enabled: row.two_factor_enabled || false,
       two_factor_secret: row.two_factor_secret,
@@ -257,6 +263,42 @@ export class UserRepository {
       logger.info(`User reactivated: ${userId}`);
     } catch (error) {
       logger.error(`Failed to reactivate user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  // ==================== Clerk Integration Methods ====================
+
+  /**
+   * Find user by Clerk ID
+   */
+  async findByClerkId(clerkId: string): Promise<User | null> {
+    const query = 'SELECT * FROM users WHERE clerk_id = $1';
+
+    try {
+      const result = await pool.query(query, [clerkId]);
+      return result.rows[0] ? this.mapUser(result.rows[0]) : null;
+    } catch (error) {
+      logger.error(`Failed to find user by clerk_id: ${clerkId}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Link a Clerk ID to an existing user
+   */
+  async updateClerkId(userId: string, clerkId: string): Promise<void> {
+    const query = `
+      UPDATE users
+      SET clerk_id = $1, updated_at = $2
+      WHERE id = $3
+    `;
+
+    try {
+      await pool.query(query, [clerkId, new Date(), userId]);
+      logger.info(`Clerk ID linked to user: ${userId}`);
+    } catch (error) {
+      logger.error(`Failed to update clerk_id for user: ${userId}`, error);
       throw error;
     }
   }

@@ -287,11 +287,12 @@ restartPolicyMaxRetries = 5
 # dockerfilePath = "backend/services/ai-services/deepfake-detection/Dockerfile"
 
 # =============================================================================
-# INFRASTRUCTURE SERVICES (Railway Plugins)
+# INFRASTRUCTURE SERVICES
 # =============================================================================
 
-# PostgreSQL Database
-# Plugin: postgresql
+# PostgreSQL Database (Custom Docker - postgres:16-alpine)
+# Dockerfile: infrastructure/docker/postgres/Dockerfile
+# Port: 5432
 # Provides: DATABASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 
 # Redis Cache
