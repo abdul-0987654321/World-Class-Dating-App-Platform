@@ -1,13 +1,13 @@
 # Build stage - Standalone build without monorepo workspace
 FROM node:20-alpine AS builder
 
-WORKDIR /app
+WORKDIR /build
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
 # First, build the shared module
-WORKDIR /app/shared
+WORKDIR /build/shared
 COPY backend/shared/package*.json ./
 COPY backend/shared/tsconfig*.json ./
 COPY backend/shared/types ./types
@@ -25,7 +25,7 @@ COPY backend/shared/index.ts ./
 RUN npm install --legacy-peer-deps && npm run build
 
 # Now build the api-gateway service
-WORKDIR /app/service
+WORKDIR /build/service
 
 # Copy package.json and modify to remove file: reference
 COPY backend/services/api-gateway/package*.json ./
@@ -36,12 +36,12 @@ RUN sed -i 's|"@flamoral/backend-shared": "file:../../shared",||' package.json &
     npm install --save-dev @types/multer --legacy-peer-deps
 
 # Merge shared module's node_modules into service's node_modules
-RUN cp -rn /app/shared/node_modules/* ./node_modules/ 2>/dev/null || true
+RUN cp -rn /build/shared/node_modules/* ./node_modules/ 2>/dev/null || true
 
 # Link the built shared module
 RUN mkdir -p node_modules/@flamoral/backend-shared && \
-    cp -r /app/shared/dist node_modules/@flamoral/backend-shared/ && \
-    cp /app/shared/package.json node_modules/@flamoral/backend-shared/
+    cp -r /build/shared/dist node_modules/@flamoral/backend-shared/ && \
+    cp /build/shared/package.json node_modules/@flamoral/backend-shared/
 
 # Copy source files
 COPY backend/services/api-gateway/src ./src
@@ -57,23 +57,27 @@ RUN ls -la dist/ && test -f dist/main.js
 # Production stage
 FROM node:20-alpine
 
-WORKDIR /app
+# Use /srv/app instead of /app to avoid Railway volume mount conflicts
+WORKDIR /srv/app
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Copy production dependencies
-COPY --from=builder /app/service/node_modules ./node_modules
+COPY --from=builder /build/service/node_modules ./node_modules
 
 # Copy shared module
-COPY --from=builder /app/shared/dist ./node_modules/@flamoral/backend-shared/dist/
-COPY --from=builder /app/shared/package.json ./node_modules/@flamoral/backend-shared/
+COPY --from=builder /build/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --from=builder /build/shared/package.json ./node_modules/@flamoral/backend-shared/
 
 # Copy built application
-COPY --from=builder /app/service/dist ./dist
+COPY --from=builder /build/service/dist ./dist
+
+# Verify files exist in production stage
+RUN ls -la /srv/app/dist/ && test -f /srv/app/dist/main.js
 
 # Set ownership
-RUN chown -R nodejs:nodejs /app
+RUN chown -R nodejs:nodejs /srv/app
 
 USER nodejs
 
@@ -87,4 +91,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "dist/main.js"]
+# Use shell form to ensure proper execution
+CMD node /srv/app/dist/main.js
