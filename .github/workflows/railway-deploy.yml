@@ -134,7 +134,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
 
       - name: Run linting
         run: |
