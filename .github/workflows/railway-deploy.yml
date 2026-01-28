@@ -169,7 +169,7 @@ jobs:
 
       - name: Link Railway project
         run: |
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ needs.pre-deploy-checks.outputs.environment }}
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ needs.pre-deploy-checks.outputs.environment }}
 
       - name: Deploy services
         id: deploy
