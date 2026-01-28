@@ -1,0 +1,47 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/stripe/webhook",
+      "destination": "https://api-gateway-production-1957.up.railway.app/api/v1/webhooks/stripe"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://api-gateway-production-1957.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/ws/:path*",
+      "destination": "https://api-gateway-production-1957.up.railway.app/ws/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://api-gateway-production-1957.up.railway.app/socket.io/:path*"
+    },
+    {
+      "source": "/graphql",
+      "destination": "https://api-gateway-production-1957.up.railway.app/graphql"
+    },
+    {
+      "source": "/health",
+      "destination": "https://api-gateway-production-1957.up.railway.app/health"
+    },
+    {
+      "source": "/health/:path*",
+      "destination": "https://api-gateway-production-1957.up.railway.app/health/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,PATCH,OPTIONS" },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization, X-CSRF-Token, X-Request-ID"
+        }
+      ]
+    }
+  ]
+}
