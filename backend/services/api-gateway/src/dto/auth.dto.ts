@@ -6,8 +6,30 @@ import {
   MaxLength,
   IsOptional,
   Matches,
+  IsBoolean,
+  ValidateNested,
+  IsObject,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+/**
+ * DTO for consent information during registration
+ */
+export class ConsentsDto {
+  @ApiProperty({ description: 'Terms of Service acceptance' })
+  @IsBoolean()
+  terms: boolean;
+
+  @ApiProperty({ description: 'Privacy Policy acceptance' })
+  @IsBoolean()
+  privacy: boolean;
+
+  @ApiPropertyOptional({ description: 'Marketing emails opt-in' })
+  @IsOptional()
+  @IsBoolean()
+  marketing?: boolean;
+}
 
 /**
  * DTO for user registration
@@ -26,7 +48,7 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   @MaxLength(128, { message: 'Password must not exceed 128 characters' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
@@ -45,17 +67,23 @@ export class RegisterDto {
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
   lastName?: string;
 
-  @ApiPropertyOptional({ description: 'Date of birth in YYYY-MM-DD format' })
-  @IsOptional()
+  @ApiProperty({ description: 'Date of birth in YYYY-MM-DD format' })
+  @IsNotEmpty({ message: 'Date of birth is required' })
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'Date of birth must be in YYYY-MM-DD format' })
-  dateOfBirth?: string;
+  dateOfBirth: string;
 
-  @ApiPropertyOptional({ description: 'User gender' })
-  @IsOptional()
+  @ApiProperty({ description: 'User gender' })
+  @IsNotEmpty({ message: 'Gender is required' })
   @IsString()
   @MaxLength(50)
-  gender?: string;
+  gender: string;
+
+  @ApiProperty({ description: 'User consent information' })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ConsentsDto)
+  consents: ConsentsDto;
 }
 
 /**
@@ -154,7 +182,7 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'New password is required' })
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   @MaxLength(128, { message: 'Password must not exceed 128 characters' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
