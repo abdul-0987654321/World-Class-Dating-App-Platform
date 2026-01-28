@@ -303,7 +303,7 @@ jobs:
           echo "Actor: ${{ github.actor }}"
 
       - name: Notify Slack
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: false
         continue-on-error: true
         run: |
           echo "Slack notification would be sent here"
