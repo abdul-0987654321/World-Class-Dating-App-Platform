@@ -84,16 +84,14 @@ export const authenticate = async (
     }
 
     // Try Clerk verification first if enabled
-    if (clerkClient) {
+    if (clerkClient && token) {
       try {
-        const { isSignedIn, toAuth } = await clerkClient.authenticateRequest(req, {
-          jwtKey: config.clerk.publishableKey,
+        const verifiedToken = await clerkClient.verifyToken(token, {
           authorizedParties: config.cors.origins,
         });
 
-        if (isSignedIn) {
-          const auth = toAuth();
-          const clerkUserId = auth.userId;
+        if (verifiedToken && verifiedToken.sub) {
+          const clerkUserId = verifiedToken.sub;
 
           // Look up user by clerk_id or create mapping
           let user = await userRepository.findByClerkId(clerkUserId).catch(() => null);
@@ -125,7 +123,7 @@ export const authenticate = async (
               id: user.id,
               userId: user.id,
               email: user.email,
-              role: user.role || 'user',
+              role: (user.role as UserRole) || 'user',
               status: user.is_active ? 'active' : 'banned',
             };
             return next();
