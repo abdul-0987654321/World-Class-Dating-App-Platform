@@ -74,7 +74,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/auth-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -119,7 +118,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/user-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -152,7 +150,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/profile-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -185,7 +182,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/matching-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -220,7 +216,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/messaging-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -256,7 +251,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/notification-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -292,7 +286,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/payment-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -329,7 +322,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/subscription-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -362,7 +354,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/media-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -401,7 +392,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/moderation-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -438,7 +428,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/analytics-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -468,7 +457,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/recommendation-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -501,7 +489,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/search-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -533,7 +520,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/location-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -563,7 +549,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/verification-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -597,7 +582,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/report-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -629,7 +613,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/admin-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -663,7 +646,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/webhook-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -694,7 +676,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/scheduler-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -723,7 +704,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/worker-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -757,7 +737,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/email-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -819,7 +798,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/workflow-engine/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -848,7 +826,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/automation-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",
@@ -877,7 +854,6 @@
         "watchPatterns": ["backend/shared/**", "backend/services/advertising-service/**"]
       },
       "deploy": {
-        "startCommand": "node dist/index.js",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 30,
         "restartPolicyType": "ON_FAILURE",

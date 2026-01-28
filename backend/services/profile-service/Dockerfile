@@ -58,17 +58,14 @@ FROM node:20-slim
 WORKDIR /home/node/app
 
 # Copy production dependencies
-COPY --from=builder /srv/app/service/node_modules ./node_modules
+COPY --chown=node:node --from=builder /srv/app/service/node_modules ./node_modules
 
 # Copy shared module
-COPY --from=builder /srv/app/shared/dist ./node_modules/@flamoral/backend-shared/dist/
-COPY --from=builder /srv/app/shared/package.json ./node_modules/@flamoral/backend-shared/
+COPY --chown=node:node --from=builder /srv/app/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --chown=node:node --from=builder /srv/app/shared/package.json ./node_modules/@flamoral/backend-shared/
 
 # Copy built application
-COPY --from=builder /srv/app/service/dist ./dist
-
-# Set ownership
-RUN chown -R node:node /home/node/app
+COPY --chown=node:node --from=builder /srv/app/service/dist ./dist
 
 USER node
 
@@ -78,8 +75,4 @@ ENV PORT=3003
 
 EXPOSE 3003
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3003/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-CMD ["/usr/local/bin/node", "/home/node/app/dist/index.js"]
+CMD ["node", "dist/index.js"]
