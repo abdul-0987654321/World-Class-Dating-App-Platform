@@ -48,7 +48,7 @@ export const decrypt = (encryptedText: string, secretKey: string): string => {
 };
 
 export const hashPassword = async (password: string): Promise<string> => {
-  const bcrypt = require('bcrypt');
+  const bcrypt = require('bcryptjs');
   const saltRounds = 12;
   return await bcrypt.hash(password, saltRounds);
 };
@@ -57,7 +57,7 @@ export const comparePassword = async (
   password: string,
   hashedPassword: string
 ): Promise<boolean> => {
-  const bcrypt = require('bcrypt');
+  const bcrypt = require('bcryptjs');
   return await bcrypt.compare(password, hashedPassword);
 };
 

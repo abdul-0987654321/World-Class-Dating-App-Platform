@@ -52,13 +52,13 @@ RUN npm run build
 # Verify build output
 RUN ls -la dist/ && test -f dist/index.js
 
-# Production stage
-FROM node:20-slim
+# Production stage - must match builder base (Alpine) for native module compatibility
+FROM node:20-alpine
 
 WORKDIR /home/node/app
 
 # Install Python for ML components runtime
-RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache python3 py3-pip
 
 # Copy production dependencies
 COPY --chown=node:node --from=builder /srv/app/service/node_modules ./node_modules

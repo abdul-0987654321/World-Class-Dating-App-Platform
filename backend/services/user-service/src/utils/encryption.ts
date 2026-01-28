@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 import logger from './logger';
 

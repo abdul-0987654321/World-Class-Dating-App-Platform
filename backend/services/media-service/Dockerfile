@@ -52,13 +52,13 @@ RUN npm run build
 # Verify build output
 RUN ls -la dist/ && test -f dist/index.js
 
-# Production stage
-FROM node:20-slim
+# Production stage - must match builder base (Alpine) for native module compatibility
+FROM node:20-alpine
 
 WORKDIR /home/node/app
 
 # Install runtime image processing dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends libvips-dev python3 && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache vips-dev python3
 
 # Copy production dependencies
 COPY --chown=node:node --from=builder /srv/app/service/node_modules ./node_modules

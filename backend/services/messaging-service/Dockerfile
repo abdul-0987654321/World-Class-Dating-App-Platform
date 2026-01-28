@@ -52,8 +52,8 @@ RUN npm run build
 # Verify build output
 RUN ls -la dist/ && test -f dist/index.js
 
-# Production stage
-FROM node:20-slim
+# Production stage - must match builder base (Alpine) for native module compatibility
+FROM node:20-alpine
 
 WORKDIR /home/node/app
 

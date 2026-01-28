@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Express } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 import { createClient } from 'redis';
 
