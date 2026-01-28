@@ -11,20 +11,14 @@ import config from '../../config';
 const logger = createLogger('auth-middleware');
 
 interface JwtPayload {
+  id: string;
   userId: string;
   email: string;
+  role?: string;
   isPremium?: boolean;
   subscriptionTier?: string;
   iat: number;
   exp: number;
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
-  }
 }
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
@@ -50,7 +44,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 
     const decoded = jwt.verify(token, config.jwt.accessSecret) as JwtPayload;
 
-    req.user = decoded;
+    req.user = { ...decoded, id: decoded.id || decoded.userId };
     next();
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
@@ -89,7 +83,7 @@ export function optionalAuthenticate(req: Request, res: Response, next: NextFunc
 
     if (config.jwt.accessSecret) {
       const decoded = jwt.verify(token, config.jwt.accessSecret) as JwtPayload;
-      req.user = decoded;
+      req.user = { ...decoded, id: decoded.id || decoded.userId };
     }
 
     next();

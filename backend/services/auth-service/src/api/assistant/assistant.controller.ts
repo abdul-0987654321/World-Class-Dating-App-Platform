@@ -32,7 +32,9 @@ import redisCache from '../../infrastructure/cache/redis';
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
+    userId: string;
     email: string;
+    role?: string;
     firstName?: string;
     lastName?: string;
     premiumTier?: string;

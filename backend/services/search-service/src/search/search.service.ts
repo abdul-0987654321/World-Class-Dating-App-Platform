@@ -328,7 +328,7 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
     );
 
     // Remove duplicates
-    return [...new Set(suggestions)];
+    return [...new Set(suggestions)] as string[];
   }
 
   /**
