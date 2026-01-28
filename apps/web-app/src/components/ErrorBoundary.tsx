@@ -2,6 +2,7 @@
  * ErrorBoundary Component
  * Catches React rendering errors and displays a fallback UI
  * Prevents the entire app from crashing on component errors
+ * v1.0.1 - Improved error logging
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
