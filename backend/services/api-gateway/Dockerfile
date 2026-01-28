@@ -54,14 +54,10 @@ RUN npm run build
 # Verify build output
 RUN ls -la dist/ && test -f dist/main.js
 
-# Production stage
-FROM node:20-alpine
+# Production stage - Use Debian slim for better Railway compatibility
+FROM node:20-slim
 
-# Use /srv/app instead of /app to avoid Railway volume mount conflicts
-WORKDIR /srv/app
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+WORKDIR /home/node/app
 
 # Copy production dependencies
 COPY --from=builder /build/service/node_modules ./node_modules
@@ -74,12 +70,12 @@ COPY --from=builder /build/shared/package.json ./node_modules/@flamoral/backend-
 COPY --from=builder /build/service/dist ./dist
 
 # Verify files exist in production stage
-RUN ls -la /srv/app/dist/ && test -f /srv/app/dist/main.js
+RUN ls -la /home/node/app/dist/ && test -f /home/node/app/dist/main.js && which node
 
-# Set ownership
-RUN chown -R nodejs:nodejs /srv/app
+# Set ownership to node user (built-in user in node images)
+RUN chown -R node:node /home/node/app
 
-USER nodejs
+USER node
 
 # Environment
 ENV NODE_ENV=production
@@ -91,5 +87,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Use shell form to ensure proper execution
-CMD node /srv/app/dist/main.js
+# Use exec form with absolute path
+CMD ["/usr/local/bin/node", "/home/node/app/dist/main.js"]
