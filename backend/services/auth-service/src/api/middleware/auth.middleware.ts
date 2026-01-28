@@ -1,4 +1,4 @@
-import { createClerkClient } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 import { Request, Response, NextFunction } from 'express';
 
 import { config } from '../../config';
@@ -86,7 +86,8 @@ export const authenticate = async (
     // Try Clerk verification first if enabled
     if (clerkClient && token) {
       try {
-        const verifiedToken = await clerkClient.verifyToken(token, {
+        const verifiedToken = await verifyToken(token, {
+          secretKey: config.clerk.secretKey,
           authorizedParties: config.cors.origins,
         });
 
