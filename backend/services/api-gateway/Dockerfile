@@ -1,5 +1,5 @@
 # Build stage - Standalone build without monorepo workspace
-FROM public.ecr.aws/docker/library/node:20-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -55,7 +55,7 @@ RUN npm run build
 RUN ls -la dist/ && test -f dist/main.js
 
 # Production stage
-FROM public.ecr.aws/docker/library/node:20-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
