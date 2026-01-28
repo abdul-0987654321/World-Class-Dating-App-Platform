@@ -53,15 +53,12 @@ RUN npm run build
 RUN ls -la dist/ && test -f dist/index.js
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
-WORKDIR /srv/app
+WORKDIR /home/node/app
 
 # Install runtime image processing dependencies
-RUN apk add --no-cache vips-dev fftw-dev python3
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN apt-get update && apt-get install -y --no-install-recommends libvips-dev python3 && rm -rf /var/lib/apt/lists/*
 
 # Copy production dependencies
 COPY --from=builder /srv/app/service/node_modules ./node_modules
@@ -74,9 +71,9 @@ COPY --from=builder /srv/app/shared/package.json ./node_modules/@flamoral/backen
 COPY --from=builder /srv/app/service/dist ./dist
 
 # Set ownership
-RUN chown -R nodejs:nodejs /srv/app
+RUN chown -R node:node /home/node/app
 
-USER nodejs
+USER node
 
 # Environment
 ENV NODE_ENV=production
@@ -88,4 +85,4 @@ EXPOSE 3009
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3009/health || exit 1
 
-CMD node dist/index.js
+CMD ["/usr/local/bin/node", "/home/node/app/dist/index.js"]

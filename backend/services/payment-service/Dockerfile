@@ -53,12 +53,9 @@ RUN npm run build
 RUN ls -la dist/ && test -f dist/index.js
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
-WORKDIR /srv/app
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+WORKDIR /home/node/app
 
 # Copy production dependencies
 COPY --from=builder /srv/app/service/node_modules ./node_modules
@@ -71,9 +68,9 @@ COPY --from=builder /srv/app/shared/package.json ./node_modules/@flamoral/backen
 COPY --from=builder /srv/app/service/dist ./dist
 
 # Set ownership
-RUN chown -R nodejs:nodejs /srv/app
+RUN chown -R node:node /home/node/app
 
-USER nodejs
+USER node
 
 # Environment
 ENV NODE_ENV=production
@@ -85,4 +82,4 @@ EXPOSE 3007
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3007/health || exit 1
 
-CMD node dist/index.js
+CMD ["/usr/local/bin/node", "/home/node/app/dist/index.js"]

@@ -53,15 +53,12 @@ RUN npm run build
 RUN ls -la dist/ && test -f dist/index.js
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
-WORKDIR /srv/app
+WORKDIR /home/node/app
 
 # Install Python for ML components runtime
-RUN apk add --no-cache python3 py3-pip
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip && rm -rf /var/lib/apt/lists/*
 
 # Copy production dependencies
 COPY --from=builder /srv/app/service/node_modules ./node_modules
@@ -74,9 +71,9 @@ COPY --from=builder /srv/app/shared/package.json ./node_modules/@flamoral/backen
 COPY --from=builder /srv/app/service/dist ./dist
 
 # Set ownership
-RUN chown -R nodejs:nodejs /srv/app
+RUN chown -R node:node /home/node/app
 
-USER nodejs
+USER node
 
 # Environment
 ENV NODE_ENV=production
@@ -88,4 +85,4 @@ EXPOSE 3004
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3004/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD node dist/index.js
+CMD ["/usr/local/bin/node", "/home/node/app/dist/index.js"]
