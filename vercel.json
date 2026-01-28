@@ -28,6 +28,10 @@
     {
       "source": "/health/:path*",
       "destination": "https://api-gateway-production-1957.up.railway.app/health/:path*"
+    },
+    {
+      "source": "/((?!assets/|api/|ws/|socket\\.io/|graphql|\\.well-known/|stripe/|webhooks/|health).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
