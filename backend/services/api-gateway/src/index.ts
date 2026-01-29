@@ -4,7 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
-import { createProxyMiddleware, Options as ProxyOptions } from 'http-proxy-middleware';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import { v4 as uuidv4 } from 'uuid';
 
 import verificationRoutes from './api/routes/verification.routes';
@@ -100,53 +100,44 @@ app.use(
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
 logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
 
-const proxyOptions: ProxyOptions = {
-  target: userServiceUrl,
-  changeOrigin: true,
-  // Do NOT rewrite the path - forward /api/v1/* as-is since user-service
-  // mounts routes at the same /api/v1/* paths
-  ws: false,
-  // Timeout settings for long-running requests (file uploads, etc.)
-  timeout: 120000, // 2 minutes
-  proxyTimeout: 120000,
-  // Forward cookies and credentials
-  cookieDomainRewrite: '',
-  // Preserve the host header for proper routing
-  headers: {
-    'X-Forwarded-By': 'flamoral-api-gateway',
-  },
-  on: {
-    proxyReq: (proxyReq, req: Request) => {
-      // Forward correlation ID if present
+// Mount the proxy for all /api/v1/* routes BEFORE body parsing
+app.use(
+  '/api/v1',
+  createProxyMiddleware({
+    target: userServiceUrl,
+    changeOrigin: true,
+    ws: false,
+    timeout: 120000,
+    proxyTimeout: 120000,
+    cookieDomainRewrite: '',
+    headers: {
+      'X-Forwarded-By': 'flamoral-api-gateway',
+    },
+    onProxyReq: (proxyReq, req) => {
       const correlationId = (req as any).correlationId || req.headers['x-correlation-id'];
       if (correlationId) {
         proxyReq.setHeader('X-Correlation-ID', correlationId as string);
       }
-      logger.info(`[Proxy] ${req.method} ${req.originalUrl} -> ${userServiceUrl}${req.originalUrl}`);
+      logger.info(`[Proxy] ${req.method} ${req.url} -> ${userServiceUrl}${req.url}`);
     },
-    proxyRes: (proxyRes, req: Request) => {
-      logger.info(`[Proxy] ${req.method} ${req.originalUrl} <- ${proxyRes.statusCode}`);
+    onProxyRes: (proxyRes, req) => {
+      logger.info(`[Proxy] ${req.method} ${req.url} <- ${proxyRes.statusCode}`);
     },
-    error: (err, req: Request, res: Response) => {
-      logger.error(`[Proxy] Error proxying ${req.method} ${req.originalUrl}: ${err.message}`);
-      // Only send error response if headers haven't been sent yet
+    onError: (err, req, res) => {
+      logger.error(`[Proxy] Error: ${err.message}`);
       if (res && !res.headersSent) {
-        res.status(502).json({
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
           success: false,
           error: {
             code: 'PROXY_ERROR',
             message: 'Unable to reach the upstream service. Please try again later.',
-            timestamp: new Date().toISOString(),
           },
-        });
+        }));
       }
     },
-  },
-};
-
-// Mount the proxy for all /api/v1/* routes BEFORE body parsing
-// This catches ALL API requests and forwards them to the user-service
-app.use('/api/v1', createProxyMiddleware(proxyOptions));
+  })
+);
 
 logger.info('Proxy middleware registered for /api/v1/* -> user-service');
 
