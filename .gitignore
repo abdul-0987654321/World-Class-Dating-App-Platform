@@ -191,3 +191,6 @@ android/**/*.iml
 # Claude Code local settings (may contain credentials)
 .claude/settings.local.json
 .claude/*.local.*
+
+.vercel
+.env*.local

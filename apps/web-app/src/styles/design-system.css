@@ -422,6 +422,7 @@ body {
   font-style: italic;
   line-height: var(--fm-leading-normal);
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Headings use Playfair Display */
@@ -1145,7 +1146,7 @@ html {
 body {
   overflow-x: hidden;
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
 }
 
 /* Ensure all containers respect viewport width */

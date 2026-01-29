@@ -52,15 +52,29 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Extract token from Authorization header or httpOnly cookie
+    let token: string | undefined;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else {
+      // Fallback to httpOnly cookie set by auth-service
+      const cookieHeader = req.headers.cookie;
+      if (cookieHeader) {
+        const match = cookieHeader.split(';').find(c => c.trim().startsWith('access_token='));
+        if (match) {
+          token = match.split('=').slice(1).join('=').trim();
+        }
+      }
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: 'No token provided',
         correlationId: req.correlationId,
       });
     }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     try {
       const payload = jwtUtils.verifyAccessToken(token);

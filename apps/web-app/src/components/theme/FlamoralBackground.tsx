@@ -176,7 +176,7 @@ const FlamoralBackground: React.FC<FlamoralBackgroundProps> = memo(
         {/* Content layer */}
         {children && (
           <div
-            className={`relative z-10 ${fixed ? 'h-screen overflow-y-auto overflow-x-hidden' : ''}`}
+            className={`relative z-10 ${fixed ? 'h-full overflow-y-auto overflow-x-hidden' : ''}`}
           >
             {children}
           </div>

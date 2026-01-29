@@ -257,24 +257,24 @@ export const SignupPage: React.FC = () => {
         if (photos.length > 0 && API_URL) {
           setPhotoUploading(true);
           try {
-            const photoFormData = new FormData();
-            photos.forEach((photo, index) => {
+            // Upload photos one at a time — backend uses uploadSingle (field: 'photo')
+            for (let i = 0; i < photos.length; i++) {
+              const photoFormData = new FormData();
               photoFormData.append(
-                'photos',
-                photo.file,
-                `photo-${index}.${photo.file.type.split('/')[1] || 'jpg'}`
+                'photo',
+                photos[i].file,
+                `photo-${i}.${photos[i].file.type.split('/')[1] || 'jpg'}`
               );
-            });
 
-            const photoResponse = await fetch(`${API_URL}/api/v1/users/photos`, {
-              method: 'POST',
-              body: photoFormData,
-              credentials: 'include',
-            });
+              const photoResponse = await fetch(`${API_URL}/api/v1/photos/upload`, {
+                method: 'POST',
+                body: photoFormData,
+                credentials: 'include',
+              });
 
-            if (!photoResponse.ok) {
-              console.warn('Photo upload failed, but registration succeeded');
-              // Don't block signup for photo upload failure
+              if (!photoResponse.ok) {
+                console.warn(`Photo ${i + 1} upload failed, but registration succeeded`);
+              }
             }
           } catch (photoError) {
             console.warn('Photo upload error:', photoError);
