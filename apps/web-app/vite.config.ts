@@ -16,6 +16,9 @@ export default defineConfig(({ mode }): UserConfig => {
         '@hooks': path.resolve(__dirname, './src/hooks'),
         '@utils': path.resolve(__dirname, './src/utils'),
       },
+      // Force all React imports to resolve to the web-app's React 18
+      // Prevents dual React versions when root monorepo has React 19
+      dedupe: ['react', 'react-dom', 'react-router-dom'],
     },
     server: {
       port: 5173,
