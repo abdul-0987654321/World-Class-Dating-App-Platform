@@ -68,7 +68,7 @@ class DiscoveryService {
 
   async getRecommendations(cursor?: string): Promise<RecommendationsResponse> {
     // In mock mode, return mock data
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       const { mockApi } = await import('../mocks/mockApi');
       const result = await mockApi.getRecommendations();
 
@@ -159,7 +159,7 @@ class DiscoveryService {
 
   async swipe(targetUserId: string, action: 'like' | 'pass' | 'super_like'): Promise<SwipeResult> {
     // In mock mode, use mock API
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       const { mockApi } = await import('../mocks/mockApi');
       const result = await mockApi.swipe(targetUserId, action);
 
@@ -321,7 +321,7 @@ class DiscoveryService {
     isPremium: boolean;
   }> {
     // In mock mode, use mock API
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       const { mockApi } = await import('../mocks/mockApi');
       return mockApi.getStats();
     }

@@ -4,7 +4,8 @@
  * This file previously contained mock API implementations with hardcoded test credentials.
  * Mock login functionality has been disabled for security.
  *
- * All API calls should go through the real backend. Set VITE_API_URL in your .env file.
+ * All API calls should go through the real backend.
+ * To enable mock mode for local development, set VITE_MOCK_API=true or VITE_ENABLE_MOCK_API=true.
  */
 
 import { mockProfiles, mockMatches, mockConversations, mockLikes, mockStats } from './mockData';

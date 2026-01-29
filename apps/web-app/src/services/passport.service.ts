@@ -41,7 +41,7 @@ class PassportService {
    * Get passport mode status
    */
   async getStatus(): Promise<PassportStatus> {
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       return this.getMockStatus();
     }
 
@@ -93,7 +93,7 @@ class PassportService {
    * Set passport location (teleport)
    */
   async setLocation(location: PassportLocation): Promise<PassportLocation> {
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       return {
         ...location,
         id: 'mock-location-id',
@@ -144,7 +144,7 @@ class PassportService {
    * Deactivate passport mode
    */
   async deactivate(): Promise<void> {
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       return;
     }
 
@@ -165,7 +165,7 @@ class PassportService {
    * Get popular destinations
    */
   async getPopularDestinations(): Promise<PopularDestination[]> {
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       return this.getMockDestinations();
     }
 
@@ -198,7 +198,7 @@ class PassportService {
    * Search locations
    */
   async searchLocations(query: string): Promise<PassportLocation[]> {
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       const destinations = this.getMockDestinations();
       const normalizedQuery = query.toLowerCase();
       return destinations

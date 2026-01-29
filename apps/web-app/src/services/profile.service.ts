@@ -223,7 +223,7 @@ function transformBackendProfile(data: BackendProfile): UserProfile {
 }
 
 class ProfileService {
-  private isMock = !import.meta.env.VITE_API_URL;
+  private isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
   async getProfile(): Promise<UserProfile> {
     if (this.isMock) {

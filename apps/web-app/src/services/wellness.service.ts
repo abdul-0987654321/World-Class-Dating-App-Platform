@@ -112,7 +112,7 @@ export interface RejectionRecovery {
 // ============================================================================
 
 class WellnessService {
-  private readonly isMock = !import.meta.env.VITE_API_URL;
+  private readonly isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
   /**
    * Get user's wellness dashboard data

@@ -139,7 +139,7 @@ export interface UsersListResponse {
 
 class AdminUserService {
   private baseUrl = '/api/admin/users';
-  private isMock = !import.meta.env.VITE_API_URL;
+  private isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
   // Mock data generation
   private generateMockUsers(count: number = 20): AdminUser[] {

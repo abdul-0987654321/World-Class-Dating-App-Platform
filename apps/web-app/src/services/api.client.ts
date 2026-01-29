@@ -678,9 +678,9 @@ class ApiClient {
     this.circuitBreaker.reset();
   }
 
-  // Check if we're in mock mode
+  // Check if we're in mock mode - only true when explicitly enabled
   static get isMockMode(): boolean {
-    return !API_BASE_URL;
+    return import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
   }
 }
 

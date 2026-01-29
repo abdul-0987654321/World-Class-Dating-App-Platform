@@ -184,7 +184,7 @@ class SubscriptionService {
 
   async getCurrentSubscription(): Promise<Subscription> {
     // In mock mode, return mock data
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       await new Promise((resolve) => setTimeout(resolve, 300));
       return getMockSubscription();
     }
@@ -281,7 +281,7 @@ class SubscriptionService {
     billingCycle: BillingCycle = 'monthly'
   ): Promise<Subscription> {
     // SECURITY: Always require API for subscription upgrades - no mock mode for payments
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       throw new Error('Payment service unavailable. Please try again later.');
     }
 
@@ -303,7 +303,7 @@ class SubscriptionService {
 
   async cancelSubscription(): Promise<void> {
     // SECURITY: Always require API for subscription cancellation
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       throw new Error('Payment service unavailable. Please try again later.');
     }
 

@@ -9,6 +9,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import { createProxyMiddleware, Options as ProxyOptions } from 'http-proxy-middleware';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -29,7 +30,71 @@ async function bootstrap() {
   // WebSocket adapter
   app.useWebSocketAdapter(new IoAdapter(app));
 
+  // ========================================================================
+  // PROXY TO USER-SERVICE
+  // This MUST come BEFORE any body parsing middleware so that the raw
+  // request stream (including multipart/form-data for file uploads) is
+  // forwarded directly to the user-service without being consumed.
+  // ========================================================================
+  const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
+
+  const proxyOptions: ProxyOptions = {
+    target: userServiceUrl,
+    changeOrigin: true,
+    // Do NOT rewrite the path - forward /api/v1/* as-is since user-service
+    // mounts routes at the same /api/v1/* paths
+    ws: false,
+    // Timeout settings for long-running requests (file uploads, etc.)
+    timeout: 120000, // 2 minutes
+    proxyTimeout: 120000,
+    // Forward cookies and credentials
+    cookieDomainRewrite: '',
+    // Preserve the host header for proper routing
+    headers: {
+      'X-Forwarded-By': 'flamoral-api-gateway',
+    },
+    on: {
+      proxyReq: (proxyReq, req: Request) => {
+        // Forward correlation ID if present
+        const correlationId = req.headers['x-correlation-id'];
+        if (correlationId) {
+          proxyReq.setHeader('X-Correlation-ID', correlationId as string);
+        }
+        logger.info(`[Proxy] ${req.method} ${req.originalUrl} -> ${userServiceUrl}${req.originalUrl}`);
+      },
+      proxyRes: (proxyRes, req: Request) => {
+        logger.info(`[Proxy] ${req.method} ${req.originalUrl} <- ${proxyRes.statusCode}`);
+      },
+      error: (err, req: Request, res: Response) => {
+        logger.error(`[Proxy] Error proxying ${req.method} ${req.originalUrl}: ${err.message}`);
+        // Only send error response if headers haven't been sent yet
+        if (res && !res.headersSent) {
+          res.status(502).json({
+            success: false,
+            error: {
+              code: 'PROXY_ERROR',
+              message: 'Unable to reach the upstream service. Please try again later.',
+              timestamp: new Date().toISOString(),
+            },
+          });
+        }
+      },
+    },
+  };
+
+  // Mount the proxy for all /api/v1/* routes
+  // This catches ALL API requests and forwards them to the user-service
+  app.use('/api/v1', createProxyMiddleware(proxyOptions));
+
+  logger.info('Proxy middleware registered for /api/v1/* -> user-service');
+
+  // ========================================================================
+  // END PROXY CONFIGURATION
+  // ========================================================================
+
   // Cookie parser - Required for CSRF protection
+  // (For non-proxied routes like /health, /api/docs, etc.)
   app.use(cookieParser());
 
   // Raw body parsing for webhook routes (required for Stripe signature verification)
@@ -166,8 +231,8 @@ async function bootstrap() {
 
   // Swagger API documentation
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Heartly API Gateway')
-    .setDescription('The Heartly Dating App API documentation')
+    .setTitle('Flamoral API Gateway')
+    .setDescription('The Flamoral Dating App API documentation')
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -198,6 +263,7 @@ async function bootstrap() {
 
   logger.info(`Flamoral API Gateway v2.0.0 running on port ${port}`);
   logger.info(`Environment: ${configService.get<string>('NODE_ENV') || 'development'}`);
+  logger.info(`User-service proxy target: ${userServiceUrl}`);
   logger.info(`API Documentation: http://localhost:${port}/api/docs`);
   logger.info(`Health endpoint: http://localhost:${port}/health`);
 }

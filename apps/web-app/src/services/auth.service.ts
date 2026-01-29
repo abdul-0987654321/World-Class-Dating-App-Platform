@@ -124,7 +124,9 @@ export interface RegisterData {
 class AuthService {
   private cachedUser: User | null = null;
   private cachedEntitlements: Entitlements | null = null;
-  private isMock = !import.meta.env.VITE_API_URL;
+  // Mock mode is only enabled when explicitly set via VITE_MOCK_API or VITE_ENABLE_MOCK_API.
+  // When VITE_API_URL is empty, the app uses relative paths (Vercel rewrites to API Gateway).
+  private isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
   async login(email: string, password: string): Promise<LoginResponse> {
     if (this.isMock) {
@@ -414,7 +416,7 @@ class AuthService {
   async refreshToken(): Promise<void> {
     // In production, refresh token is in httpOnly cookie and sent automatically
     // The backend will set new tokens in httpOnly cookies
-    const isMock = !import.meta.env.VITE_API_URL;
+    const isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
     if (isMock) {
       // Mock mode: use the old flow for development compatibility
@@ -502,7 +504,7 @@ class AuthService {
   private saveSession(response: LoginResponse): void {
     // In production, tokens are in httpOnly cookies set by the backend
     // We only store the user data and update auth state
-    const isMock = !import.meta.env.VITE_API_URL;
+    const isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
     if (isMock && response.token) {
       // Mock mode: store tokens in sessionStorage for development

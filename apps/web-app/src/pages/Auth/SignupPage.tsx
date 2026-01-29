@@ -4,6 +4,8 @@ import { authService } from '../../services';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 import { AIAvatarSystem } from '../../components/AIAvatar/AIAvatarSystem';
 
+// API_URL uses VITE_API_URL if set, otherwise empty string for relative paths.
+// When empty, requests use relative paths (e.g., /api/v1/...) which Vercel rewrites to the API Gateway.
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface FormData {
@@ -66,11 +68,6 @@ export const SignupPage: React.FC = () => {
   // Check backend availability on mount
   useEffect(() => {
     const checkBackend = async () => {
-      if (!API_URL) {
-        // Mock mode - consider backend available
-        setBackendStatus('online');
-        return;
-      }
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -254,7 +251,7 @@ export const SignupPage: React.FC = () => {
       // We check for the user object to confirm successful registration
       if (response && response.user) {
         // Upload photos after successful registration
-        if (photos.length > 0 && API_URL) {
+        if (photos.length > 0) {
           setPhotoUploading(true);
           try {
             // Upload photos one at a time — backend uses uploadSingle (field: 'photo')

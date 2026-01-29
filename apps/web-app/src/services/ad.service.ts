@@ -122,7 +122,7 @@ const DEFAULT_REWARDS: RewardConfig[] = [
 ];
 
 class AdService {
-  private isMock = !import.meta.env.VITE_API_URL;
+  private isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
   private baseUrl = '/api/ads';
 
   // Local state for mock mode

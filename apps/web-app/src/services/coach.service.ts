@@ -93,7 +93,7 @@ export interface UsageResponse {
 }
 
 class CoachService {
-  private readonly isMock = !import.meta.env.VITE_API_URL;
+  private readonly isMock = import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true';
 
   /**
    * Generate icebreaker messages for starting conversations

@@ -41,7 +41,7 @@ class CuratedPicksService {
    */
   async getDailyPicks(): Promise<CuratedPicksResponse> {
     // In mock mode, return mock data
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       return this.getMockPicks();
     }
 
@@ -72,7 +72,7 @@ class CuratedPicksService {
    * Mark a pick as viewed
    */
   async markViewed(pickId: string): Promise<void> {
-    if (!import.meta.env.VITE_API_URL) return;
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') return;
 
     await fetch(`${this.baseUrl}/${pickId}/view`, {
       method: 'POST',
@@ -87,7 +87,7 @@ class CuratedPicksService {
    * Mark a pick as acted upon (liked/passed)
    */
   async markActedUpon(pickId: string): Promise<void> {
-    if (!import.meta.env.VITE_API_URL) return;
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') return;
 
     await fetch(`${this.baseUrl}/${pickId}/action`, {
       method: 'POST',
@@ -102,7 +102,7 @@ class CuratedPicksService {
    * Regenerate picks (premium only)
    */
   async regeneratePicks(): Promise<CuratedPicksResponse> {
-    if (!import.meta.env.VITE_API_URL) {
+    if (import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
       return this.getMockPicks();
     }
 

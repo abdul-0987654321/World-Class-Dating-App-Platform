@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import { createProxyMiddleware, Options as ProxyOptions } from 'http-proxy-middleware';
 import { v4 as uuidv4 } from 'uuid';
 
 import verificationRoutes from './api/routes/verification.routes';
@@ -68,8 +69,92 @@ app.use(
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-CSRF-Token',
+      'x-csrf-token',
+    ],
+    exposedHeaders: [
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-CSRF-Token',
+    ],
+    maxAge: 86400,
   })
 );
+
+// ========================================================================
+// PROXY TO USER-SERVICE
+// This MUST come BEFORE body parsing middleware so that the raw request
+// stream (including multipart/form-data for file uploads) is forwarded
+// directly to the user-service without being consumed.
+// ========================================================================
+const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
+
+const proxyOptions: ProxyOptions = {
+  target: userServiceUrl,
+  changeOrigin: true,
+  // Do NOT rewrite the path - forward /api/v1/* as-is since user-service
+  // mounts routes at the same /api/v1/* paths
+  ws: false,
+  // Timeout settings for long-running requests (file uploads, etc.)
+  timeout: 120000, // 2 minutes
+  proxyTimeout: 120000,
+  // Forward cookies and credentials
+  cookieDomainRewrite: '',
+  // Preserve the host header for proper routing
+  headers: {
+    'X-Forwarded-By': 'flamoral-api-gateway',
+  },
+  on: {
+    proxyReq: (proxyReq, req: Request) => {
+      // Forward correlation ID if present
+      const correlationId = (req as any).correlationId || req.headers['x-correlation-id'];
+      if (correlationId) {
+        proxyReq.setHeader('X-Correlation-ID', correlationId as string);
+      }
+      logger.info(`[Proxy] ${req.method} ${req.originalUrl} -> ${userServiceUrl}${req.originalUrl}`);
+    },
+    proxyRes: (proxyRes, req: Request) => {
+      logger.info(`[Proxy] ${req.method} ${req.originalUrl} <- ${proxyRes.statusCode}`);
+    },
+    error: (err, req: Request, res: Response) => {
+      logger.error(`[Proxy] Error proxying ${req.method} ${req.originalUrl}: ${err.message}`);
+      // Only send error response if headers haven't been sent yet
+      if (res && !res.headersSent) {
+        res.status(502).json({
+          success: false,
+          error: {
+            code: 'PROXY_ERROR',
+            message: 'Unable to reach the upstream service. Please try again later.',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+    },
+  },
+};
+
+// Mount the proxy for all /api/v1/* routes BEFORE body parsing
+// This catches ALL API requests and forwards them to the user-service
+app.use('/api/v1', createProxyMiddleware(proxyOptions));
+
+logger.info('Proxy middleware registered for /api/v1/* -> user-service');
+
+// ========================================================================
+// END PROXY CONFIGURATION
+// ========================================================================
+
+// Body parsing - only for non-proxied routes (health, root, etc.)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -117,22 +202,6 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// API v1 routes placeholder
-app.get('/api/v1', (req: Request, res: Response) => {
-  res.json({
-    message: 'Flamoral API v1',
-    status: 'operational',
-    services: {
-      user: `${process.env.USER_SERVICE_URL}`,
-      matching: `${process.env.MATCHING_SERVICE_URL}`,
-      messaging: `${process.env.MESSAGING_SERVICE_URL}`,
-      media: `${process.env.MEDIA_SERVICE_URL}`,
-      payment: `${process.env.PAYMENT_SERVICE_URL}`,
-      notification: `${process.env.NOTIFICATION_SERVICE_URL}`,
-    },
-  });
-});
-
 // Verification routes for deployment validation
 app.use('/api/v1/verify', verificationRoutes);
 
@@ -146,6 +215,7 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   logger.info(`API Gateway running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`User-service proxy target: ${userServiceUrl}`);
 });
 
 // Graceful shutdown
