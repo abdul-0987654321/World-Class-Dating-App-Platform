@@ -23,6 +23,7 @@ const validator = createValidator('payment-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3006),
   commonValidations.jwtAccessSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPassword,
   {
@@ -39,6 +40,11 @@ const validator = createValidator('payment-service', [
   },
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[payment-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Create Express app
 const app: Application = express();

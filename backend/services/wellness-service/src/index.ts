@@ -25,6 +25,7 @@ const validator = createValidator('wellness-service', [
   commonValidations.port(3031),
   commonValidations.jwtAccessSecret,
   commonValidations.jwtRefreshSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   {
@@ -47,6 +48,11 @@ const validator = createValidator('wellness-service', [
   },
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[wellness-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Create Express app
 const app: Application = express();

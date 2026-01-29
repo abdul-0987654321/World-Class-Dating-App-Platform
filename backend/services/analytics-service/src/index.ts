@@ -27,6 +27,7 @@ const validator = createValidator('analytics-service', [
   commonValidations.port(3008),
   commonValidations.jwtAccessSecret,
   commonValidations.jwtRefreshSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   {
@@ -49,6 +50,11 @@ const validator = createValidator('analytics-service', [
   },
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[analytics-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Create Express app
 const app: Application = express();

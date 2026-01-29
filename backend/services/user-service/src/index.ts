@@ -58,9 +58,11 @@ const validator = createValidator('user-service', [
   commonValidations.port(3001),
   commonValidations.jwtAccessSecret,
   commonValidations.jwtRefreshSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   commonValidations.dbPassword,
+  commonValidations.redisUrl,
   commonValidations.redisHost,
   {
     name: 'TOTP_ENCRYPTION_MASTER_KEY',
@@ -78,6 +80,11 @@ const validator = createValidator('user-service', [
   },
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[user-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Initialize encryption key for TOTP/2FA
 try {

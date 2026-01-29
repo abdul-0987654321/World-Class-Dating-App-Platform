@@ -22,13 +22,20 @@ const validator = createValidator('auth-service', [
   commonValidations.port(3007),
   commonValidations.jwtAccessSecret,
   commonValidations.jwtRefreshSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   commonValidations.dbPassword,
+  commonValidations.redisUrl,
   commonValidations.redisHost,
   commonValidations.redisPort,
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[auth-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Create Express app
 const app: Application = express();

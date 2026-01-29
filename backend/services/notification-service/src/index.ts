@@ -32,6 +32,7 @@ const validator = createValidator('notification-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3004),
   commonValidations.jwtAccessSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   {
@@ -66,10 +67,16 @@ const validator = createValidator('notification-service', [
     required: false,
     description: 'Apple Push Notification Service team ID for iOS push notifications',
   },
+  commonValidations.redisUrl,
   commonValidations.redisHost,
   commonValidations.redisPort,
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[notification-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Create Express app
 const app: Application = express();

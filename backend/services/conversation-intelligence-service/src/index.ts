@@ -23,6 +23,7 @@ const validator = createValidator('conversation-intelligence-service', [
   commonValidations.port(3032),
   commonValidations.jwtAccessSecret,
   commonValidations.jwtRefreshSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   {
@@ -45,6 +46,11 @@ const validator = createValidator('conversation-intelligence-service', [
   },
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[conversation-intelligence-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 const app: Application = express();
 const PORT = config.port;

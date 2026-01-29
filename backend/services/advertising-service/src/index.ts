@@ -27,6 +27,7 @@ const validator = createValidator('advertising-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3011),
   commonValidations.jwtAccessSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   commonValidations.dbPassword,
@@ -49,6 +50,11 @@ const validator = createValidator('advertising-service', [
   },
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[advertising-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 const app = express();
 

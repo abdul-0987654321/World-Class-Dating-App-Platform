@@ -36,6 +36,7 @@ const validator = createValidator('matching-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3002),
   commonValidations.jwtAccessSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   {
@@ -49,10 +50,16 @@ const validator = createValidator('matching-service', [
     description: 'PostgreSQL database user',
   },
   commonValidations.dbPassword,
+  commonValidations.redisUrl,
   commonValidations.redisHost,
   commonValidations.redisPort,
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[matching-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Initialize logger
 const logger = createLogger('matching-service');

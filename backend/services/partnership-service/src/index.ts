@@ -21,6 +21,7 @@ const validator = createValidator('partnership-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3011),
   commonValidations.jwtAccessSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPassword,
   {
@@ -60,6 +61,11 @@ if (process.env.NODE_ENV === 'production') {
   validator.validateOrThrow();
 } else {
   validator.validate();
+}
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[partnership-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
 }
 
 // Create Express app

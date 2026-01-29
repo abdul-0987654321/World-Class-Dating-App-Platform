@@ -25,6 +25,7 @@ const validator = createValidator('automation-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3009),
   commonValidations.jwtAccessSecret,
+  commonValidations.databaseUrl,
   commonValidations.dbHost,
   commonValidations.dbPort,
   commonValidations.dbPassword,
@@ -50,10 +51,16 @@ const validator = createValidator('automation-service', [
     required: true,
     description: 'RabbitMQ connection URL for message queuing',
   },
+  commonValidations.redisUrl,
   commonValidations.redisHost,
   commonValidations.redisPort,
 ]);
 validator.validateOrThrow();
+
+// Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
+if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+  throw new Error('[automation-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');
+}
 
 // Initialize logger
 const logger = createLogger('automation-service');

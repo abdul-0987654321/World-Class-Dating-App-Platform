@@ -242,10 +242,18 @@ export const commonValidations = {
     sensitive: true,
   } as EnvVarConfig,
 
+  databaseUrl: {
+    name: 'DATABASE_URL',
+    required: false,
+    description: 'PostgreSQL connection URL (alternative to individual DB_* variables)',
+    sensitive: true,
+  } as EnvVarConfig,
+
   dbHost: {
     name: 'DB_HOST',
-    required: true,
-    description: 'PostgreSQL database host',
+    required: false,
+    description: 'PostgreSQL database host (not required if DATABASE_URL is set)',
+    defaultValue: 'localhost',
   } as EnvVarConfig,
 
   dbPort: {
@@ -259,8 +267,15 @@ export const commonValidations = {
 
   dbPassword: {
     name: 'DB_PASSWORD',
-    required: true,
-    description: 'PostgreSQL database password',
+    required: false,
+    description: 'PostgreSQL database password (not required if DATABASE_URL is set)',
+    sensitive: true,
+  } as EnvVarConfig,
+
+  redisUrl: {
+    name: 'REDIS_URL',
+    required: false,
+    description: 'Redis connection URL (alternative to individual REDIS_* variables)',
     sensitive: true,
   } as EnvVarConfig,
 
