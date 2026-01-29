@@ -4,7 +4,10 @@ import { logger } from '../utils/logger';
 
 const config: Knex.Config = {
   client: 'postgresql',
-  connection: {
+  connection: process.env.DATABASE_URL ? {
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  } : {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
     database: process.env.DB_NAME || 'flamoral_db',

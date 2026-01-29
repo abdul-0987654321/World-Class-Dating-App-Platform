@@ -23,24 +23,52 @@ export const config = {
   jwt: {
     accessSecret: requireInProduction('JWT_ACCESS_SECRET', 'dev-jwt-secret-not-for-production'),
   },
-  database: {
-    host: requireInProduction('DB_HOST', 'localhost'),
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    database: process.env.DB_NAME || 'flamoral_automation',
-    user: process.env.DB_USER || 'postgres',
-    password: requireInProduction('DB_PASSWORD', ''),
-    ssl: isProduction ? true : process.env.DB_SSL === 'true',
-    pool: {
-      min: parseInt(process.env.DB_POOL_MIN || '2', 10),
-      max: parseInt(process.env.DB_POOL_MAX || '10', 10),
-    },
-  },
-  redis: {
-    host: requireInProduction('REDIS_HOST', 'localhost'),
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
-    db: parseInt(process.env.REDIS_DB || '7', 10),
-  },
+  database: (() => {
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432', 10),
+        database: url.pathname.slice(1),
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        ssl: process.env.DB_SSL !== 'false',
+        pool: {
+          min: parseInt(process.env.DB_POOL_MIN || '2', 10),
+          max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+        },
+      };
+    }
+    return {
+      host: requireInProduction('DB_HOST', 'localhost'),
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      database: process.env.DB_NAME || 'flamoral_automation',
+      user: process.env.DB_USER || 'postgres',
+      password: requireInProduction('DB_PASSWORD', ''),
+      ssl: isProduction ? true : process.env.DB_SSL === 'true',
+      pool: {
+        min: parseInt(process.env.DB_POOL_MIN || '2', 10),
+        max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+      },
+    };
+  })(),
+  redis: (() => {
+    if (process.env.REDIS_URL) {
+      const url = new URL(process.env.REDIS_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '6379', 10),
+        password: url.password ? decodeURIComponent(url.password) : undefined,
+        db: parseInt(process.env.REDIS_DB || '7', 10),
+      };
+    }
+    return {
+      host: requireInProduction('REDIS_HOST', 'localhost'),
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD || undefined,
+      db: parseInt(process.env.REDIS_DB || '7', 10),
+    };
+  })(),
   rabbitmq: {
     // Security: Validate AMQPS in production, fail-safe to secure default
     url: (() => {

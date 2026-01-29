@@ -16,24 +16,52 @@ export default {
   },
 
   // PostgreSQL Database
-  postgres: {
-    host: process.env.POSTGRES_HOST || 'localhost',
-    port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
-    user: process.env.POSTGRES_USER || 'flamoral',
-    password: process.env.POSTGRES_PASSWORD || '',
-    database: process.env.POSTGRES_DATABASE || 'flamoral_messaging',
-  },
+  postgres: (() => {
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432', 10),
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        database: url.pathname.slice(1),
+        ssl: process.env.DB_SSL !== 'false',
+      };
+    }
+    return {
+      host: process.env.POSTGRES_HOST || 'localhost',
+      port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
+      user: process.env.POSTGRES_USER || 'flamoral',
+      password: process.env.POSTGRES_PASSWORD || '',
+      database: process.env.POSTGRES_DATABASE || 'flamoral_messaging',
+    };
+  })(),
 
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || '',
-    ttl: {
-      onlineStatus: 300, // 5 minutes
-      typingIndicator: 10, // 10 seconds
-      messageCache: 3600, // 1 hour
-    },
-  },
+  redis: (() => {
+    if (process.env.REDIS_URL) {
+      const url = new URL(process.env.REDIS_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '6379', 10),
+        password: url.password ? decodeURIComponent(url.password) : '',
+        ttl: {
+          onlineStatus: 300,
+          typingIndicator: 10,
+          messageCache: 3600,
+        },
+      };
+    }
+    return {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD || '',
+      ttl: {
+        onlineStatus: 300,
+        typingIndicator: 10,
+        messageCache: 3600,
+      },
+    };
+  })(),
 
   encryption: {
     algorithm: 'aes-256-cbc',

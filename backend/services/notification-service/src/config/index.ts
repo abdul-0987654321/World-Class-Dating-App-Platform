@@ -7,21 +7,45 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // Database
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'flamoral_notifications',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-  },
+  database: (() => {
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432'),
+        database: url.pathname.slice(1),
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        ssl: process.env.DB_SSL !== 'false',
+      };
+    }
+    return {
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME || 'flamoral_notifications',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+    };
+  })(),
 
   // Redis
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD,
-    db: parseInt(process.env.REDIS_DB || '0'),
-  },
+  redis: (() => {
+    if (process.env.REDIS_URL) {
+      const url = new URL(process.env.REDIS_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '6379'),
+        password: url.password ? decodeURIComponent(url.password) : undefined,
+        db: parseInt(process.env.REDIS_DB || '0'),
+      };
+    }
+    return {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      db: parseInt(process.env.REDIS_DB || '0'),
+    };
+  })(),
 
   // SendGrid (Email)
   sendgrid: {

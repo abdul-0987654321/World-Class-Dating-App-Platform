@@ -75,23 +75,50 @@ const config: Config = {
   port: parseInt(process.env.PORT || '3007', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'flamoral_analytics',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
-    poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
-    enableTimescaleDB: process.env.ENABLE_TIMESCALEDB === 'true',
-  },
+  database: (() => {
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432', 10),
+        name: url.pathname.slice(1),
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
+        poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
+        enableTimescaleDB: process.env.ENABLE_TIMESCALEDB === 'true',
+        ssl: process.env.DB_SSL !== 'false',
+      };
+    }
+    return {
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      name: process.env.DB_NAME || 'flamoral_analytics',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || '',
+      poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
+      poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
+      enableTimescaleDB: process.env.ENABLE_TIMESCALEDB === 'true',
+    };
+  })(),
 
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
-    db: parseInt(process.env.REDIS_DB || '7', 10),
-  },
+  redis: (() => {
+    if (process.env.REDIS_URL) {
+      const url = new URL(process.env.REDIS_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '6379', 10),
+        password: url.password ? decodeURIComponent(url.password) : undefined,
+        db: parseInt(process.env.REDIS_DB || '7', 10),
+      };
+    }
+    return {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD || undefined,
+      db: parseInt(process.env.REDIS_DB || '7', 10),
+    };
+  })(),
 
   eventQueue: {
     type: (process.env.EVENT_QUEUE_TYPE as 'redis' | 'kafka' | 'rabbitmq') || 'redis',

@@ -18,12 +18,28 @@ const isStaging = process.env.NODE_ENV === 'staging';
  * PostgreSQL connection configuration
  */
 function getConnectionConfig(): Knex.PgConnectionConfig {
+  // Support DATABASE_URL (provided by Railway and other PaaS)
+  if (process.env.DATABASE_URL) {
+    const url = new URL(process.env.DATABASE_URL);
+    return {
+      host: url.hostname,
+      port: parseInt(url.port || '5432', 10),
+      database: url.pathname.slice(1),
+      user: url.username,
+      password: decodeURIComponent(url.password),
+      ssl: process.env.DB_SSL !== 'false' ? { rejectUnauthorized: false } : false,
+      connectionTimeoutMillis: 10000,
+      application_name: `flamoral_messaging_${process.env.NODE_ENV || 'development'}`,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
+    };
+  }
   return {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    database: process.env.DB_NAME || 'flamoral_messaging',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
+    host: process.env.DB_HOST || process.env.POSTGRES_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || process.env.POSTGRES_PORT || '5432', 10),
+    database: process.env.DB_NAME || process.env.POSTGRES_DATABASE || 'flamoral_messaging',
+    user: process.env.DB_USER || process.env.POSTGRES_USER || 'postgres',
+    password: process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || '',
     ssl: isProduction || isStaging ? { rejectUnauthorized: false } : false,
     connectionTimeoutMillis: 10000,
     application_name: `flamoral_messaging_${process.env.NODE_ENV || 'development'}`,

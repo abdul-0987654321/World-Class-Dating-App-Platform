@@ -10,13 +10,26 @@ export const config = {
   port: parseInt(process.env.PORT || '3034', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'flamoral_trust',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-  },
+  database: (() => {
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432', 10),
+        name: url.pathname.slice(1),
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        ssl: process.env.DB_SSL !== 'false',
+      };
+    }
+    return {
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      name: process.env.DB_NAME || 'flamoral_trust',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+    };
+  })(),
 
   jwt: {
     publicKey: process.env.JWT_PUBLIC_KEY || '',

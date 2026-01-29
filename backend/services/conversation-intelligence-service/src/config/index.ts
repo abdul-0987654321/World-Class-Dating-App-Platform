@@ -6,19 +6,42 @@ export default {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3032', 10),
 
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'flamoral_conversation',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-  },
+  database: (() => {
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432', 10),
+        name: url.pathname.slice(1),
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        ssl: process.env.DB_SSL !== 'false',
+      };
+    }
+    return {
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      name: process.env.DB_NAME || 'flamoral_conversation',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || '',
+    };
+  })(),
 
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || '',
-  },
+  redis: (() => {
+    if (process.env.REDIS_URL) {
+      const url = new URL(process.env.REDIS_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '6379', 10),
+        password: url.password ? decodeURIComponent(url.password) : '',
+      };
+    }
+    return {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD || '',
+    };
+  })(),
 
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || '',
