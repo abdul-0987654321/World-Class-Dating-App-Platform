@@ -9,7 +9,8 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
-import httpProxy from 'http-proxy';
+import http from 'http';
+import { URL } from 'url';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -31,48 +32,48 @@ async function bootstrap() {
   app.useWebSocketAdapter(new IoAdapter(app));
 
   // ========================================================================
-  // PROXY TO USER-SERVICE
+  // PROXY TO USER-SERVICE (using Node built-in http module)
   // This MUST come BEFORE any body parsing middleware so that the raw
-  // request stream (including multipart/form-data for file uploads) is
-  // forwarded directly to the user-service without being consumed.
+  // request stream (including multipart/form-data) is piped directly.
   // ========================================================================
   const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
   logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
 
-  const proxy = httpProxy.createProxyServer({
-    target: userServiceUrl,
-    changeOrigin: true,
-    timeout: 120000,
-    proxyTimeout: 120000,
-  });
+  const targetUrl = new URL(userServiceUrl);
 
-  proxy.on('proxyReq', (proxyReq, req) => {
-    proxyReq.setHeader('X-Forwarded-By', 'flamoral-api-gateway');
-    const correlationId = req.headers['x-correlation-id'];
-    if (correlationId) {
-      proxyReq.setHeader('X-Correlation-ID', correlationId as string);
-    }
-    logger.info(`[Proxy] ${req.method} ${req.url} -> ${userServiceUrl}${req.url}`);
-  });
-
-  proxy.on('proxyRes', (proxyRes, req) => {
-    logger.info(`[Proxy] ${req.method} ${req.url} <- ${proxyRes.statusCode}`);
-  });
-
-  proxy.on('error', (err, req, res) => {
-    logger.error(`[Proxy] Error: ${err.message}`);
-    if (res && 'writeHead' in res && !res.headersSent) {
-      (res as any).writeHead(502, { 'Content-Type': 'application/json' });
-      (res as any).end(JSON.stringify({
-        success: false,
-        error: { code: 'PROXY_ERROR', message: 'Unable to reach upstream service.' },
-      }));
-    }
-  });
-
-  // Mount the proxy for all /api/v1/* routes
   app.use('/api/v1', (req: Request, res: Response) => {
-    proxy.web(req, res);
+    const proxyOpts: http.RequestOptions = {
+      hostname: targetUrl.hostname,
+      port: targetUrl.port || 80,
+      path: req.originalUrl,
+      method: req.method,
+      headers: {
+        ...req.headers,
+        host: targetUrl.host,
+        'x-forwarded-by': 'flamoral-api-gateway',
+      },
+      timeout: 120000,
+    };
+
+    logger.info(`[Proxy] ${req.method} ${req.originalUrl} -> ${userServiceUrl}${req.originalUrl}`);
+
+    const proxyReq = http.request(proxyOpts, (proxyRes) => {
+      logger.info(`[Proxy] ${req.method} ${req.originalUrl} <- ${proxyRes.statusCode}`);
+      res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+      proxyRes.pipe(res, { end: true });
+    });
+
+    proxyReq.on('error', (err) => {
+      logger.error(`[Proxy] Error: ${err.message}`);
+      if (!res.headersSent) {
+        res.status(502).json({
+          success: false,
+          error: { code: 'PROXY_ERROR', message: 'Unable to reach upstream service.' },
+        });
+      }
+    });
+
+    req.pipe(proxyReq, { end: true });
   });
 
   logger.info('Proxy middleware registered for /api/v1/* -> user-service');
