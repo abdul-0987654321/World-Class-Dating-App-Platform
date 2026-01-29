@@ -9,7 +9,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import httpProxy from 'http-proxy';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -39,44 +39,41 @@ async function bootstrap() {
   const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
   logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
 
+  const proxy = httpProxy.createProxyServer({
+    target: userServiceUrl,
+    changeOrigin: true,
+    timeout: 120000,
+    proxyTimeout: 120000,
+  });
+
+  proxy.on('proxyReq', (proxyReq, req) => {
+    proxyReq.setHeader('X-Forwarded-By', 'flamoral-api-gateway');
+    const correlationId = req.headers['x-correlation-id'];
+    if (correlationId) {
+      proxyReq.setHeader('X-Correlation-ID', correlationId as string);
+    }
+    logger.info(`[Proxy] ${req.method} ${req.url} -> ${userServiceUrl}${req.url}`);
+  });
+
+  proxy.on('proxyRes', (proxyRes, req) => {
+    logger.info(`[Proxy] ${req.method} ${req.url} <- ${proxyRes.statusCode}`);
+  });
+
+  proxy.on('error', (err, req, res) => {
+    logger.error(`[Proxy] Error: ${err.message}`);
+    if (res && 'writeHead' in res && !res.headersSent) {
+      (res as any).writeHead(502, { 'Content-Type': 'application/json' });
+      (res as any).end(JSON.stringify({
+        success: false,
+        error: { code: 'PROXY_ERROR', message: 'Unable to reach upstream service.' },
+      }));
+    }
+  });
+
   // Mount the proxy for all /api/v1/* routes
-  app.use(
-    '/api/v1',
-    createProxyMiddleware({
-      target: userServiceUrl,
-      changeOrigin: true,
-      ws: false,
-      timeout: 120000,
-      proxyTimeout: 120000,
-      cookieDomainRewrite: '',
-      headers: {
-        'X-Forwarded-By': 'flamoral-api-gateway',
-      },
-      onProxyReq: (proxyReq, req) => {
-        const correlationId = req.headers['x-correlation-id'];
-        if (correlationId) {
-          proxyReq.setHeader('X-Correlation-ID', correlationId as string);
-        }
-        logger.info(`[Proxy] ${req.method} ${req.url} -> ${userServiceUrl}${req.url}`);
-      },
-      onProxyRes: (proxyRes, req) => {
-        logger.info(`[Proxy] ${req.method} ${req.url} <- ${proxyRes.statusCode}`);
-      },
-      onError: (err, req, res) => {
-        logger.error(`[Proxy] Error: ${err.message}`);
-        if (res && 'writeHead' in res && !res.headersSent) {
-          res.writeHead(502, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({
-            success: false,
-            error: {
-              code: 'PROXY_ERROR',
-              message: 'Unable to reach the upstream service. Please try again later.',
-            },
-          }));
-        }
-      },
-    })
-  );
+  app.use('/api/v1', (req: Request, res: Response) => {
+    proxy.web(req, res);
+  });
 
   logger.info('Proxy middleware registered for /api/v1/* -> user-service');
 
