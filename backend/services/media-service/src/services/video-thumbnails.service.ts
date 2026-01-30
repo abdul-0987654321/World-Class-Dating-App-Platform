@@ -333,7 +333,7 @@ class VideoThumbnailsService {
       logger.debug('Local file cleaned up', { filePath });
     } catch (err) {
       logger.warn('Failed to delete local file:', { filePath });
-    }});
+    }
   }
 
   /**

@@ -18,7 +18,7 @@ function sanitizeLogData(data: any): any {
     const out: any = {};
     for (const [k, v] of Object.entries(data)) {
       const isSensitive = SENSITIVE_LOG_FIELDS.some(f => k.toLowerCase().includes(f.toLowerCase()));
-      out[k] = isSensitive ? '[REDACTED]' : (typeof v === 'object' && v \!== null ? sanitizeLogData(v) : v);
+      out[k] = isSensitive ? '[REDACTED]' : (typeof v === 'object' && v !== null ? sanitizeLogData(v) : v);
     }
     return out;
   }
@@ -27,7 +27,7 @@ function sanitizeLogData(data: any): any {
 
 const sanitizeFormat = winston.format((info) => {
   const s = { ...info };
-  Object.keys(s).filter(k => \!['level','message','timestamp','service','stack'].includes(k))
+  Object.keys(s).filter(k => !['level','message','timestamp','service','stack'].includes(k))
     .forEach(k => { s[k] = sanitizeLogData(s[k]); });
   if (typeof s.message === 'string') {
     s.message = s.message.replace(/[A-Za-z0-9_-]{32,}/g, '[REDACTED_TOKEN]')

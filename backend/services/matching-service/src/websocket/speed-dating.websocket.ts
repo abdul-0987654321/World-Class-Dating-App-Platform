@@ -57,7 +57,7 @@ export class SpeedDatingWebSocketHandler {
         }
 
         const secret = process.env.JWT_ACCESS_SECRET;
-        if (\!secret) {
+        if (!secret) {
           logger.error('JWT_ACCESS_SECRET environment variable is not configured');
           return next(new Error('Server authentication configuration error'));
         }

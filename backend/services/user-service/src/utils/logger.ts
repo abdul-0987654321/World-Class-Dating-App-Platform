@@ -33,7 +33,7 @@ function sanitizeSensitiveData(data: any): any {
       const isSensitive = SENSITIVE_FIELDS.some(f => lowerKey.includes(f.toLowerCase()));
       if (isSensitive) {
         sanitized[key] = '[REDACTED]';
-      } else if (typeof value === 'object' && value \!== null) {
+      } else if (typeof value === 'object' && value !== null) {
         sanitized[key] = sanitizeSensitiveData(value);
       } else {
         sanitized[key] = value;
@@ -47,7 +47,7 @@ function sanitizeSensitiveData(data: any): any {
 const sanitizeFormat = winston.format((info) => {
   const sanitized = { ...info };
   const metaKeys = Object.keys(sanitized).filter(
-    k => \!['level', 'message', 'timestamp', 'service', 'stack'].includes(k)
+    k => !['level', 'message', 'timestamp', 'service', 'stack'].includes(k)
   );
   metaKeys.forEach(k => { sanitized[k] = sanitizeSensitiveData(sanitized[k]); });
   if (typeof sanitized.message === 'string') {

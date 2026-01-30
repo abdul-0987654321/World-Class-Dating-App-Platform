@@ -202,7 +202,7 @@ export class NotificationTemplateService {
         type: NotificationType.DATA_BREACH_NOTIFICATION,
         language: 'fr',
         title: 'Avis de Securite Important de Flamoral',
-        body: 'Nous vous informons d'un incident de securite qui a pu affecter vos donnees personnelles. ID: {{breachId}}. Donnees affectees: {{dataCategories}}. {{remediationSteps}} Contactez notre DPO: dpo@flamoral.com.',
+        body: "Nous vous informons d'un incident de securite qui a pu affecter vos donnees personnelles. ID: {{breachId}}. Donnees affectees: {{dataCategories}}. {{remediationSteps}} Contactez notre DPO: dpo@flamoral.com.",
         category: 'security',
         actionUrl: '/settings/privacy',
         variables: ['breachId', 'dataCategories', 'remediationSteps'],
