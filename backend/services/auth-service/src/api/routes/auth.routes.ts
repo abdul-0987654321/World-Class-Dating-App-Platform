@@ -319,6 +319,7 @@ router.post(
  */
 router.post(
   '/reset-password',
+  passwordResetLimiter,
   validate(resetPasswordSchema),
   authController.resetPassword.bind(authController)
 );

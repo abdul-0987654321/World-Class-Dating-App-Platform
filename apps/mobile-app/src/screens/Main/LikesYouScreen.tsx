@@ -30,7 +30,7 @@ interface LikeProfile {
 }
 
 const LikesYouScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
   const isPremium = user?.isPremium ?? false;
 

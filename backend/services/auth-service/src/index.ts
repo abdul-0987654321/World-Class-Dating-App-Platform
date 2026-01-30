@@ -58,6 +58,9 @@ app.use(
       'X-Correlation-ID',
       'X-CSRF-Token',
       'x-csrf-token',
+      'svix-id', // Clerk webhook signature headers
+      'svix-timestamp',
+      'svix-signature',
     ],
     exposedHeaders: [
       'X-Request-ID',
@@ -72,7 +75,18 @@ app.use(
 );
 
 // Body parsing
-app.use(express.json({ limit: '10mb' }));
+// SECURITY: Capture raw body for webhook signature verification (Svix/Clerk)
+// The verify callback stores the raw body buffer on the request before JSON parsing,
+// so Svix signature verification works correctly.
+app.use(express.json({
+  limit: '10mb',
+  verify: (req: any, _res, buf) => {
+    // Store raw body for webhook routes that need it for signature verification
+    if (req.originalUrl && req.originalUrl.includes('/webhooks/')) {
+      req.rawBody = buf.toString('utf8');
+    }
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Cookie parsing (required for httpOnly cookie-based auth)

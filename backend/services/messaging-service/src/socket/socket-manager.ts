@@ -62,11 +62,15 @@ export class SocketManager {
     this.userSocketMap[userId] = socket.id;
     logger.info(`User ${userId} mapped to socket ${socket.id}`);
 
-    // Update online status in Redis
-    this.updateOnlineStatus(userId, true, socket.id);
+    // Update online status in Redis (fire-and-forget with error handling)
+    this.updateOnlineStatus(userId, true, socket.id).catch((error) => {
+      logger.error('Failed to update online status on connect:', error);
+    });
 
-    // Broadcast online status to user's contacts
-    this.broadcastOnlineStatus(userId, true);
+    // Broadcast online status to user's contacts (fire-and-forget with error handling)
+    this.broadcastOnlineStatus(userId, true).catch((error) => {
+      logger.error('Failed to broadcast online status on connect:', error);
+    });
 
     // Register event handlers
     this.registerMessageHandlers(socket, userId);
@@ -338,11 +342,15 @@ export class SocketManager {
       // Remove from user-socket mapping
       delete this.userSocketMap[userId];
 
-      // Update online status
-      this.updateOnlineStatus(userId, false);
+      // Update online status (fire-and-forget with error handling)
+      this.updateOnlineStatus(userId, false).catch((error) => {
+        logger.error('Failed to update online status on disconnect:', error);
+      });
 
-      // Broadcast offline status
-      this.broadcastOnlineStatus(userId, false);
+      // Broadcast offline status (fire-and-forget with error handling)
+      this.broadcastOnlineStatus(userId, false).catch((error) => {
+        logger.error('Failed to broadcast offline status on disconnect:', error);
+      });
     });
   }
 

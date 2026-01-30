@@ -1,12 +1,34 @@
 /**
  * Jest configuration for API E2E tests
- * Runs against local or staging environments
+ * Runs against local, staging, or production environments
  *
- * Includes Allure reporting for comprehensive test results
+ * Includes Allure reporting for comprehensive test results (if installed)
  */
+
+// Safely resolve test environment - fall back to 'node' if allure-jest is not installed
+let testEnvironment = 'node';
+try {
+  require.resolve('allure-jest/node');
+  testEnvironment = 'allure-jest/node';
+} catch {
+  // allure-jest not installed, using default node environment
+}
+
+// Safely check if jest-junit is available
+const reporters = ['default'];
+try {
+  require.resolve('jest-junit');
+  reporters.push(['jest-junit', {
+    outputDirectory: '<rootDir>/test-results/e2e',
+    outputName: 'junit.xml',
+  }]);
+} catch {
+  // jest-junit not installed, using default reporter only
+}
+
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'allure-jest/node',
+  testEnvironment,
   testEnvironmentOptions: {
     resultsDir: process.env.ALLURE_RESULTS_DIR || '<rootDir>/allure-results/api-e2e',
   },
@@ -16,6 +38,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: '<rootDir>/tsconfig.json',
+      isolatedModules: true,
     }],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -33,17 +56,5 @@ module.exports = {
   ],
   coverageDirectory: '<rootDir>/coverage/e2e',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
-  reporters: [
-    'default',
-    ['jest-junit', {
-      outputDirectory: '<rootDir>/test-results/e2e',
-      outputName: 'junit.xml',
-    }],
-  ],
-  // Environment variables for different environments
-  globals: {
-    'ts-jest': {
-      isolatedModules: true,
-    },
-  },
+  reporters,
 };

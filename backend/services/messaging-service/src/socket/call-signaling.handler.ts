@@ -198,9 +198,11 @@ export class CallSignalingHandler {
     );
 
     // Generate Agora token for caller
+    // Use a numeric hash of the userId for Agora UID since userIds may be UUIDs
+    const callerUid = parseInt(data.callerId, 10) || this.hashStringToUid(data.callerId);
     const callerToken = this.videoCallService.generateAgoraToken(
       callSession.channelName,
-      parseInt(data.callerId),
+      callerUid,
       'publisher'
     );
 
@@ -220,18 +222,25 @@ export class CallSignalingHandler {
     });
 
     // Set timeout to mark call as missed if not accepted
+    const callId = callSession.callId;
+    const calleeId = data.calleeId;
     setTimeout(async () => {
-      const session = await this.videoCallService.getCallSession(callSession.callId);
-      if (session && session.status === 'ringing') {
-        await this.videoCallService.markCallAsMissed(callSession.callId);
+      try {
+        const session = await this.videoCallService.getCallSession(callId);
+        if (session && session.status === 'ringing') {
+          await this.videoCallService.markCallAsMissed(callId);
 
-        // Notify caller
-        socket.emit('call-timeout', { callId: callSession.callId });
+          // Notify caller
+          socket.emit('call-timeout', { callId });
 
-        // Notify callee
-        if (calleeSocketId) {
-          this.io.to(calleeSocketId).emit('call-timeout', { callId: callSession.callId });
+          // Re-lookup callee socket ID since it may have changed during timeout
+          const currentCalleeSocketId = this.connectedUsers.get(calleeId);
+          if (currentCalleeSocketId) {
+            this.io.to(currentCalleeSocketId).emit('call-timeout', { callId });
+          }
         }
+      } catch (error) {
+        logger.error('Error handling call timeout', { callId, error });
       }
     }, 60000); // 60 seconds timeout
 
@@ -271,7 +280,7 @@ export class CallSignalingHandler {
         callType: result.callSession.callType,
         agoraToken: this.videoCallService.generateAgoraToken(
           result.callSession.channelName,
-          parseInt(result.callSession.callerId),
+          parseInt(result.callSession.callerId, 10) || this.hashStringToUid(result.callSession.callerId),
           'publisher'
         ),
         channelName: result.callSession.channelName,
@@ -433,6 +442,20 @@ export class CallSignalingHandler {
       userId,
       consent: data.consent,
     });
+  }
+
+  /**
+   * Convert a string (e.g. UUID) to a numeric UID for Agora.
+   * parseInt returns NaN for non-numeric strings like UUIDs.
+   */
+  private hashStringToUid(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
   }
 
   /**

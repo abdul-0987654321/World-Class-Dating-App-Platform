@@ -13,15 +13,16 @@ import {
   requestPurchase,
   requestSubscription,
   finishTransaction,
-  acknowledgePurchaseAndroid,
   getAvailablePurchases,
-  Product,
-  Subscription,
-  Purchase,
-  PurchaseError,
-  ProductPurchase,
-  SubscriptionPurchase,
+  type Product,
+  type Subscription,
+  type Purchase,
 } from 'react-native-iap';
+
+// acknowledgePurchaseAndroid was removed in newer react-native-iap versions;
+// finishTransaction handles acknowledgement now.
+// PurchaseError, ProductPurchase, SubscriptionPurchase no longer exported separately.
+type PurchaseError = { code: string; message: string; debugMessage?: string };
 import { Platform, Alert } from 'react-native';
 import { EventEmitter } from 'events';
 import logger from '../../utils/logger';
@@ -79,13 +80,7 @@ class InAppPurchaseServiceClass extends EventEmitter {
             // Verify purchase with backend
             await this.verifyPurchaseWithBackend(purchase);
 
-            // Finish the transaction
-            if (Platform.OS === 'android') {
-              await acknowledgePurchaseAndroid({
-                token: purchase.purchaseToken!,
-                developerPayload: purchase.developerPayloadAndroid,
-              });
-            }
+            // Finish the transaction (handles acknowledgement on Android)
             await finishTransaction({
               purchase,
               isConsumable: this.isConsumable(purchase.productId),

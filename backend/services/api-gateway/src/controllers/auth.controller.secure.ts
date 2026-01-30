@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Res,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
@@ -122,7 +123,10 @@ export class AuthController {
     const refreshToken = req.cookies?.refreshToken;
 
     if (!refreshToken) {
-      throw new Error('Refresh token not found');
+      throw new UnauthorizedException({
+        code: 'REFRESH_TOKEN_MISSING',
+        message: 'Refresh token not found. Please log in again.',
+      });
     }
 
     const response = await this.proxyService.post('authService', '/api/v1/auth/refresh-token', {

@@ -30,7 +30,7 @@ interface Notification {
 }
 
 const NotificationHistoryScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { updateBadgeCount } = useNotifications();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);

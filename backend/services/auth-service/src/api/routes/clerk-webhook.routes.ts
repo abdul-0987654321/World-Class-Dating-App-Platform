@@ -23,12 +23,18 @@ interface ClerkWebhookEvent {
     updated_at?: number;
     banned?: boolean;
     locked?: boolean;
+    profile_image_url?: string;
+    image_url?: string;
   };
 }
 
 /**
  * Clerk webhook endpoint for user synchronization
  * Handles user.created, user.updated, user.deleted events
+ *
+ * IMPORTANT: This route MUST receive the raw request body (Buffer) for Svix
+ * signature verification. The parent Express app must apply express.raw()
+ * or equivalent middleware to this route BEFORE JSON parsing.
  */
 router.post('/', async (req: Request, res: Response) => {
   const webhookSecret = config.clerk.webhookSecret;
@@ -44,6 +50,11 @@ router.post('/', async (req: Request, res: Response) => {
   const svixSignature = req.headers['svix-signature'] as string;
 
   if (!svixId || !svixTimestamp || !svixSignature) {
+    logger.warn('Clerk webhook missing signature headers', {
+      hasSvixId: !!svixId,
+      hasSvixTimestamp: !!svixTimestamp,
+      hasSvixSignature: !!svixSignature,
+    });
     return res.status(400).json({ error: 'Missing webhook signature headers' });
   }
 
@@ -51,14 +62,27 @@ router.post('/', async (req: Request, res: Response) => {
 
   try {
     const wh = new Webhook(webhookSecret);
-    const body = JSON.stringify(req.body);
-    event = wh.verify(body, {
+    // SECURITY: Use the raw body (Buffer/string) for signature verification.
+    // JSON.stringify(req.body) can reorder keys and change whitespace,
+    // which will cause Svix signature verification to fail.
+    // If raw body is available (via express.raw() middleware), use it;
+    // otherwise fall back to JSON.stringify for backwards compatibility.
+    const rawBody = typeof (req as any).rawBody === 'string'
+      ? (req as any).rawBody
+      : Buffer.isBuffer(req.body)
+        ? req.body.toString('utf8')
+        : JSON.stringify(req.body);
+
+    event = wh.verify(rawBody, {
       'svix-id': svixId,
       'svix-timestamp': svixTimestamp,
       'svix-signature': svixSignature,
     }) as ClerkWebhookEvent;
   } catch (err) {
-    logger.error('Clerk webhook signature verification failed', err);
+    logger.error('Clerk webhook signature verification failed', {
+      error: (err as Error).message,
+      svixId,
+    });
     return res.status(400).json({ error: 'Invalid webhook signature' });
   }
 
@@ -108,16 +132,57 @@ router.post('/', async (req: Request, res: Response) => {
       }
 
       case 'user.updated': {
-        const { id: clerkId, banned, locked } = event.data;
+        const {
+          id: clerkId,
+          email_addresses,
+          first_name,
+          last_name,
+          primary_email_address_id,
+          banned,
+          locked,
+        } = event.data;
 
         const user = await userRepository.findByClerkId(clerkId);
 
-        if (user) {
-          if (banned || locked) {
-            await userRepository.deactivate(user.id);
-            logger.info(`Deactivated user ${user.id} due to Clerk ban/lock`);
-          }
+        if (!user) {
+          logger.warn(`Clerk user.updated webhook: no local user for Clerk ID ${clerkId}`);
+          break;
         }
+
+        // Handle ban/lock status
+        if (banned || locked) {
+          await userRepository.deactivate(user.id);
+          logger.info(`Deactivated user ${user.id} due to Clerk ban/lock`);
+        } else if (banned === false && locked === false && !user.is_active) {
+          // Re-activate if explicitly unbanned/unlocked
+          await userRepository.reactivate(user.id);
+          logger.info(`Reactivated user ${user.id} after Clerk unban/unlock`);
+        }
+
+        // Sync profile fields from Clerk
+        const updates: Record<string, string> = {};
+        if (first_name !== undefined && first_name !== user.first_name) {
+          updates.first_name = first_name;
+        }
+        if (last_name !== undefined && last_name !== user.last_name) {
+          updates.last_name = last_name;
+        }
+
+        // Sync primary email if changed
+        const newPrimaryEmail = email_addresses?.find(
+          (e) => e.id === primary_email_address_id
+        )?.email_address;
+        if (newPrimaryEmail && newPrimaryEmail !== user.email) {
+          updates.email = newPrimaryEmail;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          await userRepository.updateProfile(user.id, updates);
+          logger.info(`Synced profile updates for user ${user.id} from Clerk`, {
+            fields: Object.keys(updates),
+          });
+        }
+
         break;
       }
 
@@ -129,17 +194,35 @@ router.post('/', async (req: Request, res: Response) => {
         if (user) {
           await userRepository.deactivate(user.id);
           logger.info(`Deactivated user ${user.id} due to Clerk deletion`);
+        } else {
+          logger.debug(`Clerk user.deleted webhook: no local user for Clerk ID ${clerkId}`);
         }
         break;
       }
 
+      case 'session.created':
+      case 'session.ended':
+      case 'session.removed':
+      case 'session.revoked':
+        // Session events are handled by Clerk client-side SDK; log for audit trail
+        logger.debug(`Clerk session event: ${event.type}`, { clerkId: event.data.id });
+        break;
+
       default:
-        logger.debug(`Unhandled Clerk webhook event: ${event.type}`);
+        logger.info(`Unhandled Clerk webhook event type: ${event.type}`, {
+          eventType: event.type,
+          dataId: event.data.id,
+        });
     }
 
     return res.status(200).json({ received: true });
   } catch (error) {
-    logger.error(`Error processing Clerk webhook event: ${event.type}`, error);
+    logger.error(`Error processing Clerk webhook event: ${event.type}`, {
+      error: (error as Error).message,
+      stack: (error as Error).stack,
+      eventType: event.type,
+      dataId: event.data?.id,
+    });
     return res.status(500).json({ error: 'Webhook processing failed' });
   }
 });

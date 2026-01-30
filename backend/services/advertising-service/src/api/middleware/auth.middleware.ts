@@ -69,7 +69,9 @@ export const authenticateJWT = (
     }
 
     try {
-      const decoded = jwt.verify(token, secret) as JwtTokenPayload;
+      const decoded = jwt.verify(token, secret, {
+        algorithms: ['HS256'],
+      }) as JwtTokenPayload;
 
       req.user = {
         id: decoded.userId || decoded.id || decoded.sub || '',
@@ -129,7 +131,9 @@ export const optionalAuth = (
     }
 
     try {
-      const decoded = jwt.verify(token, secret) as JwtTokenPayload;
+      const decoded = jwt.verify(token, secret, {
+        algorithms: ['HS256'],
+      }) as JwtTokenPayload;
 
       req.user = {
         id: decoded.userId || decoded.id || decoded.sub || '',
@@ -356,7 +360,7 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 // Clean up rate limit store periodically (every 5 minutes)
-setInterval(
+const rateLimitCleanupTimer = setInterval(
   () => {
     const now = Date.now();
     for (const [key, value] of rateLimitStore.entries()) {
@@ -367,6 +371,11 @@ setInterval(
   },
   5 * 60 * 1000
 );
+
+// Don't keep the process alive just for rate limit cleanup
+if (rateLimitCleanupTimer.unref) {
+  rateLimitCleanupTimer.unref();
+}
 
 // Export authenticateJWT as authMiddleware for backward compatibility
 export const authMiddleware = authenticateJWT;

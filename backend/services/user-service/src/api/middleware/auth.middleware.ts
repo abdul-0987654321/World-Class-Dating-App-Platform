@@ -199,8 +199,14 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
  */
 export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // First authenticate the user
-    await authenticate(req, res, () => {});
+    // First authenticate the user - use a flag to detect if authenticate sent a response
+    let authCompleted = false;
+    await authenticate(req, res, () => { authCompleted = true; });
+
+    // If authenticate already sent a response (401, 503, etc.), don't continue
+    if (!authCompleted || res.headersSent) {
+      return;
+    }
 
     // Check if user is authenticated
     if (!req.user) {
@@ -227,10 +233,12 @@ export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFu
     return next();
   } catch (error) {
     logger.error('Admin authentication error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Authentication error',
-    });
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication error',
+      });
+    }
   }
 };
 
@@ -239,8 +247,14 @@ export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFu
  */
 export const requireModerator = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // First authenticate the user
-    await authenticate(req, res, () => {});
+    // First authenticate the user - use a flag to detect if authenticate sent a response
+    let authCompleted = false;
+    await authenticate(req, res, () => { authCompleted = true; });
+
+    // If authenticate already sent a response (401, 503, etc.), don't continue
+    if (!authCompleted || res.headersSent) {
+      return;
+    }
 
     // Check if user is authenticated
     if (!req.user) {
@@ -267,10 +281,12 @@ export const requireModerator = async (req: AuthRequest, res: Response, next: Ne
     return next();
   } catch (error) {
     logger.error('Moderator authentication error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Authentication error',
-    });
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication error',
+      });
+    }
   }
 };
 
@@ -279,8 +295,14 @@ export const requireModerator = async (req: AuthRequest, res: Response, next: Ne
  */
 export const requireSupport = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // First authenticate the user
-    await authenticate(req, res, () => {});
+    // First authenticate the user - use a flag to detect if authenticate sent a response
+    let authCompleted = false;
+    await authenticate(req, res, () => { authCompleted = true; });
+
+    // If authenticate already sent a response (401, 503, etc.), don't continue
+    if (!authCompleted || res.headersSent) {
+      return;
+    }
 
     // Check if user is authenticated
     if (!req.user) {
@@ -311,9 +333,11 @@ export const requireSupport = async (req: AuthRequest, res: Response, next: Next
     return next();
   } catch (error) {
     logger.error('Support authentication error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Authentication error',
-    });
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication error',
+      });
+    }
   }
 };

@@ -370,7 +370,12 @@ export class DDoSProtectionService {
     const tempData = await this.redis.get(tempKey);
 
     if (tempData) {
-      return JSON.parse(tempData);
+      try {
+        return JSON.parse(tempData);
+      } catch {
+        this.logger.warn(`Corrupted ban data for IP ${ip}, removing key`);
+        await this.redis.del(tempKey);
+      }
     }
 
     // Check permanent ban
@@ -378,7 +383,12 @@ export class DDoSProtectionService {
     const permData = await this.redis.get(permKey);
 
     if (permData) {
-      return JSON.parse(permData);
+      try {
+        return JSON.parse(permData);
+      } catch {
+        this.logger.warn(`Corrupted permanent ban data for IP ${ip}, removing key`);
+        await this.redis.del(permKey);
+      }
     }
 
     return null;
@@ -395,7 +405,11 @@ export class DDoSProtectionService {
     for (const key of tempKeys) {
       const data = await this.redis.get(key);
       if (data) {
-        bannedIPs.push(JSON.parse(data));
+        try {
+          bannedIPs.push(JSON.parse(data));
+        } catch {
+          this.logger.warn(`Corrupted ban data at key ${key}, skipping`);
+        }
       }
     }
 
@@ -404,7 +418,11 @@ export class DDoSProtectionService {
     for (const key of permKeys) {
       const data = await this.redis.get(key);
       if (data) {
-        bannedIPs.push(JSON.parse(data));
+        try {
+          bannedIPs.push(JSON.parse(data));
+        } catch {
+          this.logger.warn(`Corrupted permanent ban data at key ${key}, skipping`);
+        }
       }
     }
 

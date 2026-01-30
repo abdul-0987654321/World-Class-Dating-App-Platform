@@ -36,11 +36,11 @@ export const authenticate = async (
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    const jwtSecret = process.env.JWT_SECRET;
+    const jwtSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
 
     // SECURITY: Require JWT secret to be set - fail-closed approach
     if (!jwtSecret) {
-      logger.error('JWT_SECRET environment variable not set');
+      logger.error('JWT_ACCESS_SECRET / JWT_SECRET environment variable not set');
       return res.status(500).json({
         success: false,
         error: 'Server configuration error',
@@ -48,7 +48,9 @@ export const authenticate = async (
     }
 
     try {
-      const payload = jwt.verify(token, jwtSecret) as { userId: string; email: string };
+      const payload = jwt.verify(token, jwtSecret, {
+        algorithms: ['HS256'],
+      }) as { userId: string; email: string };
       req.user = {
         id: payload.userId,
         userId: payload.userId,

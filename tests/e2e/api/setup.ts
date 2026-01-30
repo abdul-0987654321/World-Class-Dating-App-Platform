@@ -7,17 +7,21 @@
 
 import request from 'supertest';
 
+// Production Railway base URL
+const RAILWAY_BASE_URL = 'https://api-gateway-production-1957.up.railway.app';
+
 // Environment configuration
 export const config = {
   // Service URLs - configurable via environment variables
-  AUTH_URL: process.env.AUTH_URL || 'http://localhost:3001',
-  USER_URL: process.env.USER_URL || 'http://localhost:3002',
-  MATCHING_URL: process.env.MATCHING_URL || 'http://localhost:3003',
-  MESSAGING_URL: process.env.MESSAGING_URL || 'http://localhost:3004',
-  NOTIFICATION_URL: process.env.NOTIFICATION_URL || 'http://localhost:3005',
-  MEDIA_URL: process.env.MEDIA_URL || 'http://localhost:3006',
-  PAYMENT_URL: process.env.PAYMENT_URL || 'http://localhost:3007',
-  API_GATEWAY_URL: process.env.API_GATEWAY_URL || 'http://localhost:3000',
+  // Default to production Railway gateway; all routes go through the API gateway in production
+  AUTH_URL: process.env.AUTH_URL || RAILWAY_BASE_URL,
+  USER_URL: process.env.USER_URL || RAILWAY_BASE_URL,
+  MATCHING_URL: process.env.MATCHING_URL || RAILWAY_BASE_URL,
+  MESSAGING_URL: process.env.MESSAGING_URL || RAILWAY_BASE_URL,
+  NOTIFICATION_URL: process.env.NOTIFICATION_URL || RAILWAY_BASE_URL,
+  MEDIA_URL: process.env.MEDIA_URL || RAILWAY_BASE_URL,
+  PAYMENT_URL: process.env.PAYMENT_URL || RAILWAY_BASE_URL,
+  API_GATEWAY_URL: process.env.API_GATEWAY_URL || RAILWAY_BASE_URL,
 
   // Test user credentials
   TEST_USER_EMAIL: process.env.TEST_USER_EMAIL || `e2e-test-${Date.now()}@flamoral.test`,
@@ -105,10 +109,18 @@ export async function createTestUser(): Promise<TestState> {
 }
 
 /**
- * Cleans up test user data
+ * Cleans up test user data.
+ * SAFETY: Only cleans up accounts with @flamoral.test email domain
+ * to prevent accidental deletion of production user data.
  */
 export async function cleanupTestUser(): Promise<void> {
   if (testState.accessToken && testState.userId) {
+    // Safety guard: only clean up test accounts (identified by @flamoral.test domain)
+    if (!testState.email || !testState.email.endsWith('@flamoral.test')) {
+      console.warn('Skipping cleanup: user email is not a test account (@flamoral.test)');
+      return;
+    }
+
     try {
       // Attempt to delete test user (if endpoint exists)
       await request(config.AUTH_URL)
@@ -123,22 +135,32 @@ export async function cleanupTestUser(): Promise<void> {
 }
 
 /**
- * Helper to make authenticated requests
+ * Helper to make authenticated requests with timeout
  */
 export function authenticatedRequest(baseUrl: string = config.API_GATEWAY_URL) {
   const agent = request(baseUrl);
 
   return {
     get: (path: string) =>
-      agent.get(path).set('Authorization', `Bearer ${testState.accessToken}`),
+      agent.get(path)
+        .set('Authorization', `Bearer ${testState.accessToken}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     post: (path: string) =>
-      agent.post(path).set('Authorization', `Bearer ${testState.accessToken}`),
+      agent.post(path)
+        .set('Authorization', `Bearer ${testState.accessToken}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     put: (path: string) =>
-      agent.put(path).set('Authorization', `Bearer ${testState.accessToken}`),
+      agent.put(path)
+        .set('Authorization', `Bearer ${testState.accessToken}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     patch: (path: string) =>
-      agent.patch(path).set('Authorization', `Bearer ${testState.accessToken}`),
+      agent.patch(path)
+        .set('Authorization', `Bearer ${testState.accessToken}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     delete: (path: string) =>
-      agent.delete(path).set('Authorization', `Bearer ${testState.accessToken}`),
+      agent.delete(path)
+        .set('Authorization', `Bearer ${testState.accessToken}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
   };
 }
 
@@ -209,15 +231,25 @@ export function requestWithToken(token: string, baseUrl: string = config.API_GAT
 
   return {
     get: (path: string) =>
-      agent.get(path).set('Authorization', `Bearer ${token}`),
+      agent.get(path)
+        .set('Authorization', `Bearer ${token}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     post: (path: string) =>
-      agent.post(path).set('Authorization', `Bearer ${token}`),
+      agent.post(path)
+        .set('Authorization', `Bearer ${token}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     put: (path: string) =>
-      agent.put(path).set('Authorization', `Bearer ${token}`),
+      agent.put(path)
+        .set('Authorization', `Bearer ${token}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     patch: (path: string) =>
-      agent.patch(path).set('Authorization', `Bearer ${token}`),
+      agent.patch(path)
+        .set('Authorization', `Bearer ${token}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
     delete: (path: string) =>
-      agent.delete(path).set('Authorization', `Bearer ${token}`),
+      agent.delete(path)
+        .set('Authorization', `Bearer ${token}`)
+        .timeout({ response: config.DEFAULT_TIMEOUT, deadline: config.LONG_TIMEOUT }),
   };
 }
 

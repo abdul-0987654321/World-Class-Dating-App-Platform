@@ -11,8 +11,6 @@
     "emitDecoratorMetadata": true,
     "strict": false,
     "skipLibCheck": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "outDir": "./dist",
@@ -23,8 +21,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@flamoral/backend-shared": ["../../shared"],
-      "@flamoral/backend-shared/*": ["../../shared/*"]
+      "@flamoral/backend-shared": ["../../shared/dist"],
+      "@flamoral/backend-shared/*": ["../../shared/dist/*"]
     }
   },
   "include": ["src/**/*"],

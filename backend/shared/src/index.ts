@@ -22,3 +22,11 @@ export {
   IsStrongPassword,
 } from './dto';
 export type { ServerOwnedField } from './dto';
+
+// Platform Intelligence - Feature Flags
+export {
+  FeatureFlagService,
+  featureFlags,
+  DEFAULT_FEATURE_FLAGS,
+} from './platform-intelligence/feature-flags';
+export type { FeatureFlag, FeatureFlagConfig } from './platform-intelligence/feature-flags';

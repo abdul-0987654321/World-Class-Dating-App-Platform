@@ -384,6 +384,19 @@ export class MatchingController {
   }
 
   /**
+   * Get match count
+   * NOTE: This must be defined BEFORE matches/:matchId to prevent "count"
+   * from being captured as a matchId parameter.
+   */
+  @Get('matches/count')
+  @ApiOperation({ summary: 'Get total match count' })
+  async getMatchCount(@Headers('authorization') authorization: string) {
+    return this.proxyService.get('matchingService', '/api/v1/matches/count', {
+      Authorization: authorization,
+    });
+  }
+
+  /**
    * Get a specific match
    */
   @Get('matches/:matchId')
@@ -407,17 +420,6 @@ export class MatchingController {
     @Param('matchId') matchId: string
   ) {
     return this.proxyService.delete('matchingService', `/api/v1/matches/${matchId}`, {
-      Authorization: authorization,
-    });
-  }
-
-  /**
-   * Get match count
-   */
-  @Get('matches/count')
-  @ApiOperation({ summary: 'Get total match count' })
-  async getMatchCount(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('matchingService', '/api/v1/matches/count', {
       Authorization: authorization,
     });
   }

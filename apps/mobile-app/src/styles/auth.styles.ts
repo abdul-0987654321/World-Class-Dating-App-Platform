@@ -28,7 +28,7 @@ const BREAKPOINTS = {
   // Legacy aliases
   small: 320,
   medium: 375,
-  large: 414,
+  // Note: 'large' already defined above (1440)
 };
 
 // Determine device size category based on standard breakpoints

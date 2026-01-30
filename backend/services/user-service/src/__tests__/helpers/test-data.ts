@@ -4,6 +4,7 @@ import { ProfileEntity } from '../../domain/entities/Profile.entity';
 
 export const createMockUser = (overrides?: Partial<UserEntity>): UserEntity => ({
   id: uuidv4(),
+  clerk_user_id: `clerk_${uuidv4().replace(/-/g, '').substring(0, 24)}`,
   email: 'test@example.com',
   password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz',
   first_name: 'John',
@@ -11,6 +12,7 @@ export const createMockUser = (overrides?: Partial<UserEntity>): UserEntity => (
   date_of_birth: new Date('1995-01-01'),
   gender: 'male',
   phone_number: '+1234567890',
+  role: 'user',
   is_verified: false,
   is_email_verified: false,
   is_phone_verified: false,
@@ -48,6 +50,7 @@ export const createMockCreateUserDto = (overrides?: Partial<CreateUserDto>): Cre
   date_of_birth: new Date('1995-01-01'),
   gender: 'male',
   phone_number: '+1234567890',
+  clerk_user_id: `clerk_${Date.now().toString(36)}`,
   ...overrides,
 });
 

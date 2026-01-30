@@ -1,8 +1,29 @@
 const path = require('path');
 
+// Safely resolve test environment - fall back to 'node' if allure-jest is not installed
+let testEnvironment = 'node';
+try {
+  require.resolve('allure-jest/node');
+  testEnvironment = 'allure-jest/node';
+} catch {
+  // allure-jest not installed, using default node environment
+}
+
+// Safely check if jest-junit is available
+const reporters = ['default'];
+try {
+  require.resolve('jest-junit');
+  reporters.push(['jest-junit', {
+    outputDirectory: '<rootDir>/test-results',
+    outputName: 'junit.xml',
+  }]);
+} catch {
+  // jest-junit not installed, using default reporter only
+}
+
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'allure-jest/node',
+  testEnvironment,
   testEnvironmentOptions: {
     resultsDir: process.env.ALLURE_RESULTS_DIR || path.join(__dirname, 'allure-results'),
   },
@@ -15,7 +36,9 @@ module.exports = {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         esModuleInterop: true,
-        allowSyntheticDefaultImports: true
+        allowSyntheticDefaultImports: true,
+        experimentalDecorators: true,
+        emitDecoratorMetadata: true,
       }
     }]
   },
@@ -26,6 +49,7 @@ module.exports = {
     '!services/**/src/**/*.interface.ts',
     '!services/**/src/**/*.type.ts',
     '!services/**/src/**/migrations/**',
+    '!services/**/src/**/__tests__/**',
   ],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
@@ -48,13 +72,7 @@ module.exports = {
     '/dist/'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  reporters: [
-    'default',
-    ['jest-junit', {
-      outputDirectory: '<rootDir>/test-results',
-      outputName: 'junit.xml',
-    }],
-  ],
+  reporters,
   testTimeout: 30000,
   verbose: true,
   maxWorkers: '50%',

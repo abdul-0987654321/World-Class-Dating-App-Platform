@@ -2,8 +2,9 @@ import request from 'supertest';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const MEDIA_API_URL = process.env.MEDIA_API_URL || 'http://localhost:3005';
-const AUTH_URL = process.env.AUTH_URL || 'http://localhost:3001';
+const GATEWAY_URL = process.env.API_GATEWAY_URL || 'https://api-gateway-production-1957.up.railway.app';
+const MEDIA_API_URL = process.env.MEDIA_API_URL || GATEWAY_URL;
+const AUTH_URL = process.env.AUTH_URL || GATEWAY_URL;
 
 /**
  * E2E API Tests for Media Service

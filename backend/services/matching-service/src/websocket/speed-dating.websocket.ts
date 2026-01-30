@@ -28,6 +28,8 @@ interface RoundTimers {
   [eventId: string]: {
     roundTimer?: NodeJS.Timeout;
     breakTimer?: NodeJS.Timeout;
+    countdownTimers?: NodeJS.Timeout[];
+    completionTimer?: NodeJS.Timeout;
   };
 }
 
@@ -141,7 +143,7 @@ export class SpeedDatingWebSocketHandler {
       if (!this.eventParticipants.has(eventId)) {
         this.eventParticipants.set(eventId, new Set());
       }
-      this.eventParticipants.get(eventId).add(socket.id);
+      this.eventParticipants.get(eventId)!.add(socket.id);
       this.socketToUser.set(socket.id, { userId: socket.userId, eventId });
 
       // Notify others
@@ -497,16 +499,20 @@ export class SpeedDatingWebSocketHandler {
       this.roundTimers[eventId] = {};
     }
 
+    // Track countdown timers so they can be cleaned up
+    this.roundTimers[eventId].countdownTimers = [];
+
     // Send countdown at key intervals
     const countdownIntervals = [60, 30, 10, 5, 4, 3, 2, 1];
     for (const seconds of countdownIntervals) {
       if (seconds < durationSeconds) {
-        setTimeout(
+        const timer = setTimeout(
           () => {
             this.sendCountdown(eventId, seconds, 'round');
           },
           (durationSeconds - seconds) * 1000
         );
+        this.roundTimers[eventId].countdownTimers!.push(timer);
       }
     }
 
@@ -520,16 +526,22 @@ export class SpeedDatingWebSocketHandler {
       this.roundTimers[eventId] = {};
     }
 
+    // Track countdown timers so they can be cleaned up
+    if (!this.roundTimers[eventId].countdownTimers) {
+      this.roundTimers[eventId].countdownTimers = [];
+    }
+
     // Send countdown at key intervals during break
     const countdownIntervals = [30, 10, 5, 4, 3, 2, 1];
     for (const seconds of countdownIntervals) {
       if (seconds < breakDurationSeconds) {
-        setTimeout(
+        const timer = setTimeout(
           () => {
             this.sendCountdown(eventId, seconds, 'break');
           },
           (breakDurationSeconds - seconds) * 1000
         );
+        this.roundTimers[eventId].countdownTimers!.push(timer);
       }
     }
 
@@ -541,7 +553,11 @@ export class SpeedDatingWebSocketHandler {
   }
 
   private scheduleEventCompletion(eventId: string, delaySeconds: number): void {
-    setTimeout(async () => {
+    if (!this.roundTimers[eventId]) {
+      this.roundTimers[eventId] = {};
+    }
+
+    this.roundTimers[eventId].completionTimer = setTimeout(async () => {
       await this.broadcastEventComplete(eventId);
     }, delaySeconds * 1000);
   }
@@ -551,6 +567,12 @@ export class SpeedDatingWebSocketHandler {
     if (timers) {
       if (timers.roundTimer) clearTimeout(timers.roundTimer);
       if (timers.breakTimer) clearTimeout(timers.breakTimer);
+      if (timers.completionTimer) clearTimeout(timers.completionTimer);
+      if (timers.countdownTimers) {
+        for (const timer of timers.countdownTimers) {
+          clearTimeout(timer);
+        }
+      }
       delete this.roundTimers[eventId];
     }
   }

@@ -4,6 +4,7 @@
  */
 
 import { Linking } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import { navigationRef } from '../../navigation/NavigationService';
 
 export interface DeepLinkConfig {
@@ -187,7 +188,9 @@ export class DeepLinkHandler {
     }
 
     try {
-      navigationRef.current.navigate(screen as never, params as never);
+      navigationRef.current.dispatch(
+        CommonActions.navigate({ name: screen, params })
+      );
     } catch (error) {
       console.error('Navigation error:', error);
     }

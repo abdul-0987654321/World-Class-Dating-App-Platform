@@ -79,8 +79,8 @@ export class LocationController {
         success: true,
         data: location,
       };
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (error: any) {
+      throw new BadRequestException(error?.message || 'Failed to update location');
     }
   }
 
@@ -154,8 +154,8 @@ export class LocationController {
           count: nearbyUsers.length,
         },
       };
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (error: any) {
+      throw new BadRequestException(error?.message || 'Failed to get nearby users');
     }
   }
 

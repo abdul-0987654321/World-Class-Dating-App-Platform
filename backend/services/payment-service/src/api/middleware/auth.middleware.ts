@@ -52,7 +52,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     }
 
     const token = authHeader.substring(7);
-    const secret = process.env.JWT_ACCESS_SECRET;
+    const secret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
 
     if (!secret) {
       logger.error('[PaymentAuth] JWT_ACCESS_SECRET not configured');
@@ -65,7 +65,9 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
     try {
       // Verify and decode the JWT token
-      const decoded = jwt.verify(token, secret) as {
+      const decoded = jwt.verify(token, secret, {
+        algorithms: ['HS256'],
+      }) as {
         userId?: string;
         id?: string;
         sub?: string;

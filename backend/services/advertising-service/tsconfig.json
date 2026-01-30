@@ -21,8 +21,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@flamoral/backend-shared": ["../../shared"],
-      "@flamoral/backend-shared/*": ["../../shared/*"]
+      "@flamoral/backend-shared": ["../../shared/dist"],
+      "@flamoral/backend-shared/*": ["../../shared/dist/*"]
     }
   },
   "include": ["src/**/*"],

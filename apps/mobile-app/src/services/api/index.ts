@@ -10,5 +10,6 @@ export * from './discovery.service';
 export * from './match.service';
 export * from './MessagingService';
 export * from './messaging';
-export * from './apiClient';
+// Note: apiClient re-exports httpClient, so we only export the default to avoid duplicate ApiResponse
+export { default as ApiClient } from './apiClient';
 export * from './encryptionKeysAPI';

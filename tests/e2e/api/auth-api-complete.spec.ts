@@ -1,6 +1,6 @@
 import request from 'supertest';
 
-const API_URL = process.env.API_URL || 'http://localhost:3001';
+const API_URL = process.env.API_URL || process.env.API_GATEWAY_URL || 'https://api-gateway-production-1957.up.railway.app';
 
 describe('Auth Service API - Complete Coverage', () => {
   let accessToken: string;

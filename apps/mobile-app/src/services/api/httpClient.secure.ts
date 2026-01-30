@@ -69,7 +69,7 @@ class HttpClientWithPinning {
   }
 
   async delete<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.secureClient.delete<T>(endpoint, undefined, options);
+    return this.secureClient.delete<T>(endpoint, options);
   }
 
   async uploadFile<T>(

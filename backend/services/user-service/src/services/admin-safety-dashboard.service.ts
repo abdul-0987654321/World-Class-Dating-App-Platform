@@ -429,21 +429,27 @@ class AdminSafetyDashboardService {
         .where({ user_id: userId, status: 'verified' })
         .first();
       isIdVerified = !!verification;
-    } catch (e) {}
+    } catch (e) {
+      logger.warn('Failed to fetch ID verification status', { userId, error: e });
+    }
 
     try {
       const photoVerification = await db('verification_requests')
         .where({ user_id: userId, type: 'photo', status: 'verified' })
         .first();
       isPhotoVerified = !!photoVerification;
-    } catch (e) {}
+    } catch (e) {
+      logger.warn('Failed to fetch photo verification status', { userId, error: e });
+    }
 
     try {
       const backgroundCheck = await db('background_checks')
         .where({ user_id: userId, overall_status: 'passed' })
         .first();
       hasCleanBackgroundCheck = !!backgroundCheck;
-    } catch (e) {}
+    } catch (e) {
+      logger.warn('Failed to fetch background check status', { userId, error: e });
+    }
 
     return {
       userId: user.id,

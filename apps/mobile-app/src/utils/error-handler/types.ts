@@ -5,6 +5,7 @@
  */
 
 import type { ErrorCode } from './error-codes';
+export type { ErrorCode } from './error-codes';
 
 /**
  * Standard API error response from backend

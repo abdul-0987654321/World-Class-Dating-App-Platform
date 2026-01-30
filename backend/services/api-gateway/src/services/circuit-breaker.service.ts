@@ -176,7 +176,7 @@ export class CircuitBreakerService {
       });
     }
 
-    return this.circuits.get(circuitKey);
+    return this.circuits.get(circuitKey)!;
   }
 
   /**

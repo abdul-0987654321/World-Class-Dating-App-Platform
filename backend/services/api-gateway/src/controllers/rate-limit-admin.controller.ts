@@ -8,6 +8,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
@@ -76,10 +78,10 @@ export class RateLimitAdminController {
     const banInfo = await this.ddosProtection.getBanInfo(ip);
 
     if (!banInfo) {
-      return {
-        success: false,
+      throw new NotFoundException({
+        code: 'IP_NOT_FOUND',
         message: 'IP not found in ban list',
-      };
+      });
     }
 
     return {
@@ -116,10 +118,10 @@ export class RateLimitAdminController {
     // Parse duration (e.g., "1h", "30m", "1d")
     const durationMatch = duration.match(/^(\d+)([smhd])$/);
     if (!durationMatch) {
-      return {
-        success: false,
+      throw new BadRequestException({
+        code: 'INVALID_DURATION_FORMAT',
         message: 'Invalid duration format. Use format like: 30m, 1h, 1d',
-      };
+      });
     }
 
     const units: { [key: string]: number } = {
@@ -242,10 +244,10 @@ export class RateLimitAdminController {
     @Query('path') path: string
   ) {
     if (!method || !path) {
-      return {
-        success: false,
+      throw new BadRequestException({
+        code: 'MISSING_PARAMETERS',
         message: 'Method and path query parameters are required',
-      };
+      });
     }
 
     const info = await this.rateLimiter.getRateLimitInfo(userId, 'user', method, path);
@@ -272,10 +274,10 @@ export class RateLimitAdminController {
     @Query('path') path: string
   ) {
     if (!method || !path) {
-      return {
-        success: false,
+      throw new BadRequestException({
+        code: 'MISSING_PARAMETERS',
         message: 'Method and path query parameters are required',
-      };
+      });
     }
 
     const info = await this.rateLimiter.getRateLimitInfo(ip, 'ip', method, path);

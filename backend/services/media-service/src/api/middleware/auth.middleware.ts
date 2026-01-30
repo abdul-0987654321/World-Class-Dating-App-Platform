@@ -31,17 +31,19 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     }
 
     const token = authHeader.substring(7);
-    const secret = process.env.JWT_ACCESS_SECRET;
+    const secret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
     if (!secret) {
       res.status(500).json({
         success: false,
-        error: 'Server configuration error',
+        error: 'Server configuration error: JWT secret not configured',
       });
       return;
     }
 
     try {
-      const decoded = jwt.verify(token, secret) as { userId: string; email: string };
+      const decoded = jwt.verify(token, secret, {
+        algorithms: ['HS256'],
+      }) as { userId: string; email: string };
       req.user = {
         id: decoded.userId,
         userId: decoded.userId,

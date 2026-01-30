@@ -15,7 +15,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { discoveryService, ProfileView } from '../../services/api/discovery.service';
 
 const WhoViewedMeScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [views, setViews] = useState<ProfileView[]>([]);
   const [isPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

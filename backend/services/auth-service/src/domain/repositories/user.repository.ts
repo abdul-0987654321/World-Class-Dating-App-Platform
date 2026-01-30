@@ -303,6 +303,44 @@ export class UserRepository {
     }
   }
 
+  /**
+   * Update profile fields for a user (used by Clerk webhook sync)
+   */
+  async updateProfile(userId: string, updates: Record<string, string>): Promise<void> {
+    // Build dynamic SET clause from updates object
+    const allowedFields = ['first_name', 'last_name', 'email'];
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        fields.push(`${key} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
+    }
+
+    if (fields.length === 0) {
+      return; // Nothing to update
+    }
+
+    fields.push(`updated_at = $${paramIndex}`);
+    values.push(new Date());
+    paramIndex++;
+
+    values.push(userId);
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${paramIndex}`;
+
+    try {
+      await pool.query(query, values);
+      logger.info(`Profile updated for user: ${userId}`, { fields: Object.keys(updates) });
+    } catch (error) {
+      logger.error(`Failed to update profile for user: ${userId}`, error);
+      throw error;
+    }
+  }
+
   // ==================== Two-Factor Authentication Methods ====================
 
   /**

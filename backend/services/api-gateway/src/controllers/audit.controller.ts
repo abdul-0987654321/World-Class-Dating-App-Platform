@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
@@ -59,6 +60,8 @@ const VALID_EVENT_TYPES = [
 @ApiBearerAuth('JWT-auth')
 @Controller('audit')
 export class AuditController {
+  private readonly logger = new Logger(AuditController.name);
+
   constructor(private readonly proxyService: ProxyService) {}
 
   /**
@@ -195,7 +198,7 @@ export class AuditController {
     } catch (error) {
       // If the audit service is not available, return empty results
       // This ensures the endpoint is always available for compliance
-      console.error('Failed to fetch audit logs:', error);
+      this.logger.error('Failed to fetch audit logs', error instanceof Error ? error.stack : error);
       return {
         items: [],
         next_cursor: null,

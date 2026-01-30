@@ -8,6 +8,7 @@ import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import { Platform, Alert, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { httpClient } from '../api/httpClient';
+import { CommonActions } from '@react-navigation/native';
 import { navigationRef } from '../../navigation/NavigationService';
 import logger from '../../utils/logger';
 
@@ -142,7 +143,7 @@ class NotificationService {
         deviceToken: token,
         platform: Platform.OS as 'ios' | 'android',
         deviceId: await this.getDeviceId(),
-        deviceModel: Platform.constants.Model || 'Unknown',
+        deviceModel: (Platform.constants as any)?.Model || 'Unknown',
         osVersion: Platform.Version.toString(),
         appVersion: '1.0.0', // Get from app config
       };
@@ -282,7 +283,7 @@ class NotificationService {
       android: {
         channelId: this.getChannelId(data?.type),
         smallIcon: 'ic_notification',
-        largeIcon: notification.android?.imageUrl || data?.imageUrl,
+        largeIcon: (notification.android as any)?.imageUrl || data?.imageUrl as string,
         pressAction: {
           id: 'default',
         },
@@ -290,8 +291,8 @@ class NotificationService {
       },
       ios: {
         attachments:
-          notification.ios?.imageUrl || data?.imageUrl
-            ? [{ url: notification.ios?.imageUrl || data?.imageUrl }]
+          (notification.ios as any)?.imageUrl || data?.imageUrl
+            ? [{ url: ((notification.ios as any)?.imageUrl || data?.imageUrl) as string }]
             : [],
         sound: 'default',
       },
@@ -417,7 +418,9 @@ class NotificationService {
     const navigation = navigationMap[type];
 
     if (navigation && navigationRef.current) {
-      navigationRef.current.navigate(navigation.screen as never, navigation.params as never);
+      navigationRef.current.dispatch(
+        CommonActions.navigate({ name: navigation.screen, params: navigation.params })
+      );
     }
   }
 
@@ -433,7 +436,9 @@ class NotificationService {
     const [screen, ...paramsParts] = url.split('/');
 
     if (navigationRef.current) {
-      navigationRef.current.navigate(screen as never);
+      navigationRef.current.dispatch(
+        CommonActions.navigate({ name: screen })
+      );
     }
   }
 
@@ -442,8 +447,8 @@ class NotificationService {
    */
   async updateBadgeCount(): Promise<void> {
     try {
-      const response = await httpClient.get('/notifications/unread-count');
-      const count = response.data.count || 0;
+      const response = await httpClient.get<{ count: number }>('/notifications/unread-count');
+      const count = response.data?.count || 0;
 
       if (Platform.OS === 'ios') {
         notifee.setBadgeCount(count);
@@ -478,8 +483,8 @@ class NotificationService {
   async unsubscribe(): Promise<void> {
     if (this.fcmToken) {
       try {
-        await httpClient.delete('/notifications/devices/unregister', {
-          data: { deviceToken: this.fcmToken },
+        await httpClient.post('/notifications/devices/unregister', {
+          deviceToken: this.fcmToken,
         });
       } catch (error) {
         logger.error('Failed to unregister device', error instanceof Error ? error : undefined);

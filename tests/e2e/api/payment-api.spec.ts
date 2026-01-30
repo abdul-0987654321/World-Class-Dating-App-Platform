@@ -1,8 +1,9 @@
 import request from 'supertest';
 import Stripe from 'stripe';
 
-const API_URL = process.env.PAYMENT_API_URL || 'http://localhost:3007';
-const AUTH_URL = process.env.AUTH_URL || 'http://localhost:3001';
+const GATEWAY_URL = process.env.API_GATEWAY_URL || 'https://api-gateway-production-1957.up.railway.app';
+const API_URL = process.env.PAYMENT_API_URL || GATEWAY_URL;
+const AUTH_URL = process.env.AUTH_URL || GATEWAY_URL;
 
 describe('Payment Service API', () => {
   let accessToken: string;

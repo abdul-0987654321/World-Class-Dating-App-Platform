@@ -344,7 +344,7 @@ const DiscoveryScreen = () => {
                 onPress={() =>
                   setFilters((prev) => ({
                     ...prev,
-                    showVerifiedOnly: !prev.showVerifiedOnly,
+                    verifiedOnly: !prev.verifiedOnly,
                   }))
                 }
               >

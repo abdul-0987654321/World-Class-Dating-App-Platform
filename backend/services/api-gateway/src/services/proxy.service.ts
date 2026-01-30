@@ -8,6 +8,22 @@ export interface ServiceConfig {
   timeout?: number;
 }
 
+/** Map service names to their timeout config keys */
+const SERVICE_TIMEOUT_MAP: Record<string, string> = {
+  authService: 'serviceTimeouts.auth',
+  mediaService: 'serviceTimeouts.media',
+  paymentService: 'serviceTimeouts.payment',
+};
+
+/** HTTP status codes that indicate a transient failure worth retrying */
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+
+/** Max number of retries for transient failures */
+const MAX_RETRIES = 2;
+
+/** Base delay in ms between retries (exponential backoff) */
+const RETRY_BASE_DELAY_MS = 300;
+
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
@@ -24,7 +40,9 @@ export class ProxyService {
 
     if (servicesConfig) {
       Object.entries(servicesConfig).forEach(([name, url]) => {
-        this.registerService(name, url);
+        const timeoutKey = SERVICE_TIMEOUT_MAP[name] || 'serviceTimeouts.default';
+        const timeout = this.configService.get<number>(timeoutKey) || 30000;
+        this.registerService(name, url, timeout);
       });
     }
   }
@@ -70,13 +88,19 @@ export class ProxyService {
   private getService(serviceName: string): AxiosInstance {
     const service = this.services.get(serviceName);
     if (!service) {
-      throw new HttpException(`Service ${serviceName} not found`, 500);
+      this.logger.error(`Service ${serviceName} is not registered`);
+      throw new HttpException(
+        { code: 'SERVICE_NOT_FOUND', message: `Service ${serviceName} is not configured` },
+        503,
+      );
     }
     return service;
   }
 
   /**
-   * Forward a request to a specific service
+   * Forward a request to a specific service with retry logic for transient failures.
+   * Only idempotent methods (GET, PUT, DELETE, HEAD, OPTIONS) are retried by default.
+   * POST is NOT retried to avoid duplicate side effects.
    */
   async forward<T = any>(
     serviceName: string,
@@ -94,17 +118,46 @@ export class ProxyService {
       headers: headers ? { ...headers } : undefined,
     };
 
-    try {
-      const response: AxiosResponse<T> = await service.request(config);
-      return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status || 500;
-        const responseData = error.response?.data;
-        this.logger.error(`Error ${status} from ${serviceName}: ${JSON.stringify(responseData)}`);
-        throw new HttpException(responseData || { error: error.message }, status);
+    const isIdempotent = ['GET', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
+    const maxAttempts = isIdempotent ? MAX_RETRIES + 1 : 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response: AxiosResponse<T> = await service.request(config);
+        return response.data;
+      } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+          const status = error.response?.status || 500;
+          const responseData = error.response?.data;
+          const isTransient =
+            RETRYABLE_STATUS_CODES.has(status) ||
+            error.code === 'ECONNRESET' ||
+            error.code === 'ECONNREFUSED' ||
+            error.code === 'ETIMEDOUT';
+
+          // Retry transient failures on idempotent methods
+          if (isTransient && attempt < maxAttempts) {
+            const delay = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+            this.logger.warn(
+              `Transient error ${status} from ${serviceName} (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms`
+            );
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          this.logger.error(
+            `Error ${status} from ${serviceName} ${method} ${path}: ${JSON.stringify(responseData)}`
+          );
+          throw new HttpException(
+            responseData || { code: 'SERVICE_ERROR', message: error.message },
+            status,
+          );
+        }
+        throw new HttpException(
+          { code: 'SERVICE_COMMUNICATION_ERROR', message: 'Service communication error' },
+          500,
+        );
       }
-      throw new HttpException('Service communication error', 500);
     }
   }
 
@@ -162,10 +215,18 @@ export class ProxyService {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status || 500;
         const responseData = error.response?.data;
-        this.logger.error(`Error ${status} from ${serviceName}: ${JSON.stringify(responseData)}`);
-        throw new HttpException(responseData || { error: error.message }, status);
+        this.logger.error(
+          `Error ${status} from ${serviceName} postRaw ${path}: ${JSON.stringify(responseData)}`
+        );
+        throw new HttpException(
+          responseData || { code: 'SERVICE_ERROR', message: error.message },
+          status,
+        );
       }
-      throw new HttpException('Service communication error', 500);
+      throw new HttpException(
+        { code: 'SERVICE_COMMUNICATION_ERROR', message: 'Service communication error' },
+        500,
+      );
     }
   }
 

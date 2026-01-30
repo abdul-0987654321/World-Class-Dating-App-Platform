@@ -46,6 +46,119 @@ export class NotificationController {
   }
 
   /**
+   * Get unread count
+   * NOTE: This must be defined BEFORE the :notificationId param route to avoid being consumed by it.
+   */
+  @Get('unread/count')
+  @ApiOperation({ summary: 'Get unread notification count' })
+  async getUnreadCount(@Headers('authorization') authorization: string) {
+    return this.proxyService.get('notificationService', '/api/v1/notifications/unread/count', {
+      Authorization: authorization,
+    });
+  }
+
+  // ==================== Notification Settings Endpoints ====================
+
+  /**
+   * Get notification settings
+   * NOTE: This must be defined BEFORE the :notificationId param route to avoid being consumed by it.
+   */
+  @Get('settings')
+  @ApiOperation({ summary: 'Get notification settings' })
+  async getSettings(@Headers('authorization') authorization: string) {
+    return this.proxyService.get('notificationService', '/api/v1/notifications/settings', {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Update notification settings
+   */
+  @Put('settings')
+  @ApiOperation({ summary: 'Update notification settings' })
+  async updateSettings(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+    return this.proxyService.put('notificationService', '/api/v1/notifications/settings', body, {
+      Authorization: authorization,
+    });
+  }
+
+  // ==================== Email Notification Endpoints ====================
+
+  /**
+   * Get email preferences
+   */
+  @Get('email/preferences')
+  @ApiOperation({ summary: 'Get email notification preferences' })
+  async getEmailPreferences(@Headers('authorization') authorization: string) {
+    return this.proxyService.get('notificationService', '/api/v1/notifications/email/preferences', {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Update email preferences
+   */
+  @Put('email/preferences')
+  @ApiOperation({ summary: 'Update email notification preferences' })
+  async updateEmailPreferences(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+    return this.proxyService.put(
+      'notificationService',
+      '/api/v1/notifications/email/preferences',
+      body,
+      {
+        Authorization: authorization,
+      }
+    );
+  }
+
+  // ==================== Push Notification Endpoints ====================
+
+  /**
+   * Register push notification token
+   */
+  @Post('push/register')
+  @ApiOperation({ summary: 'Register push notification token' })
+  @HttpCode(HttpStatus.CREATED)
+  async registerPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+    return this.proxyService.post('notificationService', '/api/v1/notifications/push/register', body, {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Unregister push notification token
+   */
+  @Delete('push/register')
+  @ApiOperation({ summary: 'Unregister push notification token' })
+  async unregisterPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+    return this.proxyService.delete('notificationService', '/api/v1/notifications/push/register', {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Test push notification
+   */
+  @Post('push/test')
+  @ApiOperation({ summary: 'Send test push notification' })
+  @HttpCode(HttpStatus.OK)
+  async testPushNotification(@Headers('authorization') authorization: string) {
+    return this.proxyService.post(
+      'notificationService',
+      '/api/v1/notifications/push/test',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
+  }
+
+  // ==================== Individual Notification Endpoints ====================
+  // NOTE: Parameterized routes MUST come after all static routes to prevent
+  // paths like /unread/count, /settings, /email/preferences from being
+  // consumed by :notificationId.
+
+  /**
    * Get a specific notification
    */
   @Get(':notificationId')
@@ -117,111 +230,5 @@ export class NotificationController {
     return this.proxyService.delete('notificationService', '/api/v1/notifications', {
       Authorization: authorization,
     });
-  }
-
-  /**
-   * Get unread count
-   */
-  @Get('unread/count')
-  @ApiOperation({ summary: 'Get unread notification count' })
-  async getUnreadCount(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('notificationService', '/api/v1/notifications/unread/count', {
-      Authorization: authorization,
-    });
-  }
-
-  // ==================== Notification Settings Endpoints ====================
-
-  /**
-   * Get notification settings
-   */
-  @Get('settings')
-  @ApiOperation({ summary: 'Get notification settings' })
-  async getSettings(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('notificationService', '/api/v1/notifications/settings', {
-      Authorization: authorization,
-    });
-  }
-
-  /**
-   * Update notification settings
-   */
-  @Put('settings')
-  @ApiOperation({ summary: 'Update notification settings' })
-  async updateSettings(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put('notificationService', '/api/v1/notifications/settings', body, {
-      Authorization: authorization,
-    });
-  }
-
-  // ==================== Push Notification Endpoints ====================
-
-  /**
-   * Register push notification token
-   */
-  @Post('push/register')
-  @ApiOperation({ summary: 'Register push notification token' })
-  @HttpCode(HttpStatus.CREATED)
-  async registerPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('notificationService', '/api/v1/notifications/push/register', body, {
-      Authorization: authorization,
-    });
-  }
-
-  /**
-   * Unregister push notification token
-   */
-  @Delete('push/register')
-  @ApiOperation({ summary: 'Unregister push notification token' })
-  async unregisterPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.delete('notificationService', '/api/v1/notifications/push/register', {
-      Authorization: authorization,
-    });
-  }
-
-  /**
-   * Test push notification
-   */
-  @Post('push/test')
-  @ApiOperation({ summary: 'Send test push notification' })
-  @HttpCode(HttpStatus.OK)
-  async testPushNotification(@Headers('authorization') authorization: string) {
-    return this.proxyService.post(
-      'notificationService',
-      '/api/v1/notifications/push/test',
-      {},
-      {
-        Authorization: authorization,
-      }
-    );
-  }
-
-  // ==================== Email Notification Endpoints ====================
-
-  /**
-   * Get email preferences
-   */
-  @Get('email/preferences')
-  @ApiOperation({ summary: 'Get email notification preferences' })
-  async getEmailPreferences(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('notificationService', '/api/v1/notifications/email/preferences', {
-      Authorization: authorization,
-    });
-  }
-
-  /**
-   * Update email preferences
-   */
-  @Put('email/preferences')
-  @ApiOperation({ summary: 'Update email notification preferences' })
-  async updateEmailPreferences(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put(
-      'notificationService',
-      '/api/v1/notifications/email/preferences',
-      body,
-      {
-        Authorization: authorization,
-      }
-    );
   }
 }

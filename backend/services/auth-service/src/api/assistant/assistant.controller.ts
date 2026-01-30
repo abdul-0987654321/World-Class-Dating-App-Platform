@@ -29,12 +29,14 @@ import redisCache from '../../infrastructure/cache/redis';
 // TYPES
 // ============================================================================
 
+type UserRole = 'user' | 'admin' | 'moderator' | 'support';
+
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     userId: string;
     email: string;
-    role?: string;
+    role?: UserRole;
     firstName?: string;
     lastName?: string;
     premiumTier?: string;

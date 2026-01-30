@@ -77,6 +77,7 @@ export class AuthController {
       last_name: body.lastName || '',
       date_of_birth: body.dateOfBirth,
       gender: body.gender,
+      consents: body.consents,
     };
     return this.proxyService.post('authService', '/api/v1/auth/register', transformedBody);
   }

@@ -179,6 +179,11 @@ export function getNotificationCategory(type: NotificationType): string {
     [NotificationType.DATE_SAFETY_PANIC]: 'safety',
     [NotificationType.DATE_SAFETY_STARTED]: 'safety',
     [NotificationType.DATE_SAFETY_COMPLETED]: 'safety',
+    [NotificationType.DATA_BREACH_NOTIFICATION]: 'security',
+    [NotificationType.GDPR_DATA_EXPORT_READY]: 'account',
+    [NotificationType.GDPR_DELETION_SCHEDULED]: 'account',
+    [NotificationType.GDPR_DELETION_COMPLETED]: 'account',
+    [NotificationType.GDPR_PROCESSING_RESTRICTED]: 'account',
   };
 
   return categoryMap[type] || 'default';

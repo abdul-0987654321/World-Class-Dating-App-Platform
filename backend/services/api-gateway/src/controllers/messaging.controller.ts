@@ -21,6 +21,13 @@ import {
 } from '@nestjs/swagger';
 
 import { ProxyService } from '../services/proxy.service';
+import {
+  CreateConversationDto,
+  SendMessageDto,
+  UpdateMessageDto,
+  UpdateMessageStatusDto,
+  DeleteMessageDto,
+} from '../dto/messaging.dto';
 
 @ApiTags('conversations', 'messages')
 @ApiBearerAuth('JWT-auth')
@@ -111,7 +118,7 @@ export class MessagingController {
    */
   @Post('conversations')
   @HttpCode(HttpStatus.CREATED)
-  async createConversation(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async createConversation(@Headers('authorization') authorization: string, @Body() body: CreateConversationDto) {
     return this.proxyService.post('messagingService', '/api/v1/conversations', body, {
       Authorization: authorization,
     });
@@ -245,7 +252,7 @@ export class MessagingController {
    */
   @Post('messages')
   @HttpCode(HttpStatus.CREATED)
-  async sendMessage(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
+  async sendMessage(@Headers('authorization') authorization: string, @Body() body: SendMessageDto) {
     return this.proxyService.post('messagingService', '/api/v1/messages', body, {
       Authorization: authorization,
     });
@@ -284,7 +291,7 @@ export class MessagingController {
   async updateMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: Record<string, unknown>
+    @Body() body: UpdateMessageDto
   ) {
     return this.proxyService.put('messagingService', `/api/v1/messages/${messageId}`, body, {
       Authorization: authorization,
@@ -298,7 +305,7 @@ export class MessagingController {
   async deleteMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: Record<string, unknown>
+    @Body() body: DeleteMessageDto
   ) {
     return this.proxyService.delete('messagingService', `/api/v1/messages/${messageId}`, {
       Authorization: authorization,
@@ -312,7 +319,7 @@ export class MessagingController {
   async updateMessageStatus(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: Record<string, unknown>
+    @Body() body: UpdateMessageStatusDto
   ) {
     return this.proxyService.put('messagingService', `/api/v1/messages/${messageId}/status`, body, {
       Authorization: authorization,

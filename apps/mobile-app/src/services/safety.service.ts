@@ -133,8 +133,8 @@ class SafetyService {
    */
   async getBlockedUsers(): Promise<any[]> {
     try {
-      const response = await httpClient.get('/safety/blocks');
-      return response.data.blockedUsers || [];
+      const response = await httpClient.get<{ blockedUsers: any[] }>('/safety/blocks');
+      return response.data?.blockedUsers || [];
     } catch (error) {
       logger.error('Failed to get blocked users', error instanceof Error ? error : undefined);
       return [];
@@ -146,8 +146,8 @@ class SafetyService {
    */
   async isUserBlocked(userId: string): Promise<boolean> {
     try {
-      const response = await httpClient.get(`/safety/blocks/${userId}/status`);
-      return response.data.isBlocked || false;
+      const response = await httpClient.get<{ isBlocked: boolean }>(`/safety/blocks/${userId}/status`);
+      return response.data?.isBlocked || false;
     } catch (error) {
       logger.error('Failed to check if user is blocked', error instanceof Error ? error : undefined);
       return false;
@@ -159,8 +159,8 @@ class SafetyService {
    */
   async getSafetyResources(): Promise<any[]> {
     try {
-      const response = await httpClient.get('/safety/resources');
-      return response.data.resources || [];
+      const response = await httpClient.get<{ resources: any[] }>('/safety/resources');
+      return response.data?.resources || [];
     } catch (error) {
       logger.error('Failed to get safety resources', error instanceof Error ? error : undefined);
       return [];
@@ -185,8 +185,8 @@ class SafetyService {
    */
   async getEmergencyContacts(): Promise<any[]> {
     try {
-      const response = await httpClient.get('/safety/emergency-contacts');
-      return response.data.contacts || [];
+      const response = await httpClient.get<{ contacts: any[] }>('/safety/emergency-contacts');
+      return response.data?.contacts || [];
     } catch (error) {
       logger.error('Failed to get emergency contacts', error instanceof Error ? error : undefined);
       return [];

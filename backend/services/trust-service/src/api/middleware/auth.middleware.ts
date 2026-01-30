@@ -51,13 +51,24 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
   }
 
   try {
+    const jwtSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      res.status(500).json({
+        success: false,
+        error: 'Server configuration error: JWT secret not configured',
+      });
+      return;
+    }
+
     const decoded = config.jwt.publicKey
       ? (jwt.verify(token, config.jwt.publicKey, {
           algorithms: ['RS256'],
           issuer: config.jwt.issuer,
           audience: config.jwt.audience,
         }) as JwtPayload)
-      : (jwt.verify(token, process.env.JWT_SECRET || 'dev-secret') as JwtPayload);
+      : (jwt.verify(token, jwtSecret, {
+          algorithms: ['HS256'],
+        }) as JwtPayload);
 
     req.userId = decoded.sub;
     req.userEmail = decoded.email;

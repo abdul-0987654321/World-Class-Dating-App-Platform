@@ -111,7 +111,7 @@ class MobilePaymentService {
       }
     );
 
-    this.purchaseErrorSubscription = RNIap.purchaseErrorListener((error: RNIap.PurchaseError) => {
+    this.purchaseErrorSubscription = RNIap.purchaseErrorListener((error: any) => {
       logger.error('Purchase error', error instanceof Error ? error : undefined);
     });
   }
@@ -128,13 +128,7 @@ class MobilePaymentService {
       const isValid = await this.validateReceipt(purchase);
 
       if (isValid) {
-        // Acknowledge/finish the purchase
-        if (Platform.OS === 'android') {
-          await RNIap.acknowledgePurchaseAndroid({
-            token: purchase.purchaseToken!,
-            developerPayload: purchase.developerPayloadAndroid,
-          });
-        }
+        // Finish the transaction (handles acknowledgement on Android)
         await RNIap.finishTransaction({
           purchase,
           isConsumable: this.isConsumable(purchase.productId),
@@ -158,7 +152,7 @@ class MobilePaymentService {
    */
   private async validateReceipt(purchase: RNIap.Purchase): Promise<boolean> {
     try {
-      const response = await api.post('/payments/iap/validate', {
+      const response = await api.post<{ success: boolean; isValid: boolean }>('/payments/iap/validate', {
         provider: Platform.OS === 'ios' ? 'apple_iap' : 'google_play',
         receipt: Platform.OS === 'ios' ? purchase.transactionReceipt : purchase.purchaseToken,
         productId: purchase.productId,
@@ -166,7 +160,7 @@ class MobilePaymentService {
         packageName: Platform.OS === 'android' ? 'com.flamoral.app' : undefined,
       });
 
-      return response.data.success && response.data.isValid;
+      return !!(response.data?.success && response.data?.isValid);
     } catch (error) {
       logger.error('Receipt validation failed', error instanceof Error ? error : undefined);
       return false;
@@ -305,17 +299,28 @@ class MobilePaymentService {
    */
   async getSubscriptionStatus(): Promise<SubscriptionStatus> {
     try {
-      const response = await api.get('/payments/subscription');
+      const response = await api.get<{
+        success: boolean;
+        hasSubscription: boolean;
+        subscription: {
+          status: string;
+          plan: string;
+          currentPeriodEnd?: string;
+          cancelAtPeriodEnd?: boolean;
+          provider: 'apple_iap' | 'google_play' | 'stripe' | 'paystack' | 'flutterwave';
+        };
+      }>('/payments/subscription');
 
-      if (response.data.success && response.data.hasSubscription) {
+      const data = response.data;
+      if (data?.success && data?.hasSubscription) {
         return {
-          isActive: response.data.subscription.status === 'active',
-          tier: response.data.subscription.plan,
-          expiresAt: response.data.subscription.currentPeriodEnd
-            ? new Date(response.data.subscription.currentPeriodEnd)
+          isActive: data.subscription.status === 'active',
+          tier: data.subscription.plan,
+          expiresAt: data.subscription.currentPeriodEnd
+            ? new Date(data.subscription.currentPeriodEnd)
             : undefined,
-          willRenew: !response.data.subscription.cancelAtPeriodEnd,
-          provider: response.data.subscription.provider,
+          willRenew: !data.subscription.cancelAtPeriodEnd,
+          provider: data.subscription.provider,
         };
       }
 
@@ -385,8 +390,8 @@ class MobilePaymentService {
    */
   async getPurchaseHistory(): Promise<any[]> {
     try {
-      const response = await api.get('/payments/transactions?limit=50');
-      return response.data.transactions || [];
+      const response = await api.get<{ transactions: any[] }>('/payments/transactions?limit=50');
+      return response.data?.transactions || [];
     } catch (error) {
       logger.error('Failed to get purchase history', error instanceof Error ? error : undefined);
       return [];
@@ -398,8 +403,8 @@ class MobilePaymentService {
    */
   async getWalletBalance(): Promise<{ coins: number; gems: number; bonusCoins: number }> {
     try {
-      const response = await api.get('/payments/wallet');
-      return response.data.wallet || { coins: 0, gems: 0, bonusCoins: 0 };
+      const response = await api.get<{ wallet: { coins: number; gems: number; bonusCoins: number } }>('/payments/wallet');
+      return response.data?.wallet || { coins: 0, gems: 0, bonusCoins: 0 };
     } catch (error) {
       logger.error('Failed to get wallet balance', error instanceof Error ? error : undefined);
       return { coins: 0, gems: 0, bonusCoins: 0 };

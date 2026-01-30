@@ -10,6 +10,8 @@ import config from '../../config';
 
 const logger = createLogger('auth-middleware');
 
+type UserRole = 'user' | 'admin' | 'moderator' | 'support';
+
 interface JwtPayload {
   id: string;
   userId: string;
@@ -44,7 +46,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 
     const decoded = jwt.verify(token, config.jwt.accessSecret) as JwtPayload;
 
-    req.user = { ...decoded, id: decoded.id || decoded.userId };
+    req.user = { ...decoded, id: decoded.id || decoded.userId, role: decoded.role as UserRole };
     next();
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
@@ -83,7 +85,7 @@ export function optionalAuthenticate(req: Request, res: Response, next: NextFunc
 
     if (config.jwt.accessSecret) {
       const decoded = jwt.verify(token, config.jwt.accessSecret) as JwtPayload;
-      req.user = { ...decoded, id: decoded.id || decoded.userId };
+      req.user = { ...decoded, id: decoded.id || decoded.userId, role: decoded.role as UserRole };
     }
 
     next();

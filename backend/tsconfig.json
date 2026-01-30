@@ -31,7 +31,7 @@
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
-      "@flamoral/backend-shared": ["./shared"],
+      "@flamoral/backend-shared": ["./shared/index.ts"],
       "@flamoral/backend-shared/*": ["./shared/*"]
     }
   },
@@ -39,6 +39,7 @@
   "exclude": [
     "node_modules",
     "dist",
+    "**/dist/**",
     "tests",
     "**/node_modules/**",
     "**/tests/**",

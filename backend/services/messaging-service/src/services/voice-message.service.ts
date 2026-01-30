@@ -7,6 +7,8 @@ import {
   StartTranscriptionJobCommand,
   GetTranscriptionJobCommand,
   TranscriptionJobStatus,
+  LanguageCode,
+  MediaFormat,
 } from '@aws-sdk/client-transcribe';
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import ffmpeg from 'fluent-ffmpeg';
@@ -343,15 +345,15 @@ export class VoiceMessageService {
     }
   }
 
-  private getMediaFormatFromMimeType(mimeType: string): string {
-    const mimeToFormat: Record<string, string> = {
-      'audio/mpeg': 'mp3',
-      'audio/mp4': 'mp4',
-      'audio/wav': 'wav',
-      'audio/webm': 'webm',
-      'audio/ogg': 'ogg',
+  private getMediaFormatFromMimeType(mimeType: string): MediaFormat {
+    const mimeToFormat: Record<string, MediaFormat> = {
+      'audio/mpeg': 'mp3' as MediaFormat,
+      'audio/mp4': 'mp4' as MediaFormat,
+      'audio/wav': 'wav' as MediaFormat,
+      'audio/webm': 'webm' as MediaFormat,
+      'audio/ogg': 'ogg' as MediaFormat,
     };
-    return mimeToFormat[mimeType] || 'wav';
+    return mimeToFormat[mimeType] || ('wav' as MediaFormat);
   }
 
   /**
@@ -405,7 +407,7 @@ export class VoiceMessageService {
       await this.transcribeClient.send(
         new StartTranscriptionJobCommand({
           TranscriptionJobName: jobName,
-          LanguageCode: this.transcribeLanguage,
+          LanguageCode: this.transcribeLanguage as LanguageCode,
           MediaFormat: mediaFormat,
           Media: { MediaFileUri: s3Uri },
           OutputBucketName: this.s3Bucket,

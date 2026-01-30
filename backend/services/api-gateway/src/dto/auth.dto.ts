@@ -125,6 +125,8 @@ export class LoginDto {
 
   @ApiPropertyOptional({ description: 'Device information for session tracking' })
   @IsOptional()
+  @ValidateNested()
+  @Type(() => DeviceDataDto)
   deviceData?: DeviceDataDto;
 }
 

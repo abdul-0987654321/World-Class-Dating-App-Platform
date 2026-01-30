@@ -103,6 +103,21 @@ const ALERT_THRESHOLDS = {
 class SecurityLogger {
   private eventCounts: Map<string, number> = new Map();
   private alertsSent: Set<string> = new Set();
+  private cleanupTimer: NodeJS.Timeout | null = null;
+
+  constructor() {
+    // Periodic cleanup to prevent unbounded memory growth
+    // Clear all counters every 6 hours as a safety net
+    this.cleanupTimer = setInterval(() => {
+      this.eventCounts.clear();
+      this.alertsSent.clear();
+    }, 6 * 60 * 60 * 1000);
+
+    // Don't keep the process alive just for cleanup
+    if (this.cleanupTimer.unref) {
+      this.cleanupTimer.unref();
+    }
+  }
 
   /**
    * Log a security event

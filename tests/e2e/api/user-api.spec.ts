@@ -17,10 +17,13 @@
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
-import app from '../../../src/index';
+
+// Use API Gateway URL (not direct app import - this is an E2E test against a running service)
+const GATEWAY_URL = process.env.API_GATEWAY_URL || 'https://api-gateway-production-1957.up.railway.app';
+const app = GATEWAY_URL;
 
 // Test configuration
-const API_BASE = '/api';
+const API_BASE = '/api/v1';
 let authToken: string;
 let testUserId: string;
 let testUser2Id: string;

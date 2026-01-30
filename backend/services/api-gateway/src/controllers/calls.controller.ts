@@ -119,22 +119,10 @@ export class CallsController {
   // ==================== Call Status/History Endpoints ====================
 
   /**
-   * Get current call status
-   * GET /calls/:callId
-   */
-  @Get(':callId')
-  async getCallStatus(
-    @Headers('authorization') authorization: string,
-    @Param('callId') callId: string
-  ) {
-    return this.proxyService.get('messagingService', `/api/v1/calls/${callId}`, {
-      Authorization: authorization,
-    });
-  }
-
-  /**
    * Get call history for the authenticated user
    * GET /calls/history
+   * NOTE: This must be defined BEFORE :callId to prevent "history"
+   * from being captured as a callId parameter.
    */
   @Get('history')
   async getCallHistory(
@@ -155,6 +143,8 @@ export class CallsController {
   /**
    * Check if a user is available for a call
    * GET /calls/availability/:userId
+   * NOTE: This must be defined BEFORE :callId to prevent "availability"
+   * from being captured as a callId parameter.
    */
   @Get('availability/:userId')
   async checkCallAvailability(
@@ -162,6 +152,20 @@ export class CallsController {
     @Param('userId') userId: string
   ) {
     return this.proxyService.get('messagingService', `/api/v1/calls/availability/${userId}`, {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Get current call status
+   * GET /calls/:callId
+   */
+  @Get(':callId')
+  async getCallStatus(
+    @Headers('authorization') authorization: string,
+    @Param('callId') callId: string
+  ) {
+    return this.proxyService.get('messagingService', `/api/v1/calls/${callId}`, {
       Authorization: authorization,
     });
   }
