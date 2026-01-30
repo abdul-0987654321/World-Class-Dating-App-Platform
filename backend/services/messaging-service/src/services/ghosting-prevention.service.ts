@@ -1130,7 +1130,7 @@ export class GhostingPreventionService {
   }
 
   private generateId(): string {
-    return 'gp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'gp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 }
 

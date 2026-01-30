@@ -284,8 +284,8 @@ class VirtualGiftsService {
       }
 
       // 2. Create gift transaction record
-      const transactionId = `gift-txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const transactionId = `gift-txn-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
       const transactionDoc: GiftTransactionDocument = {
         id: transactionId,

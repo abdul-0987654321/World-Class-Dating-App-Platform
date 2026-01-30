@@ -525,7 +525,7 @@ class PanicButtonService {
         .first();
 
       // Generate a reference number
-      const referenceNumber = `FLM-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const referenceNumber = `FLM-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
 
       // Log the emergency services contact request
       logger.warn(`EMERGENCY SERVICES CONTACT INITIATED`, {

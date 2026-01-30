@@ -26,7 +26,7 @@ export class DataBreachNotificationService {
   constructor(database: Knex) { this.db = database; }
 
   async recordBreach(params: { breachType: BreachRecord['breach_type']; severity: BreachRecord['severity']; description: string; dataCategoriesAffected: string[]; estimatedAffectedUsers: number; occurredAt?: Date; containmentActions: string; remediationSteps: string; reportedBy: string; }): Promise<BreachRecord> {
-    const breachId = 'BREACH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    const breachId = 'BREACH-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     const [breach] = await this.db('data_breach_incidents').insert({ breach_id: breachId, breach_type: params.breachType, severity: params.severity, description: params.description, data_categories_affected: JSON.stringify(params.dataCategoriesAffected), estimated_affected_users: params.estimatedAffectedUsers, discovered_at: new Date(), occurred_at: params.occurredAt || null, containment_actions: params.containmentActions, remediation_steps: params.remediationSteps, status: 'detected', reported_by: params.reportedBy, dpo_notified: false, created_at: new Date(), updated_at: new Date() }).returning('*');
     logger.error('DATA BREACH RECORDED: ' + breachId, { breachId, severity: params.severity });
     await this.notifyDPO(breach);

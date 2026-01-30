@@ -183,7 +183,14 @@ export class SpeedDatingWebSocketHandler {
     socket.leave(`event:${eventId}`);
 
     // Clean up tracking
-    this.eventParticipants.get(eventId)?.delete(socket.id);
+    const participants = this.eventParticipants.get(eventId);
+    if (participants) {
+      participants.delete(socket.id);
+      // Remove empty Sets to prevent Map from growing unbounded
+      if (participants.size === 0) {
+        this.eventParticipants.delete(eventId);
+      }
+    }
     this.socketToUser.delete(socket.id);
 
     // Notify others
@@ -470,8 +477,14 @@ export class SpeedDatingWebSocketHandler {
       });
     }
 
-    // Clean up
+    // Clean up all tracking data for this event
     this.clearEventTimers(eventId);
+    const participantSocketIds = this.eventParticipants.get(eventId);
+    if (participantSocketIds) {
+      for (const socketId of participantSocketIds) {
+        this.socketToUser.delete(socketId);
+      }
+    }
     this.eventParticipants.delete(eventId);
 
     logger.info(`Broadcast event complete for ${eventId}`);

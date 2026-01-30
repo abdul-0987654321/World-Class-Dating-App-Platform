@@ -360,7 +360,7 @@ export class FeatureFlagController {
   async getHistory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { category, name } = req.params;
-      const limit = parseInt(req.query.limit as string) || 50;
+      const limit = parseInt(req.query.limit as string, 10) || 50;
 
       const history = await featureFlagAdminService.getFlagHistory(category, name, limit);
 

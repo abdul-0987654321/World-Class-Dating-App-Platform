@@ -55,8 +55,8 @@ router.get(
       const filters = {
         search: req.query.search as string,
         filter: req.query.filter as any,
-        page: parseInt(req.query.page as string) || 1,
-        limit: parseInt(req.query.limit as string) || 20,
+        page: parseInt(req.query.page as string, 10) || 1,
+        limit: parseInt(req.query.limit as string, 10) || 20,
       };
 
       const result = await usersService.searchUsers(filters);
@@ -178,7 +178,7 @@ router.get(
   requirePermission(Permission.HEALTH_VIEW),
   async (req: AuthRequest, res) => {
     try {
-      const limit = parseInt(req.query.limit as string) || 100;
+      const limit = parseInt(req.query.limit as string, 10) || 100;
       const logs = await healthService.getServiceLogs(req.params.serviceName, limit);
       res.json({ success: true, data: logs });
     } catch (error: any) {
@@ -213,8 +213,8 @@ router.get(
     try {
       const filters = {
         status: req.query.status as any,
-        page: parseInt(req.query.page as string) || 1,
-        limit: parseInt(req.query.limit as string) || 20,
+        page: parseInt(req.query.page as string, 10) || 1,
+        limit: parseInt(req.query.limit as string, 10) || 20,
       };
 
       const result = await abTestService.listTests(filters);
@@ -358,8 +358,8 @@ router.get(
         status: req.query.status as string,
         priority: req.query.priority as string,
         assignedTo: req.query.assignedTo as string,
-        page: parseInt(req.query.page as string) || 1,
-        limit: parseInt(req.query.limit as string) || 20,
+        page: parseInt(req.query.page as string, 10) || 1,
+        limit: parseInt(req.query.limit as string, 10) || 20,
       };
 
       const result = await ticketsService.listTickets(filters);
@@ -482,8 +482,8 @@ router.get(
         resource: req.query.resource as string,
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
-        page: parseInt(req.query.page as string) || 1,
-        limit: parseInt(req.query.limit as string) || 50,
+        page: parseInt(req.query.page as string, 10) || 1,
+        limit: parseInt(req.query.limit as string, 10) || 50,
       };
 
       const result = await queryAuditLogs(filters);

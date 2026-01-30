@@ -85,8 +85,8 @@ router.get('/user/:userId/indicators', async (req: Request, res: Response) => {
 router.get('/at-risk', requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const riskLevel = (req.query.riskLevel as ChurnRiskTier) || ChurnRiskTier.HIGH;
-    const limit = Math.min(parseInt(req.query.limit as string) || 100, 500);
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 100, 500);
+    const offset = parseInt(req.query.offset as string, 10) || 0;
 
     // Validate risk level
     if (!Object.values(ChurnRiskTier).includes(riskLevel)) {
@@ -186,7 +186,7 @@ router.get('/analytics', requireAdmin, async (req: AuthRequest, res: Response) =
  */
 router.get('/analytics/trends', requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const days = Math.min(parseInt(req.query.days as string) || 30, 90);
+    const days = Math.min(parseInt(req.query.days as string, 10) || 30, 90);
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const endDate = new Date();
 

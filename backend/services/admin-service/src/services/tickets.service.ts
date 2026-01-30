@@ -44,7 +44,7 @@ export class TicketsService {
 
     return {
       tickets: tickets.map(this.formatTicket),
-      total: parseInt(count as string),
+      total: parseInt(count as string, 10),
       page,
       limit,
     };
@@ -192,13 +192,13 @@ export class TicketsService {
       ]);
 
     return {
-      open: parseInt(open?.count as string) || 0,
-      inProgress: parseInt(inProgress?.count as string) || 0,
-      waitingUser: parseInt(waitingUser?.count as string) || 0,
-      resolved: parseInt(resolved?.count as string) || 0,
+      open: parseInt(open?.count as string, 10) || 0,
+      inProgress: parseInt(inProgress?.count as string, 10) || 0,
+      waitingUser: parseInt(waitingUser?.count as string, 10) || 0,
+      resolved: parseInt(resolved?.count as string, 10) || 0,
       byPriority: byPriority.reduce(
         (acc, item) => {
-          acc[item.priority] = parseInt(item.count as string);
+          acc[item.priority] = parseInt(item.count as string, 10);
           return acc;
         },
         {} as Record<string, number>

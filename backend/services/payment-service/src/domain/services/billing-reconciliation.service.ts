@@ -656,12 +656,12 @@ export class BillingReconciliationService {
   // ==========================================================================
 
   private generateReportId(): string {
-    return `recon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `recon_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private createDiscrepancy(params: Partial<Discrepancy>): Discrepancy {
     return {
-      id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `disc_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       type: params.type || 'status_mismatch',
       severity: params.severity || 'medium',
       status: 'open',

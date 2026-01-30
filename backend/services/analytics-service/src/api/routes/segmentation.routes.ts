@@ -101,8 +101,8 @@ router.get('/analytics', async (req: Request, res: Response) => {
 router.get('/segment/:segment/users', async (req: Request, res: Response) => {
   try {
     const { segment } = req.params;
-    const limit = parseInt(req.query.limit as string) || 100;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = parseInt(req.query.limit as string, 10) || 100;
+    const offset = parseInt(req.query.offset as string, 10) || 0;
 
     // Validate segment type
     if (!Object.values(UserSegmentType).includes(segment as UserSegmentType)) {
@@ -145,8 +145,8 @@ router.get('/segment/:segment/users', async (req: Request, res: Response) => {
  */
 router.get('/transitions', async (req: Request, res: Response) => {
   try {
-    const days = parseInt(req.query.days as string) || 7;
-    const limit = parseInt(req.query.limit as string) || 100;
+    const days = parseInt(req.query.days as string, 10) || 7;
+    const limit = parseInt(req.query.limit as string, 10) || 100;
 
     const transitions = await segmentationService.getSegmentTransitions(
       Math.min(days, 30), // Cap at 30 days

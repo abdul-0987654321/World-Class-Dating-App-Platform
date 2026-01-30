@@ -10,6 +10,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -277,9 +278,12 @@ export class MessagingController {
     @Param('messageId') messageId: string,
     @Query('conversationId') conversationId: string
   ) {
+    if (!conversationId) {
+      throw new BadRequestException('conversationId query parameter is required');
+    }
     return this.proxyService.get(
       'messagingService',
-      `/api/v1/messages/${messageId}?conversationId=${conversationId}`,
+      `/api/v1/messages/${messageId}?conversationId=${encodeURIComponent(conversationId)}`,
       { Authorization: authorization }
     );
   }

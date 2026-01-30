@@ -434,7 +434,7 @@ Export generated: ${new Date().toISOString()}
   }
 
   private generateRequestId(): string {
-    return `export_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private async storeExportRequest(request: GDPRExportRequest): Promise<void> {

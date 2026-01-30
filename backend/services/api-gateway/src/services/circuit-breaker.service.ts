@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 export enum CircuitState {
@@ -26,10 +26,12 @@ export interface CircuitStats {
 }
 
 @Injectable()
-export class CircuitBreakerService {
+export class CircuitBreakerService implements OnModuleDestroy {
   private readonly logger = new Logger(CircuitBreakerService.name);
   private readonly circuits: Map<string, CircuitStats> = new Map();
   private readonly config: CircuitBreakerConfig;
+  /** Track half-open timers so they can be cleared on reset/shutdown */
+  private readonly halfOpenTimers: Map<string, NodeJS.Timeout> = new Map();
 
   constructor(private readonly configService: ConfigService) {
     this.config = {
@@ -38,6 +40,18 @@ export class CircuitBreakerService {
       timeout: 60000, // 1 minute
       resetTimeout: 300000, // 5 minutes
     };
+  }
+
+  /**
+   * Clean up all timers on module destroy to prevent memory leaks
+   */
+  onModuleDestroy(): void {
+    this.logger.log('Cleaning up circuit breaker timers');
+    for (const [key, timer] of this.halfOpenTimers) {
+      clearTimeout(timer);
+    }
+    this.halfOpenTimers.clear();
+    this.circuits.clear();
   }
 
   /**
@@ -148,15 +162,24 @@ export class CircuitBreakerService {
     circuit.state = CircuitState.OPEN;
     circuit.nextAttemptTime = Date.now() + this.config.timeout;
 
-    // Schedule automatic transition to half-open
-    setTimeout(() => {
-      const currentCircuit = this.getCircuit(circuitKey);
-      if (currentCircuit.state === CircuitState.OPEN) {
+    // Clear any existing half-open timer for this circuit to prevent duplicates
+    const existingTimer = this.halfOpenTimers.get(circuitKey);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    // Schedule automatic transition to half-open (tracked for cleanup)
+    const timer = setTimeout(() => {
+      this.halfOpenTimers.delete(circuitKey);
+      const currentCircuit = this.circuits.get(circuitKey);
+      if (currentCircuit && currentCircuit.state === CircuitState.OPEN) {
         this.logger.log(`Circuit ${circuitKey} automatically entering HALF_OPEN state`);
         currentCircuit.state = CircuitState.HALF_OPEN;
         currentCircuit.successes = 0;
       }
     }, this.config.timeout);
+
+    this.halfOpenTimers.set(circuitKey, timer);
   }
 
   /**
@@ -204,6 +227,12 @@ export class CircuitBreakerService {
    */
   resetCircuit(circuitKey: string): void {
     this.logger.log(`Manually resetting circuit ${circuitKey}`);
+    // Clear associated timer to prevent dangling setTimeout from corrupting state
+    const timer = this.halfOpenTimers.get(circuitKey);
+    if (timer) {
+      clearTimeout(timer);
+      this.halfOpenTimers.delete(circuitKey);
+    }
     this.circuits.delete(circuitKey);
   }
 
@@ -212,6 +241,11 @@ export class CircuitBreakerService {
    */
   resetAllCircuits(): void {
     this.logger.log('Manually resetting all circuits');
+    // Clear all pending timers to prevent dangling setTimeouts
+    for (const [key, timer] of this.halfOpenTimers) {
+      clearTimeout(timer);
+    }
+    this.halfOpenTimers.clear();
     this.circuits.clear();
   }
 

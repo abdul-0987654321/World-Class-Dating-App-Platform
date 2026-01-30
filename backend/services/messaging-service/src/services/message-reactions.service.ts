@@ -180,7 +180,7 @@ class MessageReactionsService {
   }
 
   private generateId(): string {
-    return `reaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `reaction_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 }
 

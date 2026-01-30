@@ -871,7 +871,7 @@ class AdminSafetyDashboardService {
     try {
       // Insert notification into database
       await db('notifications').insert({
-        id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         user_id: userId,
         type: `moderation_${type}`,
         title: data.title,

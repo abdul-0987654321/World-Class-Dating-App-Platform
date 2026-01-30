@@ -48,7 +48,7 @@ export class UsersService {
     // Get total count
     const countQuery = query.clone().clearSelect().clearOrder().count('* as count');
     const [{ count }] = await countQuery;
-    const total = parseInt(count as string);
+    const total = parseInt(count as string, 10);
 
     // Get paginated results
     const users = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
@@ -66,7 +66,7 @@ export class UsersService {
         isBanned: user.is_banned,
         createdAt: user.created_at,
         lastActive: user.last_active,
-        reportCount: parseInt(user.report_count),
+        reportCount: parseInt(user.report_count, 10),
       })),
       total,
       page,
@@ -97,7 +97,7 @@ export class UsersService {
     const { password_hash, password_reset_token, password_reset_expires, totp_secret, ...safeUser } = user;
     return {
       ...safeUser,
-      matchCount: parseInt(matches?.count as string) || 0,
+      matchCount: parseInt(matches?.count as string, 10) || 0,
       reports,
       subscriptionHistory,
       loginHistory,

@@ -108,7 +108,7 @@ export class HealthService {
       // Get memory usage
       const info = await redis.getClient().info('memory');
       const memoryMatch = info.match(/used_memory:(\d+)/);
-      const memory = memoryMatch ? parseInt(memoryMatch[1]) : 0;
+      const memory = memoryMatch ? parseInt(memoryMatch[1], 10) : 0;
 
       return {
         status: 'up' as const,

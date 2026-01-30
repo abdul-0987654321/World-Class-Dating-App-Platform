@@ -311,7 +311,7 @@ class AccountDeletionService {
 
   // Helper methods
   private generateRequestId(): string {
-    return `del_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `del_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private async storeDeletionRequest(request: AccountDeletionRequest): Promise<void> {

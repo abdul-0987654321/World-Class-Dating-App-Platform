@@ -151,7 +151,7 @@ export async function queryAuditLogs(filters: {
 
   // Get total count
   const [{ count }] = await query.clone().count('* as count');
-  const total = parseInt(count as string);
+  const total = parseInt(count as string, 10);
 
   // Get paginated results
   const logs = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);

@@ -67,12 +67,12 @@ export class DashboardService {
 
   private async getTotalUsers(): Promise<number> {
     const result = await db('users').count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getActiveUsers(since: Date): Promise<number> {
     const result = await db('users').where('last_active', '>=', since).count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getNewUsersToday(): Promise<number> {
@@ -80,7 +80,7 @@ export class DashboardService {
     today.setHours(0, 0, 0, 0);
 
     const result = await db('users').where('created_at', '>=', today).count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getPremiumUsers(): Promise<number> {
@@ -88,12 +88,12 @@ export class DashboardService {
       .whereIn('subscription_tier', ['GOLD', 'PLATINUM', 'DIAMOND'])
       .count('* as count')
       .first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getTotalMatches(): Promise<number> {
     const result = await db('matches').count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getMatchesToday(): Promise<number> {
@@ -101,12 +101,12 @@ export class DashboardService {
     today.setHours(0, 0, 0, 0);
 
     const result = await db('matches').where('created_at', '>=', today).count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getTotalMessages(): Promise<number> {
     const result = await db('messages').count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getMessagesToday(): Promise<number> {
@@ -117,7 +117,7 @@ export class DashboardService {
       .where('created_at', '>=', today)
       .count('* as count')
       .first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getPendingVerifications(): Promise<number> {
@@ -125,12 +125,12 @@ export class DashboardService {
       .where('status', 'pending')
       .count('* as count')
       .first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getPendingReports(): Promise<number> {
     const result = await db('reports').where('status', 'pending').count('* as count').first();
-    return parseInt(result?.count as string) || 0;
+    return parseInt(result?.count as string, 10) || 0;
   }
 
   private async getRevenue() {
@@ -154,9 +154,9 @@ export class DashboardService {
     ]);
 
     return {
-      today: parseInt(todayRevenue?.total as string) || 0,
-      month: parseInt(monthRevenue?.total as string) || 0,
-      total: parseInt(totalRevenue?.total as string) || 0,
+      today: parseInt(todayRevenue?.total as string, 10) || 0,
+      month: parseInt(monthRevenue?.total as string, 10) || 0,
+      total: parseInt(totalRevenue?.total as string, 10) || 0,
     };
   }
 

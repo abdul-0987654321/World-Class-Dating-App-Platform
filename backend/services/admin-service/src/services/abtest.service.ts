@@ -27,7 +27,7 @@ export class ABTestService {
 
     return {
       tests: tests.map(this.formatTest),
-      total: parseInt(count as string),
+      total: parseInt(count as string, 10),
       page,
       limit,
     };

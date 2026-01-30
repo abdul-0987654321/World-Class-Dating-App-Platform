@@ -580,7 +580,7 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
   // Helper methods
 
   private generateVerificationId(): string {
-    return `ver_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `ver_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private async callMediaServiceVerification(

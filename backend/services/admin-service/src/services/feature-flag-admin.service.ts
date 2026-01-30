@@ -700,10 +700,10 @@ export class FeatureFlagAdminService {
         | undefined;
 
       if (metrics) {
-        totalEvaluations = parseInt(metrics.total) || 0;
-        enabledEvaluations = parseInt(metrics.enabled) || 0;
-        disabledEvaluations = parseInt(metrics.disabled) || 0;
-        uniqueUsers = parseInt(metrics.unique_users) || 0;
+        totalEvaluations = parseInt(metrics.total, 10) || 0;
+        enabledEvaluations = parseInt(metrics.enabled, 10) || 0;
+        disabledEvaluations = parseInt(metrics.disabled, 10) || 0;
+        uniqueUsers = parseInt(metrics.unique_users, 10) || 0;
         lastEvaluatedAt = metrics.last_evaluated
           ? new Date(metrics.last_evaluated).toISOString()
           : lastEvaluatedAt;
@@ -724,9 +724,9 @@ export class FeatureFlagAdminService {
 
       evaluationsByDay = dailyMetrics.map((m: any) => ({
         date: m.date,
-        total: parseInt(m.total) || 0,
-        enabled: parseInt(m.enabled) || 0,
-        disabled: parseInt(m.disabled) || 0,
+        total: parseInt(m.total, 10) || 0,
+        enabled: parseInt(m.enabled, 10) || 0,
+        disabled: parseInt(m.disabled, 10) || 0,
       }));
 
       // Get segment breakdown
@@ -743,9 +743,9 @@ export class FeatureFlagAdminService {
 
       evaluationsBySegment = segmentMetrics.map((m: any) => ({
         segment: m.segment,
-        total: parseInt(m.total) || 0,
-        enabled: parseInt(m.enabled) || 0,
-        disabled: parseInt(m.disabled) || 0,
+        total: parseInt(m.total, 10) || 0,
+        enabled: parseInt(m.enabled, 10) || 0,
+        disabled: parseInt(m.disabled, 10) || 0,
       }));
 
       // Get region breakdown
@@ -762,9 +762,9 @@ export class FeatureFlagAdminService {
 
       evaluationsByRegion = regionMetrics.map((m: any) => ({
         region: m.region,
-        total: parseInt(m.total) || 0,
-        enabled: parseInt(m.enabled) || 0,
-        disabled: parseInt(m.disabled) || 0,
+        total: parseInt(m.total, 10) || 0,
+        enabled: parseInt(m.enabled, 10) || 0,
+        disabled: parseInt(m.disabled, 10) || 0,
       }));
     } catch (error) {
       // Tables might not exist, return mock/empty metrics

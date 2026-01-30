@@ -451,7 +451,7 @@ export class SmartReplyService {
    * Generate unique ID for suggestions
    */
   private generateId(): string {
-    return 'sr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'sr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 }
 

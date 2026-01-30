@@ -466,7 +466,7 @@ class ChatModerationService {
   ): Promise<{ success: boolean; reportId?: string; error?: string }> {
     try {
       // Store report in database
-      const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const reportId = `report-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
       // Send to moderation service
       await axios.post(

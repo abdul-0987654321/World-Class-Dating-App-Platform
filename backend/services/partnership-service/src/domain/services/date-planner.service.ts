@@ -587,7 +587,7 @@ export class DatePlannerService {
    * Generate unique ID
    */
   private generateId(): string {
-    return `dp_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
+    return `dp_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**

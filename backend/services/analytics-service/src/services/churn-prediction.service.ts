@@ -414,7 +414,7 @@ export class ChurnPredictionService {
       WHERE predicted_at BETWEEN $1 AND $2
     `;
     const usersResult = await dbClient.query(usersQuery, [startDate, endDate]);
-    const totalUsersAnalyzed = parseInt(usersResult.rows[0]?.total_users) || 0;
+    const totalUsersAnalyzed = parseInt(usersResult.rows[0]?.total_users, 10) || 0;
 
     // Get tier distribution
     const tierQuery = `
@@ -442,7 +442,7 @@ export class ChurnPredictionService {
     let atRiskCount = 0;
     tierResult.rows.forEach((row: any) => {
       const tier = row.risk_tier as ChurnRiskTier;
-      const count = parseInt(row.count);
+      const count = parseInt(row.count, 10);
       tierDistribution[tier] = {
         count,
         percentage: totalUsersAnalyzed > 0 ? (count / totalUsersAnalyzed) * 100 : 0,
@@ -470,8 +470,8 @@ export class ChurnPredictionService {
     const riskTrends = trendsResult.rows.map((row: any) => ({
       date: new Date(row.date),
       avgRiskScore: parseFloat(row.avg_risk_score) || 0,
-      atRiskCount: parseInt(row.at_risk_count) || 0,
-      churnedCount: parseInt(row.churned_count) || 0,
+      atRiskCount: parseInt(row.at_risk_count, 10) || 0,
+      churnedCount: parseInt(row.churned_count, 10) || 0,
     }));
 
     // Get top risk indicators
@@ -495,7 +495,7 @@ export class ChurnPredictionService {
       topRiskIndicators = indicatorsResult.rows.map((row: any) => ({
         indicator: row.indicator_type as ChurnIndicatorType,
         avgScore: parseFloat(row.avg_score) || 0,
-        affectedUsers: parseInt(row.affected_users) || 0,
+        affectedUsers: parseInt(row.affected_users, 10) || 0,
         contribution: parseFloat(row.contribution) * 100 || 0,
       }));
     } catch (error) {
@@ -519,10 +519,10 @@ export class ChurnPredictionService {
       const campaignResult = await dbClient.query(campaignQuery, [startDate, endDate]);
       campaignMetrics = campaignResult.rows.map((row: any) => ({
         campaignType: row.campaign_type as RetentionCampaignType,
-        sent: parseInt(row.sent) || 0,
-        engaged: parseInt(row.engaged) || 0,
-        retained: parseInt(row.retained) || 0,
-        retentionRate: row.sent > 0 ? (parseInt(row.retained) / parseInt(row.sent)) * 100 : 0,
+        sent: parseInt(row.sent, 10) || 0,
+        engaged: parseInt(row.engaged, 10) || 0,
+        retained: parseInt(row.retained, 10) || 0,
+        retentionRate: row.sent > 0 ? (parseInt(row.retained, 10) / parseInt(row.sent, 10)) * 100 : 0,
       }));
     } catch (error) {
       logger.warn('Could not fetch campaign metrics:', error);
@@ -542,8 +542,8 @@ export class ChurnPredictionService {
     try {
       const accuracyResult = await dbClient.query(accuracyQuery, [startDate, endDate]);
       if (accuracyResult.rows.length > 0) {
-        const predicted = parseInt(accuracyResult.rows[0].predicted) || 0;
-        const actualChurned = parseInt(accuracyResult.rows[0].actual_churned) || 0;
+        const predicted = parseInt(accuracyResult.rows[0].predicted, 10) || 0;
+        const actualChurned = parseInt(accuracyResult.rows[0].actual_churned, 10) || 0;
         predictionAccuracy = {
           predicted,
           actualChurned,
@@ -754,25 +754,25 @@ export class ChurnPredictionService {
         (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      const loginsLast7Days = parseInt(session.logins_7d) || 0;
-      const loginsLast30Days = parseInt(session.logins_30d) || 0;
+      const loginsLast7Days = parseInt(session.logins_7d, 10) || 0;
+      const loginsLast30Days = parseInt(session.logins_30d, 10) || 0;
 
       // Calculate trends
       const loginFrequencyTrend = this.calculateTrend(loginsLast7Days * 4, loginsLast30Days);
 
-      const swipesLast7Days = parseInt(swipe.swipes_7d) || 0;
-      const swipesLast30Days = parseInt(swipe.swipes_30d) || 0;
+      const swipesLast7Days = parseInt(swipe.swipes_7d, 10) || 0;
+      const swipesLast30Days = parseInt(swipe.swipes_30d, 10) || 0;
       const swipeActivityTrend = this.calculateTrend(swipesLast7Days * 4, swipesLast30Days);
 
-      const totalSwipes = parseInt(swipe.total_swipes) || 1;
-      const rightSwipes = parseInt(swipe.right_swipes) || 0;
+      const totalSwipes = parseInt(swipe.total_swipes, 10) || 1;
+      const rightSwipes = parseInt(swipe.right_swipes, 10) || 0;
       const rightSwipeRatio = totalSwipes > 0 ? rightSwipes / totalSwipes : 0.5;
 
-      const matchesLast30Days = parseInt(match.matches_30d) || 0;
+      const matchesLast30Days = parseInt(match.matches_30d, 10) || 0;
       const matchRate = swipesLast30Days > 0 ? matchesLast30Days / swipesLast30Days : 0;
 
-      const messagesSent = parseInt(message.messages_sent) || 0;
-      const messagesReceived = parseInt(message.messages_received) || 0;
+      const messagesSent = parseInt(message.messages_sent, 10) || 0;
+      const messagesReceived = parseInt(message.messages_received, 10) || 0;
       const responseRate = messagesReceived > 0 ? messagesSent / messagesReceived : 0;
 
       const profileCreatedAt = profile.created_at ? new Date(profile.created_at) : now;
@@ -793,7 +793,7 @@ export class ChurnPredictionService {
 
         // Session
         avgSessionDurationMinutes: (parseFloat(session.avg_session_duration) || 0) / 60,
-        totalSessionsLast30Days: parseInt(session.total_sessions_30d) || 0,
+        totalSessionsLast30Days: parseInt(session.total_sessions_30d, 10) || 0,
         sessionDurationTrend: 0, // Would need historical data
         avgScreensPerSession: parseFloat(session.avg_screens) || 0,
 
@@ -818,8 +818,8 @@ export class ChurnPredictionService {
         conversationsInitiated: 0,
 
         // Profile
-        profileCompletionPercent: parseInt(profile.profile_completion) || 0,
-        photoCount: parseInt(profile.photo_count) || 0,
+        profileCompletionPercent: parseInt(profile.profile_completion, 10) || 0,
+        photoCount: parseInt(profile.photo_count, 10) || 0,
         lastProfileUpdateDays: profile.profile_updated_at
           ? Math.floor(
               (now.getTime() - new Date(profile.profile_updated_at).getTime()) /
@@ -827,7 +827,7 @@ export class ChurnPredictionService {
             )
           : 999,
         hasVerification: profile.has_verification || false,
-        bioLength: parseInt(profile.bio_length) || 0,
+        bioLength: parseInt(profile.bio_length, 10) || 0,
 
         // Subscription
         subscriptionTier: profile.subscription_tier || 'FREE',
@@ -835,18 +835,18 @@ export class ChurnPredictionService {
           ? Math.floor((now.getTime() - subscriptionStartDate.getTime()) / (1000 * 60 * 60 * 24))
           : 0,
         daysUntilRenewal: 0, // Would need subscription data
-        paymentFailuresLast90Days: parseInt(payment.failed_payments) || 0,
+        paymentFailuresLast90Days: parseInt(payment.failed_payments, 10) || 0,
         hasActiveSubscription: profile.subscription_tier && profile.subscription_tier !== 'FREE',
         previouslyPaidUser: !!payment.last_payment,
 
         // Feature usage
-        usedBoostLast30Days: (parseInt(feature.boosts) || 0) > 0,
-        usedSuperLikeLast30Days: (parseInt(feature.super_likes) || 0) > 0,
-        usedRewindLast30Days: (parseInt(feature.rewinds) || 0) > 0,
+        usedBoostLast30Days: (parseInt(feature.boosts, 10) || 0) > 0,
+        usedSuperLikeLast30Days: (parseInt(feature.super_likes, 10) || 0) > 0,
+        usedRewindLast30Days: (parseInt(feature.rewinds, 10) || 0) > 0,
         premiumFeaturesUsed:
-          (parseInt(feature.boosts) || 0) +
-          (parseInt(feature.super_likes) || 0) +
-          (parseInt(feature.rewinds) || 0),
+          (parseInt(feature.boosts, 10) || 0) +
+          (parseInt(feature.super_likes, 10) || 0) +
+          (parseInt(feature.rewinds, 10) || 0),
 
         // Support
         supportTicketsLast90Days: 0,
@@ -1808,7 +1808,7 @@ export class ChurnPredictionService {
       recall: parseFloat(row.recall_score),
       f1Score: parseFloat(row.f1_score),
       auc: parseFloat(row.auc),
-      trainingDataSize: parseInt(row.training_data_size),
+      trainingDataSize: parseInt(row.training_data_size, 10),
       trainingPeriodStart: new Date(row.training_period_start),
       trainingPeriodEnd: new Date(row.training_period_end),
       modelType: row.model_type,
@@ -1817,7 +1817,7 @@ export class ChurnPredictionService {
 
   private incrementVersion(version: string): string {
     const parts = version.split('.');
-    parts[2] = String(parseInt(parts[2]) + 1);
+    parts[2] = String(parseInt(parts[2], 10) + 1);
     return parts.join('.');
   }
 

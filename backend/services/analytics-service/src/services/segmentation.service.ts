@@ -175,14 +175,14 @@ export class SegmentationService {
     try {
       const result = await dbClient.query(query);
       const totalUsers = result.rows.reduce(
-        (sum: number, r: any) => sum + parseInt(r.user_count),
+        (sum: number, r: any) => sum + parseInt(r.user_count, 10),
         0
       );
 
       return result.rows.map((row: any) => ({
         segment: row.segment as UserSegmentType,
-        userCount: parseInt(row.user_count),
-        percentOfTotal: totalUsers > 0 ? parseInt(row.user_count) / totalUsers : 0,
+        userCount: parseInt(row.user_count, 10),
+        percentOfTotal: totalUsers > 0 ? parseInt(row.user_count, 10) / totalUsers : 0,
         avgEngagementScore: parseFloat(row.avg_engagement_score) || 0,
         avgLtv: parseFloat(row.avg_ltv) || 0,
         avgMatchRate: parseFloat(row.avg_match_rate) || 0,
@@ -315,17 +315,17 @@ export class SegmentationService {
         daysSinceLastActive: Math.floor(
           (now.getTime() - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24)
         ),
-        daysActiveInLast30: parseInt(row.days_active_30) || 0,
-        profileCompletion: parseInt(row.profile_completion) || 0,
-        photoCount: parseInt(row.photo_count) || 0,
+        daysActiveInLast30: parseInt(row.days_active_30, 10) || 0,
+        profileCompletion: parseInt(row.profile_completion, 10) || 0,
+        photoCount: parseInt(row.photo_count, 10) || 0,
         hasVerification: row.has_verification || false,
         subscriptionTier: row.subscription_tier || 'FREE',
         subscriptionStartDate: row.subscription_start_date
           ? new Date(row.subscription_start_date)
           : undefined,
-        totalSwipes: parseInt(row.total_swipes) || 0,
-        totalMatches: parseInt(row.total_matches) || 0,
-        totalMessages: parseInt(row.total_messages) || 0,
+        totalSwipes: parseInt(row.total_swipes, 10) || 0,
+        totalMatches: parseInt(row.total_matches, 10) || 0,
+        totalMessages: parseInt(row.total_messages, 10) || 0,
         responseRate: await this.calculateResponseRate(userId),
         totalSpend: parseFloat(row.total_spend) || 0,
         ltv: parseFloat(row.total_spend) || 0,
@@ -389,8 +389,8 @@ export class SegmentationService {
     try {
       const result = await dbClient.query(query, [userId]);
       const row = result.rows[0];
-      if (!row || parseInt(row.total) === 0) return 0;
-      return parseInt(row.responded) / parseInt(row.total);
+      if (!row || parseInt(row.total, 10) === 0) return 0;
+      return parseInt(row.responded, 10) / parseInt(row.total, 10);
     } catch {
       return 0;
     }
@@ -404,7 +404,7 @@ export class SegmentationService {
     `;
     try {
       const result = await dbClient.query(query, [userId]);
-      return parseInt(result.rows[0]?.count) || 0;
+      return parseInt(result.rows[0]?.count, 10) || 0;
     } catch {
       return 0;
     }
@@ -418,7 +418,7 @@ export class SegmentationService {
     `;
     try {
       const result = await dbClient.query(query, [userId]);
-      return parseInt(result.rows[0]?.count) || 0;
+      return parseInt(result.rows[0]?.count, 10) || 0;
     } catch {
       return 0;
     }

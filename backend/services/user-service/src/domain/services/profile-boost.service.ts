@@ -367,7 +367,7 @@ class ProfileBoostService {
   // Private helper methods
 
   private generateBoostId(): string {
-    return `boost_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `boost_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**

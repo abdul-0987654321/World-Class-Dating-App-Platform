@@ -159,6 +159,14 @@ export class ProxyService {
         );
       }
     }
+
+    // Unreachable in practice, but TypeScript needs an explicit return/throw
+    // to guarantee the Promise<T> contract. This guards against logic errors
+    // if the retry loop is ever refactored.
+    throw new HttpException(
+      { code: 'SERVICE_COMMUNICATION_ERROR', message: 'Request failed after all retry attempts' },
+      500,
+    );
   }
 
   /**

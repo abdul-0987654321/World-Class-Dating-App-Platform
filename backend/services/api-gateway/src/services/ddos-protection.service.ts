@@ -210,7 +210,13 @@ export class DDoSProtectionService {
       throw new Error('Redis pipeline execution failed');
     }
 
-    return (results[2][1] as number) || 0;
+    // Redis pipeline returns [err, result] tuples; guard against errors
+    const zcardResult = results[2];
+    if (!zcardResult || zcardResult[0]) {
+      this.logger.warn('Redis ZCARD command failed in DDoS counter', zcardResult?.[0]);
+      return 0;
+    }
+    return (zcardResult[1] as number) || 0;
   }
 
   /**
