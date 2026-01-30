@@ -108,7 +108,7 @@ export class EnvironmentValidator {
    */
   private validateVariable(varConfig: EnvVarConfig): void {
     const value = process.env[varConfig.name];
-    const isRequired = varConfig.required || this.isProduction;
+    const isRequired = varConfig.required;
 
     // Check if required variable is missing
     if (!value) {

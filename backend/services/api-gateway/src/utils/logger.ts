@@ -71,24 +71,7 @@ const winstonLogger = winston.createLogger({
   ],
 });
 
-// Add file transports in production
-if (isProduction) {
-  winstonLogger.add(
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 5,
-    })
-  );
-  winstonLogger.add(
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 10,
-    })
-  );
-}
+// Railway captures stdout/stderr automatically — no file transports needed in containers
 
 class Logger {
   private correlationId?: string;

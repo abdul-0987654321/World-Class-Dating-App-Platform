@@ -73,9 +73,6 @@ const logger = winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV === 'production') {
-  logger.add(new winston.transports.File({ filename: 'logs/error.log', level: 'error' }));
-  logger.add(new winston.transports.File({ filename: 'logs/combined.log' }));
-}
+// Railway captures stdout/stderr automatically — no file transports needed in containers
 
 export default logger;
