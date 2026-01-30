@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Request, Response, NextFunction } from 'express';
 import Redis from 'ioredis';
 
+import { getRateLimitRule, parseTimeWindow, isWhitelisted, RateLimitRule } from '../config/rate-limit.config';
+
 export interface RateLimitConfig {
   points: number; // Number of requests
   duration: number; // Per duration in seconds
@@ -46,64 +48,38 @@ export class RateLimiterMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      // Extract user ID from JWT token if available
       const userId = (req as any).user?.userId || (req as any).user?.sub;
-
-      // Get client IP address
       const clientIp = this.getClientIp(req);
-
-      // Create keys for both user and IP-based rate limiting
+      if (isWhitelisted(clientIp)) { return next(); }
+      const ep = req.path.replace(/^\/api\/v1/, '');
+      const rule: RateLimitRule = getRateLimitRule(req.method, ep, (req as any).user?.subscriptionTier);
+      const epCfg: RateLimitConfig = { points: rule.max, duration: parseTimeWindow(rule.window), blockDuration: this.defaultConfig.blockDuration };
+      const cfg = rule.max > 0 ? epCfg : this.defaultConfig;
+      const ek = req.method + '::' + ep;
       const keys: string[] = [];
-
-      if (userId) {
-        keys.push(`ratelimit:user:${userId}`);
-      }
-
-      // Always track by IP
-      keys.push(`ratelimit:ip:${clientIp}`);
-
-      // Check rate limits for all keys
+      if (userId) { keys.push(`ratelimit:user:${userId}:${ek}`); }
+      keys.push(`ratelimit:ip:${clientIp}:${ek}`);
       for (const key of keys) {
-        const allowed = await this.checkRateLimit(key, this.defaultConfig);
-
-        if (!allowed) {
-          const ttl = await this.redis.ttl(key);
-
-          this.logger.warn(`Rate limit exceeded for ${key}`);
-
-          res.setHeader('X-RateLimit-Limit', this.defaultConfig.points.toString());
+        const ok = await this.checkRateLimit(key, cfg);
+        if (!ok) {
+          const t = await this.redis.ttl(key);
+          this.logger.warn(`Rate limit exceeded: ${key}`);
+          res.setHeader('X-RateLimit-Limit', cfg.points.toString());
           res.setHeader('X-RateLimit-Remaining', '0');
-          res.setHeader('X-RateLimit-Reset', (Date.now() + ttl * 1000).toString());
-          res.setHeader('Retry-After', ttl.toString());
-
-          throw new HttpException(
-            {
-              statusCode: HttpStatus.TOO_MANY_REQUESTS,
-              message: 'Too many requests. Please try again later.',
-              retryAfter: ttl,
-            },
-            HttpStatus.TOO_MANY_REQUESTS
-          );
+          res.setHeader('X-RateLimit-Reset', (Date.now() + t * 1000).toString());
+          res.setHeader('Retry-After', t.toString());
+          throw new HttpException({ statusCode: HttpStatus.TOO_MANY_REQUESTS, message: 'Too many requests.', retryAfter: t }, HttpStatus.TOO_MANY_REQUESTS);
         }
       }
-
-      // Get remaining requests for the primary key (user if authenticated, otherwise IP)
-      const primaryKey = userId ? `ratelimit:user:${userId}` : `ratelimit:ip:${clientIp}`;
-      const remaining = await this.getRemaining(primaryKey, this.defaultConfig.points);
-      const ttl = await this.redis.ttl(primaryKey);
-
-      // Set rate limit headers
-      res.setHeader('X-RateLimit-Limit', this.defaultConfig.points.toString());
-      res.setHeader('X-RateLimit-Remaining', remaining.toString());
-      res.setHeader('X-RateLimit-Reset', (Date.now() + ttl * 1000).toString());
-
+      const pk = userId ? `ratelimit:user:${userId}:${ek}` : `ratelimit:ip:${clientIp}:${ek}`;
+      const rem = await this.getRemaining(pk, cfg.points);
+      const ttl = await this.redis.ttl(pk);
+      res.setHeader('X-RateLimit-Limit', cfg.points.toString());
+      res.setHeader('X-RateLimit-Remaining', rem.toString());
+      res.setHeader('X-RateLimit-Reset', (Date.now() + Math.max(0, ttl) * 1000).toString());
       next();
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      // If Redis is down, log error but don't block requests
+      if (error instanceof HttpException) { throw error; }
       this.logger.error('Rate limiter error:', error);
       next();
     }

@@ -29,6 +29,8 @@ test-results/
 # Environment variables - EXCLUDE ALL .env FILES
 # Only .env.example files should be committed
 .env
+.env.local
+.env.*.local
 .env.*
 !.env.example
 !.env.*.example
@@ -52,6 +54,7 @@ infrastructure/config/.env.*
 
 # App-specific environments
 apps/*/.env
+apps/*/.env.local
 apps/*/.env.*
 !apps/*/.env.example
 !apps/*/.env.*.example
@@ -194,3 +197,10 @@ android/**/*.iml
 
 .vercel
 .env*.local
+
+# Scratch/utility files (not part of the codebase)
+disc_backup.b64
+fix_all.js
+ps.js
+update_disc.py
+scripts/security_fixes.py

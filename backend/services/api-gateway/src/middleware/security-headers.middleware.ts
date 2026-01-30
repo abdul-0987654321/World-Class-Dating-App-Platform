@@ -36,9 +36,9 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     // or of type script and the MIME type is not a JavaScript MIME type
     res.setHeader('X-Content-Type-Options', 'nosniff');
 
-    // X-XSS-Protection: Legacy XSS protection (deprecated in modern browsers but still useful for older ones)
-    // 1; mode=block: Enables XSS filtering and prevents rendering of the page if attack is detected
-    res.setHeader('X-XSS-Protection', '1; mode=block');
+    // X-XSS-Protection: Disabled (set to 0) because modern CSP replaces this.
+    // The legacy 1; mode=block can introduce XSS vulnerabilities via side-channel attacks.
+    res.setHeader('X-XSS-Protection', '0');
 
     // Referrer-Policy: Controls how much referrer information should be included with requests
     // strict-origin-when-cross-origin: Send full URL for same-origin, only origin for cross-origin HTTPS, nothing for HTTP
@@ -92,18 +92,30 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       'script-src': this.isDevelopment
         ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"] // Allow inline scripts in dev for HMR
         : ["'self'"], // Strict in production - no inline scripts
-      'style-src': ["'self'", "'unsafe-inline'"], // unsafe-inline needed for styled-components
-      'img-src': ["'self'", 'data:', 'https:', 'blob:'],
+      'style-src': this.isDevelopment
+        ? ["'self'", "'unsafe-inline'"] // Allow unsafe-inline in dev for styled-components HMR
+        : ["'self'", 'https://fonts.googleapis.com'], // Production: no unsafe-inline; use external stylesheets
+      'img-src': [
+        "'self'",
+        'data:',
+        'blob:',
+        'https://*.flamoral.com', // Only Flamoral CDN domains
+        'https://lh3.googleusercontent.com', // Google profile photos
+        'https://platform-lookaside.fbsbx.com', // Facebook profile photos
+        'https://graph.facebook.com', // Facebook Graph API photos
+      ],
       'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
       'connect-src': [
         "'self'",
-        'wss:',
-        'ws:',
         this.apiDomain,
         'https://api.flamoral.com',
-        ...(this.isDevelopment ? ['http://localhost:*', 'ws://localhost:*'] : []),
+        'wss://api.flamoral.com', // Secure WebSocket only
+        'wss://ws.flamoral.com',
+        ...(this.isDevelopment
+          ? ['http://localhost:*', 'ws://localhost:*', 'wss://localhost:*']
+          : []),
       ],
-      'media-src': ["'self'", 'blob:', 'data:', 'https:'],
+      'media-src': ["'self'", 'blob:', 'data:', 'https://*.flamoral.com'], // Only Flamoral CDN
       'object-src': ["'none'"], // Disable plugins
       'frame-src': ["'none'"], // No frames allowed
       'frame-ancestors': ["'none'"], // Prevents embedding (redundant with X-Frame-Options but more flexible)

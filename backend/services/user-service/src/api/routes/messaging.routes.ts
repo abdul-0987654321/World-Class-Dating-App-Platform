@@ -1,7 +1,20 @@
 import { Router } from 'express';
+import Joi from 'joi';
 
 import { MessagingController } from '../controllers/messaging.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validation.middleware';
+
+// Validation schemas for messaging endpoints
+const sendMessageSchema = Joi.object({
+  receiver_id: Joi.string().uuid().required(),
+  content: Joi.string().min(1).max(5000).required(),
+});
+
+const paginationSchema = Joi.object({
+  limit: Joi.number().integer().min(1).max(100).default(50),
+  offset: Joi.number().integer().min(0).default(0),
+});
 
 const router = Router();
 const messagingController = new MessagingController();
@@ -34,6 +47,7 @@ const messagingController = new MessagingController();
 router.get(
   '/conversations',
   authenticate,
+  validate(paginationSchema, 'query'),
   messagingController.getConversations.bind(messagingController)
 );
 
@@ -100,6 +114,7 @@ router.get(
 router.get(
   '/conversations/:conversationId/messages',
   authenticate,
+  validate(paginationSchema, 'query'),
   messagingController.getMessages.bind(messagingController)
 );
 
@@ -133,7 +148,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  */
-router.post('/send', authenticate, messagingController.sendMessage.bind(messagingController));
+router.post('/send', authenticate, validate(sendMessageSchema), messagingController.sendMessage.bind(messagingController));
 
 /**
  * @swagger

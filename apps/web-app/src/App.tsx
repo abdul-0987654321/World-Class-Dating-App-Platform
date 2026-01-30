@@ -39,6 +39,7 @@ import { PrivacySettingsPage } from './pages/Settings/PrivacySettingsPage';
 import { NotificationSettingsPage } from './pages/Settings/NotificationSettingsPage';
 import { PhotoVerificationPage } from './pages/Verification/PhotoVerificationPage';
 import { HelpSupportPage } from './pages/Help/HelpSupportPage';
+import { CookieConsentBanner } from './components/CookieConsent';
 
 // Payment Pages
 import { CheckoutPage } from './pages/Payment/CheckoutPage';
@@ -103,6 +104,7 @@ const AppRoutes: React.FC = () => {
     <>
       {/* AI Assistant Widget */}
       <AIAssistantWidget position="bottom-right" />
+      <CookieConsentBanner />
 
       <FlamoralBackground fixed withNoise>
         <AvatarProvider>

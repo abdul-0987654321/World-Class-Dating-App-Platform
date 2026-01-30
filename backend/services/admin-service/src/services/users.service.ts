@@ -93,8 +93,10 @@ export class UsersService {
       db('login_history').where('user_id', userId).orderBy('created_at', 'desc').limit(20),
     ]);
 
+    // SECURITY: Strip sensitive fields before returning user data
+    const { password_hash, password_reset_token, password_reset_expires, totp_secret, ...safeUser } = user;
     return {
-      ...user,
+      ...safeUser,
       matchCount: parseInt(matches?.count as string) || 0,
       reports,
       subscriptionHistory,
@@ -200,6 +202,8 @@ export class UsersService {
   }
 
   private generateResetToken(): string {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    // SECURITY: Use cryptographically secure random bytes instead of Math.random()
+    const crypto = require('crypto');
+    return crypto.randomBytes(32).toString('hex');
   }
 }

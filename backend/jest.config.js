@@ -40,8 +40,8 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/services/$1/src/$1',
     '^@shared/(.*)$': '<rootDir>/services/shared/$1',
-    '^@flamoral/shared$': '<rootDir>/shared/index.ts',
-    '^@flamoral/shared/(.*)$': '<rootDir>/shared/$1'
+    '^@flamoral/backend-shared$': '<rootDir>/shared/index.ts',
+    '^@flamoral/backend-shared/(.*)$': '<rootDir>/shared/$1'
   },
   testPathIgnorePatterns: [
     '/node_modules/',

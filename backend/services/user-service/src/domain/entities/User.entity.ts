@@ -1,6 +1,6 @@
 export interface UserEntity {
   id: string;
-  okta_user_id: string; // Okta user identifier (indexed, unique)
+  clerk_user_id: string; // Clerk user identifier (indexed, unique)
   email: string;
   password_hash: string;
   first_name: string;
@@ -20,7 +20,7 @@ export interface UserEntity {
 }
 
 export interface CreateUserDto {
-  okta_user_id?: string;
+  clerk_user_id?: string;
   email: string;
   password?: string;
   password_hash?: string;

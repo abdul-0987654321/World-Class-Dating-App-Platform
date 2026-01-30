@@ -120,7 +120,7 @@ function generateSpanId(): string {
  *
  * @example
  * ```typescript
- * import { correlationIdMiddleware } from '@flamoral/shared/middleware';
+ * import { correlationIdMiddleware } from '@flamoral/backend-shared/middleware';
  *
  * // Register early in middleware chain
  * app.use(correlationIdMiddleware);

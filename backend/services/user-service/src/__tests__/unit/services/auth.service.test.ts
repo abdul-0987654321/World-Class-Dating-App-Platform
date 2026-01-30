@@ -420,7 +420,7 @@ describe('AuthService', () => {
       (isValidPassword as jest.Mock).mockReturnValueOnce(false);
 
       await expect(authService.resetPassword(token, weakPassword)).rejects.toThrow(
-        'Password must be at least 8 characters long'
+        'Password must be at least 12 characters long'
       );
 
       expect(mockUserRepository.updatePassword).not.toHaveBeenCalled();

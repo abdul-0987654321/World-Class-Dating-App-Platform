@@ -12,13 +12,13 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Validates if a password meets security requirements
- * - At least 8 characters
+ * - At least 12 characters, max 128
  * - Contains uppercase and lowercase letters
  * - Contains at least one number
  * - Contains at least one special character
  */
 export function isValidPassword(password: string): boolean {
-  if (password.length < 8) return false;
+  if (password.length < 12 || password.length > 128) return false;
 
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);

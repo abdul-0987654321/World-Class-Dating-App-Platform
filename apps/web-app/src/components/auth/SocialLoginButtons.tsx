@@ -185,8 +185,8 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
             clientId: import.meta.env.VITE_APPLE_CLIENT_ID || '',
             scope: 'email name',
             redirectURI: import.meta.env.VITE_APPLE_REDIRECT_URI || '',
-            state: 'state',
-            nonce: 'nonce',
+            state: globalThis.crypto.randomUUID(),
+            nonce: globalThis.crypto.randomUUID(),
             usePopup: true,
           }}
           uiType="dark"

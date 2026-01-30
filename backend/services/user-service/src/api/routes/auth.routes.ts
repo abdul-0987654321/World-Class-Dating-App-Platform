@@ -1,10 +1,29 @@
 import { Router } from 'express';
+import Joi from 'joi';
 
 import { AuthController } from '../controllers/auth.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
-import { authLimiter } from '../middleware/rate-limit.middleware';
+import { authLimiter, passwordResetLimiter, verificationLimiter } from '../middleware/rate-limit.middleware';
 import { validate } from '../middleware/validation.middleware';
 import { registerSchema, loginSchema } from '../validators/user.validator';
+
+// Additional validation schemas for auth endpoints missing validation
+const refreshTokenSchema = Joi.object({
+  refreshToken: Joi.string().required(),
+});
+
+const verifyEmailSchema = Joi.object({
+  token: Joi.string().required(),
+});
+
+const resendVerificationSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  newPassword: Joi.string().min(8).max(128).required(),
+});
 
 const router = Router();
 const authController = new AuthController();
@@ -36,7 +55,7 @@ const authController = new AuthController();
  *               password:
  *                 type: string
  *                 format: password
- *                 minLength: 8
+ *                 minLength: 12
  *                 example: SecurePass123!
  *                 description: Must contain uppercase, lowercase, number, and special character
  *               first_name:
@@ -179,7 +198,7 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/refresh-token', authController.refreshToken.bind(authController));
+router.post('/refresh-token', validate(refreshTokenSchema), authController.refreshToken.bind(authController));
 
 /**
  * @swagger
@@ -205,7 +224,7 @@ router.post('/refresh-token', authController.refreshToken.bind(authController));
  *       400:
  *         description: Invalid or expired token
  */
-router.post('/verify-email', authController.verifyEmail.bind(authController));
+router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail.bind(authController));
 
 /**
  * @swagger
@@ -232,7 +251,7 @@ router.post('/verify-email', authController.verifyEmail.bind(authController));
  *       400:
  *         description: Email already verified or user not found
  */
-router.post('/resend-verification', authController.resendVerification.bind(authController));
+router.post('/resend-verification', verificationLimiter, validate(resendVerificationSchema), authController.resendVerification.bind(authController));
 
 /**
  * @swagger
@@ -283,7 +302,7 @@ router.post('/forgot-password', authLimiter, authController.forgotPassword.bind(
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 minLength: 8
+ *                 minLength: 12
  *                 example: NewSecurePass123!
  *     responses:
  *       200:
@@ -291,7 +310,7 @@ router.post('/forgot-password', authLimiter, authController.forgotPassword.bind(
  *       400:
  *         description: Invalid or expired token
  */
-router.post('/reset-password', authController.resetPassword.bind(authController));
+router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 
 /**
  * @swagger

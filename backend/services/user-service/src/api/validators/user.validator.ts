@@ -6,11 +6,11 @@ export const registerSchema = Joi.object({
     'any.required': 'Email is required',
   }),
   password: Joi.string()
-    .min(8)
+    .min(12).max(128)
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
     .required()
     .messages({
-      'string.min': 'Password must be at least 8 characters long',
+      'string.min': 'Password must be at least 12 characters long',
       'string.pattern.base':
         'Password must contain uppercase, lowercase, number, and special character',
       'any.required': 'Password is required',

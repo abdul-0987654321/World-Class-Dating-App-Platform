@@ -16,6 +16,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { HealthModule } from './health/health.module';
 import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
+import { GpcMiddleware } from './middleware/gpc.middleware';
 import { IdempotencyMiddleware } from './middleware/idempotency.middleware';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { TracingMiddleware } from './middleware/tracing.middleware';
@@ -74,6 +75,9 @@ import { WebsocketModule } from './websocket/websocket.module';
     // CSRF protection middleware
     CsrfMiddleware,
 
+    // GPC (Global Privacy Control) detection middleware - CCPA/CPRA
+    GpcMiddleware,
+
     // Advanced rate limiting middleware
     AdvancedRateLimiterMiddleware,
 
@@ -102,6 +106,9 @@ import { WebsocketModule } from './websocket/websocket.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
+    // Apply GPC detection middleware to all routes
+    consumer.apply(GpcMiddleware).forRoutes("*");
+
     // Apply idempotency middleware to payment-related routes
     consumer.apply(IdempotencyMiddleware).forRoutes(
       'api/v1/payments/*',

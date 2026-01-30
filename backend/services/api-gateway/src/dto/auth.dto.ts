@@ -42,11 +42,11 @@ export class RegisterDto {
 
   @ApiProperty({
     description:
-      'Password (minimum 8 characters, must contain uppercase, lowercase, number, and special character)',
+      'Password (minimum 12 characters, must contain uppercase, lowercase, number, and special character)',
   })
   @IsString()
   @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @MinLength(12, { message: 'Password must be at least 12 characters' })
   @MaxLength(128, { message: 'Password must not exceed 128 characters' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, {
     message:
@@ -180,7 +180,7 @@ export class ResetPasswordDto {
   @ApiProperty({ description: 'New password' })
   @IsString()
   @IsNotEmpty({ message: 'New password is required' })
-  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @MinLength(12, { message: 'Password must be at least 12 characters' })
   @MaxLength(128, { message: 'Password must not exceed 128 characters' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, {
     message:

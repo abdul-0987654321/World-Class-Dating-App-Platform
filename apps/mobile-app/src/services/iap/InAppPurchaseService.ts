@@ -24,6 +24,7 @@ import {
 } from 'react-native-iap';
 import { Platform, Alert } from 'react-native';
 import { EventEmitter } from 'events';
+import logger from '../../utils/logger';
 
 // Product IDs for consumable items
 export const CONSUMABLE_SKUS = {
@@ -66,11 +67,11 @@ class InAppPurchaseServiceClass extends EventEmitter {
   async initialize(): Promise<boolean> {
     try {
       const result = await initConnection();
-      console.log('IAP connection initialized:', result);
+      logger.info('IAP connection initialized', { result });
 
       // Set up purchase listeners
       this.purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase: Purchase) => {
-        console.log('Purchase updated:', purchase);
+        logger.info('Purchase updated', { productId: purchase.productId });
         const receipt = purchase.transactionReceipt;
 
         if (receipt) {
@@ -92,14 +93,14 @@ class InAppPurchaseServiceClass extends EventEmitter {
 
             this.emit('purchaseSuccess', purchase);
           } catch (error) {
-            console.error('Error finishing transaction:', error);
+            logger.error('Error finishing transaction', error instanceof Error ? error : undefined);
             this.emit('purchaseError', error);
           }
         }
       });
 
       this.purchaseErrorSubscription = purchaseErrorListener((error: PurchaseError) => {
-        console.error('Purchase error:', error);
+        logger.error('Purchase error', error instanceof Error ? error : undefined);
         this.emit('purchaseError', error);
 
         if (error.code !== 'E_USER_CANCELLED') {
@@ -110,7 +111,7 @@ class InAppPurchaseServiceClass extends EventEmitter {
       this.isInitialized = true;
       return true;
     } catch (error) {
-      console.error('Error initializing IAP:', error);
+      logger.error('Error initializing IAP', error instanceof Error ? error : undefined);
       return false;
     }
   }
@@ -145,10 +146,10 @@ class InAppPurchaseServiceClass extends EventEmitter {
       const skus = Object.values(CONSUMABLE_SKUS);
       const products = await getProducts({ skus });
 
-      console.log('Consumable products:', products);
+      logger.debug('Consumable products', { count: products.length });
       return products;
     } catch (error) {
-      console.error('Error getting consumable products:', error);
+      logger.error('Error getting consumable products', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -165,10 +166,10 @@ class InAppPurchaseServiceClass extends EventEmitter {
       const skus = Object.values(SUBSCRIPTION_SKUS);
       const subscriptions = await getSubscriptions({ skus });
 
-      console.log('Subscription products:', subscriptions);
+      logger.debug('Subscription products', { count: subscriptions.length });
       return subscriptions;
     } catch (error) {
-      console.error('Error getting subscription products:', error);
+      logger.error('Error getting subscription products', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -191,7 +192,7 @@ class InAppPurchaseServiceClass extends EventEmitter {
         receipt: purchase[0]?.transactionReceipt,
       };
     } catch (error: any) {
-      console.error('Error purchasing product:', error);
+      logger.error('Error purchasing product', error instanceof Error ? error : undefined);
 
       if (error.code === 'E_USER_CANCELLED') {
         return {
@@ -225,7 +226,7 @@ class InAppPurchaseServiceClass extends EventEmitter {
         receipt: purchase.transactionReceipt,
       };
     } catch (error: any) {
-      console.error('Error purchasing subscription:', error);
+      logger.error('Error purchasing subscription', error instanceof Error ? error : undefined);
 
       if (error.code === 'E_USER_CANCELLED') {
         return {
@@ -267,9 +268,9 @@ class InAppPurchaseServiceClass extends EventEmitter {
       }
 
       const data = await response.json();
-      console.log('Purchase verified:', data);
+      logger.info('Purchase verified', { data });
     } catch (error) {
-      console.error('Error verifying purchase:', error);
+      logger.error('Error verifying purchase', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -291,10 +292,10 @@ class InAppPurchaseServiceClass extends EventEmitter {
       }
 
       const purchases = await getAvailablePurchases();
-      console.log('Available purchases:', purchases);
+      logger.debug('Available purchases', { count: purchases.length });
       return purchases;
     } catch (error) {
-      console.error('Error getting available purchases:', error);
+      logger.error('Error getting available purchases', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -309,7 +310,7 @@ class InAppPurchaseServiceClass extends EventEmitter {
       }
 
       const availablePurchases = await getAvailablePurchases();
-      console.log('Restoring purchases:', availablePurchases);
+      logger.info('Restoring purchases', { count: availablePurchases.length });
 
       if (availablePurchases.length === 0) {
         Alert.alert('No Purchases', 'No previous purchases found to restore.');
@@ -323,14 +324,14 @@ class InAppPurchaseServiceClass extends EventEmitter {
           await this.verifyPurchaseWithBackend(purchase);
           this.emit('purchaseRestored', purchase);
         } catch (error) {
-          console.error('Error verifying restored purchase:', error);
+          logger.error('Error verifying restored purchase', error instanceof Error ? error : undefined);
         }
       }
 
       Alert.alert('Success', `${availablePurchases.length} purchase(s) have been restored.`);
       return availablePurchases;
     } catch (error) {
-      console.error('Error restoring purchases:', error);
+      logger.error('Error restoring purchases', error instanceof Error ? error : undefined);
       Alert.alert('Error', 'Failed to restore purchases. Please try again.');
       return [];
     }

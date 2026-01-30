@@ -6,6 +6,14 @@
 import { Platform, PermissionsAndroid, Alert } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, PERMISSIONS, RESULTS, Permission } from 'react-native-permissions';
+import * as ExpoLocation from 'expo-location';
+
+/** Nominatim API base URL (OpenStreetMap free geocoding fallback) */
+const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
+const NOMINATIM_HEADERS = {
+  'User-Agent': 'FlamoralApp/1.0 (contact@flamoral.app)',
+  Accept: 'application/json',
+};
 
 export interface Location {
   latitude: number;
@@ -267,23 +275,163 @@ class GeolocationServiceClass {
   }
 
   /**
-   * Get location from address using geocoding
-   * Note: You'll need to integrate with a geocoding service like Google Maps API
+   * Get location from address using geocoding.
+   * Uses expo-location's geocodeAsync as the primary provider,
+   * falling back to the Nominatim (OpenStreetMap) API if unavailable.
    */
   async geocodeAddress(address: string): Promise<Location | null> {
-    // This is a placeholder - implement with actual geocoding service
-    console.warn('Geocoding not implemented. Please integrate with a geocoding service.');
-    return null;
+    if (!address || !address.trim()) {
+      console.warn('geocodeAddress: empty address provided');
+      return null;
+    }
+
+    const trimmedAddress = address.trim();
+
+    // --- Primary: expo-location ---
+    try {
+      const results = await ExpoLocation.geocodeAsync(trimmedAddress);
+
+      if (results && results.length > 0) {
+        const best = results[0];
+        return {
+          latitude: best.latitude,
+          longitude: best.longitude,
+          accuracy: best.accuracy ?? undefined,
+          altitude: best.altitude ?? undefined,
+        };
+      }
+      // No results from expo-location; fall through to Nominatim.
+    } catch (expoError) {
+      console.warn(
+        'geocodeAddress: expo-location geocoding failed, falling back to Nominatim:',
+        expoError
+      );
+    }
+
+    // --- Fallback: Nominatim (OpenStreetMap) ---
+    try {
+      const url = `${NOMINATIM_BASE}/search?q=${encodeURIComponent(trimmedAddress)}&format=json&limit=1`;
+      const response = await fetch(url, { headers: NOMINATIM_HEADERS });
+
+      if (!response.ok) {
+        console.error(`geocodeAddress: Nominatim request failed with status ${response.status}`);
+        return null;
+      }
+
+      const data: Array<{ lat: string; lon: string }> = await response.json();
+
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+
+        if (isNaN(lat) || isNaN(lon)) {
+          console.error('geocodeAddress: Nominatim returned non-numeric coordinates');
+          return null;
+        }
+
+        return {
+          latitude: lat,
+          longitude: lon,
+        };
+      }
+
+      console.warn('geocodeAddress: no results found for address:', trimmedAddress);
+      return null;
+    } catch (nominatimError) {
+      console.error('geocodeAddress: Nominatim fallback also failed:', nominatimError);
+      return null;
+    }
   }
 
   /**
-   * Get address from coordinates using reverse geocoding
-   * Note: You'll need to integrate with a geocoding service like Google Maps API
+   * Get address from coordinates using reverse geocoding.
+   * Uses expo-location's reverseGeocodeAsync as the primary provider,
+   * falling back to the Nominatim (OpenStreetMap) API if unavailable.
    */
   async reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
-    // This is a placeholder - implement with actual reverse geocoding service
-    console.warn('Reverse geocoding not implemented. Please integrate with a geocoding service.');
-    return null;
+    if (
+      latitude == null ||
+      longitude == null ||
+      isNaN(latitude) ||
+      isNaN(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      console.warn('reverseGeocode: invalid coordinates provided:', { latitude, longitude });
+      return null;
+    }
+
+    // --- Primary: expo-location ---
+    try {
+      const results = await ExpoLocation.reverseGeocodeAsync({ latitude, longitude });
+
+      if (results && results.length > 0) {
+        const addr = results[0];
+        // Build a human-readable address string from the available parts
+        const parts: string[] = [];
+
+        if (addr.name && addr.name !== addr.street) {
+          parts.push(addr.name);
+        }
+        if (addr.street) {
+          parts.push(addr.street);
+        }
+        if (addr.city) {
+          parts.push(addr.city);
+        } else if (addr.subregion) {
+          parts.push(addr.subregion);
+        }
+        if (addr.region) {
+          parts.push(addr.region);
+        }
+        if (addr.postalCode) {
+          parts.push(addr.postalCode);
+        }
+        if (addr.country) {
+          parts.push(addr.country);
+        }
+
+        if (parts.length > 0) {
+          return parts.join(', ');
+        }
+      }
+      // No usable results from expo-location; fall through to Nominatim.
+    } catch (expoError) {
+      console.warn(
+        'reverseGeocode: expo-location reverse geocoding failed, falling back to Nominatim:',
+        expoError
+      );
+    }
+
+    // --- Fallback: Nominatim (OpenStreetMap) ---
+    try {
+      const url = `${NOMINATIM_BASE}/reverse?lat=${encodeURIComponent(String(latitude))}&lon=${encodeURIComponent(String(longitude))}&format=json`;
+      const response = await fetch(url, { headers: NOMINATIM_HEADERS });
+
+      if (!response.ok) {
+        console.error(`reverseGeocode: Nominatim request failed with status ${response.status}`);
+        return null;
+      }
+
+      const data: { display_name?: string; error?: string } = await response.json();
+
+      if (data.error) {
+        console.warn('reverseGeocode: Nominatim returned error:', data.error);
+        return null;
+      }
+
+      if (data.display_name) {
+        return data.display_name;
+      }
+
+      console.warn('reverseGeocode: no display_name in Nominatim response');
+      return null;
+    } catch (nominatimError) {
+      console.error('reverseGeocode: Nominatim fallback also failed:', nominatimError);
+      return null;
+    }
   }
 
   /**

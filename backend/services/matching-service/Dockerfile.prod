@@ -50,8 +50,8 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 # Copy shared module
-COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/shared/dist/
-COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/shared/
+COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/backend-shared/
 
 # Copy built application
 COPY --from=builder /app/backend/services/matching-service/dist ./dist

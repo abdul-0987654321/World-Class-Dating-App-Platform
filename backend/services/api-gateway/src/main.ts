@@ -17,6 +17,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
+import { GpcMiddleware } from './middleware/gpc.middleware';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { TracingMiddleware } from './middleware/tracing.middleware';
 import logger from './utils/logger';
@@ -103,6 +104,10 @@ async function bootstrap() {
   const securityHeadersMiddleware = app.get(SecurityHeadersMiddleware);
   app.use(securityHeadersMiddleware.use.bind(securityHeadersMiddleware));
 
+  // Global Privacy Control (GPC) Middleware - CCPA/CPRA Sec-GPC header detection
+  const gpcMiddleware = app.get(GpcMiddleware);
+  app.use(gpcMiddleware.use.bind(gpcMiddleware));
+
   // Security - Helmet (disabled CSP as we handle it in SecurityHeadersMiddleware)
   const enableHelmet = configService.get<boolean>('ENABLE_HELMET') !== false;
   if (enableHelmet) {
@@ -144,11 +149,18 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, etc.)
+      // Allow requests with no origin (mobile apps, server-to-server)
       if (!origin) return callback(null, true);
 
-      // Check if origin is allowed
-      if (corsOrigins.includes('*') || corsOrigins.includes(origin)) {
+      // SECURITY: Never allow wildcard in production with credentials
+      if (isProduction && corsOrigins.includes('*')) {
+        logger.warn('CORS wildcard detected in production config - rejecting');
+        callback(new Error('Not allowed by CORS'));
+        return;
+      }
+
+      // Check if origin is in the strict allowed list
+      if (corsOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -167,8 +179,9 @@ async function bootstrap() {
       'stripe-signature', // Allow Stripe webhook signature header
       'x-paystack-signature', // Allow Paystack webhook signature header
       'verif-hash', // Allow Flutterwave webhook signature header
-      'x-okta-verification-challenge', // Okta Event Hook headers
-      'authorization', // Okta webhook authorization
+      'svix-id', // Clerk webhook signature headers
+      'svix-timestamp',
+      'svix-signature',
     ],
     exposedHeaders: [
       'X-Request-ID',
@@ -179,7 +192,7 @@ async function bootstrap() {
       'X-Response-Time',
       'X-CSRF-Token', // Expose CSRF token to client
     ],
-    maxAge: 86400, // 24 hours
+    maxAge: 7200, // 2 hours preflight cache (reduced for faster security policy updates)
   });
 
   // Apply tracing middleware globally
@@ -197,7 +210,6 @@ async function bootstrap() {
       'health/ready',
       'health/live',
       'health/services',
-      'webhooks/okta',
       'webhooks/(.*)',
     ],
   });

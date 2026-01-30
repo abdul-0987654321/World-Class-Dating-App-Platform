@@ -34,8 +34,6 @@
     "@nestjs/terminus": "^10.2.0",
     "@nestjs/throttler": "^5.1.1",
     "@nestjs/websockets": "^10.3.0",
-    "@okta/jwt-verifier": "^4.0.1",
-    "@okta/okta-sdk-nodejs": "^7.1.0",
     "axios": "^1.7.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",

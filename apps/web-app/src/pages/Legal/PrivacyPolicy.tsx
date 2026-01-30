@@ -125,6 +125,97 @@ const StaticPrivacyPolicy: React.FC = () => {
         </List>
       </Section>
 
+
+      <Section>
+        <SectionTitle>3. How We Share Your Information</SectionTitle>
+        <Paragraph>We may share your information in the following circumstances:</Paragraph>
+        <List>
+          <ListItem><Strong>Service Providers:</Strong> Third-party vendors who help us operate the Service (hosting, analytics, payment processing, customer support)</ListItem>
+          <ListItem><Strong>Safety and Legal:</Strong> When required by law, court order, or to protect the safety of our users</ListItem>
+          <ListItem><Strong>Business Transfers:</Strong> In connection with a merger, acquisition, or sale of assets</ListItem>
+          <ListItem><Strong>With Your Consent:</Strong> When you explicitly agree to share your data with third parties</ListItem>
+        </List>
+        <Paragraph>We do not sell your personal information to third parties.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>4. Your Rights Under GDPR (EU/EEA Users)</SectionTitle>
+        <Paragraph>If you are in the EU/EEA, you have the following rights under the General Data Protection Regulation:</Paragraph>
+        <List>
+          <ListItem><Strong>Right of Access (Art. 15):</Strong> Request a copy of your personal data</ListItem>
+          <ListItem><Strong>Right to Rectification (Art. 16):</Strong> Correct inaccurate or incomplete data</ListItem>
+          <ListItem><Strong>Right to Erasure (Art. 17):</Strong> Request deletion of your personal data</ListItem>
+          <ListItem><Strong>Right to Restrict Processing (Art. 18):</Strong> Limit how we use your data</ListItem>
+          <ListItem><Strong>Right to Data Portability (Art. 20):</Strong> Receive your data in a portable format</ListItem>
+          <ListItem><Strong>Right to Object (Art. 21):</Strong> Object to processing for marketing or profiling</ListItem>
+          <ListItem><Strong>Right to Withdraw Consent:</Strong> Withdraw consent at any time without affecting prior processing</ListItem>
+        </List>
+        <Paragraph>To exercise these rights, visit Settings &gt; Privacy or contact our DPO at dpo@flamoral.com. We will respond within 30 days.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>5. Your Rights Under CCPA/CPRA (California Residents)</SectionTitle>
+        <Paragraph>California residents have additional rights under the California Consumer Privacy Act and California Privacy Rights Act:</Paragraph>
+        <List>
+          <ListItem><Strong>Right to Know:</Strong> Request disclosure of personal information collected, used, and shared</ListItem>
+          <ListItem><Strong>Right to Delete:</Strong> Request deletion of your personal information</ListItem>
+          <ListItem><Strong>Right to Opt-Out:</Strong> Opt out of the sale or sharing of personal information</ListItem>
+          <ListItem><Strong>Right to Correct:</Strong> Request correction of inaccurate personal information</ListItem>
+          <ListItem><Strong>Right to Limit:</Strong> Limit the use and disclosure of sensitive personal information</ListItem>
+          <ListItem><Strong>Non-Discrimination:</Strong> We will not discriminate against you for exercising your rights</ListItem>
+        </List>
+        <Paragraph>We honor Global Privacy Control (GPC) signals. To exercise your rights, visit our Do Not Sell page or contact privacy@flamoral.com.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>6. LGPD Rights (Brazil)</SectionTitle>
+        <Paragraph>If you are a resident of Brazil, the Lei Geral de Protecao de Dados (LGPD) provides you with rights to access, correct, delete, and port your data, as well as to object to processing and request anonymization. Contact our DPO to exercise these rights.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>7. Data Retention</SectionTitle>
+        <Paragraph>We retain your personal data only as long as necessary to provide the Service and fulfill the purposes described in this policy:</Paragraph>
+        <List>
+          <ListItem><Strong>Active Accounts:</Strong> Data is retained while your account is active</ListItem>
+          <ListItem><Strong>Deleted Accounts:</Strong> Most data is deleted within 30 days after account deletion, with a 14-day grace period for cancellation</ListItem>
+          <ListItem><Strong>Messages:</Strong> Deleted messages are purged after 90 days</ListItem>
+          <ListItem><Strong>Legal Requirements:</Strong> Some data may be retained longer to comply with legal obligations, resolve disputes, or enforce agreements</ListItem>
+          <ListItem><Strong>Analytics:</Strong> Aggregated, anonymized data may be retained indefinitely for analytical purposes</ListItem>
+        </List>
+      </Section>
+
+      <Section>
+        <SectionTitle>8. International Data Transfers</SectionTitle>
+        <Paragraph>Your data may be transferred to and processed in countries other than your own. We use appropriate safeguards including Standard Contractual Clauses (SCCs) approved by the European Commission, and we ensure adequate protection for international transfers as required by GDPR, LGPD, and other applicable laws.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>9. Security Measures</SectionTitle>
+        <Paragraph>We implement industry-standard security measures to protect your data, including:</Paragraph>
+        <List>
+          <ListItem>Encryption in transit (TLS 1.2+) and at rest (AES-256)</ListItem>
+          <ListItem>Regular security audits and penetration testing</ListItem>
+          <ListItem>Access controls and least-privilege principles</ListItem>
+          <ListItem>Secure development practices and code reviews</ListItem>
+          <ListItem>Incident response and data breach notification procedures (within 72 hours per GDPR Article 33)</ListItem>
+        </List>
+      </Section>
+
+      <Section>
+        <SectionTitle>10. Cookies and Tracking Technologies</SectionTitle>
+        <Paragraph>We use cookies and similar technologies categorized as: essential (required), functional (preferences), analytics (usage understanding), and marketing (advertising). You can manage your cookie preferences through our Cookie Consent Banner or visit our Cookie Policy for details. We honor Do Not Track and Global Privacy Control (GPC) signals.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>11. Children and Minors</SectionTitle>
+        <Paragraph>Flamoral is not intended for anyone under the age of 18. We do not knowingly collect personal information from minors. If we learn that we have collected data from a minor, we will promptly delete it. If you believe a minor has provided us with personal information, please contact us at privacy@flamoral.com.</Paragraph>
+      </Section>
+
+      <Section>
+        <SectionTitle>12. Changes to This Policy</SectionTitle>
+        <Paragraph>We may update this Privacy Policy from time to time. We will notify you of significant changes by email or through the Service. Your continued use of the Service after changes take effect constitutes acceptance of the revised policy.</Paragraph>
+      </Section>
+
       <Section>
         <SectionTitle>Contact Us</SectionTitle>
         <Paragraph>

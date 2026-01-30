@@ -95,7 +95,7 @@ const normalizeRegisterBody = (req: Request, _res: Response, next: NextFunction)
  *                 format: email
  *               password:
  *                 type: string
- *                 minLength: 8
+ *                 minLength: 12
  *               first_name:
  *                 type: string
  *               last_name:
@@ -310,7 +310,7 @@ router.post(
  *                 type: string
  *               newPassword:
  *                 type: string
- *                 minLength: 8
+ *                 minLength: 12
  *     responses:
  *       200:
  *         description: Password reset successfully

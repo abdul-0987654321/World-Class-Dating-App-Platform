@@ -28,6 +28,13 @@ export enum NotificationType {
   DATE_SAFETY_PANIC = 'date_safety_panic',
   DATE_SAFETY_STARTED = 'date_safety_started',
   DATE_SAFETY_COMPLETED = 'date_safety_completed',
+  // Data breach notification (GDPR Article 34 - 72-hour requirement)
+  DATA_BREACH_NOTIFICATION = 'data_breach_notification',
+  // GDPR compliance notifications
+  GDPR_DATA_EXPORT_READY = 'gdpr_data_export_ready',
+  GDPR_DELETION_SCHEDULED = 'gdpr_deletion_scheduled',
+  GDPR_DELETION_COMPLETED = 'gdpr_deletion_completed',
+  GDPR_PROCESSING_RESTRICTED = 'gdpr_processing_restricted',
 }
 
 export enum NotificationChannel {

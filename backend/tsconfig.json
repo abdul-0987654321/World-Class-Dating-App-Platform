@@ -31,7 +31,6 @@
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
-      "@flamoral/shared": ["./shared"],
       "@flamoral/backend-shared": ["./shared"],
       "@flamoral/backend-shared/*": ["./shared/*"]
     }

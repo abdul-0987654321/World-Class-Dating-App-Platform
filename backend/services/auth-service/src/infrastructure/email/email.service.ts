@@ -53,7 +53,7 @@ class EmailService {
 
     try {
       const response = await this.sesClient.send(command);
-      logger.info(`Email sent successfully to ${to}`, { messageId: response.MessageId });
+      logger.info("Email sent successfully", { messageId: response.MessageId });
     } catch (error) {
       logger.error('Failed to send email', error);
       throw error;
@@ -90,7 +90,7 @@ class EmailService {
 
     try {
       await this.sendEmail(email, 'Verify your Flamoral account', html);
-      logger.info(`Verification email sent to ${email}`);
+      logger.info("Verification email sent");
     } catch (error) {
       logger.error('Failed to send verification email', error);
       throw new Error('Failed to send verification email');
@@ -128,7 +128,7 @@ class EmailService {
 
     try {
       await this.sendEmail(email, 'Reset your Flamoral password', html);
-      logger.info(`Password reset email sent to ${email}`);
+      logger.info("Password reset email sent");
     } catch (error) {
       logger.error('Failed to send password reset email', error);
       throw new Error('Failed to send password reset email');
@@ -167,7 +167,7 @@ class EmailService {
 
     try {
       await this.sendEmail(email, "Welcome to Flamoral - Let's find your match!", html);
-      logger.info(`Welcome email sent to ${email}`);
+      logger.info("Welcome email sent");
     } catch (error) {
       logger.error('Failed to send welcome email', error);
       // Don't throw - welcome email is not critical

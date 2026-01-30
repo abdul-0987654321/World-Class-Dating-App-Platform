@@ -9,7 +9,22 @@ export enum Role {
   VIP = 'vip',
   MODERATOR = 'moderator',
   ADMIN = 'admin',
+  SUPER_ADMIN = 'super_admin',
 }
+
+/**
+ * Role hierarchy levels for comparison.
+ * Higher number = higher privilege.
+ * SUPER_ADMIN > ADMIN > MODERATOR > VIP > PREMIUM > USER
+ */
+const ROLE_HIERARCHY: Record<string, number> = {
+  [Role.USER]: 0,
+  [Role.PREMIUM]: 1,
+  [Role.VIP]: 2,
+  [Role.MODERATOR]: 3,
+  [Role.ADMIN]: 4,
+  [Role.SUPER_ADMIN]: 5,
+};
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -31,6 +46,15 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    return requiredRoles.some((role) => user.roles?.includes(role));
+    // Use role hierarchy: user passes if they have ANY role
+    // whose hierarchy level >= the minimum required role level.
+    const minRequiredLevel = Math.min(
+      ...requiredRoles.map((role) => ROLE_HIERARCHY[role] ?? 0)
+    );
+
+    return user.roles.some((userRole: string) => {
+      const userLevel = ROLE_HIERARCHY[userRole] ?? 0;
+      return userLevel >= minRequiredLevel;
+    });
   }
 }

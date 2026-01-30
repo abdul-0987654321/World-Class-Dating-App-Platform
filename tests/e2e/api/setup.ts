@@ -143,6 +143,85 @@ export function authenticatedRequest(baseUrl: string = config.API_GATEWAY_URL) {
 }
 
 /**
+ * Creates a second independent test user (useful for cross-user/IDOR tests)
+ */
+export async function createSecondTestUser(): Promise<TestState> {
+  const state: TestState = {};
+  const uniqueEmail = `e2e-second-${Date.now()}-${Math.random().toString(36).substring(7)}@flamoral.test`;
+
+  try {
+    const registerResponse = await request(config.AUTH_URL)
+      .post('/api/auth/register')
+      .send({
+        email: uniqueEmail,
+        password: config.TEST_USER_PASSWORD,
+        firstName: 'Second',
+        lastName: 'TestUser',
+        dateOfBirth: '1993-03-20',
+        gender: 'female',
+      })
+      .timeout(config.DEFAULT_TIMEOUT);
+
+    if (registerResponse.status === 201) {
+      const data = registerResponse.body.data || registerResponse.body;
+      state.accessToken = data.accessToken;
+      state.refreshToken = data.refreshToken;
+      state.userId = data.user?.id || data.userId;
+      state.email = uniqueEmail;
+    }
+  } catch (error) {
+    console.warn('Failed to create second test user:', error);
+  }
+
+  return state;
+}
+
+/**
+ * Generate a mock JWT token with custom claims for RBAC testing.
+ * Uses jsonwebtoken to create tokens with specific roles.
+ * NOTE: Only works if the API gateway accepts the test JWT secret.
+ */
+export function generateMockToken(claims: {
+  userId?: string;
+  email?: string;
+  roles?: string[];
+  subscription?: string;
+  exp?: number;
+}): string {
+  const jwt = require('jsonwebtoken');
+  const secret = process.env.JWT_ACCESS_SECRET || 'test_secret';
+  const payload = {
+    userId: claims.userId || 'mock-user-id',
+    email: claims.email || 'mock@flamoral.test',
+    roles: claims.roles || ['user'],
+    subscription: claims.subscription || 'free',
+    iat: Math.floor(Date.now() / 1000),
+    exp: claims.exp || Math.floor(Date.now() / 1000) + 3600,
+  };
+  return jwt.sign(payload, secret);
+}
+
+/**
+ * Helper to make authenticated requests with a specific token
+ */
+export function requestWithToken(token: string, baseUrl: string = config.API_GATEWAY_URL) {
+  const agent = request(baseUrl);
+
+  return {
+    get: (path: string) =>
+      agent.get(path).set('Authorization', `Bearer ${token}`),
+    post: (path: string) =>
+      agent.post(path).set('Authorization', `Bearer ${token}`),
+    put: (path: string) =>
+      agent.put(path).set('Authorization', `Bearer ${token}`),
+    patch: (path: string) =>
+      agent.patch(path).set('Authorization', `Bearer ${token}`),
+    delete: (path: string) =>
+      agent.delete(path).set('Authorization', `Bearer ${token}`),
+  };
+}
+
+/**
  * Generates a mock Stripe webhook signature for testing
  */
 export function generateStripeWebhookSignature(payload: string, secret: string): string {

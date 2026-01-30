@@ -71,7 +71,6 @@ class AuthService {
     const breachCheck = await passwordBreachCheckerService.checkPasswordBreach(data.password);
     if (breachCheck.isBreached) {
       logger.warn('User attempted to register with breached password', {
-        email: data.email,
         breachCount: breachCheck.breachCount,
       });
       throw new Error(breachCheck.message);
@@ -96,7 +95,7 @@ class AuthService {
       logger.error('Failed to send verification email', error)
     );
 
-    logger.info(`New user registered: ${user.email}`);
+    logger.info("New user registered", { userId: user.id });
 
     // Generate tokens
     const tokens = this.generateTokens(user);
@@ -118,7 +117,7 @@ class AuthService {
     const user = await userRepository.findByEmail(data.email);
     if (!user) {
       // Record failed attempt even if user doesn't exist (generic tracking)
-      logger.warn(`Login attempt for non-existent email: ${data.email} from IP: ${ip}`);
+      logger.warn("Login attempt for non-existent account", { ip });
       throw new Error('Invalid credentials');
     }
 
@@ -249,7 +248,8 @@ class AuthService {
     // Update last login
     await userRepository.updateLastLogin(user.id);
 
-    logger.info(`User logged in: ${user.email} from IP: ${ip}`, {
+    logger.info("User logged in", {
+      userId: user.id,
       sessionId: session.id,
       isNewDevice,
       suspicionScore: suspicionIndicators.score,
@@ -408,7 +408,7 @@ class AuthService {
 
     if (!user) {
       // Don't reveal if user exists (security)
-      logger.warn(`Password reset requested for non-existent email: ${email}`);
+      logger.warn("Password reset requested for non-existent account");
       return;
     }
 
@@ -425,7 +425,7 @@ class AuthService {
     // Send password reset email
     await emailService.sendPasswordResetEmail(user.email, user.first_name, token);
 
-    logger.info(`Password reset email sent to: ${email}`);
+    logger.info("Password reset email sent");
   }
 
   /**
@@ -441,7 +441,7 @@ class AuthService {
     // Validate new password
     if (!isValidPassword(newPassword)) {
       throw new Error(
-        'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 12 characters and contain uppercase, lowercase, number, and special character'
       );
     }
 
@@ -491,7 +491,7 @@ class AuthService {
 
     await this.sendVerificationEmail(user);
 
-    logger.info(`Verification email resent to: ${email}`);
+    logger.info("Verification email resent");
   }
 
   /**
@@ -537,7 +537,7 @@ class AuthService {
 
     if (!isValidPassword(data.password)) {
       throw new Error(
-        'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 12 characters and contain uppercase, lowercase, number, and special character'
       );
     }
 
@@ -566,8 +566,7 @@ class AuthService {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
-      subscriptionTier: user.subscription_tier || 'free',
-      subscriptionStatus: user.subscription_status || 'inactive',
+      // SECURITY: Subscription data removed from JWT - fetch from DB when needed
       roles: user.roles || ['USER'],
     };
 
@@ -619,7 +618,6 @@ class AuthService {
     try {
       logger.info('Sending login notification', {
         userId: user.id,
-        email: user.email,
         isNewDevice: loginInfo.isNewDevice,
         suspicionScore: loginInfo.suspicionScore,
       });

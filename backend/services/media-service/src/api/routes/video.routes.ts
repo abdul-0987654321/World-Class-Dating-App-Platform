@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import videoController from '../controllers/video.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { uploadVideo } from '../middleware/upload.middleware';
+import { uploadVideo, validateFileContent } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -44,6 +44,7 @@ router.post(
   '/upload',
   authenticate,
   uploadVideo.single('video'),
+  validateFileContent,
   videoController.uploadVideo.bind(videoController)
 );
 

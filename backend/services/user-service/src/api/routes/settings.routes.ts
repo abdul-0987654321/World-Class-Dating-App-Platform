@@ -4,10 +4,53 @@
  */
 
 import express, { Request, Response } from 'express';
+import Joi from 'joi';
 
 import { settingsService } from '../../services/settings.service';
 import logger from '../../utils/logger';
 import { requireAuth } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validation.middleware';
+
+// Validation schemas for settings endpoints
+const accountSettingsSchema = Joi.object({
+  email: Joi.string().email().optional(),
+  phone: Joi.string().pattern(/^\+[1-9]\d{1,14}$/).optional(),
+  currentPassword: Joi.string().optional(),
+  newPassword: Joi.string().min(8).max(128).optional(),
+}).min(1);
+
+const privacySettingsSchema = Joi.object({
+  showOnlineStatus: Joi.boolean().optional(),
+  showDistance: Joi.boolean().optional(),
+  showAge: Joi.boolean().optional(),
+  readReceipts: Joi.boolean().optional(),
+  incognitoMode: Joi.boolean().optional(),
+  onlyMatchedUsersCanMessage: Joi.boolean().optional(),
+}).min(1);
+
+const notificationSettingsSchema = Joi.object({
+  pushNotifications: Joi.boolean().optional(),
+  emailNotifications: Joi.boolean().optional(),
+  smsNotifications: Joi.boolean().optional(),
+  newMatches: Joi.boolean().optional(),
+  newMessages: Joi.boolean().optional(),
+  likes: Joi.boolean().optional(),
+  superLikes: Joi.boolean().optional(),
+  promotions: Joi.boolean().optional(),
+}).min(1);
+
+const preferencesSchema = Joi.object({
+  interestedIn: Joi.array().items(Joi.string().valid('male', 'female', 'non-binary', 'other')).optional(),
+  minAge: Joi.number().integer().min(18).max(100).optional(),
+  maxAge: Joi.number().integer().min(18).max(100).optional(),
+  maxDistance: Joi.number().integer().min(1).max(500).optional(),
+}).min(1);
+
+const deleteAccountSchema = Joi.object({
+  password: Joi.string().required(),
+  reason: Joi.string().min(1).max(500).required(),
+  feedback: Joi.string().max(2000).optional(),
+});
 
 const router = express.Router();
 
@@ -93,7 +136,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
  *       400:
  *         description: Invalid data or current password incorrect
  */
-router.patch('/account', requireAuth, async (req: Request, res: Response) => {
+router.patch('/account', requireAuth, validate(accountSettingsSchema), async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
     const updates = req.body;
@@ -149,7 +192,7 @@ router.patch('/account', requireAuth, async (req: Request, res: Response) => {
  *       200:
  *         description: Privacy settings updated
  */
-router.patch('/privacy', requireAuth, async (req: Request, res: Response) => {
+router.patch('/privacy', requireAuth, validate(privacySettingsSchema), async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
     const privacySettings = req.body;
@@ -205,7 +248,7 @@ router.patch('/privacy', requireAuth, async (req: Request, res: Response) => {
  *       200:
  *         description: Notification preferences updated
  */
-router.patch('/notifications', requireAuth, async (req: Request, res: Response) => {
+router.patch('/notifications', requireAuth, validate(notificationSettingsSchema), async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
     const notificationSettings = req.body;
@@ -255,7 +298,7 @@ router.patch('/notifications', requireAuth, async (req: Request, res: Response) 
  *       200:
  *         description: Match preferences updated
  */
-router.patch('/preferences', requireAuth, async (req: Request, res: Response) => {
+router.patch('/preferences', requireAuth, validate(preferencesSchema), async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
     const preferences = req.body;
@@ -435,7 +478,7 @@ router.post('/data-export', requireAuth, async (req: Request, res: Response) => 
  *       400:
  *         description: Invalid password
  */
-router.delete('/account', requireAuth, async (req: Request, res: Response) => {
+router.delete('/account', requireAuth, validate(deleteAccountSchema), async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
     const { password, reason, feedback } = req.body;

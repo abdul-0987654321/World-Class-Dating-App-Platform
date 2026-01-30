@@ -281,9 +281,12 @@ export class ModerationController {
 
   /**
    * Scan text for inappropriate content
+   * SECURITY: Requires Role.MODERATOR — prevents abuse of AI moderation scanning
    */
   @Post('scan/text')
-  @ApiOperation({ summary: 'Scan text for inappropriate content' })
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
+  @ApiOperation({ summary: 'Scan text for inappropriate content (moderator)' })
   @HttpCode(HttpStatus.OK)
   async scanText(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/scan/text', body, {
@@ -293,9 +296,12 @@ export class ModerationController {
 
   /**
    * Scan image for inappropriate content
+   * SECURITY: Requires Role.MODERATOR — prevents abuse of AI moderation scanning
    */
   @Post('scan/image')
-  @ApiOperation({ summary: 'Scan image for inappropriate content' })
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
+  @ApiOperation({ summary: 'Scan image for inappropriate content (moderator)' })
   @HttpCode(HttpStatus.OK)
   async scanImage(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/scan/image', body, {

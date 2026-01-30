@@ -9,6 +9,7 @@ import { Platform, Alert, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { httpClient } from '../api/httpClient';
 import { navigationRef } from '../../navigation/NavigationService';
+import logger from '../../utils/logger';
 
 export interface NotificationPayload {
   type: string;
@@ -29,13 +30,13 @@ class NotificationService {
    */
   async initialize(): Promise<void> {
     try {
-      console.log('Initializing notification service...');
+      logger.info('Initializing notification service...');
 
       // Request permissions
       const hasPermission = await this.requestPermissions();
 
       if (!hasPermission) {
-        console.warn('Notification permissions not granted');
+        logger.warn('Notification permissions not granted');
         return;
       }
 
@@ -53,9 +54,9 @@ class NotificationService {
       // Handle initial notification (app opened from quit state)
       await this.handleInitialNotification();
 
-      console.log('Notification service initialized successfully');
+      logger.info('Notification service initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize notification service:', error);
+      logger.error('Failed to initialize notification service', error instanceof Error ? error : undefined);
     }
   }
 
@@ -71,14 +72,14 @@ class NotificationService {
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
       if (enabled) {
-        console.log('Notification permissions granted');
+        logger.info('Notification permissions granted');
         return true;
       } else {
-        console.log('Notification permissions denied');
+        logger.info('Notification permissions denied');
         return false;
       }
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
+      logger.error('Error requesting notification permissions', error instanceof Error ? error : undefined);
       return false;
     }
   }
@@ -113,7 +114,7 @@ class NotificationService {
       const token = await messaging().getToken();
 
       if (token) {
-        console.log('FCM Token:', token);
+        logger.debug('FCM Token obtained', { tokenLength: token.length });
         this.fcmToken = token;
 
         // Save token to AsyncStorage
@@ -127,7 +128,7 @@ class NotificationService {
 
       return null;
     } catch (error) {
-      console.error('Error getting FCM token:', error);
+      logger.error('Error getting FCM token', error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -148,9 +149,9 @@ class NotificationService {
 
       await httpClient.post('/notifications/devices/register', deviceInfo);
 
-      console.log('Device token registered with backend');
+      logger.info('Device token registered with backend');
     } catch (error) {
-      console.error('Failed to register token with backend:', error);
+      logger.error('Failed to register token with backend', error instanceof Error ? error : undefined);
     }
   }
 
@@ -174,7 +175,7 @@ class NotificationService {
   private setupListeners(): void {
     // Listen for token refresh
     this.unsubscribeTokenRefresh = messaging().onTokenRefresh(async (token) => {
-      console.log('FCM Token refreshed:', token);
+      logger.info('FCM Token refreshed', { tokenLength: token.length });
       this.fcmToken = token;
       await AsyncStorage.setItem('fcmToken', token);
       await this.registerTokenWithBackend(token);
@@ -182,27 +183,27 @@ class NotificationService {
 
     // Listen for foreground messages
     this.unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
-      console.log('Foreground notification received:', remoteMessage);
+      logger.debug('Foreground notification received', { messageId: remoteMessage.messageId });
       await this.handleForegroundNotification(remoteMessage);
     });
 
     // Listen for background message handler
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      console.log('Background notification received:', remoteMessage);
+      logger.debug('Background notification received', { messageId: remoteMessage.messageId });
       await this.handleBackgroundNotification(remoteMessage);
     });
 
     // Listen for notification interactions
     notifee.onForegroundEvent(async ({ type, detail }) => {
       if (type === EventType.PRESS) {
-        console.log('Notification pressed:', detail);
+        logger.debug('Notification pressed', { notificationId: detail.notification?.id });
         await this.handleNotificationPress(detail);
       }
     });
 
     notifee.onBackgroundEvent(async ({ type, detail }) => {
       if (type === EventType.PRESS) {
-        console.log('Background notification pressed:', detail);
+        logger.debug('Background notification pressed', { notificationId: detail.notification?.id });
         await this.handleNotificationPress(detail);
       }
     });
@@ -215,7 +216,7 @@ class NotificationService {
     const remoteMessage = await messaging().getInitialNotification();
 
     if (remoteMessage) {
-      console.log('Initial notification:', remoteMessage);
+      logger.info('Initial notification', { messageId: remoteMessage.messageId });
       await this.handleNotificationOpen(remoteMessage);
     }
   }
@@ -261,7 +262,7 @@ class NotificationService {
       await notifee.createChannel(channel);
     }
 
-    console.log('Notification channels created');
+    logger.info('Notification channels created');
   }
 
   /**
@@ -311,7 +312,7 @@ class NotificationService {
     await this.updateBadgeCount();
 
     // You can perform background tasks here
-    console.log('Background notification processed');
+    logger.debug('Background notification processed');
   }
 
   /**
@@ -381,7 +382,7 @@ class NotificationService {
    * Navigate based on notification type
    */
   private navigateByType(type: string, data: any): void {
-    console.log('Navigating by type:', type, data);
+    logger.debug('Navigating by type', { type });
 
     const navigationMap: Record<string, { screen: string; params?: any }> = {
       new_message: {
@@ -424,7 +425,7 @@ class NotificationService {
    * Handle deep link
    */
   private handleDeepLink(deepLink: string): void {
-    console.log('Handling deep link:', deepLink);
+    logger.debug('Handling deep link', { deepLink });
 
     // Parse deep link and navigate
     // Format: flamoral://screen/params
@@ -448,7 +449,7 @@ class NotificationService {
         notifee.setBadgeCount(count);
       }
     } catch (error) {
-      console.error('Failed to update badge count:', error);
+      logger.error('Failed to update badge count', error instanceof Error ? error : undefined);
     }
   }
 
@@ -459,7 +460,7 @@ class NotificationService {
     try {
       await httpClient.put(`/notifications/${notificationId}/read`);
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      logger.error('Failed to mark notification as read', error instanceof Error ? error : undefined);
     }
   }
 
@@ -481,7 +482,7 @@ class NotificationService {
           data: { deviceToken: this.fcmToken },
         });
       } catch (error) {
-        console.error('Failed to unregister device:', error);
+        logger.error('Failed to unregister device', error instanceof Error ? error : undefined);
       }
     }
 

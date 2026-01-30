@@ -4,6 +4,7 @@
  */
 
 import { httpClient } from './api/httpClient';
+import logger from '../utils/logger';
 
 export interface SecuritySettings {
   twoFactorEnabled?: boolean;
@@ -36,7 +37,7 @@ class SafetyService {
       const response = await httpClient.get('/safety/security-settings');
       return response.data;
     } catch (error) {
-      console.error('Failed to get security settings:', error);
+      logger.error('Failed to get security settings', error instanceof Error ? error : undefined);
       // Return default settings on error
       return {
         twoFactorEnabled: false,
@@ -54,7 +55,7 @@ class SafetyService {
     try {
       await httpClient.put('/safety/security-settings', settings);
     } catch (error) {
-      console.error('Failed to update security settings:', error);
+      logger.error('Failed to update security settings', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -67,7 +68,7 @@ class SafetyService {
       const response = await httpClient.get('/safety/verification-status');
       return response.data;
     } catch (error) {
-      console.error('Failed to get verification status:', error);
+      logger.error('Failed to get verification status', error instanceof Error ? error : undefined);
       // Return default status on error
       return {
         photoVerified: false,
@@ -90,9 +91,9 @@ class SafetyService {
         severity: params.severity,
         timestamp: new Date().toISOString(),
       });
-      console.log('User reported successfully:', params.userId);
+      logger.info('User reported successfully', { userId: params.userId });
     } catch (error) {
-      console.error('Failed to report user:', error);
+      logger.error('Failed to report user', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -107,9 +108,9 @@ class SafetyService {
         reason: reason || 'User blocked',
         timestamp: new Date().toISOString(),
       });
-      console.log('User blocked successfully:', userId);
+      logger.info('User blocked successfully', { userId });
     } catch (error) {
-      console.error('Failed to block user:', error);
+      logger.error('Failed to block user', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -120,9 +121,9 @@ class SafetyService {
   async unblockUser(userId: string): Promise<void> {
     try {
       await httpClient.delete(`/safety/blocks/${userId}`);
-      console.log('User unblocked successfully:', userId);
+      logger.info('User unblocked successfully', { userId });
     } catch (error) {
-      console.error('Failed to unblock user:', error);
+      logger.error('Failed to unblock user', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -135,7 +136,7 @@ class SafetyService {
       const response = await httpClient.get('/safety/blocks');
       return response.data.blockedUsers || [];
     } catch (error) {
-      console.error('Failed to get blocked users:', error);
+      logger.error('Failed to get blocked users', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -148,7 +149,7 @@ class SafetyService {
       const response = await httpClient.get(`/safety/blocks/${userId}/status`);
       return response.data.isBlocked || false;
     } catch (error) {
-      console.error('Failed to check if user is blocked:', error);
+      logger.error('Failed to check if user is blocked', error instanceof Error ? error : undefined);
       return false;
     }
   }
@@ -161,7 +162,7 @@ class SafetyService {
       const response = await httpClient.get('/safety/resources');
       return response.data.resources || [];
     } catch (error) {
-      console.error('Failed to get safety resources:', error);
+      logger.error('Failed to get safety resources', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -172,9 +173,9 @@ class SafetyService {
   async updateEmergencyContacts(contacts: any[]): Promise<void> {
     try {
       await httpClient.put('/safety/emergency-contacts', { contacts });
-      console.log('Emergency contacts updated successfully');
+      logger.info('Emergency contacts updated successfully');
     } catch (error) {
-      console.error('Failed to update emergency contacts:', error);
+      logger.error('Failed to update emergency contacts', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -187,7 +188,7 @@ class SafetyService {
       const response = await httpClient.get('/safety/emergency-contacts');
       return response.data.contacts || [];
     } catch (error) {
-      console.error('Failed to get emergency contacts:', error);
+      logger.error('Failed to get emergency contacts', error instanceof Error ? error : undefined);
       return [];
     }
   }

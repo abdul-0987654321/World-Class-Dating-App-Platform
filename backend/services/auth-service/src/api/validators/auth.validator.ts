@@ -61,11 +61,11 @@ export const registerSchema = Joi.object({
     'any.required': 'Email is required',
   }),
   password: Joi.string()
-    .min(8)
+    .min(12)
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/)
     .required()
     .messages({
-      'string.min': 'Password must be at least 8 characters',
+      'string.min': 'Password must be at least 12 characters',
       'string.pattern.base':
         'Password must contain uppercase, lowercase, number, and special character',
       'any.required': 'Password is required',
@@ -163,11 +163,11 @@ export const resetPasswordSchema = Joi.object({
     'any.required': 'Reset token is required',
   }),
   newPassword: Joi.string()
-    .min(8)
+    .min(12)
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/)
     .required()
     .messages({
-      'string.min': 'Password must be at least 8 characters',
+      'string.min': 'Password must be at least 12 characters',
       'string.pattern.base':
         'Password must contain uppercase, lowercase, number, and special character',
       'any.required': 'New password is required',

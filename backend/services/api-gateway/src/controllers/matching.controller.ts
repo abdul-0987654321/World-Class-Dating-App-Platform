@@ -193,7 +193,13 @@ export class MatchingController {
         if (error instanceof HttpException) {
           throw error;
         }
-        // Otherwise, continue with the super-like (usage check failed gracefully)
+        // SECURITY: Fail-closed — deny the super-like if usage check fails
+        // This prevents bypassing tier limits when the usage API is unavailable
+        throw new BadRequestException({
+          code: 'USAGE_CHECK_FAILED',
+          message: 'Unable to verify super-like quota. Please try again.',
+          correlation_id: this.generateCorrelationId(),
+        });
       }
     }
 
@@ -420,13 +426,20 @@ export class MatchingController {
 
   /**
    * Super like a profile
+   * SECURITY: Delegates to the tier-enforced superLikeUser endpoint to prevent bypass.
+   * The POST /discovery/super-like endpoint has full quota/tier checking.
    */
   @Post('super-likes')
-  @ApiOperation({ summary: 'Super like a profile' })
-  @HttpCode(HttpStatus.CREATED)
-  async superLike(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('matchingService', '/api/v1/super-likes', body, {
-      Authorization: authorization,
+  @ApiOperation({ summary: 'Super like a profile (use POST /discovery/super-like for tier enforcement)' })
+  @HttpCode(HttpStatus.OK)
+  async superLike(
+    @Headers('authorization') authorization: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: Record<string, unknown>
+  ): Promise<SuperLikeResponse> {
+    // Delegate to the tier-enforced super-like handler
+    return this.superLikeUser(authorization, user, {
+      target_user_id: (body.targetUserId || body.target_user_id) as string,
     });
   }
 

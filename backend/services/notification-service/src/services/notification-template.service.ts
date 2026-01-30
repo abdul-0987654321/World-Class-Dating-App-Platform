@@ -142,7 +142,82 @@ export class NotificationTemplateService {
         actionUrl: '/speed-dating/{{eventId}}',
         variables: ['eventName', 'eventId'],
       },
-      // Spanish templates
+      // Data Breach Notification (GDPR Article 34 - 72-hour requirement)
+      {
+        type: NotificationType.DATA_BREACH_NOTIFICATION,
+        language: 'en',
+        title: 'Important Security Notice from Flamoral',
+        body: 'We are writing to inform you of a data security incident that may have affected your personal information. Breach ID: {{breachId}}. Data affected: {{dataCategories}}. {{remediationSteps}} If you have questions, contact our DPO at dpo@flamoral.com.',
+        category: 'security',
+        actionUrl: '/settings/privacy',
+        variables: ['breachId', 'dataCategories', 'remediationSteps'],
+      },
+      {
+        type: NotificationType.GDPR_DATA_EXPORT_READY,
+        language: 'en',
+        title: 'Your Data Export is Ready',
+        body: 'Your personal data export (GDPR Article 15) is now available for download. You can access it in Settings > Privacy > Data Export. The download link will expire in {{expiresInHours}} hours.',
+        category: 'account',
+        actionUrl: '/settings/privacy',
+        variables: ['expiresInHours'],
+      },
+      {
+        type: NotificationType.GDPR_DELETION_SCHEDULED,
+        language: 'en',
+        title: 'Account Deletion Scheduled',
+        body: 'Your account and all associated personal data will be permanently deleted on {{deletionDate}}. You have a 14-day grace period to cancel this request. To cancel, log in and visit Settings > Account.',
+        category: 'account',
+        actionUrl: '/settings',
+        variables: ['deletionDate'],
+      },
+      {
+        type: NotificationType.GDPR_DELETION_COMPLETED,
+        language: 'en',
+        title: 'Account Deletion Complete',
+        body: 'Your Flamoral account and personal data have been permanently deleted per your request (GDPR Article 17). Some data may be retained for legal obligations. If you did not request this, contact privacy@flamoral.com immediately.',
+        category: 'account',
+        variables: [],
+      },
+      {
+        type: NotificationType.GDPR_PROCESSING_RESTRICTED,
+        language: 'en',
+        title: 'Data Processing Restricted',
+        body: 'Per your request (GDPR Article 18), we have restricted the processing of your personal data. Reason: {{reason}}. Your account remains active but certain features may be limited. To lift this restriction, visit Settings > Privacy.',
+        category: 'account',
+        actionUrl: '/settings/privacy',
+        variables: ['reason'],
+      },
+      // Data Breach - Spanish
+      {
+        type: NotificationType.DATA_BREACH_NOTIFICATION,
+        language: 'es',
+        title: 'Aviso de Seguridad Importante de Flamoral',
+        body: 'Le informamos sobre un incidente de seguridad que pudo haber afectado su informacion personal. ID: {{breachId}}. Datos afectados: {{dataCategories}}. {{remediationSteps}} Contacte a nuestro DPO: dpo@flamoral.com.',
+        category: 'security',
+        actionUrl: '/settings/privacy',
+        variables: ['breachId', 'dataCategories', 'remediationSteps'],
+      },
+      // Data Breach - French
+      {
+        type: NotificationType.DATA_BREACH_NOTIFICATION,
+        language: 'fr',
+        title: 'Avis de Securite Important de Flamoral',
+        body: 'Nous vous informons d'un incident de securite qui a pu affecter vos donnees personnelles. ID: {{breachId}}. Donnees affectees: {{dataCategories}}. {{remediationSteps}} Contactez notre DPO: dpo@flamoral.com.',
+        category: 'security',
+        actionUrl: '/settings/privacy',
+        variables: ['breachId', 'dataCategories', 'remediationSteps'],
+      },
+      // Data Breach - Portuguese (LGPD compliance)
+      {
+        type: NotificationType.DATA_BREACH_NOTIFICATION,
+        language: 'pt',
+        title: 'Aviso de Seguranca Importante da Flamoral',
+        body: 'Informamos sobre um incidente de seguranca que pode ter afetado suas informacoes pessoais. ID: {{breachId}}. Dados afetados: {{dataCategories}}. {{remediationSteps}} Entre em contato com nosso DPO: dpo@flamoral.com.',
+        category: 'security',
+        actionUrl: '/settings/privacy',
+        variables: ['breachId', 'dataCategories', 'remediationSteps'],
+      },
+            // Spanish templates
       {
         type: NotificationType.NEW_MATCH,
         language: 'es',

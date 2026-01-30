@@ -8,9 +8,12 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard, Role } from '../guards/roles.guard';
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('analytics')
@@ -211,6 +214,8 @@ export class AnalyticsController {
    * Get platform statistics (admin)
    */
   @Get('platform/stats')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get platform statistics (admin)' })
   async getPlatformStats(
     @Headers('authorization') authorization: string,
@@ -231,6 +236,8 @@ export class AnalyticsController {
    * Get user demographics (admin)
    */
   @Get('platform/demographics')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get user demographics (admin)' })
   async getDemographics(@Headers('authorization') authorization: string) {
     return this.proxyService.get('analyticsService', '/api/v1/analytics/platform/demographics', {
@@ -242,6 +249,8 @@ export class AnalyticsController {
    * Get revenue analytics (admin)
    */
   @Get('platform/revenue')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get revenue analytics (admin)' })
   async getRevenueAnalytics(
     @Headers('authorization') authorization: string,
@@ -262,6 +271,8 @@ export class AnalyticsController {
    * Get retention metrics (admin)
    */
   @Get('platform/retention')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get user retention metrics (admin)' })
   async getRetention(
     @Headers('authorization') authorization: string,
@@ -304,6 +315,8 @@ export class AnalyticsController {
    * Get A/B test results (admin)
    */
   @Get('ab-tests/:testId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get A/B test results (admin)' })
   async getABTestResults(
     @Headers('authorization') authorization: string,
@@ -320,6 +333,8 @@ export class AnalyticsController {
    * Export analytics data
    */
   @Post('export')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Export analytics data' })
   @HttpCode(HttpStatus.OK)
   async exportData(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {

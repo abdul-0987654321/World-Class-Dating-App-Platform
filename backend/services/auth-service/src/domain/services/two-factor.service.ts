@@ -72,7 +72,7 @@ class TwoFactorService {
     for (let i = 0; i < this.BACKUP_CODE_COUNT; i++) {
       let code = '';
       for (let j = 0; j < this.BACKUP_CODE_LENGTH; j++) {
-        code += characters.charAt(Math.floor(Math.random() * characters.length));
+        const rndByte = require('node:crypto').randomBytes(1)[0]; code += characters.charAt(rndByte % characters.length);
       }
       // Format: XXXX-XXXX
       codes.push(`${code.slice(0, 4)}-${code.slice(4)}`);

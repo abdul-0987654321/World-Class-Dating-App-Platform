@@ -302,10 +302,12 @@ export class SuperLikeService {
    */
   async getSuperLikeQuota(userId: string): Promise<SuperLikeQuota> {
     try {
-      // Check if user is premium
-      const userProfile = await userServiceClient.getUserProfile(userId);
-      // TODO: Implement actual premium check based on userProfile
-      const isPremium = userProfile?.subscriptionTier === 'premium' || userProfile?.subscriptionTier === 'platinum';
+      // Check if user has a premium subscription via the subscription endpoint
+      const subscription = await userServiceClient.getUserSubscription(userId);
+      const isPremium =
+        subscription !== null &&
+        subscription.status === 'active' &&
+        ['premium', 'premium_plus', 'elite', 'platinum'].includes(subscription.tier);
 
       const dailyLimit = isPremium ? this.PREMIUM_DAILY_LIMIT : this.FREE_DAILY_LIMIT;
 
@@ -429,8 +431,23 @@ export class SuperLikeService {
 
       const totalReceived = parseInt((receivedCount?.count as string) || '0', 10);
 
-      // Calculate match rate (approximate - would need to query matches table)
-      const matchesFromSuperLikes = 0; // Placeholder
+      // Count matches that originated from super likes sent by this user
+      // A match from super like: the user super-liked someone AND a mutual like exists
+      const matchCount = await this.db('swipes as s1')
+        .join('swipes as s2', function () {
+          this.on('s1.user_id', '=', 's2.target_user_id').andOn(
+            's1.target_user_id',
+            '=',
+            's2.user_id'
+          );
+        })
+        .where('s1.user_id', userId)
+        .where('s1.action', SwipeAction.SUPER_LIKE)
+        .whereIn('s2.action', [SwipeAction.SUPER_LIKE, 'like'])
+        .count('* as count')
+        .first();
+
+      const matchesFromSuperLikes = parseInt((matchCount?.count as string) || '0', 10);
 
       // Calculate response rate
       const responseRate = totalSent > 0 ? (matchesFromSuperLikes / totalSent) * 100 : 0;

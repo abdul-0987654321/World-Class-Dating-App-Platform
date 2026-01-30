@@ -56,7 +56,11 @@ export class SpeedDatingWebSocketHandler {
           return next(new Error('Authentication required'));
         }
 
-        const secret = process.env.JWT_ACCESS_SECRET || 'dev-secret-key';
+        const secret = process.env.JWT_ACCESS_SECRET;
+        if (\!secret) {
+          logger.error('JWT_ACCESS_SECRET environment variable is not configured');
+          return next(new Error('Server authentication configuration error'));
+        }
         const decoded = jwt.verify(token, secret) as any;
 
         socket.userId = decoded.userId || decoded.id;

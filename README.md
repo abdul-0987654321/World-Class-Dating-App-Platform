@@ -124,7 +124,7 @@ flamoral-monorepo/
 │   ├── knexfile.ts                 # Database migrations config
 │   └── jest.config.js              # Test configuration
 │
-├── packages/                       # Shared Packages (Yarn Workspaces)
+├── packages/                       # Shared Packages (npm Workspaces)
 │   ├── shared/
 │   │   ├── types/                  # @flamoral/types
 │   │   ├── utils/                  # @flamoral/utils
@@ -267,7 +267,7 @@ flamoral-monorepo/
 ### Prerequisites
 
 - **Node.js** >= 20.0.0
-- **Yarn** >= 1.22.0 (package manager)
+- **npm** >= 10.0.0 (package manager)
 - **Docker** & Docker Compose
 - **Git**
 
@@ -282,7 +282,7 @@ cd World-Class-Dating-App-Platform
 
 ```bash
 # Install all workspace dependencies
-yarn install
+npm install
 ```
 
 ### 3. Environment Configuration
@@ -345,7 +345,7 @@ docker-compose -f infrastructure/local-dev/docker-compose.dev.yml up -d
 
 ```bash
 cd backend
-yarn migrate
+npm run migrate
 ```
 
 ### 6. Start Development Servers
@@ -354,25 +354,25 @@ yarn migrate
 
 ```bash
 # Start all backend services (from root)
-yarn dev:backend
+npm run dev:backend
 
 # Or start individual services
-cd backend/services/api-gateway && yarn dev
-cd backend/services/auth-service && yarn dev
+cd backend/services/api-gateway && npm run dev
+cd backend/services/auth-service && npm run dev
 # ... etc
 ```
 
 **Web Application:**
 
 ```bash
-yarn dev:web
+npm run dev:web
 # Opens at http://localhost:5173
 ```
 
 **Mobile Application:**
 
 ```bash
-yarn dev:mobile
+npm run dev:mobile
 # Or directly: cd apps/mobile-app && npx expo start
 ```
 
@@ -394,46 +394,46 @@ open http://localhost:4000/api/docs
 
 ```bash
 # Root-level commands
-yarn install:all          # Install all dependencies
-yarn build:all            # Build all packages and services
-yarn test:all             # Run all tests
-yarn lint:all             # Lint all code
+npm run install:all          # Install all dependencies
+npm run build:all            # Build all packages and services
+npm run test:all             # Run all tests
+npm run lint:all             # Lint all code
 
 # Frontend
-yarn dev:web              # Start web app dev server
-yarn dev:mobile           # Start mobile app dev server
-yarn build:web            # Build web app for production
+npm run dev:web              # Start web app dev server
+npm run dev:mobile           # Start mobile app dev server
+npm run build:web            # Build web app for production
 
 # Backend
-yarn dev:backend          # Start backend services
-yarn build:backend        # Build backend services
-yarn test:backend         # Run backend unit tests
-yarn test:integration     # Run integration tests (requires Docker)
+npm run dev:backend          # Start backend services
+npm run build:backend        # Build backend services
+npm run test:backend         # Run backend unit tests
+npm run test:integration     # Run integration tests (requires Docker)
 
 # Testing
-yarn test:e2e             # Run Playwright E2E tests
-yarn test:e2e:api         # Run API E2E tests
-yarn test:smoke           # Run smoke tests
-yarn test:load            # Run K6 load tests
+npm run test:e2e             # Run Playwright E2E tests
+npm run test:e2e:api         # Run API E2E tests
+npm run test:smoke           # Run smoke tests
+npm run test:load            # Run K6 load tests
 
 # Docker
-yarn docker:dev:up        # Start development containers
-yarn docker:dev:down      # Stop development containers
-yarn docker:test:up       # Start test environment
+npm run docker:dev:up        # Start development containers
+npm run docker:dev:down      # Stop development containers
+npm run docker:test:up       # Start test environment
 ```
 
 ### Code Quality
 
 ```bash
 # Linting
-yarn lint:all             # ESLint all packages
+npm run lint:all             # ESLint all packages
 
 # Type checking
-yarn tsc --noEmit         # TypeScript compilation check
+npx tsc --noEmit         # TypeScript compilation check
 
 # Formatting
-yarn prettier --check .   # Check formatting
-yarn prettier --write .   # Fix formatting
+npx prettier --check .   # Check formatting
+npx prettier --write .   # Fix formatting
 ```
 
 ### Database Operations
@@ -442,11 +442,11 @@ yarn prettier --write .   # Fix formatting
 cd backend
 
 # Run migrations
-yarn migrate              # Apply all pending migrations
-yarn migrate:rollback     # Rollback last migration
+npm run migrate              # Apply all pending migrations
+npm run migrate:rollback     # Rollback last migration
 
 # Seeding
-yarn seed                 # Run all seeders
+npm run seed                 # Run all seeders
 
 # Generate migration
 npx knex migrate:make migration_name
@@ -460,27 +460,27 @@ npx knex migrate:make migration_name
 
 | Layer        | Framework   | Location                       | Command                 |
 | ------------ | ----------- | ------------------------------ | ----------------------- |
-| Unit Tests   | Jest/Vitest | `*/src/**/*.test.ts`           | `yarn test`             |
-| Integration  | Jest        | `backend/tests/integration/`   | `yarn test:integration` |
-| E2E (API)    | Jest        | `tests/e2e/api/`               | `yarn test:e2e:api`     |
-| E2E (UI)     | Playwright  | `tests/e2e/`                   | `yarn test:e2e`         |
-| Load Testing | K6          | `infrastructure/load-testing/` | `yarn test:load`        |
-| Security     | Custom      | `tests/security/`              | `yarn test:security`    |
+| Unit Tests   | Jest/Vitest | `*/src/**/*.test.ts`           | `npm run test`             |
+| Integration  | Jest        | `backend/tests/integration/`   | `npm run test:integration` |
+| E2E (API)    | Jest        | `tests/e2e/api/`               | `npm run test:e2e:api`     |
+| E2E (UI)     | Playwright  | `tests/e2e/`                   | `npm run test:e2e`         |
+| Load Testing | K6          | `infrastructure/load-testing/` | `npm run test:load`        |
+| Security     | Custom      | `tests/security/`              | `npm run test:security`    |
 
 ### Running Tests
 
 ```bash
 # Unit tests with coverage
-yarn test:backend --coverage
+npm run test:backend -- --coverage
 
 # Integration tests (starts Docker containers)
-yarn test:integration:docker
+npm run test:integration:docker
 
 # E2E tests
-yarn test:e2e
+npm run test:e2e
 
 # All CI tests
-yarn test:ci
+npm run test:ci
 ```
 
 ### Test Reports

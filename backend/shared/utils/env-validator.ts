@@ -253,7 +253,6 @@ export const commonValidations = {
     name: 'DB_HOST',
     required: false,
     description: 'PostgreSQL database host (not required if DATABASE_URL is set)',
-    defaultValue: 'localhost',
   } as EnvVarConfig,
 
   dbPort: {
@@ -282,8 +281,7 @@ export const commonValidations = {
   redisHost: {
     name: 'REDIS_HOST',
     required: false,
-    description: 'Redis server host',
-    defaultValue: 'localhost',
+    description: 'Redis server host (not required if REDIS_URL is set)',
   } as EnvVarConfig,
 
   redisPort: {

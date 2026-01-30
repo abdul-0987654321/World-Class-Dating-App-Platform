@@ -26,7 +26,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@flamoral/shared/(.*)$': '<rootDir>/../../shared/$1',
+    '^@flamoral/backend-shared/(.*)$': '<rootDir>/../../shared/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   verbose: true,

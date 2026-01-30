@@ -27,7 +27,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@flamoral/shared$': '<rootDir>/../shared',
+    '^@flamoral/backend-shared$': '<rootDir>/../shared',
   },
   verbose: true,
   testTimeout: 10000,

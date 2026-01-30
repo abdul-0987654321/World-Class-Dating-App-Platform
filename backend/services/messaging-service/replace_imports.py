@@ -22,7 +22,7 @@ def replace_in_file(filepath):
 
     # Replace the import statement
     content = re.sub(
-        r"import\s+{\s*createLogger\s*}\s+from\s+['\"]@flamoral/shared['\"];?",
+        r"import\s+{\s*createLogger\s*}\s+from\s+['\"]@flamoral/backend-shared['\"];?",
         f"import {{ createLogger }} from '{relative_path}';",
         content
     )

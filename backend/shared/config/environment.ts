@@ -72,9 +72,12 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
     nodeEnv: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT || '3000', 10),
     apiVersion: process.env.API_VERSION || 'v1',
-    corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+    corsOrigins: process.env.CORS_ORIGINS?.split(',') ||
+      (process.env.NODE_ENV === 'production'
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        : ['http://localhost:3000', 'http://localhost:5173']),
     database: {
-      host: process.env.DB_HOST || 'localhost',
+      host: process.env.DB_HOST || (process.env.NODE_ENV === 'production' ? requireEnvVar('DB_HOST') : 'localhost'),
       port: parseInt(process.env.DB_PORT || '5432', 10),
       database: process.env.DB_NAME || 'flamoral',
       username: process.env.DB_USER || 'postgres',
@@ -84,7 +87,7 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
       poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
     },
     redis: {
-      host: process.env.REDIS_HOST || 'localhost',
+      host: process.env.REDIS_HOST || (process.env.NODE_ENV === 'production' ? requireEnvVar('REDIS_HOST') : 'localhost'),
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
       password: process.env.REDIS_PASSWORD,
       db: parseInt(process.env.REDIS_DB || '0', 10),

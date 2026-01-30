@@ -418,7 +418,68 @@ export class TargetingService {
   // Helper methods
   private async calculateSegmentSize(criteria: DatingBehaviorSegment['criteria']): Promise<number> {
     // Calculate estimated segment size based on criteria
-    return 50000; // Placeholder
+        // Start from estimated total active platform users
+    let estimatedSize = 500000;
+
+    // Apply engagement level filter
+    switch (criteria.engagement_level) {
+      case 'highly_active':
+        estimatedSize *= 0.15;
+        break;
+      case 'active':
+        estimatedSize *= 0.45;
+        break;
+      case 'passive':
+        estimatedSize *= 0.40;
+        break;
+    }
+
+    // Apply response rate threshold filter
+    if (criteria.response_rate_threshold !== undefined) {
+      const threshold = criteria.response_rate_threshold;
+      if (threshold > 0.8) estimatedSize *= 0.15;
+      else if (threshold > 0.5) estimatedSize *= 0.40;
+      else if (threshold > 0.2) estimatedSize *= 0.70;
+    }
+
+    // Apply swipe pattern filters
+    if (criteria.swipe_patterns && criteria.swipe_patterns.length > 0) {
+      for (const pattern of criteria.swipe_patterns) {
+        if (pattern.time_of_day && pattern.time_of_day.length > 0) {
+          estimatedSize *= (0.25 + (pattern.time_of_day.length * 0.15));
+        }
+        if (pattern.profile_type_preference && pattern.profile_type_preference.length > 0) {
+          estimatedSize *= (0.30 + (pattern.profile_type_preference.length * 0.15));
+        }
+        if (pattern.frequency === 'high') estimatedSize *= 0.25;
+        else if (pattern.frequency === 'low') estimatedSize *= 0.30;
+        else estimatedSize *= 0.50;
+      }
+    }
+
+    // Apply messaging behavior filters
+    if (criteria.messaging_behavior) {
+      const mb = criteria.messaging_behavior;
+      if (mb.conversation_length === 'long') estimatedSize *= 0.25;
+      else if (mb.conversation_length === 'short') estimatedSize *= 0.35;
+      else estimatedSize *= 0.50;
+      if (mb.avg_messages_per_match > 20) estimatedSize *= 0.30;
+      else if (mb.avg_messages_per_match > 10) estimatedSize *= 0.50;
+    }
+
+    // Apply match preference filters
+    if (criteria.match_preferences) {
+      const mp = criteria.match_preferences;
+      if (mp.age_range_flexibility === 'strict') estimatedSize *= 0.60;
+      else if (mp.age_range_flexibility === 'moderate') estimatedSize *= 0.80;
+      if (mp.distance_flexibility === 'strict') estimatedSize *= 0.50;
+      else if (mp.distance_flexibility === 'moderate') estimatedSize *= 0.75;
+      if (mp.deal_breaker_count > 0) {
+        estimatedSize *= Math.max(0.20, 1.0 - (mp.deal_breaker_count * 0.10));
+      }
+    }
+
+    return Math.max(100, Math.round(estimatedSize));
   }
 }
 

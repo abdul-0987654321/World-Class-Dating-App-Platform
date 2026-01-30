@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaHeart, FaComments, FaClock, FaBan, FaUser, FaEnvelope } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaHeart, FaComments, FaClock, FaBan, FaUser, FaEnvelope, FaExternalLinkAlt } from 'react-icons/fa';
 import { useUserMatches, useUserConversations } from '../../hooks/useAdminUsers';
 
 interface UserMatchesViewProps {
@@ -7,6 +8,7 @@ interface UserMatchesViewProps {
 }
 
 export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'matches' | 'conversations'>('matches');
 
   const { data: matches, isLoading: matchesLoading } = useUserMatches(
@@ -212,11 +214,10 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                         Started {formatTimeAgo(conversation.createdAt)}
                       </span>
                       <button
-                        className="px-3 py-1 text-sm text-pink-600 hover:bg-pink-50 rounded-lg transition"
-                        onClick={() => {
-                          // TODO: Implement view conversation
-                        }}
+                        className="inline-flex items-center gap-2 px-3 py-1 text-sm text-pink-600 hover:bg-pink-50 rounded-lg transition font-medium"
+                        onClick={() => navigate(`/messages?conversation=${conversation.id}`)}
                       >
+                        <FaExternalLinkAlt className="text-xs" />
                         View Full Thread
                       </button>
                     </div>

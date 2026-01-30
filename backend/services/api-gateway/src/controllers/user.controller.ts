@@ -13,11 +13,13 @@ import {
   HttpStatus,
   UploadedFile,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
-import { Public } from '../decorators/public.decorator';
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard, Role } from '../guards/roles.guard';
 import { ProxyService } from '../services/proxy.service';
 import {
   UpdateUserProfileDto,
@@ -35,57 +37,10 @@ import {
 export class UserController {
   constructor(private readonly proxyService: ProxyService) {}
 
-  // ==================== Okta Integration Endpoints ====================
+  // ==================== Profile Setup Endpoints ====================
 
   /**
-   * Sync user from Okta webhook
-   */
-  @Public()
-  @Post('okta-sync')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Sync user from Okta (webhook)' })
-  async oktaSync(
-    @Headers() headers: Record<string, string>,
-    @Body() body: Record<string, unknown>
-  ) {
-    return this.proxyService.post('userService', '/api/v1/users/okta-sync', body, {
-      'X-Internal-Service': headers['x-internal-service'] || 'webhook',
-    });
-  }
-
-  /**
-   * Update user by Okta ID
-   */
-  @Public()
-  @Put('okta/:oktaId')
-  @ApiOperation({ summary: 'Update user by Okta ID (webhook)' })
-  async updateByOktaId(
-    @Headers() headers: Record<string, string>,
-    @Param('oktaId') oktaId: string,
-    @Body() body: Record<string, unknown>
-  ) {
-    return this.proxyService.put('userService', `/api/v1/users/okta/${oktaId}`, body, {
-      'X-Internal-Service': headers['x-internal-service'] || 'webhook',
-    });
-  }
-
-  /**
-   * Delete user by Okta ID
-   */
-  @Public()
-  @Delete('okta/:oktaId')
-  @ApiOperation({ summary: 'Delete user by Okta ID (webhook)' })
-  async deleteByOktaId(
-    @Headers() headers: Record<string, string>,
-    @Param('oktaId') oktaId: string
-  ) {
-    return this.proxyService.delete('userService', `/api/v1/users/okta/${oktaId}`, {
-      'X-Internal-Service': headers['x-internal-service'] || 'webhook',
-    });
-  }
-
-  /**
-   * Profile setup after Okta signup
+   * Profile setup after Clerk signup
    */
   @Post('profile/setup')
   @HttpCode(HttpStatus.CREATED)
@@ -113,14 +68,14 @@ export class UserController {
   }
 
   /**
-   * Sync current user with backend (called after Okta sign in)
+   * Sync current user with backend (called after Clerk sign in)
    */
   @Post('sync')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sync current user with backend' })
   async syncUser(
     @Headers('authorization') authorization: string,
-    @Body() body: { oktaUserId: string }
+    @Body() body: { clerkUserId: string }
   ) {
     return this.proxyService.post('userService', '/api/v1/users/sync', body, {
       Authorization: authorization,
@@ -171,8 +126,11 @@ export class UserController {
 
   /**
    * Update user by ID (admin)
+   * SECURITY: Requires Role.ADMIN — only admins can modify other users' profiles
    */
   @Put(':userId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update user by ID (admin)' })
   @ApiBody({ type: UpdateUserProfileDto })
   async updateUser(
@@ -186,10 +144,13 @@ export class UserController {
   }
 
   /**
-   * Delete user account
+   * Delete user account (admin)
+   * SECURITY: Requires Role.ADMIN — only admins can delete other users' accounts
    */
   @Delete(':userId')
-  @ApiOperation({ summary: 'Delete user account' })
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Delete user account (admin)' })
   async deleteUser(
     @Headers('authorization') authorization: string,
     @Param('userId') userId: string

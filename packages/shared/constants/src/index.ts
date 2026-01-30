@@ -2,9 +2,16 @@
 export * from "./endpoints";
 
 // API Configuration
-// Note: These are default values. Override them in your app's config
-export const API_BASE_URL = "http://localhost:3000/api";
-export const WS_BASE_URL = "http://localhost:3000";
+// Production: https://api-gateway-production-1957.up.railway.app
+// Apps MUST override via VITE_API_URL (web) or EXPO_PUBLIC_API_BASE_URL (mobile)
+export const API_BASE_URL =
+  (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
+  (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_API_BASE_URL) ||
+  "https://api-gateway-production-1957.up.railway.app/api";
+export const WS_BASE_URL =
+  (typeof process !== "undefined" && process.env?.VITE_WS_URL) ||
+  (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_WS_URL) ||
+  "wss://api-gateway-production-1957.up.railway.app";
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // App Configuration

@@ -1,7 +1,14 @@
 import { Router } from 'express';
+import Joi from 'joi';
 
 import { SwipeController } from '../controllers/swipe.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validation.middleware';
+
+// Validation schemas for swipe endpoints
+const swipeActionSchema = Joi.object({
+  target_user_id: Joi.string().uuid().required(),
+});
 
 const router = Router();
 const swipeController = new SwipeController();
@@ -33,7 +40,7 @@ const swipeController = new SwipeController();
  *       401:
  *         description: Unauthorized
  */
-router.post('/like', authenticate, swipeController.like.bind(swipeController));
+router.post('/like', authenticate, validate(swipeActionSchema), swipeController.like.bind(swipeController));
 
 /**
  * @swagger
@@ -62,7 +69,7 @@ router.post('/like', authenticate, swipeController.like.bind(swipeController));
  *       401:
  *         description: Unauthorized
  */
-router.post('/pass', authenticate, swipeController.pass.bind(swipeController));
+router.post('/pass', authenticate, validate(swipeActionSchema), swipeController.pass.bind(swipeController));
 
 /**
  * @swagger
@@ -91,7 +98,7 @@ router.post('/pass', authenticate, swipeController.pass.bind(swipeController));
  *       401:
  *         description: Unauthorized
  */
-router.post('/super-like', authenticate, swipeController.superLike.bind(swipeController));
+router.post('/super-like', authenticate, validate(swipeActionSchema), swipeController.superLike.bind(swipeController));
 
 /**
  * @swagger

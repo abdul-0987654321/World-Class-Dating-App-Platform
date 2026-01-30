@@ -603,4 +603,122 @@ router.get('/ccpa/compliance-status', authenticate, async (req: Request, res: Re
   }
 });
 
+
+/**
+ * GDPR Article 16 - Right to Rectification
+ */
+router.post("/rectification", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { corrections } = req.body;
+    if (!corrections || typeof corrections !== "object") {
+      return res.status(400).json({ success: false, message: "corrections object required" });
+    }
+    await db("gdpr_rectification_requests").insert({
+      user_id: userId, corrections: JSON.stringify(corrections),
+      status: "pending", requested_at: new Date(), ip_address: req.ip, user_agent: req.headers["user-agent"],
+    });
+    const allowedFields = ["first_name", "last_name", "email", "phone_number", "date_of_birth"];
+    const profileFields = ["bio", "job_title", "company", "education", "city"];
+    const userUpdates: Record<string, any> = {};
+    const profileUpdates: Record<string, any> = {};
+    for (const [field, value] of Object.entries(corrections)) {
+      if (allowedFields.includes(field)) userUpdates[field] = value;
+      else if (profileFields.includes(field)) profileUpdates[field] = value;
+    }
+    if (Object.keys(userUpdates).length > 0) await db("users").where({ id: userId }).update({ ...userUpdates, updated_at: new Date() });
+    if (Object.keys(profileUpdates).length > 0) await db("profiles").where({ user_id: userId }).update({ ...profileUpdates, updated_at: new Date() });
+    logger.info("GDPR rectification applied for user " + userId);
+    res.json({ success: true, message: "Your data has been corrected (GDPR Article 16)." });
+  } catch (error) {
+    logger.error("Failed to process rectification: " + error);
+    res.status(500).json({ success: false, message: "Failed to process rectification" });
+  }
+});
+
+/**
+ * GDPR Article 21 - Right to Object
+ */
+router.post("/object-processing", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { processingType, reason } = req.body;
+    const validTypes = ["profiling", "marketing", "analytics", "third_party_sharing", "research"];
+    if (!processingType || !validTypes.includes(processingType)) {
+      return res.status(400).json({ success: false, message: "Invalid processingType" });
+    }
+    await db("gdpr_processing_objections").insert({
+      user_id: userId, processing_type: processingType, reason: reason || null,
+      status: "active", objected_at: new Date(), ip_address: req.ip, user_agent: req.headers["user-agent"],
+    });
+    if (processingType === "marketing") {
+      await consentService.recordConsent(userId, "marketing_emails", false, req.ip, req.headers["user-agent"]);
+      await consentService.recordConsent(userId, "personalized_ads", false, req.ip, req.headers["user-agent"]);
+    } else if (processingType === "analytics") {
+      await consentService.recordConsent(userId, "analytics", false, req.ip, req.headers["user-agent"]);
+    } else if (processingType === "third_party_sharing") {
+      await consentService.recordConsent(userId, "third_party_sharing", false, req.ip, req.headers["user-agent"]);
+    }
+    res.json({ success: true, message: "Objection recorded and applied (GDPR Article 21)." });
+  } catch (error) {
+    logger.error("Failed to process objection: " + error);
+    res.status(500).json({ success: false, message: "Failed to process objection" });
+  }
+});
+
+/**
+ * GDPR Article 18 - Right to Restrict Processing
+ */
+router.post("/restrict-processing", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { reason } = req.body;
+    const validReasons = ["accuracy_contested", "processing_unlawful", "data_needed_for_legal_claims", "objection_pending_verification"];
+    if (!reason || !validReasons.includes(reason)) {
+      return res.status(400).json({ success: false, message: "Invalid reason" });
+    }
+    await db("gdpr_processing_restrictions").insert({
+      user_id: userId, reason, status: "active", restricted_at: new Date(), ip_address: req.ip, user_agent: req.headers["user-agent"],
+    });
+    await db("users").where({ id: userId }).update({
+      processing_restricted: true, processing_restricted_at: new Date(), processing_restricted_reason: reason,
+    });
+    res.json({ success: true, message: "Processing restricted (GDPR Article 18)." });
+  } catch (error) {
+    logger.error("Failed to restrict processing: " + error);
+    res.status(500).json({ success: false, message: "Failed to restrict processing" });
+  }
+});
+
+router.delete("/restrict-processing", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    await db("gdpr_processing_restrictions").where({ user_id: userId, status: "active" }).update({ status: "lifted", lifted_at: new Date() });
+    await db("users").where({ id: userId }).update({ processing_restricted: false, processing_restricted_at: null, processing_restricted_reason: null });
+    res.json({ success: true, message: "Processing restriction lifted." });
+  } catch (error) {
+    logger.error("Failed to lift restriction: " + error);
+    res.status(500).json({ success: false, message: "Failed to lift restriction" });
+  }
+});
+
+/**
+ * Global Privacy Control (GPC) signal detection - CCPA/CPRA
+ */
+router.get("/gpc-status", async (req: Request, res: Response) => {
+  try {
+    const gpcHeader = req.headers["sec-gpc"];
+    const gpcEnabled = gpcHeader === "1";
+    if (gpcEnabled && (req as any).user) {
+      await ccpaService.optOutOfSale((req as any).user.id, req.ip, req.headers["user-agent"]);
+      await ccpaService.optOutOfSharing((req as any).user.id, req.ip, req.headers["user-agent"]);
+    }
+    res.json({ success: true, data: { gpcDetected: gpcEnabled, message: gpcEnabled ? "GPC signal detected. Opt-out applied." : "No GPC signal." } });
+  } catch (error) {
+    logger.error("GPC check failed: " + error);
+    res.status(500).json({ success: false, message: "Failed to process GPC" });
+  }
+});
+
 export default router;
+

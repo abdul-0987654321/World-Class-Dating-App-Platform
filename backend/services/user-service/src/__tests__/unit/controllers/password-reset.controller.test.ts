@@ -202,7 +202,7 @@ describe('PasswordResetController', () => {
       };
 
       mockPasswordResetService.resetPassword = jest.fn().mockRejectedValue(
-        new Error('Password must be at least 8 characters long')
+        new Error('Password must be at least 12 characters long')
       );
 
       await passwordResetController.resetPassword(
@@ -213,7 +213,7 @@ describe('PasswordResetController', () => {
       expect(statusMock).toHaveBeenCalledWith(400);
       expect(jsonMock).toHaveBeenCalledWith({
         success: false,
-        message: 'Password must be at least 8 characters long',
+        message: 'Password must be at least 12 characters long',
       });
     });
   });

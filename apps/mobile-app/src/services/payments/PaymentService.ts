@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 import * as RNIap from 'react-native-iap';
 import { api } from '../api';
+import logger from '../../utils/logger';
 
 // Product SKUs - these must match your App Store Connect / Google Play Console
 export const SUBSCRIPTION_SKUS = {
@@ -89,12 +90,12 @@ class MobilePaymentService {
     try {
       await RNIap.initConnection();
       this.initialized = true;
-      console.log('IAP connection initialized');
+      logger.info('IAP connection initialized');
 
       // Set up purchase listeners
       this.setupPurchaseListeners();
     } catch (error) {
-      console.error('Failed to initialize IAP:', error);
+      logger.error('Failed to initialize IAP', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -105,13 +106,13 @@ class MobilePaymentService {
   private setupPurchaseListeners(): void {
     this.purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
       async (purchase: RNIap.Purchase) => {
-        console.log('Purchase update:', purchase);
+        logger.info('Purchase update', { productId: purchase.productId });
         await this.handlePurchaseUpdate(purchase);
       }
     );
 
     this.purchaseErrorSubscription = RNIap.purchaseErrorListener((error: RNIap.PurchaseError) => {
-      console.error('Purchase error:', error);
+      logger.error('Purchase error', error instanceof Error ? error : undefined);
     });
   }
 
@@ -140,7 +141,7 @@ class MobilePaymentService {
         });
       }
     } catch (error) {
-      console.error('Failed to handle purchase:', error);
+      logger.error('Failed to handle purchase', error instanceof Error ? error : undefined);
     }
   }
 
@@ -167,7 +168,7 @@ class MobilePaymentService {
 
       return response.data.success && response.data.isValid;
     } catch (error) {
-      console.error('Receipt validation failed:', error);
+      logger.error('Receipt validation failed', error instanceof Error ? error : undefined);
       return false;
     }
   }
@@ -193,7 +194,7 @@ class MobilePaymentService {
         type: 'subscription' as const,
       }));
     } catch (error) {
-      console.error('Failed to get subscriptions:', error);
+      logger.error('Failed to get subscriptions', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -219,7 +220,7 @@ class MobilePaymentService {
         type: 'consumable' as const,
       }));
     } catch (error) {
-      console.error('Failed to get products:', error);
+      logger.error('Failed to get products', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -258,10 +259,10 @@ class MobilePaymentService {
       return null;
     } catch (error: any) {
       if (error.code === 'E_USER_CANCELLED') {
-        console.log('User cancelled purchase');
+        logger.info('User cancelled purchase');
         return null;
       }
-      console.error('Subscription purchase failed:', error);
+      logger.error('Subscription purchase failed', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -291,10 +292,10 @@ class MobilePaymentService {
       return null;
     } catch (error: any) {
       if (error.code === 'E_USER_CANCELLED') {
-        console.log('User cancelled purchase');
+        logger.info('User cancelled purchase');
         return null;
       }
-      console.error('Consumable purchase failed:', error);
+      logger.error('Consumable purchase failed', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -325,7 +326,7 @@ class MobilePaymentService {
         provider: Platform.OS === 'ios' ? 'apple_iap' : 'google_play',
       };
     } catch (error) {
-      console.error('Failed to get subscription status:', error);
+      logger.error('Failed to get subscription status', error instanceof Error ? error : undefined);
       return {
         isActive: false,
         tier: 'free',
@@ -374,7 +375,7 @@ class MobilePaymentService {
 
       return validPurchases;
     } catch (error) {
-      console.error('Restore purchases failed:', error);
+      logger.error('Restore purchases failed', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -387,7 +388,7 @@ class MobilePaymentService {
       const response = await api.get('/payments/transactions?limit=50');
       return response.data.transactions || [];
     } catch (error) {
-      console.error('Failed to get purchase history:', error);
+      logger.error('Failed to get purchase history', error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -400,7 +401,7 @@ class MobilePaymentService {
       const response = await api.get('/payments/wallet');
       return response.data.wallet || { coins: 0, gems: 0, bonusCoins: 0 };
     } catch (error) {
-      console.error('Failed to get wallet balance:', error);
+      logger.error('Failed to get wallet balance', error instanceof Error ? error : undefined);
       return { coins: 0, gems: 0, bonusCoins: 0 };
     }
   }

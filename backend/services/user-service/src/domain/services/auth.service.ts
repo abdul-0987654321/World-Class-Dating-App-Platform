@@ -184,7 +184,7 @@ export class AuthService {
     // Validate new password
     if (!isValidPassword(newPassword)) {
       throw new Error(
-        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character'
       );
     }
 
@@ -197,8 +197,14 @@ export class AuthService {
     // Mark token as used
     await this.tokenRepository.markAsUsed(resetToken.id);
 
-    // Note: In production, invalidate all refresh tokens and sessions
-    // This would require Redis or database-based token tracking
+    // SECURITY: Invalidate all existing tokens to prevent use of old credentials
+    // Delete all refresh tokens for this user from the database
+    try {
+      await this.tokenRepository.deleteByUserId(resetToken.user_id, 'refresh');
+    } catch (err) {
+      // Non-fatal: log but continue
+      logger.warn('Failed to invalidate refresh tokens on password reset:', err);
+    }
 
     logger.info(
       `Password reset successfully for user: ${resetToken.user_id}. All sessions should be invalidated.`
@@ -212,7 +218,7 @@ export class AuthService {
 
     if (!isValidPassword(userData.password)) {
       throw new Error(
-        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character'
       );
     }
 

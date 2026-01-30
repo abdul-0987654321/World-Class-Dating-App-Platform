@@ -41,7 +41,7 @@ export type MaybeAsyncHandler<TRequest extends Request = Request, TResponse = an
  *
  * @example
  * ```typescript
- * import { asyncHandler } from '@flamoral/shared/middleware';
+ * import { asyncHandler } from '@flamoral/backend-shared/middleware';
  *
  * // Without asyncHandler (bad - errors not caught):
  * router.get('/users', async (req, res) => {

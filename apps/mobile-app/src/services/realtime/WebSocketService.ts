@@ -6,13 +6,11 @@
 import { io, Socket } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../api/config';
+import logger from '../../utils/logger';
 
-// Dev-only logging helper
-const devLog = (...args: any[]) => {
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log(...args);
-  }
+// Dev-only logging helper using structured logger
+const devLog = (message: string, context?: Record<string, any>) => {
+  logger.debug(message, context);
 };
 
 export interface MessageEvent {
@@ -104,7 +102,7 @@ class WebSocketService {
 
       const wsUrl = process.env.WEBSOCKET_URL || 'wss://ws.flamoral.com';
 
-      devLog('[WebSocket] Connecting to:', wsUrl);
+      devLog('[WebSocket] Connecting to', { wsUrl });
 
       this.socket = io(wsUrl, {
         auth: { token },
@@ -118,7 +116,7 @@ class WebSocketService {
 
       this.setupEventHandlers();
     } catch (error) {
-      console.error('[WebSocket] Connection error:', error);
+      logger.error('[WebSocket] Connection error', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -146,82 +144,82 @@ class WebSocketService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      devLog('[WebSocket] Disconnected:', reason);
+      devLog('[WebSocket] Disconnected', { reason });
       this.emit('connection', { status: 'disconnected', reason });
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('[WebSocket] Connection error:', error);
+      logger.error('[WebSocket] Connection error', error instanceof Error ? error : undefined);
       this.reconnectAttempts++;
 
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('[WebSocket] Max reconnection attempts reached');
+        logger.error('[WebSocket] Max reconnection attempts reached');
         this.emit('connection', { status: 'failed', error: error.message });
       }
     });
 
     this.socket.on('reconnect', (attemptNumber) => {
-      devLog('[WebSocket] Reconnected after', attemptNumber, 'attempts');
+      devLog('[WebSocket] Reconnected', { attemptNumber });
       this.reconnectAttempts = 0;
     });
 
     // Message events
     this.socket.on('message:new', (data: MessageEvent) => {
-      devLog('[WebSocket] New message:', data);
+      devLog('[WebSocket] New message', { conversationId: data.conversationId });
       this.emit('message:new', data);
     });
 
     this.socket.on('message:delivered', (data: { messageId: string; conversationId: string }) => {
-      devLog('[WebSocket] Message delivered:', data);
+      devLog('[WebSocket] Message delivered', { messageId: data.messageId });
       this.emit('message:delivered', data);
     });
 
     this.socket.on('message:read', (data: ReadReceiptEvent) => {
-      devLog('[WebSocket] Messages read:', data);
+      devLog('[WebSocket] Messages read', { conversationId: data.conversationId });
       this.emit('message:read', data);
     });
 
     // Typing indicators
     this.socket.on('typing:start', (data: TypingEvent) => {
-      devLog('[WebSocket] User typing:', data);
+      devLog('[WebSocket] User typing', { userId: data.userId, conversationId: data.conversationId });
       this.emit('typing:start', data);
     });
 
     this.socket.on('typing:stop', (data: TypingEvent) => {
-      devLog('[WebSocket] User stopped typing:', data);
+      devLog('[WebSocket] User stopped typing', { userId: data.userId, conversationId: data.conversationId });
       this.emit('typing:stop', data);
     });
 
     // Presence events
     this.socket.on('presence:update', (data: PresenceEvent) => {
-      devLog('[WebSocket] Presence update:', data);
+      devLog('[WebSocket] Presence update', { userId: data.userId, status: data.status });
       this.emit('presence:update', data);
     });
 
     // Match events
     this.socket.on('match:new', (data: any) => {
-      devLog('[WebSocket] New match:', data);
+      devLog('[WebSocket] New match', { data });
       this.emit('match:new', data);
     });
 
     // Reward/Gamification events
     this.socket.on('coins:updated', (data: CoinsUpdatedEvent) => {
-      devLog('[WebSocket] Coins updated:', data);
+      devLog('[WebSocket] Coins updated', { userId: data.userId, balance: data.balance });
       this.emit('coins:updated', data);
     });
 
     this.socket.on('streak:updated', (data: StreakUpdatedEvent) => {
-      devLog('[WebSocket] Streak updated:', data);
+      devLog('[WebSocket] Streak updated', { userId: data.userId, currentStreak: data.currentStreak });
       this.emit('streak:updated', data);
     });
 
     this.socket.on('reward:claimed', (data: RewardClaimedEvent) => {
-      devLog('[WebSocket] Reward claimed:', data);
+      devLog('[WebSocket] Reward claimed', { userId: data.userId, rewardId: data.rewardId });
       this.emit('reward:claimed', data);
     });
 
     this.socket.on('reward:milestone', (data: RewardMilestoneEvent) => {
-      devLog('[WebSocket] Reward milestone:', data);
+      devLog('[WebSocket] Reward milestone', { userId: data.userId, milestoneId: data.milestoneId });
       this.emit('reward:milestone', data);
     });
   }
@@ -240,14 +238,14 @@ class WebSocketService {
       throw new Error('WebSocket not connected');
     }
 
-    devLog('[WebSocket] Sending message:', { conversationId, message });
+    devLog('[WebSocket] Sending message', { conversationId, message });
     this.socket.emit('message:send', { conversationId, message });
   }
 
   // Send typing indicator
   sendTyping(conversationId: string, isTyping: boolean): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot send typing indicator - not connected');
+      logger.warn('[WebSocket] Cannot send typing indicator - not connected');
       return;
     }
 
@@ -257,51 +255,51 @@ class WebSocketService {
   // Mark messages as read
   markAsRead(conversationId: string, messageIds: string[]): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot mark as read - not connected');
+      logger.warn('[WebSocket] Cannot mark as read - not connected');
       return;
     }
 
-    devLog('[WebSocket] Marking messages as read:', { conversationId, messageIds });
+    devLog('[WebSocket] Marking messages as read', { conversationId, messageIds });
     this.socket.emit('message:read', { conversationId, messageIds });
   }
 
   // Join conversation room
   joinConversation(conversationId: string): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot join conversation - not connected');
+      logger.warn('[WebSocket] Cannot join conversation - not connected');
       return;
     }
 
-    devLog('[WebSocket] Joining conversation:', conversationId);
+    devLog('[WebSocket] Joining conversation', { conversationId });
     this.socket.emit('conversation:join', { conversationId });
   }
 
   // Leave conversation room
   leaveConversation(conversationId: string): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot leave conversation - not connected');
+      logger.warn('[WebSocket] Cannot leave conversation - not connected');
       return;
     }
 
-    devLog('[WebSocket] Leaving conversation:', conversationId);
+    devLog('[WebSocket] Leaving conversation', { conversationId });
     this.socket.emit('conversation:leave', { conversationId });
   }
 
   // Update presence
   updatePresence(status: 'online' | 'offline' | 'away'): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot update presence - not connected');
+      logger.warn('[WebSocket] Cannot update presence - not connected');
       return;
     }
 
-    devLog('[WebSocket] Updating presence:', status);
+    devLog('[WebSocket] Updating presence', { status });
     this.socket.emit('presence:update', { status });
   }
 
   // Subscribe to reward events
   subscribeToRewards(): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot subscribe to rewards - not connected');
+      logger.warn('[WebSocket] Cannot subscribe to rewards - not connected');
       return;
     }
 
@@ -312,7 +310,7 @@ class WebSocketService {
   // Unsubscribe from reward events
   unsubscribeFromRewards(): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot unsubscribe from rewards - not connected');
+      logger.warn('[WebSocket] Cannot unsubscribe from rewards - not connected');
       return;
     }
 
@@ -323,11 +321,11 @@ class WebSocketService {
   // Claim a reward
   claimReward(rewardId: string): void {
     if (!this.socket?.connected) {
-      console.warn('[WebSocket] Cannot claim reward - not connected');
+      logger.warn('[WebSocket] Cannot claim reward - not connected');
       return;
     }
 
-    devLog('[WebSocket] Claiming reward:', rewardId);
+    devLog('[WebSocket] Claiming reward', { rewardId });
     this.socket.emit('reward:claim', { rewardId });
   }
 
@@ -357,7 +355,7 @@ class WebSocketService {
         try {
           callback(data);
         } catch (error) {
-          console.error('[WebSocket] Error in event callback:', error);
+          logger.error('[WebSocket] Error in event callback', error instanceof Error ? error : undefined);
         }
       });
     }

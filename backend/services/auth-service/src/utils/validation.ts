@@ -8,17 +8,24 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Validate password strength
- * Must contain: uppercase, lowercase, number, special char, min 8 chars
+ * SECURITY: Must contain uppercase, lowercase, number, special char, min 12 chars
+ * Production-grade password policy for a dating platform handling sensitive personal data
  */
 export function isValidPassword(password: string): boolean {
-  const minLength = 8;
+  const minLength = 12;
+  const maxLength = 128; // Prevent DoS via bcrypt with extremely long passwords
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
   return (
-    password.length >= minLength && hasUppercase && hasLowercase && hasNumber && hasSpecialChar
+    password.length >= minLength &&
+    password.length <= maxLength &&
+    hasUppercase &&
+    hasLowercase &&
+    hasNumber &&
+    hasSpecialChar
   );
 }
 

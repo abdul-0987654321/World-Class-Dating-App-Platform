@@ -2,7 +2,15 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
+import {
+  TranscribeClient,
+  StartTranscriptionJobCommand,
+  GetTranscriptionJobCommand,
+  TranscriptionJobStatus,
+} from '@aws-sdk/client-transcribe';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import ffmpeg from 'fluent-ffmpeg';
+import { v4 as uuidv4 } from 'uuid';
 
 import config from '../config';
 import { VoiceMessageMetadata } from '../types/enhanced-types';
@@ -10,9 +18,9 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('voice-message-service');
 
-// TODO: Implement AWS Transcribe for voice transcription
-// import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
-// import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+const TRANSCRIBE_MAX_POLL_ATTEMPTS = 60;
+const TRANSCRIBE_POLL_INTERVAL_MS = 2000;
+const TRANSCRIBE_S3_FOLDER = 'voice-transcriptions';
 
 export class VoiceMessageService {
   private readonly MAX_DURATION: number;
@@ -26,15 +34,66 @@ export class VoiceMessageService {
   ];
   private readonly TARGET_BITRATE: number;
 
+  private transcribeClient: TranscribeClient | null = null;
+  private s3Client: S3Client | null = null;
+  private readonly transcriptionEnabled: boolean;
+  private readonly awsRegion: string;
+  private readonly transcribeLanguage: string;
+  private readonly s3Bucket: string;
+
   constructor() {
     const voiceConfig = config.mediaProcessing.voice;
     this.MAX_DURATION = voiceConfig.maxDuration;
     this.MAX_FILE_SIZE = voiceConfig.maxFileSize;
     this.TARGET_BITRATE = voiceConfig.targetBitrate;
 
-    // TODO: Initialize AWS Transcribe client when implementing transcription
-    // this.initializeAWSTranscribe();
-    logger.info('VoiceMessageService initialized (transcription disabled - TODO: implement AWS Transcribe)');
+    this.transcriptionEnabled =
+      process.env.VOICE_TRANSCRIPTION_ENABLED === 'true' ||
+      (process.env.VOICE_TRANSCRIPTION_ENABLED === undefined && voiceConfig.enableTranscription);
+
+    this.awsRegion = config.awsTranscribe?.region || 'us-east-1';
+    this.transcribeLanguage = config.awsTranscribe?.language || 'en-US';
+    this.s3Bucket = process.env.AWS_S3_BUCKET || process.env.AWS_S3_BUCKET_MEDIA || 'flamoral-media';
+
+    this.initializeAWSClients();
+  }
+
+  private initializeAWSClients(): void {
+    if (!this.transcriptionEnabled) {
+      logger.info('VoiceMessageService initialized (transcription disabled)');
+      return;
+    }
+
+    try {
+      const isLocalDevelopment =
+        config.nodeEnv === 'development' && !process.env.AWS_ACCESS_KEY_ID;
+
+      if (isLocalDevelopment) {
+        logger.info('Initializing AWS Transcribe client with LocalStack endpoint');
+        const localStackConfig = {
+          region: this.awsRegion,
+          endpoint: 'http://localhost:4566',
+          credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+        };
+        this.transcribeClient = new TranscribeClient(localStackConfig);
+        this.s3Client = new S3Client({ ...localStackConfig, forcePathStyle: true });
+      } else {
+        logger.info('Initializing AWS Transcribe client with production credentials');
+        this.transcribeClient = new TranscribeClient({ region: this.awsRegion });
+        this.s3Client = new S3Client({ region: this.awsRegion });
+      }
+
+      logger.info('VoiceMessageService initialized (transcription enabled)', {
+        region: this.awsRegion,
+        language: this.transcribeLanguage,
+        bucket: this.s3Bucket,
+      });
+    } catch (error: any) {
+      logger.error('Failed to initialize AWS Transcribe client:', error);
+      this.transcribeClient = null;
+      this.s3Client = null;
+      logger.warn('VoiceMessageService initialized (transcription unavailable due to init error)');
+    }
   }
 
   /**
@@ -284,34 +343,192 @@ export class VoiceMessageService {
     }
   }
 
+  private getMediaFormatFromMimeType(mimeType: string): string {
+    const mimeToFormat: Record<string, string> = {
+      'audio/mpeg': 'mp3',
+      'audio/mp4': 'mp4',
+      'audio/wav': 'wav',
+      'audio/webm': 'webm',
+      'audio/ogg': 'ogg',
+    };
+    return mimeToFormat[mimeType] || 'wav';
+  }
+
   /**
-   * Transcribe voice message to text
-   * TODO: Implement using AWS Transcribe
+   * Transcribe voice message to text using AWS Transcribe.
    *
-   * Implementation outline:
-   * 1. Upload audio to S3 bucket
-   * 2. Start transcription job using AWS Transcribe
+   * Flow:
+   * 1. Upload audio buffer to S3 (temporary storage for Transcribe input)
+   * 2. Start an AWS Transcribe transcription job
    * 3. Poll for job completion
-   * 4. Retrieve and return transcript
-   *
-   * Example AWS Transcribe usage:
-   * const transcribeClient = new TranscribeClient({ region: 'us-east-1' });
-   * const command = new StartTranscriptionJobCommand({
-   *   TranscriptionJobName: `job_${Date.now()}`,
-   *   LanguageCode: 'en-US',
-   *   MediaFormat: 'wav',
-   *   Media: { MediaFileUri: s3Uri },
-   *   OutputBucketName: outputBucket,
-   * });
-   * await transcribeClient.send(command);
+   * 4. Fetch the transcript JSON from S3 output
+   * 5. Return the transcription text
    */
   async transcribeVoiceMessage(
     audioBuffer: Buffer,
     mimeType: string = 'audio/wav'
   ): Promise<string | null> {
-    // TODO: Implement AWS Transcribe integration
-    logger.debug('Voice transcription not implemented - TODO: integrate AWS Transcribe');
+    if (!this.transcriptionEnabled) {
+      logger.debug('Voice transcription is disabled');
+      return null;
+    }
+
+    if (!this.transcribeClient || !this.s3Client) {
+      logger.warn('AWS Transcribe client not initialized; skipping transcription');
+      return null;
+    }
+
+    const jobId = uuidv4();
+    const jobName = `flamoral-voice-${jobId}`;
+    const mediaFormat = this.getMediaFormatFromMimeType(mimeType);
+    const extension = this.getExtensionFromMimeType(mimeType);
+    const s3Key = `${TRANSCRIBE_S3_FOLDER}/${jobId}${extension}`;
+    const s3Uri = `s3://${this.s3Bucket}/${s3Key}`;
+    const outputKey = `${TRANSCRIBE_S3_FOLDER}/output/${jobId}.json`;
+
+    try {
+      logger.info('Uploading voice audio to S3 for transcription', {
+        jobName, s3Key, mimeType, bufferSize: audioBuffer.length,
+      });
+
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.s3Bucket,
+          Key: s3Key,
+          Body: audioBuffer,
+          ContentType: mimeType,
+        })
+      );
+
+      logger.info('Starting AWS Transcribe job', { jobName, s3Uri, mediaFormat });
+
+      await this.transcribeClient.send(
+        new StartTranscriptionJobCommand({
+          TranscriptionJobName: jobName,
+          LanguageCode: this.transcribeLanguage,
+          MediaFormat: mediaFormat,
+          Media: { MediaFileUri: s3Uri },
+          OutputBucketName: this.s3Bucket,
+          OutputKey: outputKey,
+          Settings: { ShowSpeakerLabels: false, ChannelIdentification: false },
+        })
+      );
+
+      const transcript = await this.pollTranscriptionJob(jobName);
+
+      if (transcript) {
+        logger.info('Voice transcription completed successfully', {
+          jobName, transcriptLength: transcript.length,
+        });
+      } else {
+        logger.warn('Voice transcription returned empty result', { jobName });
+      }
+
+      this.cleanupS3Object(s3Key).catch(() => {});
+      this.cleanupS3Object(outputKey).catch(() => {});
+
+      return transcript;
+    } catch (error: any) {
+      logger.error('Failed to transcribe voice message', {
+        jobName, error: error.message, stack: error.stack,
+      });
+      this.cleanupS3Object(s3Key).catch(() => {});
+      return null;
+    }
+  }
+
+  private async pollTranscriptionJob(jobName: string): Promise<string | null> {
+    if (!this.transcribeClient || !this.s3Client) return null;
+
+    for (let attempt = 0; attempt < TRANSCRIBE_MAX_POLL_ATTEMPTS; attempt++) {
+      const response = await this.transcribeClient.send(
+        new GetTranscriptionJobCommand({ TranscriptionJobName: jobName })
+      );
+      const job = response.TranscriptionJob;
+
+      if (!job) {
+        logger.error('Transcription job not found', { jobName });
+        return null;
+      }
+
+      if (job.TranscriptionJobStatus === TranscriptionJobStatus.COMPLETED) {
+        const transcriptUri = job.Transcript?.TranscriptFileUri;
+        if (!transcriptUri) {
+          logger.error('Transcription completed but no transcript URI available', { jobName });
+          return null;
+        }
+        return await this.fetchTranscriptFromOutput(transcriptUri);
+      }
+
+      if (job.TranscriptionJobStatus === TranscriptionJobStatus.FAILED) {
+        logger.error('Transcription job failed', { jobName, reason: job.FailureReason });
+        return null;
+      }
+
+      logger.debug('Transcription job in progress, polling...', {
+        jobName, status: job.TranscriptionJobStatus, attempt: attempt + 1,
+      });
+      await new Promise((resolve) => setTimeout(resolve, TRANSCRIBE_POLL_INTERVAL_MS));
+    }
+
+    logger.error('Transcription job timed out', { jobName });
     return null;
+  }
+
+  private async fetchTranscriptFromOutput(transcriptUri: string): Promise<string | null> {
+    if (!this.s3Client) return null;
+
+    try {
+      let key: string;
+      if (transcriptUri.startsWith('s3://')) {
+        const withoutProtocol = transcriptUri.slice(5);
+        const slashIndex = withoutProtocol.indexOf('/');
+        key = withoutProtocol.slice(slashIndex + 1);
+      } else {
+        const url = new URL(transcriptUri);
+        key = url.pathname.startsWith(`/${this.s3Bucket}/`)
+          ? url.pathname.slice(this.s3Bucket.length + 2)
+          : url.pathname.slice(1);
+      }
+
+      const response = await this.s3Client.send(
+        new GetObjectCommand({ Bucket: this.s3Bucket, Key: key })
+      );
+
+      if (!response.Body) {
+        logger.error('Transcript output file is empty');
+        return null;
+      }
+
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+        chunks.push(chunk);
+      }
+      const bodyString = Buffer.concat(chunks).toString('utf-8');
+      const transcriptJson = JSON.parse(bodyString);
+
+      return transcriptJson?.results?.transcripts
+        ?.map((t: { transcript: string }) => t.transcript)
+        .join(' ')
+        .trim() || null;
+    } catch (error: any) {
+      logger.error('Failed to fetch transcript output from S3', {
+        transcriptUri, error: error.message,
+      });
+      return null;
+    }
+  }
+
+  private async cleanupS3Object(key: string): Promise<void> {
+    if (!this.s3Client) return;
+    await this.s3Client.send(
+      new DeleteObjectCommand({ Bucket: this.s3Bucket, Key: key })
+    );
+    logger.debug('Cleaned up S3 object', { key });
+  }
+
+  isTranscriptionEnabled(): boolean {
+    return this.transcriptionEnabled && this.transcribeClient !== null;
   }
 
   /**

@@ -86,7 +86,7 @@ export function IsStrongPassword(validationOptions?: ValidationOptions) {
           return true;
         },
         defaultMessage() {
-          return 'Password must be at least 8 characters and contain uppercase, lowercase, and number';
+          return 'Password must be at least 12 characters and contain uppercase, lowercase, and number';
         },
       },
     });

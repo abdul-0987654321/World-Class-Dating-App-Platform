@@ -154,8 +154,19 @@ export class MatchSuccessRepository {
     const respResult = await dbClient.query(respQuery, respParams);
     const averageResponseTime = parseFloat(respResult.rows[0].avg_response || '0');
 
-    // Get unmatch rate (would need unmatches table)
-    const unmatchRate = 0; // Placeholder
+    // Get unmatch rate from unmatch_events table
+    let unmatchQuery = 'SELECT COUNT(*) as count FROM unmatch_events WHERE 1=1';
+    const unmatchParams: any[] = [];
+    if (startDate) { unmatchParams.push(startDate); unmatchQuery += ' AND timestamp >= $' + unmatchParams.length; }
+    if (endDate) { unmatchParams.push(endDate); unmatchQuery += ' AND timestamp <= $' + unmatchParams.length; }
+    let unmatchRate = 0;
+    try {
+      const unmatchResult = await dbClient.query(unmatchQuery, unmatchParams);
+      const totalUnmatches = parseInt(unmatchResult.rows[0].count, 10);
+      unmatchRate = totalMatches > 0 ? (totalUnmatches / totalMatches) * 100 : 0;
+    } catch {
+      unmatchRate = 0;
+    }
 
     return {
       totalMatches,
@@ -442,14 +453,23 @@ export class MatchSuccessRepository {
     const multiResult = await dbClient.query(multiQuery, params);
     const conversationsWithMultipleMessages = parseInt(multiResult.rows[0].count, 10);
 
+    // Get conversations where both users sent messages (bidirectional)
+    let biQuery = 'SELECT COUNT(*) as count FROM (SELECT conversation_id FROM message_events WHERE 1=1';
+    const biParams: any[] = [];
+    if (startDate) { biParams.push(startDate); biQuery += ' AND timestamp >= ' + '$' + biParams.length; }
+    if (endDate) { biParams.push(endDate); biQuery += ' AND timestamp <= ' + '$' + biParams.length; }
+    biQuery += ' GROUP BY conversation_id HAVING COUNT(DISTINCT sender_id) >= 2) as bi_convs';
+    const biResult = await dbClient.query(biQuery, biParams);
+    const bothMessaged = parseInt(biResult.rows[0].count, 10);
+
     return {
       totalMatches,
       firstMessageSent: conversationsStarted,
-      bothMessaged: conversationsStarted, // Would need bidirectional check
+      bothMessaged,
       conversationsWithMultipleMessages,
       conversationsWithDates: datesArranged,
       stage1Rate: totalMatches > 0 ? (conversationsStarted / totalMatches) * 100 : 0,
-      stage2Rate: conversationsStarted > 0 ? 100 : 0, // Placeholder
+      stage2Rate: conversationsStarted > 0 ? (bothMessaged / conversationsStarted) * 100 : 0,
       stage3Rate:
         conversationsStarted > 0
           ? (conversationsWithMultipleMessages / conversationsStarted) * 100

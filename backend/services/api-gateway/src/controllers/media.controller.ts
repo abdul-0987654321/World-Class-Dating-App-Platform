@@ -9,9 +9,12 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard, Role } from '../guards/roles.guard';
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('media')
@@ -77,10 +80,13 @@ export class MediaController {
   // ==================== Media Management Endpoints ====================
 
   /**
-   * Get user media
+   * Get user media (admin/moderator only for other users)
+   * SECURITY: Requires Role.MODERATOR — normal users access own media via /users/me/photos
    */
   @Get('user/:userId')
-  @ApiOperation({ summary: 'Get all media for a user' })
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
+  @ApiOperation({ summary: 'Get all media for a user (admin/moderator)' })
   async getUserMedia(
     @Headers('authorization') authorization: string,
     @Param('userId') userId: string,

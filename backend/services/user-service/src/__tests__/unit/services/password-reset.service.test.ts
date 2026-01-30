@@ -172,7 +172,7 @@ describe('PasswordResetService', () => {
 
       await expect(
         passwordResetService.resetPassword(token, weakPassword)
-      ).rejects.toThrow(/Password must be at least 8 characters/);
+      ).rejects.toThrow(/Password must be at least 12 characters/);
 
       expect(mockUserRepository.updatePassword).not.toHaveBeenCalled();
       expect(mockTokenRepository.markAsUsed).not.toHaveBeenCalled();

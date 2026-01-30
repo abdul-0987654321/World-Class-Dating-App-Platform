@@ -71,9 +71,9 @@ router.post(
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 minLength: 8
+ *                 minLength: 12
  *                 example: NewSecure123!@#
- *                 description: New password (min 8 characters, must include uppercase, lowercase, number, and special character)
+ *                 description: New password (min 12 characters, must include uppercase, lowercase, number, and special character)
  *     responses:
  *       200:
  *         description: Password reset successfully

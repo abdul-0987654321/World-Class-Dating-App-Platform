@@ -32,9 +32,9 @@ const bitrate = metadata.format.bit_rate ? (typeof metadata.format.bit_rate === 
 ### 4. Missing Logger Module
 **File**: `backend/services/media-service/src/services/video-thumbnails.service.ts` (line 1)
 **Issue**: Attempted to import from non-existent `../utils/logger` path.
-**Fix**: Changed to use shared logger from `@flamoral/shared`:
+**Fix**: Changed to use shared logger from `@flamoral/backend-shared`:
 ```typescript
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 const logger = createLogger('video-thumbnails-service');
 ```
 

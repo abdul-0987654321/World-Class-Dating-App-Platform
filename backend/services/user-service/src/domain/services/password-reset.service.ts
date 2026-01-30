@@ -50,7 +50,7 @@ export class PasswordResetService {
     // Validate new password
     if (!isValidPassword(newPassword)) {
       throw new Error(
-        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character'
       );
     }
 
@@ -69,6 +69,13 @@ export class PasswordResetService {
 
     // Mark token as used
     await this.tokenRepository.markAsUsed(resetToken.id);
+
+    // SECURITY: Invalidate all existing tokens/sessions to force re-login with new password
+    try {
+      await this.tokenRepository.deleteByUserId(resetToken.user_id, 'refresh');
+    } catch (err) {
+      logger.warn('Failed to invalidate tokens on password reset:', err);
+    }
 
     logger.info(`Password reset successful for user: ${resetToken.user_id}`);
   }

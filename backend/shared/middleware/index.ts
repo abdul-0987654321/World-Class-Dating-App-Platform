@@ -12,7 +12,7 @@
  *   errorHandlerMiddleware,
  *   asyncHandler,
  *   auditLoggingMiddleware,
- * } from '@flamoral/shared/middleware';
+ * } from '@flamoral/backend-shared/middleware';
  *
  * const app = express();
  *

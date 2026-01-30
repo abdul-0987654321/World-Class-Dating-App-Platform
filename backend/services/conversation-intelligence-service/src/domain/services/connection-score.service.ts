@@ -281,15 +281,42 @@ export class ConnectionScoreService {
     let score = await db('connection_scores').where('conversation_id', conversationId).first();
 
     if (!score) {
-      // We need user IDs - for now use placeholder, in real impl get from conversation
+      // Look up real user IDs from message_analyses for this conversation
+      const senders = await db('message_analyses')
+        .where('conversation_id', conversationId)
+        .distinct('sender_id')
+        .orderBy('sender_id')
+        .limit(2);
+
+      const user1Id = senders.length > 0 ? senders[0].sender_id : uuidv4();
+      const user2Id = senders.length > 1 ? senders[1].sender_id : uuidv4();
+
       [score] = await db('connection_scores')
         .insert({
           id: uuidv4(),
           conversation_id: conversationId,
-          user1_id: uuidv4(), // Would come from conversation lookup
-          user2_id: uuidv4(),
+          user1_id: user1Id,
+          user2_id: user2Id,
         })
         .returning('*');
+    } else if (score.user1_id === score.user2_id) {
+      // Update placeholder IDs if a second sender has appeared
+      const senders = await db('message_analyses')
+        .where('conversation_id', conversationId)
+        .distinct('sender_id')
+        .orderBy('sender_id')
+        .limit(2);
+
+      if (senders.length >= 2) {
+        await db('connection_scores')
+          .where('conversation_id', conversationId)
+          .update({
+            user1_id: senders[0].sender_id,
+            user2_id: senders[1].sender_id,
+          });
+        score.user1_id = senders[0].sender_id;
+        score.user2_id = senders[1].sender_id;
+      }
     }
 
     return this.mapToConnectionScore(score);
