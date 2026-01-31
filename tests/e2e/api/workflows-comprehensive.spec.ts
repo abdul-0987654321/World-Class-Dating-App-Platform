@@ -39,7 +39,7 @@ interface UserCredentials {
 }
 
 async function registerUser(overrides: Record<string, unknown> = {}): Promise<UserCredentials> {
-  const uniqueEmail = `e2e-wf-${Date.now()}-${Math.random().toString(36).substring(2, 8)}@flamoral.test`;
+  const uniqueEmail = `e2e-wf-${Date.now()}-${Math.random().toString(36).substring(2, 8)}@example.com`;
   const password = config.TEST_USER_PASSWORD;
 
   const payload = {
@@ -49,6 +49,7 @@ async function registerUser(overrides: Record<string, unknown> = {}): Promise<Us
     lastName: 'Tester',
     dateOfBirth: '1995-06-15',
     gender: 'female',
+    consents: { terms: true, privacy: true },
     ...overrides,
   };
 
@@ -94,7 +95,7 @@ describe('Workflow 1: New User Onboarding', () => {
   let userId: string;
 
   beforeAll(() => {
-    email = `e2e-onboard-${Date.now()}-${Math.random().toString(36).substring(2, 8)}@flamoral.test`;
+    email = `e2e-onboard-${Date.now()}-${Math.random().toString(36).substring(2, 8)}@example.com`;
     password = config.TEST_USER_PASSWORD;
   });
 
@@ -109,6 +110,7 @@ describe('Workflow 1: New User Onboarding', () => {
         lastName: 'User',
         dateOfBirth: '1996-03-22',
         gender: 'female',
+        consents: { terms: true, privacy: true },
       })
       .timeout(config.DEFAULT_TIMEOUT);
 

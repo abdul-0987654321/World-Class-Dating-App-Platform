@@ -34,9 +34,9 @@ describe('Matching Service E2E Tests', () => {
     }
 
     // Create a second user for matching tests
-    const secondEmail = `matching-e2e-2-${Date.now()}@flamoral.test`;
+    const secondEmail = `matching-e2e-2-${Date.now()}@example.com`;
     const registerResponse = await request(AUTH_URL)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         email: secondEmail,
         password: 'SecurePassword123!',
@@ -44,6 +44,7 @@ describe('Matching Service E2E Tests', () => {
         lastName: 'Partner',
         dateOfBirth: '1994-05-10',
         gender: 'female',
+        consents: { terms: true, privacy: true },
       });
 
     if (registerResponse.status === 201) {
@@ -541,10 +542,10 @@ describe('Matching Service E2E Tests', () => {
   // ==================== MATCHES TESTS ====================
 
   describe('Matches API', () => {
-    describe('GET /api/matches', () => {
+    describe('GET /api/v1/matches', () => {
       it('should return list of matches', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches')
+          .get('/api/v1/matches')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -555,7 +556,7 @@ describe('Matching Service E2E Tests', () => {
 
       it('should support pagination', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches')
+          .get('/api/v1/matches')
           .query({ page: 1, limit: 10 })
           .set('Authorization', `Bearer ${accessToken}`);
 
@@ -567,7 +568,7 @@ describe('Matching Service E2E Tests', () => {
 
       it('should return correct match structure', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches')
+          .get('/api/v1/matches')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -580,16 +581,16 @@ describe('Matching Service E2E Tests', () => {
       });
 
       it('should fail without authentication', async () => {
-        const response = await request(MATCHING_URL).get('/api/matches');
+        const response = await request(MATCHING_URL).get('/api/v1/matches');
 
         expect(response.status).toBe(401);
       });
     });
 
-    describe('GET /api/matches/recent', () => {
+    describe('GET /api/v1/matches/recent', () => {
       it('should return recent matches', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches/recent')
+          .get('/api/v1/matches/recent')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -597,7 +598,7 @@ describe('Matching Service E2E Tests', () => {
 
       it('should return matches sorted by date', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches/recent')
+          .get('/api/v1/matches/recent')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -612,16 +613,16 @@ describe('Matching Service E2E Tests', () => {
       });
 
       it('should fail without authentication', async () => {
-        const response = await request(MATCHING_URL).get('/api/matches/recent');
+        const response = await request(MATCHING_URL).get('/api/v1/matches/recent');
 
         expect(response.status).toBe(401);
       });
     });
 
-    describe('GET /api/matches/count', () => {
+    describe('GET /api/v1/matches/count', () => {
       it('should return match count', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches/count')
+          .get('/api/v1/matches/count')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -631,7 +632,7 @@ describe('Matching Service E2E Tests', () => {
 
       it('should return non-negative count', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches/count')
+          .get('/api/v1/matches/count')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -639,13 +640,13 @@ describe('Matching Service E2E Tests', () => {
       });
 
       it('should fail without authentication', async () => {
-        const response = await request(MATCHING_URL).get('/api/matches/count');
+        const response = await request(MATCHING_URL).get('/api/v1/matches/count');
 
         expect(response.status).toBe(401);
       });
     });
 
-    describe('GET /api/matches/:matchId', () => {
+    describe('GET /api/v1/matches/:matchId', () => {
       it('should return match details', async () => {
         if (!matchId) {
           console.log('Skipping: No match ID available');
@@ -653,7 +654,7 @@ describe('Matching Service E2E Tests', () => {
         }
 
         const response = await request(MATCHING_URL)
-          .get(`/api/matches/${matchId}`)
+          .get(`/api/v1/matches/${matchId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect([200, 404]).toContain(response.status);
@@ -664,26 +665,26 @@ describe('Matching Service E2E Tests', () => {
 
       it('should return 404 for non-existent match', async () => {
         const response = await request(MATCHING_URL)
-          .get('/api/matches/nonexistent-match-id')
+          .get('/api/v1/matches/nonexistent-match-id')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(404);
       });
 
       it('should fail without authentication', async () => {
-        const response = await request(MATCHING_URL).get('/api/matches/any-id');
+        const response = await request(MATCHING_URL).get('/api/v1/matches/any-id');
 
         expect(response.status).toBe(401);
       });
     });
 
-    describe('DELETE /api/matches/:matchId', () => {
+    describe('DELETE /api/v1/matches/:matchId', () => {
       it('should unmatch successfully', async () => {
         // Create a match first if needed
         const testMatchId = matchId || uuidv4();
 
         const response = await request(MATCHING_URL)
-          .delete(`/api/matches/${testMatchId}`)
+          .delete(`/api/v1/matches/${testMatchId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect([200, 404]).toContain(response.status);
@@ -691,14 +692,14 @@ describe('Matching Service E2E Tests', () => {
 
       it('should return 404 for non-existent match', async () => {
         const response = await request(MATCHING_URL)
-          .delete('/api/matches/nonexistent-match-id')
+          .delete('/api/v1/matches/nonexistent-match-id')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(404);
       });
 
       it('should fail without authentication', async () => {
-        const response = await request(MATCHING_URL).delete('/api/matches/any-id');
+        const response = await request(MATCHING_URL).delete('/api/v1/matches/any-id');
 
         expect(response.status).toBe(401);
       });
@@ -812,7 +813,7 @@ describe('Matching Service E2E Tests', () => {
       it('should not allow accessing other users private match data', async () => {
         // Try to access another user's matches
         const response = await request(MATCHING_URL)
-          .get('/api/matches')
+          .get('/api/v1/matches')
           .query({ userId: secondUserId })
           .set('Authorization', `Bearer ${accessToken}`);
 
@@ -898,14 +899,14 @@ describe('Matching Service E2E Tests', () => {
 
         // 3. Check matches for User 1
         const matches1 = await request(MATCHING_URL)
-          .get('/api/matches')
+          .get('/api/v1/matches')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(matches1.status).toBe(200);
 
         // 4. Check matches for User 2
         const matches2 = await request(MATCHING_URL)
-          .get('/api/matches')
+          .get('/api/v1/matches')
           .set('Authorization', `Bearer ${secondUserToken}`);
 
         expect(matches2.status).toBe(200);

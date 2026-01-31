@@ -32,9 +32,9 @@ describe('User Profile Service E2E Tests', () => {
     }
 
     // Create a second user for interaction tests
-    const secondEmail = `profile-e2e-2-${Date.now()}@flamoral.test`;
+    const secondEmail = `profile-e2e-2-${Date.now()}@example.com`;
     const registerResponse = await request(AUTH_URL)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         email: secondEmail,
         password: 'SecurePassword123!',
@@ -42,6 +42,7 @@ describe('User Profile Service E2E Tests', () => {
         lastName: 'User',
         dateOfBirth: '1993-08-22',
         gender: 'female',
+        consents: { terms: true, privacy: true },
       });
 
     if (registerResponse.status === 201) {
@@ -909,7 +910,7 @@ describe('User Profile Service E2E Tests', () => {
       it('should not allow accessing other user data', async () => {
         // This depends on API design - testing general principle
         const response = await request(USER_URL)
-          .get(`/api/users/${secondUserId}/private-data`)
+          .get(`/api/v1/users/${secondUserId}/private-data`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         // Should either 403, 404, or not have endpoint

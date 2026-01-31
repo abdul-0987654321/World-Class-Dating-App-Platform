@@ -30,14 +30,14 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment,
   testEnvironmentOptions: {
-    resultsDir: process.env.ALLURE_RESULTS_DIR || '<rootDir>/allure-results/api-e2e',
+    resultsDir: process.env.ALLURE_RESULTS_DIR || require('path').resolve(__dirname, '../../../allure-results/api-e2e'),
   },
   rootDir: '../../../',
   roots: ['<rootDir>/tests/e2e/api'],
   testMatch: ['**/*.spec.ts', '**/*.test.ts'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: '<rootDir>/tsconfig.json',
+      tsconfig: require('path').resolve(__dirname, 'tsconfig.json'),
       isolatedModules: true,
     }],
   },

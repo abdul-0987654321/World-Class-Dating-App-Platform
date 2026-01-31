@@ -12,7 +12,7 @@ describe('Matching Service API', () => {
   beforeAll(async () => {
     // Login to get access token
     const loginResponse = await request(AUTH_URL)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({
         email: process.env.TEST_USER_EMAIL || 'test@example.com',
         password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
@@ -160,10 +160,10 @@ describe('Matching Service API', () => {
     });
   });
 
-  describe('GET /api/matches', () => {
+  describe('GET /api/v1/matches', () => {
     it('should return list of matches', async () => {
       const response = await request(API_URL)
-        .get('/api/matches')
+        .get('/api/v1/matches')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -174,7 +174,7 @@ describe('Matching Service API', () => {
 
     it('should support pagination', async () => {
       const response = await request(API_URL)
-        .get('/api/matches?page=1&limit=10')
+        .get('/api/v1/matches?page=1&limit=10')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -182,20 +182,20 @@ describe('Matching Service API', () => {
     });
   });
 
-  describe('GET /api/matches/recent', () => {
+  describe('GET /api/v1/matches/recent', () => {
     it('should return recent matches', async () => {
       const response = await request(API_URL)
-        .get('/api/matches/recent')
+        .get('/api/v1/matches/recent')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
     });
   });
 
-  describe('GET /api/matches/count', () => {
+  describe('GET /api/v1/matches/count', () => {
     it('should return match count', async () => {
       const response = await request(API_URL)
-        .get('/api/matches/count')
+        .get('/api/v1/matches/count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -204,20 +204,20 @@ describe('Matching Service API', () => {
     });
   });
 
-  describe('GET /api/matches/:matchId', () => {
+  describe('GET /api/v1/matches/:matchId', () => {
     it('should return 404 for non-existent match', async () => {
       const response = await request(API_URL)
-        .get('/api/matches/nonexistent-match-id')
+        .get('/api/v1/matches/nonexistent-match-id')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);
     });
   });
 
-  describe('DELETE /api/matches/:matchId', () => {
+  describe('DELETE /api/v1/matches/:matchId', () => {
     it('should return 404 for non-existent match', async () => {
       const response = await request(API_URL)
-        .delete('/api/matches/nonexistent-match-id')
+        .delete('/api/v1/matches/nonexistent-match-id')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);

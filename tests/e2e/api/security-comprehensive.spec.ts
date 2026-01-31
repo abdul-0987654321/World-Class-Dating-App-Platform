@@ -75,6 +75,7 @@ describe('Security: SQL Injection Prevention', () => {
         lastName: 'User',
         dateOfBirth: '1995-01-01',
         gender: 'male',
+        consents: { terms: true, privacy: true },
       });
 
     // Must not return 200/201 — the email is invalid format
@@ -157,6 +158,7 @@ describe('Security: SQL Injection Prevention', () => {
           lastName: 'User',
           dateOfBirth: '1995-01-01',
           gender: 'male',
+          consents: { terms: true, privacy: true },
         });
 
       // Should never return raw SQL errors
@@ -222,12 +224,13 @@ describe('Security: XSS Prevention', () => {
     const res = await request(API)
       .post(url('/auth/register'))
       .send({
-        email: `xss-test-${Date.now()}@flamoral.test`,
+        email: `xss-test-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         firstName: '<body onload=alert(1)>',
         lastName: 'Normal',
         dateOfBirth: '1995-01-01',
         gender: 'male',
+        consents: { terms: true, privacy: true },
       });
 
     // Should reject or sanitize
@@ -608,7 +611,7 @@ describe('Security: Mass Assignment Protection', () => {
     const res = await request(API)
       .post(url('/auth/register'))
       .send({
-        email: `mass-assign-${Date.now()}@flamoral.test`,
+        email: `mass-assign-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         firstName: 'Mass',
         lastName: 'Assign',
@@ -617,6 +620,7 @@ describe('Security: Mass Assignment Protection', () => {
         role: 'admin',
         isAdmin: true,
         roles: ['admin', 'moderator'],
+        consents: { terms: true, privacy: true },
       });
 
     if (res.status === 201) {
@@ -699,7 +703,7 @@ describe('Security: Authentication Edge Cases', () => {
     const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       userId: testState.userId || 'test',
-      email: 'admin@flamoral.test',
+      email: 'admin@example.com',
       roles: ['admin'],
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
@@ -718,7 +722,7 @@ describe('Security: Authentication Edge Cases', () => {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       userId: 'test-user',
-      email: 'expired@flamoral.test',
+      email: 'expired@example.com',
       iat: Math.floor(Date.now() / 1000) - 7200,
       exp: Math.floor(Date.now() / 1000) - 3600, // expired 1 hour ago
     })).toString('base64url');
@@ -760,14 +764,14 @@ describe('Security: Authentication Edge Cases', () => {
     const resNonExistent = await request(API)
       .post(url('/auth/login'))
       .send({
-        email: 'nonexistent-user-xyz@flamoral.test',
+        email: 'nonexistent-user-xyz@example.com',
         password: 'SomePassword123!',
       });
 
     const resWrongPassword = await request(API)
       .post(url('/auth/login'))
       .send({
-        email: testState.email || 'test@flamoral.test',
+        email: testState.email || 'test@example.com',
         password: 'WrongPassword999!',
       });
 
@@ -791,7 +795,7 @@ describe('Security: Rate Limiting', () => {
       const res = await request(API)
         .post(url('/auth/login'))
         .send({
-          email: 'rate-limit-test@flamoral.test',
+          email: 'rate-limit-test@example.com',
           password: 'WrongPassword123!',
         });
       results.push(res.status);
@@ -813,12 +817,13 @@ describe('Security: Rate Limiting', () => {
       const res = await request(API)
         .post(url('/auth/register'))
         .send({
-          email: `ratelimit-${Date.now()}-${i}@flamoral.test`,
+          email: `ratelimit-${Date.now()}-${i}@example.com`,
           password: 'SecurePass123!',
           firstName: 'Rate',
           lastName: 'Limit',
           dateOfBirth: '1995-01-01',
           gender: 'male',
+          consents: { terms: true, privacy: true },
         });
       results.push(res.status);
     }
@@ -839,7 +844,7 @@ describe('Security: Rate Limiting', () => {
     for (let i = 0; i < 10; i++) {
       const res = await request(API)
         .post(url('/auth/forgot-password'))
-        .send({ email: 'ratelimit-reset@flamoral.test' });
+        .send({ email: 'ratelimit-reset@example.com' });
       results.push(res.status);
     }
 
@@ -852,7 +857,7 @@ describe('Security: Rate Limiting', () => {
     const res = await request(API)
       .post(url('/auth/login'))
       .send({
-        email: 'header-check@flamoral.test',
+        email: 'header-check@example.com',
         password: 'SomePassword123!',
       });
 
@@ -1020,7 +1025,7 @@ describe('Security: Miscellaneous', () => {
     const res = await request(API)
       .post(url('/auth/login'))
       .send({
-        email: 'test\x00@flamoral.test',
+        email: 'test\x00@example.com',
         password: 'Pass\x00word123!',
       });
 
@@ -1051,7 +1056,7 @@ describe('Security: Miscellaneous', () => {
   it('should not reveal internal file paths in error messages', async () => {
     const res = await request(API)
       .post(url('/auth/register'))
-      .send({}); // Missing required fields
+      .send({ consents: { terms: true, privacy: true } }); // Missing required fields
 
     const body = JSON.stringify(res.body);
     expect(body).not.toMatch(/\/home\//);

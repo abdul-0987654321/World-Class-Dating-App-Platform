@@ -12,7 +12,7 @@ describe('Messaging Service API', () => {
   beforeAll(async () => {
     // Login to get access token
     const loginResponse = await request(AUTH_URL)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({
         email: process.env.TEST_USER_EMAIL || 'test@example.com',
         password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
@@ -21,10 +21,10 @@ describe('Messaging Service API', () => {
     accessToken = loginResponse.body.accessToken;
   });
 
-  describe('GET /api/conversations', () => {
+  describe('GET /api/v1/conversations', () => {
     it('should return list of conversations', async () => {
       const response = await request(API_URL)
-        .get('/api/conversations')
+        .get('/api/v1/conversations')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -42,7 +42,7 @@ describe('Messaging Service API', () => {
 
     it('should support pagination', async () => {
       const response = await request(API_URL)
-        .get('/api/conversations?page=1&limit=5')
+        .get('/api/v1/conversations?page=1&limit=5')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -51,13 +51,13 @@ describe('Messaging Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .get('/api/conversations');
+        .get('/api/v1/conversations');
 
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /api/conversations/:id', () => {
+  describe('GET /api/v1/conversations/:id', () => {
     it('should return conversation details', async () => {
       if (!conversationId) {
         console.log('Skipping: No conversations available');
@@ -65,7 +65,7 @@ describe('Messaging Service API', () => {
       }
 
       const response = await request(API_URL)
-        .get(`/api/conversations/${conversationId}`)
+        .get(`/api/v1/conversations/${conversationId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -74,14 +74,14 @@ describe('Messaging Service API', () => {
 
     it('should return 404 for non-existent conversation', async () => {
       const response = await request(API_URL)
-        .get('/api/conversations/nonexistent-id')
+        .get('/api/v1/conversations/nonexistent-id')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);
     });
   });
 
-  describe('GET /api/conversations/:id/messages', () => {
+  describe('GET /api/v1/conversations/:id/messages', () => {
     it('should return messages for conversation', async () => {
       if (!conversationId) {
         console.log('Skipping: No conversations available');
@@ -89,7 +89,7 @@ describe('Messaging Service API', () => {
       }
 
       const response = await request(API_URL)
-        .get(`/api/conversations/${conversationId}/messages`)
+        .get(`/api/v1/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -101,7 +101,7 @@ describe('Messaging Service API', () => {
       if (!conversationId) return;
 
       const response = await request(API_URL)
-        .get(`/api/conversations/${conversationId}/messages?page=1&limit=20`)
+        .get(`/api/v1/conversations/${conversationId}/messages?page=1&limit=20`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -109,7 +109,7 @@ describe('Messaging Service API', () => {
     });
   });
 
-  describe('POST /api/messages', () => {
+  describe('POST /api/v1/messages', () => {
     it('should send a text message', async () => {
       if (!conversationId) {
         console.log('Skipping: No conversations available');
@@ -117,7 +117,7 @@ describe('Messaging Service API', () => {
       }
 
       const response = await request(API_URL)
-        .post('/api/messages')
+        .post('/api/v1/messages')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           conversationId,
@@ -135,7 +135,7 @@ describe('Messaging Service API', () => {
       if (!conversationId) return;
 
       const response = await request(API_URL)
-        .post('/api/messages')
+        .post('/api/v1/messages')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           conversationId,
@@ -148,7 +148,7 @@ describe('Messaging Service API', () => {
 
     it('should fail without conversationId', async () => {
       const response = await request(API_URL)
-        .post('/api/messages')
+        .post('/api/v1/messages')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           content: 'Test message',
@@ -159,10 +159,10 @@ describe('Messaging Service API', () => {
     });
   });
 
-  describe('GET /api/messages/unread-count', () => {
+  describe('GET /api/v1/messages/unread-count', () => {
     it('should return unread message count', async () => {
       const response = await request(API_URL)
-        .get('/api/messages/unread-count')
+        .get('/api/v1/messages/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -171,7 +171,7 @@ describe('Messaging Service API', () => {
     });
   });
 
-  describe('GET /api/messages/:messageId', () => {
+  describe('GET /api/v1/messages/:messageId', () => {
     it('should return message details', async () => {
       if (!messageId) {
         console.log('Skipping: No message created');
@@ -179,7 +179,7 @@ describe('Messaging Service API', () => {
       }
 
       const response = await request(API_URL)
-        .get(`/api/messages/${messageId}`)
+        .get(`/api/v1/messages/${messageId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -187,12 +187,12 @@ describe('Messaging Service API', () => {
     });
   });
 
-  describe('PUT /api/messages/:messageId', () => {
+  describe('PUT /api/v1/messages/:messageId', () => {
     it('should update message content', async () => {
       if (!messageId) return;
 
       const response = await request(API_URL)
-        .put(`/api/messages/${messageId}`)
+        .put(`/api/v1/messages/${messageId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           content: 'Updated message content'
@@ -203,12 +203,12 @@ describe('Messaging Service API', () => {
     });
   });
 
-  describe('PUT /api/messages/:messageId/status', () => {
+  describe('PUT /api/v1/messages/:messageId/status', () => {
     it('should update message status to delivered', async () => {
       if (!messageId) return;
 
       const response = await request(API_URL)
-        .put(`/api/messages/${messageId}/status`)
+        .put(`/api/v1/messages/${messageId}/status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           status: 'delivered'
@@ -218,36 +218,36 @@ describe('Messaging Service API', () => {
     });
   });
 
-  describe('PUT /api/conversations/:id/read', () => {
+  describe('PUT /api/v1/conversations/:id/read', () => {
     it('should mark conversation as read', async () => {
       if (!conversationId) return;
 
       const response = await request(API_URL)
-        .put(`/api/conversations/${conversationId}/read`)
+        .put(`/api/v1/conversations/${conversationId}/read`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
     });
   });
 
-  describe('PUT /api/conversations/:id/archive', () => {
+  describe('PUT /api/v1/conversations/:id/archive', () => {
     it('should archive conversation', async () => {
       if (!conversationId) return;
 
       const response = await request(API_URL)
-        .put(`/api/conversations/${conversationId}/archive`)
+        .put(`/api/v1/conversations/${conversationId}/archive`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
     });
   });
 
-  describe('DELETE /api/messages/:messageId', () => {
+  describe('DELETE /api/v1/messages/:messageId', () => {
     it('should delete a message', async () => {
       if (!messageId) return;
 
       const response = await request(API_URL)
-        .delete(`/api/messages/${messageId}`)
+        .delete(`/api/v1/messages/${messageId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect([200, 403]).toContain(response.status);

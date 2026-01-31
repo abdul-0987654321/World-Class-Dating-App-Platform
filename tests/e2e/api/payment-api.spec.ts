@@ -19,7 +19,7 @@ describe('Payment Service API', () => {
   beforeAll(async () => {
     // Login to get access token
     const loginResponse = await request(AUTH_URL)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({
         email: process.env.TEST_USER_EMAIL || 'test@example.com',
         password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
@@ -32,11 +32,11 @@ describe('Payment Service API', () => {
     }
   });
 
-  describe('POST /api/payments/create-intent - Create Payment Intent', () => {
+  describe('POST /api/v1/payments/create-intent - Create Payment Intent', () => {
     describe('Subscription purchase', () => {
       it('should create payment intent for subscription', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -60,7 +60,7 @@ describe('Payment Service API', () => {
 
       it('should include subscription metadata', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 1999,
@@ -82,7 +82,7 @@ describe('Payment Service API', () => {
     describe('Coin package purchase', () => {
       it('should create payment intent for coin package', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 499,
@@ -111,7 +111,7 @@ describe('Payment Service API', () => {
 
         for (const pkg of packages) {
           const response = await request(API_URL)
-            .post('/api/payments/create-intent')
+            .post('/api/v1/payments/create-intent')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
               amount: pkg.amount,
@@ -134,7 +134,7 @@ describe('Payment Service API', () => {
     describe('Boost purchase', () => {
       it('should create payment intent for profile boost', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 299,
@@ -157,7 +157,7 @@ describe('Payment Service API', () => {
 
         for (const duration of durations) {
           const response = await request(API_URL)
-            .post('/api/payments/create-intent')
+            .post('/api/v1/payments/create-intent')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
               amount: duration === 30 ? 299 : duration === 60 ? 499 : 999,
@@ -178,7 +178,7 @@ describe('Payment Service API', () => {
     describe('Invalid product ID', () => {
       it('should reject invalid metadata', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -198,7 +198,7 @@ describe('Payment Service API', () => {
     describe('Invalid product type', () => {
       it('should handle missing product type', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -215,7 +215,7 @@ describe('Payment Service API', () => {
     describe('Validation errors', () => {
       it('should fail with missing amount', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             currency: 'usd',
@@ -229,7 +229,7 @@ describe('Payment Service API', () => {
 
       it('should fail with missing customer ID', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -243,7 +243,7 @@ describe('Payment Service API', () => {
 
       it('should fail with invalid amount (negative)', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: -999,
@@ -257,7 +257,7 @@ describe('Payment Service API', () => {
 
       it('should fail with invalid amount (zero)', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 0,
@@ -271,7 +271,7 @@ describe('Payment Service API', () => {
 
       it('should use default currency if not provided', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -285,7 +285,7 @@ describe('Payment Service API', () => {
     describe('Auth required', () => {
       it('should fail without authentication', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .send({
             amount: 999,
             currency: 'usd',
@@ -297,7 +297,7 @@ describe('Payment Service API', () => {
 
       it('should fail with invalid token', async () => {
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', 'Bearer invalid-token-12345')
           .send({
             amount: 999,
@@ -312,7 +312,7 @@ describe('Payment Service API', () => {
         const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
         const response = await request(API_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${expiredToken}`)
           .send({
             amount: 999,
@@ -325,11 +325,11 @@ describe('Payment Service API', () => {
     });
   });
 
-  describe('GET /api/payments/history - Get Payment History', () => {
+  describe('GET /api/v1/payments/history - Get Payment History', () => {
     describe('Paginated results', () => {
       it('should return payment history with pagination', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({ page: 1, limit: 10 });
 
@@ -347,7 +347,7 @@ describe('Payment Service API', () => {
 
       it('should respect pagination limits', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({ page: 1, limit: 5 });
 
@@ -359,12 +359,12 @@ describe('Payment Service API', () => {
 
       it('should handle different page numbers', async () => {
         const page1 = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({ page: 1, limit: 2 });
 
         const page2 = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({ page: 2, limit: 2 });
 
@@ -374,7 +374,7 @@ describe('Payment Service API', () => {
 
       it('should handle large page numbers gracefully', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({ page: 1000, limit: 10 });
 
@@ -387,7 +387,7 @@ describe('Payment Service API', () => {
       it('should return empty array for user with no payments', async () => {
         // This test assumes the test user might have no payment history
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -396,7 +396,7 @@ describe('Payment Service API', () => {
 
       it('should have correct structure even when empty', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -411,7 +411,7 @@ describe('Payment Service API', () => {
         startDate.setDate(startDate.getDate() - 30);
 
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({
             startDate: startDate.toISOString()
@@ -427,7 +427,7 @@ describe('Payment Service API', () => {
         const endDate = new Date();
 
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({
             endDate: endDate.toISOString()
@@ -442,7 +442,7 @@ describe('Payment Service API', () => {
         const endDate = new Date();
 
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({
             startDate: startDate.toISOString(),
@@ -458,7 +458,7 @@ describe('Payment Service API', () => {
         endDate.setDate(endDate.getDate() - 30);
 
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({
             startDate: startDate.toISOString(),
@@ -473,14 +473,14 @@ describe('Payment Service API', () => {
     describe('Auth required', () => {
       it('should fail without authentication', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history');
+          .get('/api/v1/payments/history');
 
         expect(response.status).toBe(401);
       });
 
       it('should fail with invalid token', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', 'Bearer invalid-token');
 
         expect(response.status).toBe(401);
@@ -488,7 +488,7 @@ describe('Payment Service API', () => {
 
       it('should not return other users payment history', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/history')
+          .get('/api/v1/payments/history')
           .set('Authorization', `Bearer ${accessToken}`)
           .query({ userId: 'other-user-id' });
 
@@ -498,11 +498,11 @@ describe('Payment Service API', () => {
     });
   });
 
-  describe('GET /api/payments/methods - Get Saved Payment Methods', () => {
+  describe('GET /api/v1/payments/methods - Get Saved Payment Methods', () => {
     describe('List saved cards', () => {
       it('should return list of payment methods', async () => {
         const response = await request(API_URL)
-          .get(`/api/payments/methods/${customerId}`)
+          .get(`/api/v1/payments/methods/${customerId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -513,7 +513,7 @@ describe('Payment Service API', () => {
 
       it('should include card details for each method', async () => {
         const response = await request(API_URL)
-          .get(`/api/payments/methods/${customerId}`)
+          .get(`/api/v1/payments/methods/${customerId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -528,7 +528,7 @@ describe('Payment Service API', () => {
 
       it('should not expose sensitive card information', async () => {
         const response = await request(API_URL)
-          .get(`/api/payments/methods/${customerId}`)
+          .get(`/api/v1/payments/methods/${customerId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -545,7 +545,7 @@ describe('Payment Service API', () => {
     describe('Empty state', () => {
       it('should return empty array when no payment methods exist', async () => {
         const response = await request(API_URL)
-          .get(`/api/payments/methods/${customerId}`)
+          .get(`/api/v1/payments/methods/${customerId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -555,7 +555,7 @@ describe('Payment Service API', () => {
 
       it('should handle non-existent customer gracefully', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/methods/cus_nonexistent123')
+          .get('/api/v1/payments/methods/cus_nonexistent123')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect([200, 400, 404, 500]).toContain(response.status);
@@ -565,14 +565,14 @@ describe('Payment Service API', () => {
     describe('Auth required', () => {
       it('should fail without authentication', async () => {
         const response = await request(API_URL)
-          .get(`/api/payments/methods/${customerId}`);
+          .get(`/api/v1/payments/methods/${customerId}`);
 
         expect(response.status).toBe(401);
       });
 
       it('should fail with invalid token', async () => {
         const response = await request(API_URL)
-          .get(`/api/payments/methods/${customerId}`)
+          .get(`/api/v1/payments/methods/${customerId}`)
           .set('Authorization', 'Bearer invalid-token');
 
         expect(response.status).toBe(401);
@@ -580,7 +580,7 @@ describe('Payment Service API', () => {
 
       it('should validate customer ID parameter', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/methods/')
+          .get('/api/v1/payments/methods/')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(404);
@@ -588,7 +588,7 @@ describe('Payment Service API', () => {
 
       it('should not allow accessing other users payment methods', async () => {
         const response = await request(API_URL)
-          .get('/api/payments/methods/cus_other_user_123')
+          .get('/api/v1/payments/methods/cus_other_user_123')
           .set('Authorization', `Bearer ${accessToken}`);
 
         // Should either fail authorization or return empty
@@ -597,7 +597,7 @@ describe('Payment Service API', () => {
     });
   });
 
-  describe('POST /api/payments/webhook - Stripe Webhook Handler', () => {
+  describe('POST /api/v1/payments/webhook - Stripe Webhook Handler', () => {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test_secret';
 
     // Helper function to generate webhook signature
@@ -639,7 +639,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .set('Content-Type', 'application/json')
           .send(payload);
@@ -676,7 +676,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -712,7 +712,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -743,7 +743,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -784,7 +784,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -813,7 +813,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -844,7 +844,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -873,7 +873,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -895,7 +895,7 @@ describe('Payment Service API', () => {
         };
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', 'invalid_signature_123')
           .send(JSON.stringify(event));
 
@@ -911,7 +911,7 @@ describe('Payment Service API', () => {
         };
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .send(JSON.stringify(event));
 
         expect(response.status).toBe(400);
@@ -935,7 +935,7 @@ describe('Payment Service API', () => {
         const tamperedEvent = { ...event, data: { object: { amount: 1 } } };
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(JSON.stringify(tamperedEvent));
 
@@ -958,7 +958,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -981,7 +981,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -1010,12 +1010,12 @@ describe('Payment Service API', () => {
 
         // Send same event twice
         const response1 = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
         const response2 = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -1047,7 +1047,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -1071,7 +1071,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('Authorization', 'Bearer some-token')
           .set('stripe-signature', signature)
           .send(payload);
@@ -1101,7 +1101,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -1128,7 +1128,7 @@ describe('Payment Service API', () => {
         const signature = generateWebhookSignature(payload, webhookSecret);
 
         const response = await request(API_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 

@@ -13,7 +13,7 @@ describe('Notification Service API', () => {
   beforeAll(async () => {
     // Login to get access token
     const loginResponse = await request(AUTH_URL)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({
         email: process.env.TEST_USER_EMAIL || 'test@example.com',
         password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
@@ -23,11 +23,11 @@ describe('Notification Service API', () => {
     userId = loginResponse.body.user?.id || loginResponse.body.userId;
   });
 
-  // ==================== GET /api/notifications ====================
-  describe('GET /api/notifications', () => {
+  // ==================== GET /api/v1/notifications ====================
+  describe('GET /api/v1/notifications', () => {
     it('should return list of notifications with pagination', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications')
+        .get('/api/v1/notifications')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -47,7 +47,7 @@ describe('Notification Service API', () => {
 
     it('should support custom page and limit parameters', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications?page=1&limit=5')
+        .get('/api/v1/notifications?page=1&limit=5')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -59,7 +59,7 @@ describe('Notification Service API', () => {
 
     it('should support unreadOnly filter', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications?unreadOnly=true')
+        .get('/api/v1/notifications?unreadOnly=true')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -75,7 +75,7 @@ describe('Notification Service API', () => {
 
     it('should handle empty state gracefully', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications?page=999')
+        .get('/api/v1/notifications?page=999')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -86,25 +86,25 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications');
+        .get('/api/v1/notifications');
 
       expect(response.status).toBe(401);
     });
 
     it('should fail with invalid token', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications')
+        .get('/api/v1/notifications')
         .set('Authorization', 'Bearer invalid-token-12345');
 
       expect(response.status).toBe(401);
     });
   });
 
-  // ==================== GET /api/notifications/unread-count ====================
-  describe('GET /api/notifications/unread-count', () => {
+  // ==================== GET /api/v1/notifications/unread-count ====================
+  describe('GET /api/v1/notifications/unread-count', () => {
     it('should return unread notification count', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -116,14 +116,14 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications/unread-count');
+        .get('/api/v1/notifications/unread-count');
 
       expect(response.status).toBe(401);
     });
 
     it('should return zero for user with no unread notifications', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -132,14 +132,14 @@ describe('Notification Service API', () => {
     });
   });
 
-  // ==================== PUT /api/notifications/:id/read ====================
-  describe('PUT /api/notifications/:id/read', () => {
+  // ==================== PUT /api/v1/notifications/:id/read ====================
+  describe('PUT /api/v1/notifications/:id/read', () => {
     let initialUnreadCount: number;
 
     beforeAll(async () => {
       // Get initial unread count
       const countResponse = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
       initialUnreadCount = countResponse.body.count;
     });
@@ -151,7 +151,7 @@ describe('Notification Service API', () => {
       }
 
       const response = await request(API_URL)
-        .put(`/api/notifications/${notificationId}/read`)
+        .put(`/api/v1/notifications/${notificationId}/read`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -167,12 +167,12 @@ describe('Notification Service API', () => {
 
       // Mark as read
       await request(API_URL)
-        .put(`/api/notifications/${notificationId}/read`)
+        .put(`/api/v1/notifications/${notificationId}/read`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Check updated count
       const countResponse = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(countResponse.status).toBe(200);
@@ -181,7 +181,7 @@ describe('Notification Service API', () => {
 
     it('should fail with non-existent notification ID', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/nonexistent-notification-id-12345/read')
+        .put('/api/v1/notifications/nonexistent-notification-id-12345/read')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);
@@ -190,7 +190,7 @@ describe('Notification Service API', () => {
 
     it('should fail with invalid notification ID format', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/invalid@id/read')
+        .put('/api/v1/notifications/invalid@id/read')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect([400, 404]).toContain(response.status);
@@ -198,17 +198,17 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .put(`/api/notifications/some-id/read`);
+        .put(`/api/v1/notifications/some-id/read`);
 
       expect(response.status).toBe(401);
     });
   });
 
-  // ==================== PUT /api/notifications/read-all ====================
-  describe('PUT /api/notifications/read-all', () => {
+  // ==================== PUT /api/v1/notifications/read-all ====================
+  describe('PUT /api/v1/notifications/read-all', () => {
     it('should mark all notifications as read', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/read-all')
+        .put('/api/v1/notifications/read-all')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -222,12 +222,12 @@ describe('Notification Service API', () => {
     it('should set unread count to zero after marking all as read', async () => {
       // Mark all as read
       await request(API_URL)
-        .put('/api/notifications/read-all')
+        .put('/api/v1/notifications/read-all')
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Verify unread count is zero
       const countResponse = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(countResponse.status).toBe(200);
@@ -236,13 +236,13 @@ describe('Notification Service API', () => {
 
     it('should be idempotent (calling twice should work)', async () => {
       const firstResponse = await request(API_URL)
-        .put('/api/notifications/read-all')
+        .put('/api/v1/notifications/read-all')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(firstResponse.status).toBe(200);
 
       const secondResponse = await request(API_URL)
-        .put('/api/notifications/read-all')
+        .put('/api/v1/notifications/read-all')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(secondResponse.status).toBe(200);
@@ -251,17 +251,17 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/read-all');
+        .put('/api/v1/notifications/read-all');
 
       expect(response.status).toBe(401);
     });
   });
 
-  // ==================== GET /api/notifications/preferences ====================
-  describe('GET /api/notifications/preferences', () => {
+  // ==================== GET /api/v1/notifications/preferences ====================
+  describe('GET /api/v1/notifications/preferences', () => {
     it('should return user notification preferences', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications/preferences')
+        .get('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -287,7 +287,7 @@ describe('Notification Service API', () => {
 
     it('should return default preferences for new user', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications/preferences')
+        .get('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -301,14 +301,14 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications/preferences');
+        .get('/api/v1/notifications/preferences');
 
       expect(response.status).toBe(401);
     });
   });
 
-  // ==================== PUT /api/notifications/preferences ====================
-  describe('PUT /api/notifications/preferences', () => {
+  // ==================== PUT /api/v1/notifications/preferences ====================
+  describe('PUT /api/v1/notifications/preferences', () => {
     it('should update push notification preferences', async () => {
       const updates = {
         pushEnabled: true,
@@ -318,7 +318,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
@@ -343,7 +343,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
@@ -365,7 +365,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
@@ -384,7 +384,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
@@ -400,7 +400,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
@@ -416,13 +416,13 @@ describe('Notification Service API', () => {
       };
 
       await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
       // Fetch preferences to verify
       const getResponse = await request(API_URL)
-        .get('/api/notifications/preferences')
+        .get('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(getResponse.status).toBe(200);
@@ -438,7 +438,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updates);
 
@@ -448,15 +448,15 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .send({ pushEnabled: true });
 
       expect(response.status).toBe(401);
     });
   });
 
-  // ==================== POST /api/notifications/devices ====================
-  describe('POST /api/notifications/devices', () => {
+  // ==================== POST /api/v1/notifications/devices ====================
+  describe('POST /api/v1/notifications/devices', () => {
     it('should register iOS device successfully', async () => {
       const deviceData = {
         deviceToken: `ios-token-${Date.now()}`,
@@ -468,7 +468,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(deviceData);
 
@@ -491,7 +491,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(deviceData);
 
@@ -510,7 +510,7 @@ describe('Notification Service API', () => {
       };
 
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(deviceData);
 
@@ -526,7 +526,7 @@ describe('Notification Service API', () => {
 
       // First registration
       const firstResponse = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(deviceData);
 
@@ -535,7 +535,7 @@ describe('Notification Service API', () => {
 
       // Second registration with same token
       const secondResponse = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(deviceData);
 
@@ -549,7 +549,7 @@ describe('Notification Service API', () => {
 
       // Initial registration
       await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           deviceToken,
@@ -559,7 +559,7 @@ describe('Notification Service API', () => {
 
       // Update with new app version
       const updateResponse = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           deviceToken,
@@ -573,7 +573,7 @@ describe('Notification Service API', () => {
 
     it('should fail without device token', async () => {
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           platform: 'ios'
@@ -586,7 +586,7 @@ describe('Notification Service API', () => {
 
     it('should fail without platform', async () => {
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           deviceToken: 'some-token'
@@ -599,7 +599,7 @@ describe('Notification Service API', () => {
 
     it('should fail with invalid platform', async () => {
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           deviceToken: 'some-token',
@@ -613,7 +613,7 @@ describe('Notification Service API', () => {
 
     it('should fail with empty device token', async () => {
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           deviceToken: '',
@@ -626,7 +626,7 @@ describe('Notification Service API', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(API_URL)
-        .post('/api/notifications/devices')
+        .post('/api/v1/notifications/devices')
         .send({
           deviceToken: 'some-token',
           platform: 'ios'
@@ -644,7 +644,7 @@ describe('Notification Service API', () => {
 
       for (const device of devices) {
         const response = await request(API_URL)
-          .post('/api/notifications/devices')
+          .post('/api/v1/notifications/devices')
           .set('Authorization', `Bearer ${accessToken}`)
           .send(device);
 
@@ -659,7 +659,7 @@ describe('Notification Service API', () => {
     it('should handle concurrent requests gracefully', async () => {
       const requests = Array(5).fill(null).map(() =>
         request(API_URL)
-          .get('/api/notifications/unread-count')
+          .get('/api/v1/notifications/unread-count')
           .set('Authorization', `Bearer ${accessToken}`)
       );
 
@@ -674,17 +674,17 @@ describe('Notification Service API', () => {
     it('should maintain correct state after multiple operations', async () => {
       // Get initial count
       const initialCount = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Mark all as read
       await request(API_URL)
-        .put('/api/notifications/read-all')
+        .put('/api/v1/notifications/read-all')
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Verify count is zero
       const finalCount = await request(API_URL)
-        .get('/api/notifications/unread-count')
+        .get('/api/v1/notifications/unread-count')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(finalCount.body.count).toBe(0);
@@ -694,7 +694,7 @@ describe('Notification Service API', () => {
       // Make multiple rapid requests
       const requests = Array(10).fill(null).map(() =>
         request(API_URL)
-          .get('/api/notifications')
+          .get('/api/v1/notifications')
           .set('Authorization', `Bearer ${accessToken}`)
       );
 
@@ -713,7 +713,7 @@ describe('Notification Service API', () => {
       const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
       const response = await request(API_URL)
-        .get('/api/notifications')
+        .get('/api/v1/notifications')
         .set('Authorization', `Bearer ${expiredToken}`);
 
       expect(response.status).toBe(401);
@@ -721,7 +721,7 @@ describe('Notification Service API', () => {
 
     it('should return 401 for malformed token', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications')
+        .get('/api/v1/notifications')
         .set('Authorization', 'Bearer malformed.token.value');
 
       expect(response.status).toBe(401);
@@ -729,14 +729,14 @@ describe('Notification Service API', () => {
 
     it('should return 401 for missing Authorization header', async () => {
       const response = await request(API_URL)
-        .get('/api/notifications');
+        .get('/api/v1/notifications');
 
       expect(response.status).toBe(401);
     });
 
     it('should handle internal server errors gracefully', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/preferences')
+        .put('/api/v1/notifications/preferences')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           invalidField: 'this should not cause a crash'
@@ -751,7 +751,7 @@ describe('Notification Service API', () => {
 
     it('should validate notification ID format', async () => {
       const response = await request(API_URL)
-        .put('/api/notifications/../../../etc/passwd/read')
+        .put('/api/v1/notifications/../../../etc/passwd/read')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect([400, 404]).toContain(response.status);
@@ -764,7 +764,7 @@ describe('Notification Service API', () => {
       const startTime = Date.now();
 
       await request(API_URL)
-        .get('/api/notifications')
+        .get('/api/v1/notifications')
         .set('Authorization', `Bearer ${accessToken}`);
 
       const duration = Date.now() - startTime;
@@ -775,7 +775,7 @@ describe('Notification Service API', () => {
       const startTime = Date.now();
 
       await request(API_URL)
-        .get('/api/notifications?page=1&limit=50')
+        .get('/api/v1/notifications?page=1&limit=50')
         .set('Authorization', `Bearer ${accessToken}`);
 
       const duration = Date.now() - startTime;

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "strict": false,
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    "rootDir": "../../../"
+  },
+  "include": [
+    "../../../tests/e2e/**/*.ts",
+    "../../../backend/shared/**/*.ts"
+  ]
+}

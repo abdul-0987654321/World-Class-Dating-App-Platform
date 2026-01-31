@@ -7,8 +7,8 @@
 
 import request from 'supertest';
 
-// Production Railway base URL
-const RAILWAY_BASE_URL = 'https://api-gateway-production-1957.up.railway.app';
+// Production base URL (api.flamoral.com routes to the backend directly)
+const RAILWAY_BASE_URL = 'https://api.flamoral.com';
 
 // Environment configuration
 export const config = {
@@ -24,7 +24,7 @@ export const config = {
   API_GATEWAY_URL: process.env.API_GATEWAY_URL || RAILWAY_BASE_URL,
 
   // Test user credentials
-  TEST_USER_EMAIL: process.env.TEST_USER_EMAIL || `e2e-test-${Date.now()}@flamoral.test`,
+  TEST_USER_EMAIL: process.env.TEST_USER_EMAIL || `e2e-test-${Date.now()}@example.com`,
   TEST_USER_PASSWORD: process.env.TEST_USER_PASSWORD || 'E2ETestPassword123!',
 
   // Stripe test keys
@@ -51,15 +51,47 @@ export interface TestState {
 export const testState: TestState = {};
 
 /**
+ * Extract a token value from Set-Cookie headers.
+ * Cookies are in format: "token_name=value; Max-Age=...; Path=...; ..."
+ */
+function extractTokenFromCookies(cookies: string | string[] | undefined, tokenName: string): string | undefined {
+  if (!cookies) return undefined;
+  const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
+  for (const cookie of cookieArray) {
+    if (cookie.startsWith(`${tokenName}=`)) {
+      return cookie.split(';')[0].substring(tokenName.length + 1);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extract tokens from response - checks both body and Set-Cookie headers
+ */
+function extractTokens(response: any): { accessToken?: string; refreshToken?: string } {
+  const data = response.body?.data || response.body;
+  // Try response body first
+  let accessToken = data?.accessToken || data?.access_token;
+  let refreshToken = data?.refreshToken || data?.refresh_token;
+  // Fall back to Set-Cookie headers
+  if (!accessToken) {
+    const cookies = response.headers?.['set-cookie'];
+    accessToken = extractTokenFromCookies(cookies, 'access_token');
+    refreshToken = refreshToken || extractTokenFromCookies(cookies, 'refresh_token');
+  }
+  return { accessToken, refreshToken };
+}
+
+/**
  * Creates a test user and authenticates
  */
 export async function createTestUser(): Promise<TestState> {
-  const uniqueEmail = `e2e-test-${Date.now()}-${Math.random().toString(36).substring(7)}@flamoral.test`;
+  const uniqueEmail = `e2e-test-${Date.now()}-${Math.random().toString(36).substring(7)}@example.com`;
 
   try {
     // Register new user
     const registerResponse = await request(config.AUTH_URL)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         email: uniqueEmail,
         password: config.TEST_USER_PASSWORD,
@@ -67,42 +99,50 @@ export async function createTestUser(): Promise<TestState> {
         lastName: 'TestUser',
         dateOfBirth: '1995-06-15',
         gender: 'male',
+        consents: { terms: true, privacy: true },
       })
       .timeout(config.DEFAULT_TIMEOUT);
 
     if (registerResponse.status === 201) {
       const data = registerResponse.body.data || registerResponse.body;
-      testState.accessToken = data.accessToken;
-      testState.refreshToken = data.refreshToken;
       testState.userId = data.user?.id || data.userId;
       testState.email = uniqueEmail;
       testState.stripeCustomerId = data.user?.stripeCustomerId;
-      return testState;
+
+      // Tokens may be in body or cookies; try login to get them
+      const tokens = extractTokens(registerResponse);
+      if (tokens.accessToken) {
+        testState.accessToken = tokens.accessToken;
+        testState.refreshToken = tokens.refreshToken;
+        return testState;
+      }
     }
   } catch (error) {
-    console.error('Failed to create test user:', error);
+    console.error('Failed to register test user:', error);
   }
 
-  // Fallback: try to login with existing test credentials
+  // Login to get tokens (registration may not return them in body)
+  const loginEmail = testState.email || config.TEST_USER_EMAIL;
   try {
     const loginResponse = await request(config.AUTH_URL)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({
-        email: config.TEST_USER_EMAIL,
+        email: loginEmail,
         password: config.TEST_USER_PASSWORD,
       })
       .timeout(config.DEFAULT_TIMEOUT);
 
     if (loginResponse.status === 200) {
       const data = loginResponse.body.data || loginResponse.body;
-      testState.accessToken = data.accessToken;
-      testState.refreshToken = data.refreshToken;
-      testState.userId = data.user?.id;
-      testState.email = config.TEST_USER_EMAIL;
+      const tokens = extractTokens(loginResponse);
+      testState.accessToken = tokens.accessToken;
+      testState.refreshToken = tokens.refreshToken;
+      testState.userId = testState.userId || data.user?.id;
+      testState.email = loginEmail;
       testState.stripeCustomerId = data.user?.stripeCustomerId;
     }
   } catch (error) {
-    console.warn('Login fallback failed:', error);
+    console.warn('Login failed:', error);
   }
 
   return testState;
@@ -115,16 +155,16 @@ export async function createTestUser(): Promise<TestState> {
  */
 export async function cleanupTestUser(): Promise<void> {
   if (testState.accessToken && testState.userId) {
-    // Safety guard: only clean up test accounts (identified by @flamoral.test domain)
-    if (!testState.email || !testState.email.endsWith('@flamoral.test')) {
-      console.warn('Skipping cleanup: user email is not a test account (@flamoral.test)');
+    // Safety guard: only clean up test accounts (identified by e2e-test prefix)
+    if (!testState.email || !testState.email.startsWith('e2e-test-')) {
+      console.warn('Skipping cleanup: user email is not a test account (e2e-test- prefix)');
       return;
     }
 
     try {
       // Attempt to delete test user (if endpoint exists)
       await request(config.AUTH_URL)
-        .delete(`/api/users/${testState.userId}`)
+        .delete(`/api/v1/users/${testState.userId}`)
         .set('Authorization', `Bearer ${testState.accessToken}`)
         .timeout(config.DEFAULT_TIMEOUT);
     } catch (error) {
@@ -169,11 +209,11 @@ export function authenticatedRequest(baseUrl: string = config.API_GATEWAY_URL) {
  */
 export async function createSecondTestUser(): Promise<TestState> {
   const state: TestState = {};
-  const uniqueEmail = `e2e-second-${Date.now()}-${Math.random().toString(36).substring(7)}@flamoral.test`;
+  const uniqueEmail = `e2e-second-${Date.now()}-${Math.random().toString(36).substring(7)}@example.com`;
 
   try {
     const registerResponse = await request(config.AUTH_URL)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         email: uniqueEmail,
         password: config.TEST_USER_PASSWORD,
@@ -181,15 +221,26 @@ export async function createSecondTestUser(): Promise<TestState> {
         lastName: 'TestUser',
         dateOfBirth: '1993-03-20',
         gender: 'female',
+        consents: { terms: true, privacy: true },
       })
       .timeout(config.DEFAULT_TIMEOUT);
 
     if (registerResponse.status === 201) {
       const data = registerResponse.body.data || registerResponse.body;
-      state.accessToken = data.accessToken;
-      state.refreshToken = data.refreshToken;
       state.userId = data.user?.id || data.userId;
       state.email = uniqueEmail;
+
+      // Try login to get tokens
+      const loginRes = await request(config.AUTH_URL)
+        .post('/api/v1/auth/login')
+        .send({ email: uniqueEmail, password: config.TEST_USER_PASSWORD })
+        .timeout(config.DEFAULT_TIMEOUT);
+
+      if (loginRes.status === 200) {
+        const tokens = extractTokens(loginRes);
+        state.accessToken = tokens.accessToken;
+        state.refreshToken = tokens.refreshToken;
+      }
     }
   } catch (error) {
     console.warn('Failed to create second test user:', error);
@@ -214,7 +265,7 @@ export function generateMockToken(claims: {
   const secret = process.env.JWT_ACCESS_SECRET || 'test_secret';
   const payload = {
     userId: claims.userId || 'mock-user-id',
-    email: claims.email || 'mock@flamoral.test',
+    email: claims.email || 'mock@example.com',
     roles: claims.roles || ['user'],
     subscription: claims.subscription || 'free',
     iat: Math.floor(Date.now() / 1000),
@@ -314,7 +365,7 @@ beforeAll(async () => {
   if (!testState.accessToken) {
     console.warn('Warning: No access token available. Some tests may fail.');
   }
-});
+}, 60000);
 
 afterAll(async () => {
   console.log('Cleaning up E2E API tests...');

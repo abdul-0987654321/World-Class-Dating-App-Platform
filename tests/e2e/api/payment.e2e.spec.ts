@@ -35,7 +35,7 @@ describe('Payment Service E2E Tests', () => {
     } else {
       // Create a test user if needed
       const loginResponse = await request(AUTH_URL)
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({
           email: config.TEST_USER_EMAIL,
           password: config.TEST_USER_PASSWORD,
@@ -51,11 +51,11 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== PLANS TESTS ====================
 
-  describe('GET /api/payments/plans', () => {
+  describe('GET /api/v1/payments/plans', () => {
     describe('Get Subscription Plans', () => {
       it('should return all available subscription plans', async () => {
         const response = await request(PAYMENT_URL)
-          .get('/api/payments/plans');
+          .get('/api/v1/payments/plans');
 
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('success', true);
@@ -65,7 +65,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should include required plan fields', async () => {
         const response = await request(PAYMENT_URL)
-          .get('/api/payments/plans');
+          .get('/api/v1/payments/plans');
 
         expect(response.status).toBe(200);
 
@@ -80,7 +80,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should include free tier', async () => {
         const response = await request(PAYMENT_URL)
-          .get('/api/payments/plans');
+          .get('/api/v1/payments/plans');
 
         expect(response.status).toBe(200);
 
@@ -91,7 +91,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should not expose internal Stripe IDs', async () => {
         const response = await request(PAYMENT_URL)
-          .get('/api/payments/plans');
+          .get('/api/v1/payments/plans');
 
         expect(response.status).toBe(200);
 
@@ -103,7 +103,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should be accessible without authentication', async () => {
         const response = await request(PAYMENT_URL)
-          .get('/api/payments/plans');
+          .get('/api/v1/payments/plans');
 
         // Plans should be public
         expect(response.status).toBe(200);
@@ -113,10 +113,10 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== MY SUBSCRIPTION TESTS ====================
 
-  describe('GET /api/payments/subscriptions/me', () => {
+  describe('GET /api/v1/payments/subscriptions/me', () => {
     it('should return current user subscription', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/subscriptions/me')
+        .get('/api/v1/payments/subscriptions/me')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -126,7 +126,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should return free tier for user without subscription', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/subscriptions/me')
+        .get('/api/v1/payments/subscriptions/me')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -140,14 +140,14 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/subscriptions/me');
+        .get('/api/v1/payments/subscriptions/me');
 
       expect(response.status).toBe(401);
     });
 
     it('should fail with invalid token', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/subscriptions/me')
+        .get('/api/v1/payments/subscriptions/me')
         .set('Authorization', 'Bearer invalid-token');
 
       expect(response.status).toBe(401);
@@ -156,11 +156,11 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== PAYMENT INTENT TESTS ====================
 
-  describe('POST /api/payments/create-intent', () => {
+  describe('POST /api/v1/payments/create-intent', () => {
     describe('Subscription Payment Intent', () => {
       it('should create payment intent for subscription', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -190,7 +190,7 @@ describe('Payment Service E2E Tests', () => {
         };
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 1999,
@@ -207,7 +207,7 @@ describe('Payment Service E2E Tests', () => {
     describe('Coin Package Payment Intent', () => {
       it('should create payment intent for coin package', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 499,
@@ -236,7 +236,7 @@ describe('Payment Service E2E Tests', () => {
 
         for (const pkg of packages) {
           const response = await request(PAYMENT_URL)
-            .post('/api/payments/create-intent')
+            .post('/api/v1/payments/create-intent')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
               amount: pkg.amount,
@@ -258,7 +258,7 @@ describe('Payment Service E2E Tests', () => {
     describe('Boost Payment Intent', () => {
       it('should create payment intent for profile boost', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 299,
@@ -284,7 +284,7 @@ describe('Payment Service E2E Tests', () => {
 
         for (const boost of durations) {
           const response = await request(PAYMENT_URL)
-            .post('/api/payments/create-intent')
+            .post('/api/v1/payments/create-intent')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
               amount: boost.amount,
@@ -305,7 +305,7 @@ describe('Payment Service E2E Tests', () => {
     describe('Validation Errors', () => {
       it('should fail with missing amount', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             currency: 'usd',
@@ -318,7 +318,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should fail with missing customer ID', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -331,7 +331,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should fail with negative amount', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: -999,
@@ -344,7 +344,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should fail with zero amount', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 0,
@@ -357,7 +357,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should use default currency if not provided', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             amount: 999,
@@ -372,7 +372,7 @@ describe('Payment Service E2E Tests', () => {
     describe('Authentication Required', () => {
       it('should fail without authentication', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .send({
             amount: 999,
             currency: 'usd',
@@ -384,7 +384,7 @@ describe('Payment Service E2E Tests', () => {
 
       it('should fail with invalid token', async () => {
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', 'Bearer invalid-token')
           .send({
             amount: 999,
@@ -399,7 +399,7 @@ describe('Payment Service E2E Tests', () => {
         const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxfQ.5mhBHqs5_DTLdINd9p5m7ZJ6XD0Xc55kIaCRY5r6HRA';
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/create-intent')
+          .post('/api/v1/payments/create-intent')
           .set('Authorization', `Bearer ${expiredToken}`)
           .send({
             amount: 999,
@@ -414,10 +414,10 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== SUBSCRIPTION MANAGEMENT TESTS ====================
 
-  describe('POST /api/payments/subscription/create', () => {
+  describe('POST /api/v1/payments/subscription/create', () => {
     it('should fail with missing required fields', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/create')
+        .post('/api/v1/payments/subscription/create')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           tier: 'basic',
@@ -428,7 +428,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/create')
+        .post('/api/v1/payments/subscription/create')
         .send({
           tier: 'basic',
           priceId: 'price_basic',
@@ -441,12 +441,12 @@ describe('Payment Service E2E Tests', () => {
 
     it('should handle subscription creation request', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/create')
+        .post('/api/v1/payments/subscription/create')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           tier: 'basic',
           priceId: 'price_basic_monthly',
-          email: 'test@flamoral.test',
+          email: 'test@example.com',
           paymentMethodId: 'pm_test_card',
         });
 
@@ -459,10 +459,10 @@ describe('Payment Service E2E Tests', () => {
     });
   });
 
-  describe('POST /api/payments/subscription/cancel', () => {
+  describe('POST /api/v1/payments/subscription/cancel', () => {
     it('should fail with missing subscription ID', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/cancel')
+        .post('/api/v1/payments/subscription/cancel')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({});
 
@@ -472,7 +472,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should handle cancel at period end', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/cancel')
+        .post('/api/v1/payments/subscription/cancel')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           subscriptionId: subscriptionId || 'sub_test_123',
@@ -485,7 +485,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should handle immediate cancellation', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/cancel')
+        .post('/api/v1/payments/subscription/cancel')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           subscriptionId: 'sub_test_immediate',
@@ -497,7 +497,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/subscription/cancel')
+        .post('/api/v1/payments/subscription/cancel')
         .send({
           subscriptionId: 'sub_test',
         });
@@ -508,10 +508,10 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== PAYMENT METHODS TESTS ====================
 
-  describe('GET /api/payments/methods/:customerId', () => {
+  describe('GET /api/v1/payments/methods/:customerId', () => {
     it('should return payment methods for customer', async () => {
       const response = await request(PAYMENT_URL)
-        .get(`/api/payments/methods/${customerId}`)
+        .get(`/api/v1/payments/methods/${customerId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -522,7 +522,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should return empty array for customer with no methods', async () => {
       const response = await request(PAYMENT_URL)
-        .get(`/api/payments/methods/${customerId}`)
+        .get(`/api/v1/payments/methods/${customerId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -531,7 +531,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should not expose sensitive card data', async () => {
       const response = await request(PAYMENT_URL)
-        .get(`/api/payments/methods/${customerId}`)
+        .get(`/api/v1/payments/methods/${customerId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -545,14 +545,14 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(PAYMENT_URL)
-        .get(`/api/payments/methods/${customerId}`);
+        .get(`/api/v1/payments/methods/${customerId}`);
 
       expect(response.status).toBe(401);
     });
 
     it('should handle non-existent customer', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/methods/cus_nonexistent_12345')
+        .get('/api/v1/payments/methods/cus_nonexistent_12345')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect([200, 400, 404, 500]).toContain(response.status);
@@ -560,17 +560,17 @@ describe('Payment Service E2E Tests', () => {
 
     it('should validate customer ID format', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/methods/invalid-format')
+        .get('/api/v1/payments/methods/invalid-format')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect([200, 400, 500]).toContain(response.status);
     });
   });
 
-  describe('POST /api/payments/methods/add', () => {
+  describe('POST /api/v1/payments/methods/add', () => {
     it('should fail with missing customer ID', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/methods/add')
+        .post('/api/v1/payments/methods/add')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           paymentMethodId: 'pm_test_card',
@@ -581,7 +581,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail with missing payment method ID', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/methods/add')
+        .post('/api/v1/payments/methods/add')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           customerId: customerId,
@@ -592,7 +592,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should handle add payment method request', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/methods/add')
+        .post('/api/v1/payments/methods/add')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           customerId: customerId,
@@ -605,7 +605,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/methods/add')
+        .post('/api/v1/payments/methods/add')
         .send({
           customerId: customerId,
           paymentMethodId: 'pm_test_card',
@@ -617,10 +617,10 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== REFUND TESTS ====================
 
-  describe('POST /api/payments/refund', () => {
+  describe('POST /api/v1/payments/refund', () => {
     it('should fail with missing payment intent ID', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/refund')
+        .post('/api/v1/payments/refund')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           amount: 500,
@@ -632,7 +632,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should handle refund request', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/refund')
+        .post('/api/v1/payments/refund')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           paymentIntentId: paymentIntentId || 'pi_test_123',
@@ -646,7 +646,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should handle full refund (no amount specified)', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/refund')
+        .post('/api/v1/payments/refund')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           paymentIntentId: 'pi_test_full_refund',
@@ -658,7 +658,7 @@ describe('Payment Service E2E Tests', () => {
 
     it('should fail without authentication', async () => {
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/refund')
+        .post('/api/v1/payments/refund')
         .send({
           paymentIntentId: 'pi_test',
           amount: 500,
@@ -670,7 +670,7 @@ describe('Payment Service E2E Tests', () => {
 
   // ==================== WEBHOOK TESTS ====================
 
-  describe('POST /api/payments/webhook', () => {
+  describe('POST /api/v1/payments/webhook', () => {
     const generateEvent = (type: string, data: any) => ({
       id: `evt_test_${Date.now()}`,
       type,
@@ -697,7 +697,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .set('Content-Type', 'application/json')
           .send(payload);
@@ -722,7 +722,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -753,7 +753,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -773,7 +773,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -793,7 +793,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -814,7 +814,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -836,7 +836,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -856,7 +856,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -878,7 +878,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -898,7 +898,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -914,7 +914,7 @@ describe('Payment Service E2E Tests', () => {
         });
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', 'invalid_signature')
           .send(JSON.stringify(event));
 
@@ -928,7 +928,7 @@ describe('Payment Service E2E Tests', () => {
         });
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .send(JSON.stringify(event));
 
         expect(response.status).toBe(400);
@@ -947,7 +947,7 @@ describe('Payment Service E2E Tests', () => {
         const tamperedEvent = { ...event, data: { object: { amount: 1 } } };
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(JSON.stringify(tamperedEvent));
 
@@ -965,7 +965,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -986,12 +986,12 @@ describe('Payment Service E2E Tests', () => {
 
         // Send same event twice
         const response1 = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
         const response2 = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -1011,7 +1011,7 @@ describe('Payment Service E2E Tests', () => {
         const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
         const response = await request(PAYMENT_URL)
-          .post('/api/payments/webhook')
+          .post('/api/v1/payments/webhook')
           .set('stripe-signature', signature)
           .send(payload);
 
@@ -1026,7 +1026,7 @@ describe('Payment Service E2E Tests', () => {
   describe('Security Tests', () => {
     it('should not expose Stripe API keys in responses', async () => {
       const response = await request(PAYMENT_URL)
-        .get('/api/payments/plans');
+        .get('/api/v1/payments/plans');
 
       expect(response.status).toBe(200);
       const responseText = JSON.stringify(response.body);
@@ -1040,7 +1040,7 @@ describe('Payment Service E2E Tests', () => {
       const signature = generateStripeWebhookSignature(payload, config.STRIPE_WEBHOOK_SECRET);
 
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/webhook')
+        .post('/api/v1/payments/webhook')
         .set('stripe-signature', signature)
         .send(payload);
 
@@ -1051,7 +1051,7 @@ describe('Payment Service E2E Tests', () => {
     it('should prevent price manipulation in requests', async () => {
       // Try to create payment with manipulated amount
       const response = await request(PAYMENT_URL)
-        .post('/api/payments/create-intent')
+        .post('/api/v1/payments/create-intent')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           amount: 1, // Very low amount

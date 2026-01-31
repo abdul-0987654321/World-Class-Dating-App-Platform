@@ -10,10 +10,10 @@ const AUTH_URL = process.env.AUTH_URL || GATEWAY_URL;
  * E2E API Tests for Media Service
  *
  * Tests all 4 main media endpoints:
- * 1. POST /api/media/upload - Photo upload
- * 2. GET /api/media/presigned-url - Get presigned upload URL (if implemented)
- * 3. POST /api/media/videos/upload - Video upload
- * 4. POST /api/media/voice-notes/upload - Voice note upload
+ * 1. POST /api/v1/media/upload - Photo upload
+ * 2. GET /api/v1/media/presigned-url - Get presigned upload URL (if implemented)
+ * 3. POST /api/v1/media/videos/upload - Video upload
+ * 4. POST /api/v1/media/voice-notes/upload - Voice note upload
  */
 describe('Media Service API', () => {
   let accessToken: string;
@@ -160,14 +160,15 @@ describe('Media Service API', () => {
     const testPassword = 'MediaTest123!';
 
     const registerResponse = await request(AUTH_URL)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         email: testEmail,
         password: testPassword,
         firstName: 'Media',
         lastName: 'Test',
         dateOfBirth: '1995-06-15',
-        gender: 'female'
+        gender: 'female',
+        consents: { terms: true, privacy: true }
       });
 
     if (registerResponse.status === 201) {
@@ -176,7 +177,7 @@ describe('Media Service API', () => {
     } else {
       // Try to login if user already exists
       const loginResponse = await request(AUTH_URL)
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({
           email: testEmail,
           password: testPassword
@@ -187,11 +188,11 @@ describe('Media Service API', () => {
     }
   });
 
-  describe('POST /api/media/upload - Photo Upload', () => {
+  describe('POST /api/v1/media/upload - Photo Upload', () => {
     describe('Successful uploads', () => {
       it('should upload a valid JPEG image successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', createTestImage(500), 'test-photo.jpg');
 
@@ -212,7 +213,7 @@ describe('Media Service API', () => {
 
       it('should upload a PNG image successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', createTestPNG(), 'test-photo.png');
 
@@ -223,7 +224,7 @@ describe('Media Service API', () => {
 
       it('should upload a WebP image successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', createTestWebP(), 'test-photo.webp');
 
@@ -233,7 +234,7 @@ describe('Media Service API', () => {
 
       it('should upload and set as profile photo when isProfilePhoto is true', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('isProfilePhoto', 'true')
           .attach('photo', createTestImage(300), 'profile-photo.jpg');
@@ -249,7 +250,7 @@ describe('Media Service API', () => {
         const largeImage = createTestImage(11 * 1024); // 11MB
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', largeImage, 'large-photo.jpg');
 
@@ -262,7 +263,7 @@ describe('Media Service API', () => {
         const maxSizeImage = createTestImage(10 * 1024); // Exactly 10MB
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', maxSizeImage, 'max-size-photo.jpg');
 
@@ -276,7 +277,7 @@ describe('Media Service API', () => {
         const pdfBuffer = Buffer.from('%PDF-1.4\n%');
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', pdfBuffer, 'document.pdf');
 
@@ -289,7 +290,7 @@ describe('Media Service API', () => {
         const textBuffer = Buffer.from('This is a text file');
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', textBuffer, 'file.txt');
 
@@ -301,7 +302,7 @@ describe('Media Service API', () => {
         const corruptedImage = createInvalidFile();
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', corruptedImage, 'corrupted.jpg');
 
@@ -313,7 +314,7 @@ describe('Media Service API', () => {
     describe('Missing file validations', () => {
       it('should fail when no file is attached', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(400);
@@ -323,7 +324,7 @@ describe('Media Service API', () => {
 
       it('should fail when wrong field name is used', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('image', createTestImage(100), 'test.jpg'); // Wrong field name
 
@@ -335,7 +336,7 @@ describe('Media Service API', () => {
     describe('Authentication validations', () => {
       it('should fail without authentication token', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .attach('photo', createTestImage(100), 'test.jpg');
 
         expect(response.status).toBe(401);
@@ -344,7 +345,7 @@ describe('Media Service API', () => {
 
       it('should fail with invalid authentication token', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', 'Bearer invalid-token-12345')
           .attach('photo', createTestImage(100), 'test.jpg');
 
@@ -354,7 +355,7 @@ describe('Media Service API', () => {
 
       it('should fail with malformed authorization header', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', 'InvalidFormat')
           .attach('photo', createTestImage(100), 'test.jpg');
 
@@ -363,11 +364,11 @@ describe('Media Service API', () => {
     });
   });
 
-  describe('POST /api/media/videos/upload - Video Upload', () => {
+  describe('POST /api/v1/media/videos/upload - Video Upload', () => {
     describe('Successful video uploads', () => {
       it('should upload a valid MP4 video successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile')
           .attach('video', createTestVideo(5), 'test-video.mp4');
@@ -385,7 +386,7 @@ describe('Media Service API', () => {
 
       it('should upload profile video type', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile')
           .attach('video', createTestVideo(3), 'profile-video.mp4');
@@ -396,7 +397,7 @@ describe('Media Service API', () => {
 
       it('should upload prompt video type', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'prompt')
           .attach('video', createTestVideo(2), 'prompt-video.mp4');
@@ -411,7 +412,7 @@ describe('Media Service API', () => {
         const largeVideo = createTestVideo(101); // 101MB
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile')
           .attach('video', largeVideo, 'large-video.mp4');
@@ -425,7 +426,7 @@ describe('Media Service API', () => {
         const maxVideo = createTestVideo(100); // Exactly 100MB
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile')
           .attach('video', maxVideo, 'max-video.mp4');
@@ -440,7 +441,7 @@ describe('Media Service API', () => {
         const invalidVideo = Buffer.from('RIFF....AVI ');
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile')
           .attach('video', invalidVideo, 'video.avi');
@@ -453,7 +454,7 @@ describe('Media Service API', () => {
         const imageAsVideo = createTestImage(1000);
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile')
           .attach('video', imageAsVideo, 'fake-video.mp4');
@@ -466,7 +467,7 @@ describe('Media Service API', () => {
     describe('Missing video validations', () => {
       it('should fail when no video file is attached', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('videoType', 'profile');
 
@@ -479,7 +480,7 @@ describe('Media Service API', () => {
     describe('Authentication for video upload', () => {
       it('should fail without authentication', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/videos/upload')
+          .post('/api/v1/media/videos/upload')
           .field('videoType', 'profile')
           .attach('video', createTestVideo(1), 'test.mp4');
 
@@ -489,11 +490,11 @@ describe('Media Service API', () => {
     });
   });
 
-  describe('POST /api/media/voice-notes/upload - Voice Note Upload', () => {
+  describe('POST /api/v1/media/voice-notes/upload - Voice Note Upload', () => {
     describe('Successful voice note uploads', () => {
       it('should upload a valid MP3 voice note successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', createTestAudio('mp3', 500), 'voice-note.mp3');
@@ -511,7 +512,7 @@ describe('Media Service API', () => {
 
       it('should upload WAV audio format', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'message')
           .attach('audio', createTestAudio('wav', 300), 'voice-note.wav');
@@ -522,7 +523,7 @@ describe('Media Service API', () => {
 
       it('should upload M4A audio format', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', createTestAudio('m4a', 400), 'voice-note.m4a');
@@ -533,7 +534,7 @@ describe('Media Service API', () => {
 
       it('should upload with profile context', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', createTestAudio('mp3', 200), 'profile-voice.mp3');
@@ -544,7 +545,7 @@ describe('Media Service API', () => {
 
       it('should upload with prompt context', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'prompt')
           .field('promptId', 'prompt-123')
@@ -556,7 +557,7 @@ describe('Media Service API', () => {
 
       it('should upload with message context', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'message')
           .field('conversationId', 'conv-456')
@@ -572,7 +573,7 @@ describe('Media Service API', () => {
         const videoFile = createTestVideo(1);
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', videoFile, 'fake-audio.mp3');
@@ -585,7 +586,7 @@ describe('Media Service API', () => {
         const textFile = Buffer.from('This is not audio');
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', textFile, 'fake.mp3');
@@ -600,7 +601,7 @@ describe('Media Service API', () => {
         const largeAudio = createTestAudio('mp3', 11 * 1024); // 11MB
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', largeAudio, 'large-audio.mp3');
@@ -614,7 +615,7 @@ describe('Media Service API', () => {
         const maxAudio = createTestAudio('mp3', 10 * 1024); // Exactly 10MB
 
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile')
           .attach('audio', maxAudio, 'max-audio.mp3');
@@ -627,7 +628,7 @@ describe('Media Service API', () => {
     describe('Missing audio validations', () => {
       it('should fail when no audio file is attached', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .field('context', 'profile');
 
@@ -640,7 +641,7 @@ describe('Media Service API', () => {
     describe('Authentication for voice notes', () => {
       it('should fail without authentication', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .field('context', 'profile')
           .attach('audio', createTestAudio('mp3', 100), 'test.mp3');
 
@@ -650,7 +651,7 @@ describe('Media Service API', () => {
 
       it('should fail with invalid token', async () => {
         const response = await request(MEDIA_API_URL)
-          .post('/api/media/voice-notes/upload')
+          .post('/api/v1/media/voice-notes/upload')
           .set('Authorization', 'Bearer invalid-token')
           .field('context', 'profile')
           .attach('audio', createTestAudio('mp3', 100), 'test.mp3');
@@ -661,10 +662,10 @@ describe('Media Service API', () => {
   });
 
   describe('Additional Media Operations', () => {
-    describe('GET /api/media/photos - Get User Photos', () => {
+    describe('GET /api/v1/media/photos - Get User Photos', () => {
       it('should retrieve user photos successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .get('/api/media/photos')
+          .get('/api/v1/media/photos')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -675,13 +676,13 @@ describe('Media Service API', () => {
 
       it('should fail without authentication', async () => {
         const response = await request(MEDIA_API_URL)
-          .get('/api/media/photos');
+          .get('/api/v1/media/photos');
 
         expect(response.status).toBe(401);
       });
     });
 
-    describe('GET /api/media/photos/:id - Get Specific Photo', () => {
+    describe('GET /api/v1/media/photos/:id - Get Specific Photo', () => {
       it('should retrieve a specific photo by ID', async () => {
         if (!uploadedPhotoId) {
           console.log('Skipping: No photo uploaded');
@@ -689,7 +690,7 @@ describe('Media Service API', () => {
         }
 
         const response = await request(MEDIA_API_URL)
-          .get(`/api/media/photos/${uploadedPhotoId}`)
+          .get(`/api/v1/media/photos/${uploadedPhotoId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -699,7 +700,7 @@ describe('Media Service API', () => {
 
       it('should return 404 for non-existent photo', async () => {
         const response = await request(MEDIA_API_URL)
-          .get('/api/media/photos/non-existent-id-12345')
+          .get('/api/v1/media/photos/non-existent-id-12345')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(404);
@@ -707,10 +708,10 @@ describe('Media Service API', () => {
       });
     });
 
-    describe('GET /api/media/videos - Get User Videos', () => {
+    describe('GET /api/v1/media/videos - Get User Videos', () => {
       it('should retrieve user videos successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .get('/api/media/videos')
+          .get('/api/v1/media/videos')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -719,10 +720,10 @@ describe('Media Service API', () => {
       });
     });
 
-    describe('GET /api/media/voice-notes - Get User Voice Notes', () => {
+    describe('GET /api/v1/media/voice-notes - Get User Voice Notes', () => {
       it('should retrieve user voice notes successfully', async () => {
         const response = await request(MEDIA_API_URL)
-          .get('/api/media/voice-notes')
+          .get('/api/v1/media/voice-notes')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -732,7 +733,7 @@ describe('Media Service API', () => {
 
       it('should filter voice notes by context', async () => {
         const response = await request(MEDIA_API_URL)
-          .get('/api/media/voice-notes?context=profile')
+          .get('/api/v1/media/voice-notes?context=profile')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
@@ -740,7 +741,7 @@ describe('Media Service API', () => {
       });
     });
 
-    describe('DELETE /api/media/photos/:id - Delete Photo', () => {
+    describe('DELETE /api/v1/media/photos/:id - Delete Photo', () => {
       it('should delete own photo successfully', async () => {
         if (!uploadedPhotoId) {
           console.log('Skipping: No photo to delete');
@@ -748,7 +749,7 @@ describe('Media Service API', () => {
         }
 
         const response = await request(MEDIA_API_URL)
-          .delete(`/api/media/photos/${uploadedPhotoId}`)
+          .delete(`/api/v1/media/photos/${uploadedPhotoId}`)
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect([200, 404]).toContain(response.status);
@@ -756,7 +757,7 @@ describe('Media Service API', () => {
 
       it('should return 404 when deleting non-existent photo', async () => {
         const response = await request(MEDIA_API_URL)
-          .delete('/api/media/photos/non-existent-id')
+          .delete('/api/v1/media/photos/non-existent-id')
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(404);
@@ -764,7 +765,7 @@ describe('Media Service API', () => {
 
       it('should fail without authentication', async () => {
         const response = await request(MEDIA_API_URL)
-          .delete('/api/media/photos/some-id');
+          .delete('/api/v1/media/photos/some-id');
 
         expect(response.status).toBe(401);
       });
@@ -775,7 +776,7 @@ describe('Media Service API', () => {
     it('should handle concurrent uploads gracefully', async () => {
       const uploads = Array(3).fill(null).map((_, i) =>
         request(MEDIA_API_URL)
-          .post('/api/media/upload')
+          .post('/api/v1/media/upload')
           .set('Authorization', `Bearer ${accessToken}`)
           .attach('photo', createTestImage(100), `concurrent-${i}.jpg`)
       );
@@ -789,7 +790,7 @@ describe('Media Service API', () => {
 
     it('should handle malformed multipart data gracefully', async () => {
       const response = await request(MEDIA_API_URL)
-        .post('/api/media/upload')
+        .post('/api/v1/media/upload')
         .set('Authorization', `Bearer ${accessToken}`)
         .set('Content-Type', 'multipart/form-data')
         .send('malformed data');
@@ -799,7 +800,7 @@ describe('Media Service API', () => {
 
     it('should validate content-type header', async () => {
       const response = await request(MEDIA_API_URL)
-        .post('/api/media/upload')
+        .post('/api/v1/media/upload')
         .set('Authorization', `Bearer ${accessToken}`)
         .set('Content-Type', 'application/json')
         .send({ photo: 'not-a-file' });
