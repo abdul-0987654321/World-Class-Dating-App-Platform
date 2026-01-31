@@ -26,7 +26,7 @@ services:
 
   # PostgreSQL Database (simulates Aurora PostgreSQL)
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: flamoral-postgres-dev
     environment:
       POSTGRES_DB: flamoral

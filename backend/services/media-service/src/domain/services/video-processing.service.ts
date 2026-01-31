@@ -798,8 +798,8 @@ export class VideoProcessingService {
       logger.error('Failed to extract audio:', error);
       throw new Error(`Audio extraction failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await unlinkAsync(tempInputPath).catch(() => {});
-      if (tempOutputPath) await unlinkAsync(tempOutputPath).catch(() => {});
+      if (tempInputPath) await unlinkAsync(tempInputPath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await unlinkAsync(tempOutputPath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 
@@ -846,8 +846,8 @@ export class VideoProcessingService {
       logger.error('Failed to generate GIF preview:', error);
       throw new Error(`GIF preview generation failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await unlinkAsync(tempInputPath).catch(() => {});
-      if (tempOutputPath) await unlinkAsync(tempOutputPath).catch(() => {});
+      if (tempInputPath) await unlinkAsync(tempInputPath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await unlinkAsync(tempOutputPath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 
@@ -876,7 +876,7 @@ export class VideoProcessingService {
       };
     } finally {
       if (tempFilePath) {
-        await unlinkAsync(tempFilePath).catch(() => {});
+        await unlinkAsync(tempFilePath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
       }
     }
   }
@@ -912,7 +912,7 @@ export class VideoProcessingService {
       throw new Error(`Failed to get video information: ${error.message}`);
     } finally {
       if (tempFilePath) {
-        await unlinkAsync(tempFilePath).catch(() => {});
+        await unlinkAsync(tempFilePath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
       }
     }
   }
@@ -965,8 +965,8 @@ export class VideoProcessingService {
       logger.error('Failed to rotate video:', error);
       throw new Error(`Video rotation failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await unlinkAsync(tempInputPath).catch(() => {});
-      if (tempOutputPath) await unlinkAsync(tempOutputPath).catch(() => {});
+      if (tempInputPath) await unlinkAsync(tempInputPath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await unlinkAsync(tempOutputPath).catch((error) => { logger.error('Video processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 }

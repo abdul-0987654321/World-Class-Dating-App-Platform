@@ -41,6 +41,13 @@ const validator = createValidator('payment-service', [
 ]);
 validator.validateOrThrow();
 
+// Explicit guard for critical payment env vars in production
+const requiredEnvVars = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
+const missing = requiredEnvVars.filter(v => !process.env[v]);
+if (missing.length > 0 && process.env.NODE_ENV === 'production') {
+  throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+}
+
 // Ensure either DATABASE_URL or DB_HOST+DB_PASSWORD is set
 if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
   throw new Error('[payment-service] Either DATABASE_URL or DB_HOST + DB_PASSWORD must be set');

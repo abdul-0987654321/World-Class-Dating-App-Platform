@@ -29,6 +29,28 @@ interface UserModerationRecord {
   bannedReason?: string;
 }
 
+/** Maps API ModerationStatus to the component's UserModerationRecord shape */
+function toUserModerationRecord(status: ModerationStatus): UserModerationRecord {
+  const statusMap: Record<ModerationStatus['accountStatus'], UserModerationRecord['status']> = {
+    good_standing: 'active',
+    warned: 'warned',
+    suspended: 'suspended',
+    banned: 'banned',
+  };
+
+  return {
+    userId: status.userId,
+    status: statusMap[status.accountStatus],
+    totalViolations: status.violationCount,
+    severeViolations: 0,
+    lastViolationAt: status.lastViolationAt,
+    warningsIssued: status.warningCount,
+    suspensionCount: 0,
+    currentSuspensionEndsAt: status.suspensionEndsAt,
+    permanentlyBanned: status.accountStatus === 'banned',
+  };
+}
+
 const ViolationHistory: React.FC = () => {
   const [moderationRecord, setModerationRecord] = useState<UserModerationRecord | null>(null);
   const [violations, setViolations] = useState<Violation[]>([]);
@@ -51,7 +73,7 @@ const ViolationHistory: React.FC = () => {
         fetch(`/api/moderation/user/${userId}/violations`).then((r) => r.json()),
       ]);
 
-      setModerationRecord(statusData as unknown as UserModerationRecord);
+      setModerationRecord(toUserModerationRecord(statusData));
       setViolations(violationsData);
       setError(null);
     } catch (err) {

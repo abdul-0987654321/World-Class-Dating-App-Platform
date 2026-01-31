@@ -207,7 +207,7 @@ jobs:
         id: health
         continue-on-error: true
         run: |
-          HEALTH_URL="${{ secrets.RAILWAY_HEALTH_URL || 'https://world-class-dating-app-platform-production.up.railway.app/health' }}"
+          HEALTH_URL="${API_HEALTH_URL:-https://api.flamoral.com/health}"
 
           echo "Checking health at: $HEALTH_URL"
 
@@ -224,6 +224,8 @@ jobs:
 
           echo "healthy=false" >> $GITHUB_OUTPUT
           echo "::warning::Health check failed after 5 attempts"
+        env:
+          API_HEALTH_URL: ${{ secrets.RAILWAY_HEALTH_URL }}
 
       - name: Notify on failure
         if: steps.health.outputs.healthy == 'false'
@@ -251,20 +253,23 @@ jobs:
           ENVIRONMENT="${{ needs.pre-deploy-checks.outputs.environment }}"
 
           if [[ "$ENVIRONMENT" == "production" ]]; then
-            API_URL="https://api.flamoral.com"
+            API_URL="${PRODUCTION_API_URL:-https://api.flamoral.com}"
           else
-            API_URL="https://world-class-dating-app-platform-staging.up.railway.app"
+            API_URL="${STAGING_API_URL:-https://staging-api.flamoral.com}"
           fi
 
           echo "Running smoke tests against: $API_URL"
 
           # Health endpoint
-          curl -sf "$API_URL/health" || echo "Health check endpoint issue"
+          curl -sf "${API_URL}/health" || echo "Health check endpoint issue"
 
           # API version
-          curl -sf "$API_URL/api/v1/version" || echo "Version endpoint not available"
+          curl -sf "${API_URL}/api/v1/version" || echo "Version endpoint not available"
 
           echo "Smoke tests completed"
+        env:
+          PRODUCTION_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
 
       - name: Update deployment status
         run: |

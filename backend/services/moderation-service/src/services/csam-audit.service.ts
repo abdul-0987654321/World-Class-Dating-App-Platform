@@ -343,12 +343,19 @@ export class CSAMAuditService {
         severity: params.severity,
       });
     } catch (error: any) {
-      logger.error('Failed to create audit log', {
+      logger.error('CRITICAL: CSAM audit logging failed - security team must be notified', {
+        error: error instanceof Error ? error.message : String(error),
+        severity: 'CRITICAL',
+        requiresAlert: true,
         eventType: params.eventType,
-        error: error.message,
       });
-
-      // CRITICAL: If audit logging fails, we should alert
+      // Emit critical alert event
+      try {
+        process.emit('uncaughtException', new Error(`CSAM audit logging failure: ${error instanceof Error ? error.message : String(error)}`));
+      } catch (alertError) {
+        // Last resort - write to stderr
+        process.stderr.write(`CRITICAL: CSAM audit alert also failed: ${alertError}\n`);
+      }
       throw error;
     }
   }

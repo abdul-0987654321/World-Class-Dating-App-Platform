@@ -37,7 +37,8 @@ async function bootstrap() {
   // This MUST come BEFORE any body parsing middleware so that the raw
   // request stream (including multipart/form-data) is piped directly.
   // ========================================================================
-  const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  const isProductionEnv = process.env.NODE_ENV === 'production';
+  const userServiceUrl = process.env.USER_SERVICE_URL || (isProductionEnv ? (() => { throw new Error('USER_SERVICE_URL required in production'); })() : 'http://localhost:3002');
   logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
 
   const targetUrl = new URL(userServiceUrl);
@@ -45,7 +46,7 @@ async function bootstrap() {
   app.use('/api/v1', (req: Request, res: Response) => {
     const proxyOpts: http.RequestOptions = {
       hostname: targetUrl.hostname,
-      port: targetUrl.port || 80,
+      port: targetUrl.port || (targetUrl.protocol === 'https:' ? 443 : 80),
       path: req.originalUrl,
       method: req.method,
       headers: {

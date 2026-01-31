@@ -91,6 +91,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                     onDeletePhoto(photo.id);
                   }}
                   title="Delete photo"
+                  aria-label={`Delete photo ${index + 1}`}
                 >
                   <FaTimes />
                 </DeleteButton>
@@ -101,7 +102,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
           ))}
 
           {editable && canAddMore && onAddPhoto && (
-            <AddPhotoButton onClick={onAddPhoto}>
+            <AddPhotoButton onClick={onAddPhoto} aria-label="Add a new photo">
               <FaPlus />
               <span>Add Photo</span>
             </AddPhotoButton>
@@ -113,7 +114,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             <EmptyIcon>📷</EmptyIcon>
             <EmptyText>No photos yet</EmptyText>
             {editable && onAddPhoto && (
-              <AddFirstPhotoButton onClick={onAddPhoto}>
+              <AddFirstPhotoButton onClick={onAddPhoto} aria-label="Add your first photo">
                 <FaPlus /> Add Your First Photo
               </AddFirstPhotoButton>
             )}
@@ -123,27 +124,27 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
       {/* Lightbox */}
       {lightboxOpen && currentPhoto && (
-        <Lightbox onClick={() => setLightboxOpen(false)} onKeyDown={handleKeyDown} tabIndex={0}>
+        <Lightbox onClick={() => setLightboxOpen(false)} onKeyDown={handleKeyDown} tabIndex={0} role="dialog" aria-label={`Photo lightbox, showing photo ${lightboxIndex + 1} of ${photos.length}`}>
           <LightboxContent onClick={(e) => e.stopPropagation()}>
             <LightboxHeader>
               <LightboxTitle>
                 Photo {lightboxIndex + 1} of {photos.length}
               </LightboxTitle>
-              <LightboxClose onClick={() => setLightboxOpen(false)}>
+              <LightboxClose onClick={() => setLightboxOpen(false)} aria-label="Close lightbox">
                 <FaTimes />
               </LightboxClose>
             </LightboxHeader>
 
             <LightboxImageContainer>
               {lightboxIndex > 0 && (
-                <NavButton $position="left" onClick={handlePrevious}>
+                <NavButton $position="left" onClick={handlePrevious} aria-label="Previous photo">
                   <FaArrowLeft />
                 </NavButton>
               )}
 
               <LightboxImage
                 src={currentPhoto.url}
-                alt="Full size photo"
+                alt={`Photo ${lightboxIndex + 1} of ${photos.length}, full size view`}
                 $blur={
                   !isAdmin &&
                   (currentPhoto.moderationStatus === 'rejected' ||
@@ -152,7 +153,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
               />
 
               {lightboxIndex < photos.length - 1 && (
-                <NavButton $position="right" onClick={handleNext}>
+                <NavButton $position="right" onClick={handleNext} aria-label="Next photo">
                   <FaArrowRight />
                 </NavButton>
               )}

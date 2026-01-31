@@ -528,6 +528,11 @@ export class SubscriptionSyncWorker extends BaseWorker<
 
       return SubscriptionTier.FREE;
     } catch (error) {
+      logger.warn('Subscription lookup failed - defaulting to premium tier. This should be investigated.', {
+        userId: undefined,
+        priceId,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return SubscriptionTier.PREMIUM; // Default to premium if lookup fails
     }
   }

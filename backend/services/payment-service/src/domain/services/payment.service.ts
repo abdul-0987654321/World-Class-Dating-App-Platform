@@ -11,7 +11,11 @@ import {
 const logger = createLogger('payment-service');
 
 // Initialize Stripe with API key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  throw new Error('CRITICAL: STRIPE_SECRET_KEY environment variable is required');
+}
+const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
 });
 

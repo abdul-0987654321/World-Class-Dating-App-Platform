@@ -617,12 +617,12 @@ export const AdvancedSearchUI: React.FC<AdvancedSearchUIProps> = ({
     setActivePresetId(null);
   };
 
-  const toggleArrayValue = (key: keyof SearchFilters, value: string) => {
-    const currentValues = (filters[key] as string[]) || [];
-    const newValues = currentValues.includes(value)
+  const toggleArrayValue = (key: 'education' | 'occupation' | 'religion' | 'interests' | 'relationshipGoals', value: string) => {
+    const currentValues = (filters[key] as string[] | undefined) || [];
+    const newValues: string[] = currentValues.includes(value)
       ? currentValues.filter((v) => v !== value)
       : [...currentValues, value];
-    updateFilter(key, newValues as any);
+    updateFilter(key, newValues);
   };
 
   const handleApplyPreset = (preset: FilterPreset) => {

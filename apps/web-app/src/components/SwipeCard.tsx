@@ -216,8 +216,30 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onLike, onPass, o
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        onPass();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        onLike();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        onSuperLike();
+        break;
+    }
+  };
+
   return (
-    <CardContainer>
+    <CardContainer
+      tabIndex={0}
+      role="button"
+      aria-label={`Profile card for ${profile.first_name}, age ${profile.age}. Use left arrow to pass, right arrow to like, up arrow to super like.`}
+      onKeyDown={handleKeyDown}
+    >
       <PhotoContainer backgroundUrl={currentPhoto.url} onClick={handleCardClick}>
         {photos.length > 1 && (
           <PhotoDots>

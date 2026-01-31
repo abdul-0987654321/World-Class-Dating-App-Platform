@@ -24,7 +24,8 @@ interface UserDetailViewProps {
 }
 
 export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'subscription'>('overview');
+  type TabId = 'overview' | 'activity' | 'subscription';
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   const { data: user, isLoading: userLoading } = useAdminUser(userId);
   const { data: activity, isLoading: activityLoading } = useUserActivity(
@@ -123,14 +124,14 @@ export const UserDetailView: React.FC<UserDetailViewProps> = ({ userId, onClose 
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <div className="flex gap-8 px-6">
-          {[
-            { id: 'overview', label: 'Overview', icon: FaUser },
-            { id: 'activity', label: 'Activity', icon: FaChartLine },
-            { id: 'subscription', label: 'Subscription', icon: FaCrown },
-          ].map((tab) => (
+          {([
+            { id: 'overview' as TabId, label: 'Overview', icon: FaUser },
+            { id: 'activity' as TabId, label: 'Activity', icon: FaChartLine },
+            { id: 'subscription' as TabId, label: 'Subscription', icon: FaCrown },
+          ]).map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 py-4 border-b-2 transition ${
                 activeTab === tab.id
                   ? 'border-pink-500 text-pink-600'

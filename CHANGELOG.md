@@ -1,9 +1,38 @@
-# Flamoral - Changelog
+# Changelog
 
-All notable changes to the Flamoral dating platform will be documented in this file.
+All notable changes to the Flamoral platform will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Security
+- Fixed CSP headers to remove unsafe-inline from script-src
+- Added HSTS header for HTTPS enforcement
+- Added pre-commit hooks for secret detection
+- Fixed API gateway proxy to default to HTTPS
+- Removed unsafe empty-string fallbacks for API keys
+- Added env var validation for payment service
+
+### Fixed
+- Fixed silent error handling in message delivery, notification scheduling
+- Added proper logging to empty catch blocks across services
+- Fixed pagination limit from 100 to 50 to prevent DoS
+- Fixed rate limits for profile photos and updates
+- Fixed Nginx health check in docker-compose
+- Standardized CI/CD to use npm instead of yarn
+
+### Added
+- Test infrastructure for 8+ previously untested services
+- Security scanning in CI/CD pipeline
+- CONTRIBUTING.md, DEVELOPMENT.md documentation
+- Database migration directories for services missing them
+- Keyboard navigation for swipe cards (accessibility)
+
+### Changed
+- Standardized React version to 18.3.1 across all packages
+- Reduced profile photo upload rate limit to 9/hour
 
 ---
 

@@ -1,6 +1,19 @@
 {
   "files": [],
   "references": [
-    { "path": "./backend" }
-  ]
+    {
+      "path": "./backend"
+    }
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "strict": false,
+    "noImplicitAny": false
+  }
 }

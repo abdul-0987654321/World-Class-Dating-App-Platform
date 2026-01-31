@@ -3,7 +3,7 @@
  * Handles all Agora RTC operations for video/voice calling
  */
 
-import AgoraRTC, {
+import type {
   IAgoraRTCClient,
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
@@ -14,8 +14,19 @@ import AgoraRTC, {
   UID,
   ClientConfig,
   VideoEncoderConfiguration,
+  IAgoraRTC,
 } from 'agora-rtc-sdk-ng';
 import { EventEmitter } from 'events';
+
+/** Lazily loads the Agora RTC SDK to reduce initial bundle size */
+let _agoraRTC: IAgoraRTC | null = null;
+async function getAgoraRTC(): Promise<IAgoraRTC> {
+  if (!_agoraRTC) {
+    const module = await import('agora-rtc-sdk-ng');
+    _agoraRTC = module.default;
+  }
+  return _agoraRTC;
+}
 
 export interface AgoraConfig {
   appId: string;
@@ -68,13 +79,15 @@ export class AgoraService extends EventEmitter {
   constructor(config: AgoraConfig) {
     super();
     this.config = config;
-    this.initializeClient();
   }
 
   /**
-   * Initialize Agora RTC Client
+   * Initialize Agora RTC Client (async - lazily loads SDK)
    */
-  private initializeClient(): void {
+  async initialize(): Promise<void> {
+    if (this.client) return;
+
+    const AgoraRTC = await getAgoraRTC();
     const clientConfig: ClientConfig = {
       mode: this.config.mode || 'rtc',
       codec: this.config.codec || 'vp8',
@@ -172,8 +185,12 @@ export class AgoraService extends EventEmitter {
     }
 
     try {
+      // Ensure SDK is loaded
+      await this.initialize();
+      const AgoraRTC = await getAgoraRTC();
+
       // Join the channel
-      await this.client.join(this.config.appId, channelName, token, uid);
+      await this.client!.join(this.config.appId, channelName, token, uid);
       this.isJoined = true;
       this.currentChannel = channelName;
       this.currentUid = uid;
@@ -304,6 +321,7 @@ export class AgoraService extends EventEmitter {
       throw new Error('No local video track');
     }
 
+    const AgoraRTC = await getAgoraRTC();
     const devices = await AgoraRTC.getCameras();
     if (devices.length < 2) {
       throw new Error('Only one camera available');
@@ -328,6 +346,7 @@ export class AgoraService extends EventEmitter {
 
     try {
       // Create screen track
+      const AgoraRTC = await getAgoraRTC();
       const screenTrack = await AgoraRTC.createScreenVideoTrack({
         encoderConfig: '1080p_1',
       });

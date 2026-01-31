@@ -4,14 +4,25 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import AgoraRTC, {
+import type {
   IAgoraRTCClient,
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
   IRemoteVideoTrack,
   IRemoteAudioTrack,
+  IAgoraRTC,
 } from 'agora-rtc-sdk-ng';
 import './VideoCallScreen.css';
+
+/** Lazily loads the Agora RTC SDK to reduce initial bundle size */
+let _agoraRTC: IAgoraRTC | null = null;
+async function getAgoraRTC(): Promise<IAgoraRTC> {
+  if (!_agoraRTC) {
+    const module = await import('agora-rtc-sdk-ng');
+    _agoraRTC = module.default;
+  }
+  return _agoraRTC;
+}
 
 interface VideoCallScreenProps {
   channelName: string;
@@ -36,9 +47,7 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
   maxDuration,
   onCallEnd,
 }) => {
-  const [client] = useState<IAgoraRTCClient>(() =>
-    AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
-  );
+  const [client, setClient] = useState<IAgoraRTCClient | null>(null);
   const [localAudioTrack, setLocalAudioTrack] = useState<IMicrophoneAudioTrack | null>(null);
   const [localVideoTrack, setLocalVideoTrack] = useState<ICameraVideoTrack | null>(null);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
@@ -60,10 +69,15 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
    */
   const initializeCall = useCallback(async () => {
     try {
+      // Lazily load Agora SDK and create client
+      const AgoraRTC = await getAgoraRTC();
+      const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      setClient(rtcClient);
+
       // Set encoding configuration
       if (!isAudioOnly) {
         if (enableHD) {
-          await client.setVideoEncoderConfiguration({
+          await rtcClient.setVideoEncoderConfiguration({
             width: 1280,
             height: 720,
             frameRate: 30,
@@ -71,7 +85,7 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
             bitrateMax: 2000,
           });
         } else {
-          await client.setVideoEncoderConfiguration({
+          await rtcClient.setVideoEncoderConfiguration({
             width: 640,
             height: 480,
             frameRate: 15,
@@ -82,7 +96,7 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
       }
 
       // Join channel
-      await client.join(appId, channelName, token, userId);
+      await rtcClient.join(appId, channelName, token, userId);
 
       // Create and publish local tracks
       const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
@@ -99,9 +113,9 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
           videoTrack.play(localVideoRef.current);
         }
 
-        await client.publish([audioTrack, videoTrack]);
+        await rtcClient.publish([audioTrack, videoTrack]);
       } else {
-        await client.publish([audioTrack]);
+        await rtcClient.publish([audioTrack]);
       }
 
       setConnectionState('CONNECTED');
@@ -123,12 +137,14 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
       console.error('Initialize call error:', error);
       setConnectionState('FAILED');
     }
-  }, [appId, channelName, token, userId, client, isAudioOnly, enableHD, maxDuration]);
+  }, [appId, channelName, token, userId, isAudioOnly, enableHD, maxDuration]);
 
   /**
    * Handle remote users
    */
   useEffect(() => {
+    if (!client) return;
+
     const handleUserPublished = async (user: any, mediaType: 'audio' | 'video') => {
       await client.subscribe(user, mediaType);
 
@@ -258,7 +274,7 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
       localVideoTrack?.close();
 
       // Leave channel
-      await client.leave();
+      await client?.leave();
 
       onCallEnd();
     } catch (error) {

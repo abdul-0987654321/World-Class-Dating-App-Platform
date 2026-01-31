@@ -37,6 +37,9 @@ export const authenticate = async (
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const jwtSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
+    if (!process.env.JWT_ACCESS_SECRET && process.env.JWT_SECRET) {
+      console.warn('WARNING: Using JWT_SECRET fallback. Set JWT_ACCESS_SECRET explicitly.');
+    }
 
     // SECURITY: Require JWT secret to be set - fail-closed approach
     if (!jwtSecret) {

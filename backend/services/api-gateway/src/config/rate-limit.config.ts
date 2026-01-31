@@ -99,8 +99,8 @@ export const RATE_LIMITS = {
   'GET /conversations/:id/messages': { window: '1m', max: 60 },
 
   // ==================== Profile Endpoints ====================
-  'PUT /profiles': { window: '1h', max: 10 },
-  'POST /profiles/photos': { window: '1h', max: 20 },
+  'PUT /profiles': { window: '1h', max: 5 }, // Reasonable update frequency
+  'POST /profiles/photos': { window: '1h', max: 9 }, // Max 9 profile photos
   'DELETE /profiles/photos/:id': { window: '1h', max: 20 },
   'PUT /profiles/settings': { window: '15m', max: 30 },
 

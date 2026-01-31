@@ -103,7 +103,8 @@
     "test:report:clean": "rm -rf allure-results allure-report allure-history",
     "docker:dev:up": "docker-compose -f infrastructure/local-dev/docker-compose.dev.yml up -d",
     "docker:dev:down": "docker-compose -f infrastructure/local-dev/docker-compose.dev.yml down",
-    "docker:dev:rebuild": "docker-compose -f infrastructure/local-dev/docker-compose.dev.yml down && docker-compose -f infrastructure/local-dev/docker-compose.dev.yml build && docker-compose -f infrastructure/local-dev/docker-compose.dev.yml up -d"
+    "docker:dev:rebuild": "docker-compose -f infrastructure/local-dev/docker-compose.dev.yml down && docker-compose -f infrastructure/local-dev/docker-compose.dev.yml build && docker-compose -f infrastructure/local-dev/docker-compose.dev.yml up -d",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
@@ -134,8 +135,8 @@
     "lerna": "^9.0.3",
     "patch-package": "^8.0.1",
     "prettier": "^3.1.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "stripe": "^20.2.0",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",

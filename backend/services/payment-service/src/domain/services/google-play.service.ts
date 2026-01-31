@@ -298,7 +298,8 @@ export class GooglePlayService {
       await this.initialize();
 
       if (!this.isInitialized) {
-        throw new Error('Google Play not initialized');
+        logger.error('Google Play billing service not initialized - check GOOGLE_PLAY_* environment variables');
+        throw new Error('Google Play not initialized - missing configuration');
       }
 
       await this.androidPublisher.purchases.subscriptions.cancel({
@@ -322,7 +323,8 @@ export class GooglePlayService {
       await this.initialize();
 
       if (!this.isInitialized) {
-        throw new Error('Google Play not initialized');
+        logger.error('Google Play billing service not initialized - check GOOGLE_PLAY_* environment variables');
+        throw new Error('Google Play not initialized - missing configuration');
       }
 
       await this.androidPublisher.purchases.subscriptions.refund({
@@ -346,7 +348,8 @@ export class GooglePlayService {
       await this.initialize();
 
       if (!this.isInitialized) {
-        throw new Error('Google Play not initialized');
+        logger.error('Google Play billing service not initialized - check GOOGLE_PLAY_* environment variables');
+        throw new Error('Google Play not initialized - missing configuration');
       }
 
       await this.androidPublisher.purchases.subscriptions.revoke({

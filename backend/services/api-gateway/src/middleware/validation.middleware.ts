@@ -52,8 +52,8 @@ export class ValidationMiddleware implements NestMiddleware {
 
     if (req.query.limit) {
       const limit = parseInt(req.query.limit as string, 10);
-      if (isNaN(limit) || limit < 1 || limit > 100) {
-        throw new BadRequestException('Invalid limit parameter (must be 1-100)');
+      if (isNaN(limit) || limit < 1 || limit > 50) {
+        throw new BadRequestException('Invalid limit parameter (must be 1-50)');
       }
     }
 

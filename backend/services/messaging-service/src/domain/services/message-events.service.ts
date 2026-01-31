@@ -35,9 +35,14 @@ export class MessageEventsService {
       } else {
         logger.warn(`Failed to publish new message event: ${message.id}`);
       }
-    } catch (error: any) {
-      logger.error(`Error publishing new message event for ${message.id}:`, error);
-      // Don't throw - we don't want to fail the message send if real-time delivery fails
+    } catch (error) {
+      logger.error('Real-time message delivery failed - message saved but not delivered in real-time', {
+        error: error instanceof Error ? error.message : String(error),
+        messageId: message.id,
+        receiverId: message.receiverId,
+        conversationId: message.conversationId,
+      });
+      // TODO: Implement dead-letter queue for failed deliveries
     }
   }
 

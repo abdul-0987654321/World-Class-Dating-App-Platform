@@ -1,0 +1,8 @@
+title = "Flamoral Gitleaks Config"
+
+[allowlist]
+description = "Allow example files"
+paths = [
+  '''\.env\.example$''',
+  '''\.env\..*\.example$''',
+]

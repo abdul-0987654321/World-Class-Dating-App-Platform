@@ -71,7 +71,7 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
     await updateSubscriptionMutation.mutateAsync({
       userId: user.id,
       data: {
-        tier: selectedTier.tier as any,
+        tier: selectedTier.tier as 'FREE' | 'GOLD' | 'PLATINUM' | 'DIAMOND',
         duration: selectedTier.tier === 'FREE' ? undefined : duration,
         reason: reason.trim(),
       },

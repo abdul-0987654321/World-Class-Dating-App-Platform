@@ -232,8 +232,8 @@ export class IdempotencyMiddleware implements NestMiddleware {
           try {
             const parsed = JSON.parse(body);
             cacheResponse(parsed);
-          } catch {
-            // Not JSON, don't cache
+          } catch (error) {
+            logger.warn('Idempotency check failed', { error: error instanceof Error ? error.message : String(error) });
           }
         }
         res.setHeader('X-Idempotency-Key', idempotencyKey);
@@ -341,8 +341,8 @@ export function idempotencyMiddleware(redis: Redis | null) {
           timestamp: Date.now(),
         };
 
-        redis.setex(cacheKey, IDEMPOTENCY_TTL_SECONDS, JSON.stringify(responseToCache)).catch(() => {});
-        redis.del(lockKey).catch(() => {});
+        redis.setex(cacheKey, IDEMPOTENCY_TTL_SECONDS, JSON.stringify(responseToCache)).catch((error: unknown) => { logger.warn('Idempotency check failed', { error: error instanceof Error ? error.message : String(error) }); });
+        redis.del(lockKey).catch((error: unknown) => { logger.warn('Idempotency check failed', { error: error instanceof Error ? error.message : String(error) }); });
 
         return originalJson(body);
       };

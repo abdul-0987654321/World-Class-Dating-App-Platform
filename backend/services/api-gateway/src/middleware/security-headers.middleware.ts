@@ -80,6 +80,11 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       res.setHeader('Expires', '0');
     }
 
+    // Add caching for non-sensitive, relatively static endpoints
+    if (req.path.match(/\/(plans|tiers|features|config)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+    }
+
     next();
   }
 

@@ -482,8 +482,8 @@ export class AudioProcessingService {
       logger.error('Audio normalization failed', error);
       throw new Error(`Audio normalization failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await fs.unlink(tempInputPath).catch(() => {});
-      if (tempOutputPath) await fs.unlink(tempOutputPath).catch(() => {});
+      if (tempInputPath) await fs.unlink(tempInputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await fs.unlink(tempOutputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 
@@ -530,8 +530,8 @@ export class AudioProcessingService {
       logger.error('Silence trimming failed', error);
       throw new Error(`Silence trimming failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await fs.unlink(tempInputPath).catch(() => {});
-      if (tempOutputPath) await fs.unlink(tempOutputPath).catch(() => {});
+      if (tempInputPath) await fs.unlink(tempInputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await fs.unlink(tempOutputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 
@@ -572,8 +572,8 @@ export class AudioProcessingService {
       logger.error('Noise reduction failed', error);
       throw new Error(`Noise reduction failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await fs.unlink(tempInputPath).catch(() => {});
-      if (tempOutputPath) await fs.unlink(tempOutputPath).catch(() => {});
+      if (tempInputPath) await fs.unlink(tempInputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await fs.unlink(tempOutputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 
@@ -667,8 +667,8 @@ export class AudioProcessingService {
       logger.error('Audio format conversion failed', error);
       throw new Error(`Audio format conversion failed: ${error.message}`);
     } finally {
-      if (tempInputPath) await fs.unlink(tempInputPath).catch(() => {});
-      if (tempOutputPath) await fs.unlink(tempOutputPath).catch(() => {});
+      if (tempInputPath) await fs.unlink(tempInputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
+      if (tempOutputPath) await fs.unlink(tempOutputPath).catch((error) => { logger.error('Audio processing error', { error: error instanceof Error ? error.message : String(error) }); });
     }
   }
 

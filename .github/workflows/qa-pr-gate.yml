@@ -22,36 +22,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
-      
+          cache: 'npm'
+
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      
+        run: npm ci
+
       - name: Run ESLint
-        run: yarn lint:all
-        continue-on-error: true
-      
+        run: npm run lint:all
+
       - name: TypeScript Check
-        run: yarn tsc --noEmit
+        run: npx tsc --noEmit
 
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
-      
+          cache: 'npm'
+
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      
+        run: npm ci
+
       - name: Run unit tests
-        run: yarn test:backend --coverage --ci
+        run: npm run test:backend -- --coverage --ci
         env:
           CI: true
+
+      - name: Check test coverage
+        run: npm run test:coverage -- --ci
+        continue-on-error: false
 
   api-smoke:
     name: API Smoke Tests
@@ -76,13 +79,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
-      
+          cache: 'npm'
+
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      
+        run: npm ci
+
       - name: Run API smoke tests
-        run: yarn test:smoke:api
+        run: npm run test:smoke:api
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/flamoral_test
           REDIS_URL: redis://localhost:6379
@@ -104,16 +107,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
-      
+          cache: 'npm'
+
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      
+        run: npm ci
+
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
-      
+
       - name: Run UI smoke tests
-        run: yarn test:smoke:ui
+        run: npm run test:smoke:ui
         env:
           CI: true
       
@@ -126,10 +129,37 @@ jobs:
             playwright-report/
             test-results/
 
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        run: |
+          # Check for common secret patterns
+          if grep -rn "sk_live_\|sk_test_\|AKIA[A-Z0-9]\|-----BEGIN.*PRIVATE KEY" --include="*.ts" --include="*.js" --include="*.json" --exclude-dir=node_modules --exclude-dir=.git . ; then
+            echo "ERROR: Potential secrets found in source code!"
+            exit 1
+          fi
+
   qa-summary:
     name: QA Summary
     runs-on: ubuntu-latest
-    needs: [lint-typecheck, unit-tests, api-smoke, ui-smoke]
+    needs: [lint-typecheck, unit-tests, api-smoke, ui-smoke, security-scan]
     if: always()
     steps:
       - name: Generate summary

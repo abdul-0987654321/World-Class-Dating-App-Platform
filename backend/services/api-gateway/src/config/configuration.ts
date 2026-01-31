@@ -90,6 +90,16 @@ export default () => ({
         })()
       : 'dev-internal-service-key-32chars!'),
 
+  // Database Pool Configuration
+  database: {
+    pool: {
+      min: parseInt(process.env.DB_POOL_MIN, 10) || 2,
+      max: parseInt(process.env.DB_POOL_MAX, 10) || 10,
+      acquireTimeoutMillis: 30000,
+      idleTimeoutMillis: 30000,
+    },
+  },
+
   // Redis Configuration - Uses Railway Redis service
   redis: {
     host: process.env.REDIS_HOST || 'localhost',

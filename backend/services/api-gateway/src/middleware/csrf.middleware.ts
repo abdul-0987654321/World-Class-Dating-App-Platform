@@ -319,6 +319,7 @@ export class CsrfMiddleware implements NestMiddleware, OnModuleInit, OnModuleDes
    */
   private async storeToken(userId: string, data: CsrfTokenData): Promise<void> {
     if (!this.redis) {
+      this.logger.error('CRITICAL: Redis unavailable for CSRF token storage - falling back to cookie-only validation. This reduces security.');
       return; // Fall back to cookie-only validation
     }
 

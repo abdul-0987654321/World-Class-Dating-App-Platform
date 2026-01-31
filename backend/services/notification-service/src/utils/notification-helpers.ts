@@ -338,11 +338,10 @@ async function addToScheduledQueue(
       scheduledFor: scheduledFor?.toISOString(),
     });
   } catch (error) {
-    logger.error('Failed to add notification to scheduled queue', {
-      error,
-      params,
+    logger.error('Notification scheduling failed - notification may be lost', {
+      error: error instanceof Error ? error.message : String(error),
     });
-    // Don't throw - we don't want to fail the entire operation if scheduling fails
+    // TODO: Implement notification persistence and retry mechanism
   }
 }
 
