@@ -101,7 +101,7 @@ export const ReferralPage: React.FC = () => {
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Get referral code
-      const codeRes = await fetch('/api/referrals/code', { headers });
+      const codeRes = await fetch('/api/v1/referrals/code', { headers });
       if (codeRes.ok) {
         const codeData = await codeRes.json();
         setReferralCode(codeData.data?.code || 'FLAMORAL-ABC123');
@@ -110,7 +110,7 @@ export const ReferralPage: React.FC = () => {
       }
 
       // Get stats
-      const statsRes = await fetch('/api/referrals/stats', { headers });
+      const statsRes = await fetch('/api/v1/referrals/stats', { headers });
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         if (statsData.data) {
@@ -119,7 +119,7 @@ export const ReferralPage: React.FC = () => {
       }
 
       // Get leaderboard
-      const leaderRes = await fetch('/api/referrals/leaderboard', { headers });
+      const leaderRes = await fetch('/api/v1/referrals/leaderboard', { headers });
       if (leaderRes.ok) {
         const leaderData = await leaderRes.json();
         setLeaderboard(leaderData.data?.leaderboard || []);
@@ -168,7 +168,7 @@ export const ReferralPage: React.FC = () => {
 
     try {
       const token = authTokenService.getToken();
-      const res = await fetch('/api/referrals/code/custom', {
+      const res = await fetch('/api/v1/referrals/code/custom', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

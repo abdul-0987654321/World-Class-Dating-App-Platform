@@ -8,7 +8,7 @@ function requireSecret(name: string, devDefault: string): string {
 }
 
 export default {
-  port: parseInt(process.env.PORT || '3009', 10),
+  port: parseInt(process.env.PORT || '3004', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
   database: (() => {

@@ -64,3 +64,6 @@ export {
 
 // Trust Hooks
 export { useTrustScore, useTrustProfile, useRatings, useEndorsements } from './useTrust';
+
+// Socket Connection Hook
+export { useSocketConnection } from './useSocketConnection';

@@ -11,15 +11,16 @@ export const validationSchema = Joi.object({
   JWT_ACCESS_TOKEN_EXPIRY: Joi.string().default('15m'),
   JWT_REFRESH_TOKEN_EXPIRY: Joi.string().default('7d'),
 
-  // Service URLs
-  USER_SERVICE_URL: Joi.string().uri().default('http://localhost:3001'),
-  PROFILE_SERVICE_URL: Joi.string().uri().default('http://localhost:3002'),
-  MATCHING_SERVICE_URL: Joi.string().uri().default('http://localhost:3003'),
-  MESSAGING_SERVICE_URL: Joi.string().uri().default('http://localhost:3004'),
-  NOTIFICATION_SERVICE_URL: Joi.string().uri().default('http://localhost:3005'),
-  MEDIA_SERVICE_URL: Joi.string().uri().default('http://localhost:3006'),
+  // Service URLs - ports match configuration.ts / railway.json allocations
+  AUTH_SERVICE_URL: Joi.string().uri().default('http://localhost:3001'),
+  USER_SERVICE_URL: Joi.string().uri().default('http://localhost:3002'),
+  PROFILE_SERVICE_URL: Joi.string().uri().default('http://localhost:3003'),
+  MATCHING_SERVICE_URL: Joi.string().uri().default('http://localhost:3004'),
+  MESSAGING_SERVICE_URL: Joi.string().uri().default('http://localhost:3005'),
+  NOTIFICATION_SERVICE_URL: Joi.string().uri().default('http://localhost:3006'),
   PAYMENT_SERVICE_URL: Joi.string().uri().default('http://localhost:3007'),
-  MODERATION_SERVICE_URL: Joi.string().uri().default('http://localhost:3008'),
+  MEDIA_SERVICE_URL: Joi.string().uri().default('http://localhost:3009'),
+  MODERATION_SERVICE_URL: Joi.string().uri().default('http://localhost:3010'),
   AI_SERVICE_URL: Joi.string().uri().default('http://localhost:8000'),
 
   // Redis - SECURITY: No defaults for host/port in production (enforced in configuration.ts)

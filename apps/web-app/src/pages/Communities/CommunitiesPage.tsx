@@ -55,8 +55,8 @@ export const CommunitiesPage: React.FC = () => {
       const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
       const [communitiesRes, eventsRes] = await Promise.all([
-        fetch('/api/communities', { headers }),
-        fetch('/api/communities/events', { headers }).catch(() => null),
+        fetch('/api/v1/communities', { headers }),
+        fetch('/api/v1/communities/events', { headers }).catch(() => null),
       ]);
 
       if (communitiesRes.ok) {

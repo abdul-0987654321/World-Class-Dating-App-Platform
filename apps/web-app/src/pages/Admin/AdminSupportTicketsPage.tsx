@@ -45,7 +45,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
     setLoading(true);
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/tickets?status=${filter !== 'all' ? filter : ''}`, {
+      const res = await fetch(`/api/v1/admin/tickets?status=${filter !== 'all' ? filter : ''}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -106,7 +106,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
   const fetchStats = async () => {
     try {
       const token = authTokenService.getToken();
-      const res = await fetch('/api/admin/tickets/stats', {
+      const res = await fetch('/api/v1/admin/tickets/stats', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -130,7 +130,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
   const handleAssign = async (ticketId: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/tickets/${ticketId}/assign`, {
+      await fetch(`/api/v1/admin/tickets/${ticketId}/assign`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -145,7 +145,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
 
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/tickets/${ticketId}/messages`, {
+      await fetch(`/api/v1/admin/tickets/${ticketId}/messages`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -158,7 +158,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
       fetchTickets();
       if (selectedTicket) {
         const updatedTicket = await (
-          await fetch(`/api/admin/tickets/${ticketId}`, {
+          await fetch(`/api/v1/admin/tickets/${ticketId}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
         ).json();
@@ -172,7 +172,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
   const handleUpdateStatus = async (ticketId: string, status: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/tickets/${ticketId}/status`, {
+      await fetch(`/api/v1/admin/tickets/${ticketId}/status`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,

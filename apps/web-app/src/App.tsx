@@ -6,6 +6,7 @@ import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { FlamoralBackground } from '@/components/theme';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute, PublicOnlyRoute } from './components/auth/ProtectedRoute';
+import { useSocketConnection } from './hooks/useSocketConnection';
 
 // Pages
 import LandingPage from './pages/Landing/LandingPage';
@@ -46,8 +47,14 @@ import { CheckoutPage } from './pages/Payment/CheckoutPage';
 import { PaymentSuccessPage } from './pages/Payment/PaymentSuccessPage';
 import { PaymentCancelPage } from './pages/Payment/PaymentCancelPage';
 
+// Notifications
+import { NotificationCenterPage } from './pages/Notifications/NotificationCenterPage';
+
 // Coins
 import { CoinShopPage } from './pages/Coins/CoinShopPage';
+
+// Data Export
+import { DataExportPage } from './pages/Settings/DataExportPage';
 
 // Legal Pages
 import { PrivacyPolicy } from './pages/Legal/PrivacyPolicy';
@@ -64,6 +71,12 @@ import {
   AdminAnalyticsPage,
   AdminModerationPage,
   AdminSettingsPage,
+  AdminRevenuePage,
+  AdminSEOPage,
+  AdminABTestsPage,
+  AdminSupportTicketsPage,
+  AdminSystemHealthPage,
+  AdminAuditLogsPage,
 } from './pages/Admin';
 import { UnauthorizedPage } from './pages/Unauthorized';
 
@@ -100,6 +113,9 @@ const LandingWithAuth: React.FC = () => {
 
 // App Routes (inside AuthProvider context)
 const AppRoutes: React.FC = () => {
+  // Establish app-level WebSocket connection tied to auth state
+  useSocketConnection();
+
   return (
     <>
       {/* AI Assistant Widget */}
@@ -398,6 +414,50 @@ const AppRoutes: React.FC = () => {
               }
             />
 
+            {/* Redirect routes for pages referenced elsewhere */}
+            <Route
+              path="/top-picks"
+              element={<Navigate to="/discover" replace />}
+            />
+            <Route
+              path="/insights"
+              element={<Navigate to="/discover" replace />}
+            />
+            <Route
+              path="/insights/likes"
+              element={<Navigate to="/discover" replace />}
+            />
+            <Route
+              path="/coins/history"
+              element={
+                <ProtectedRoute>
+                  <CoinShopPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notification-center"
+              element={
+                <ProtectedRoute>
+                  <NotificationCenterPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/data-export"
+              element={
+                <ProtectedRoute>
+                  <DataExportPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* CheckoutPage navigates to /subscription/success but the route is /payment/success */}
+            <Route
+              path="/subscription/success"
+              element={<Navigate to="/payment/success" replace />}
+            />
+
             {/* Admin routes */}
             <Route
               path="/admin"
@@ -452,6 +512,54 @@ const AppRoutes: React.FC = () => {
               element={
                 <RequireAdmin>
                   <AdminSettingsPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/revenue"
+              element={
+                <RequireAdmin>
+                  <AdminRevenuePage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/seo"
+              element={
+                <RequireAdmin>
+                  <AdminSEOPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/ab-tests"
+              element={
+                <RequireAdmin>
+                  <AdminABTestsPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/tickets"
+              element={
+                <RequireAdmin>
+                  <AdminSupportTicketsPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/system-health"
+              element={
+                <RequireAdmin>
+                  <AdminSystemHealthPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/audit-logs"
+              element={
+                <RequireAdmin>
+                  <AdminAuditLogsPage />
                 </RequireAdmin>
               }
             />

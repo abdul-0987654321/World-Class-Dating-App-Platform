@@ -47,64 +47,66 @@ export class HealthAggregatorService {
     });
 
     // Configure services to check
+    // Config paths match configuration.ts (e.g., services.authService, services.userService)
+    // Fallback ports match configuration.ts / railway.json allocations
     this.services = [
       {
         name: 'auth-service',
-        url: this.configService.get('services.auth.url', 'http://localhost:3001'),
+        url: this.configService.get('services.authService', 'http://localhost:3001'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'user-service',
-        url: this.configService.get('services.user.url', 'http://localhost:3002'),
+        url: this.configService.get('services.userService', 'http://localhost:3002'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'matching-service',
-        url: this.configService.get('services.matching.url', 'http://localhost:3003'),
+        url: this.configService.get('services.matchingService', 'http://localhost:3004'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'messaging-service',
-        url: this.configService.get('services.messaging.url', 'http://localhost:3004'),
+        url: this.configService.get('services.messagingService', 'http://localhost:3005'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'media-service',
-        url: this.configService.get('services.media.url', 'http://localhost:3005'),
+        url: this.configService.get('services.mediaService', 'http://localhost:3009'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'notification-service',
-        url: this.configService.get('services.notification.url', 'http://localhost:3006'),
+        url: this.configService.get('services.notificationService', 'http://localhost:3006'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'payment-service',
-        url: this.configService.get('services.payment.url', 'http://localhost:3007'),
+        url: this.configService.get('services.paymentService', 'http://localhost:3007'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'analytics-service',
-        url: this.configService.get('services.analytics.url', 'http://localhost:3008'),
+        url: this.configService.get('services.analyticsService', 'http://localhost:3011'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'moderation-service',
-        url: this.configService.get('services.moderation.url', 'http://localhost:3009'),
+        url: this.configService.get('services.moderationService', 'http://localhost:3010'),
         healthPath: '/health',
         timeout: 3000,
       },
       {
         name: 'realtime-service',
-        url: this.configService.get('services.realtime.url', 'http://localhost:3010'),
+        url: this.configService.get('services.realtimeService', 'http://localhost:3022'),
         healthPath: '/health',
         timeout: 3000,
       },

@@ -86,7 +86,7 @@ export interface LeaderboardEntry {
 
 // Service
 class GamificationService {
-  private baseUrl = '/api/gamification';
+  private baseUrl = '/api/v1/gamification';
 
   async getStreak(): Promise<Streak> {
     const response = await apiClient.get<{ data: Streak }>(`${this.baseUrl}/streak`);

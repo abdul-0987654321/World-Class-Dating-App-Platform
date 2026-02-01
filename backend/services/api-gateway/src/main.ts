@@ -9,8 +9,6 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
-import http from 'http';
-import { URL } from 'url';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -33,59 +31,15 @@ async function bootstrap() {
   app.useWebSocketAdapter(new IoAdapter(app));
 
   // ========================================================================
-  // PROXY TO USER-SERVICE (using Node built-in http module)
-  // This MUST come BEFORE any body parsing middleware so that the raw
-  // request stream (including multipart/form-data) is piped directly.
-  // ========================================================================
-  const isProductionEnv = process.env.NODE_ENV === 'production';
-  const userServiceUrl = process.env.USER_SERVICE_URL || (isProductionEnv ? (() => { throw new Error('USER_SERVICE_URL required in production'); })() : 'http://localhost:3002');
-  logger.info(`Configuring proxy to user-service: ${userServiceUrl}`);
-
-  const targetUrl = new URL(userServiceUrl);
-
-  app.use('/api/v1', (req: Request, res: Response) => {
-    const proxyOpts: http.RequestOptions = {
-      hostname: targetUrl.hostname,
-      port: targetUrl.port || (targetUrl.protocol === 'https:' ? 443 : 80),
-      path: req.originalUrl,
-      method: req.method,
-      headers: {
-        ...req.headers,
-        host: targetUrl.host,
-        'x-forwarded-by': 'flamoral-api-gateway',
-      },
-      timeout: 120000,
-    };
-
-    logger.info(`[Proxy] ${req.method} ${req.originalUrl} -> ${userServiceUrl}${req.originalUrl}`);
-
-    const proxyReq = http.request(proxyOpts, (proxyRes) => {
-      logger.info(`[Proxy] ${req.method} ${req.originalUrl} <- ${proxyRes.statusCode}`);
-      res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
-      proxyRes.pipe(res, { end: true });
-    });
-
-    proxyReq.on('error', (err) => {
-      logger.error(`[Proxy] Error: ${err.message}`);
-      if (!res.headersSent) {
-        res.status(502).json({
-          success: false,
-          error: { code: 'PROXY_ERROR', message: 'Unable to reach upstream service.' },
-        });
-      }
-    });
-
-    req.pipe(proxyReq, { end: true });
-  });
-
-  logger.info('Proxy middleware registered for /api/v1/* -> user-service');
-
-  // ========================================================================
-  // END PROXY CONFIGURATION
+  // NOTE: Raw HTTP proxy to user-service was REMOVED.
+  // It bypassed all NestJS middleware (body parsing, CORS, helmet, CSRF,
+  // validation, rate limiting, JWT auth guards, etc.).
+  // All /api/v1/* requests now flow through NestJS controllers and the
+  // ProxyService, which properly routes to upstream microservices while
+  // preserving the full middleware pipeline.
   // ========================================================================
 
-  // Cookie parser - Required for CSRF protection
-  // (For non-proxied routes like /health, /api/docs, etc.)
+  // Cookie parser - Required for CSRF protection and httpOnly cookie auth
   app.use(cookieParser());
 
   // Raw body parsing for webhook routes (required for Stripe signature verification)
@@ -265,7 +219,6 @@ async function bootstrap() {
 
   logger.info(`Flamoral API Gateway v2.0.0 running on port ${port}`);
   logger.info(`Environment: ${configService.get<string>('NODE_ENV') || 'development'}`);
-  logger.info(`User-service proxy target: ${userServiceUrl}`);
   logger.info(`API Documentation: http://localhost:${port}/api/docs`);
   logger.info(`Health endpoint: http://localhost:${port}/health`);
 }

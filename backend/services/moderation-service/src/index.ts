@@ -17,7 +17,7 @@ dotenv.config();
 // Note: AWS credentials are optional - will use IAM role if available
 const validator = createValidator('moderation-service', [
   commonValidations.nodeEnv,
-  commonValidations.port(3012),
+  commonValidations.port(3010),
   commonValidations.jwtAccessSecret,
   {
     name: 'AWS_ACCESS_KEY_ID',

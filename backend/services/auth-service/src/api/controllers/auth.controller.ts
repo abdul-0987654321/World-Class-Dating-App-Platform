@@ -42,7 +42,7 @@ const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
 const ACCESS_TOKEN_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: isProduction, // HTTPS only in production
-  sameSite: 'strict',
+  sameSite: 'lax',
   maxAge: 15 * 60 * 1000, // 15 minutes (matches JWT expiry)
   path: '/',
   domain: cookieDomain,
@@ -51,7 +51,7 @@ const ACCESS_TOKEN_COOKIE_OPTIONS: CookieOptions = {
 const REFRESH_TOKEN_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: isProduction, // HTTPS only in production
-  sameSite: 'strict',
+  sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (matches refresh token expiry)
   path: '/api/v1/auth', // Only sent to auth endpoints
   domain: cookieDomain,
@@ -77,14 +77,14 @@ class AuthController {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       domain: cookieDomain,
     });
     res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/api/v1/auth',
       domain: cookieDomain,
     });

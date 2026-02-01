@@ -17,7 +17,7 @@ dotenv.config();
 // Validate environment variables at startup
 const validator = createValidator('media-service', [
   commonValidations.nodeEnv,
-  commonValidations.port(3005),
+  commonValidations.port(3009),
   commonValidations.jwtAccessSecret,
   {
     name: 'AWS_REGION',

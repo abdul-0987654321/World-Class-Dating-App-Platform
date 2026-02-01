@@ -14,6 +14,7 @@ import authReducer from './slices/authSlice';
 import profileReducer from './slices/profileSlice';
 import matchingReducer from './slices/matchingSlice';
 import messagingReducer from './slices/messagingSlice';
+import callReducer from './slices/callSlice';
 
 const persistConfig = {
   key: 'flamoral-web',
@@ -30,6 +31,7 @@ export const store = configureStore({
     profile: profileReducer,
     matching: matchingReducer,
     messaging: messagingReducer,
+    call: callReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

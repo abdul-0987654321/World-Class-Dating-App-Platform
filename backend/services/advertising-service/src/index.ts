@@ -25,7 +25,7 @@ dotenv.config();
 // Validate environment variables at startup
 const validator = createValidator('advertising-service', [
   commonValidations.nodeEnv,
-  commonValidations.port(3011),
+  commonValidations.port(3025),
   commonValidations.jwtAccessSecret,
   commonValidations.databaseUrl,
   commonValidations.dbHost,
@@ -97,7 +97,7 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-const PORT = process.env.PORT || 3010;
+const PORT = process.env.PORT || 3025;
 
 // Health check
 app.get('/health', async (req, res) => {

@@ -23,13 +23,18 @@ interface AuthenticatedSocket extends Socket {
 }
 
 // Allowed origins for WebSocket connections (CSRF protection)
-const ALLOWED_ORIGINS = [
+// Reads from CORS_ORIGINS env var (comma-separated) with hardcoded fallback
+const DEFAULT_ORIGINS = [
   'https://flamoral.com',
   'https://www.flamoral.com',
   'https://app.flamoral.com',
   'http://localhost:3000',
   'http://localhost:5173',
 ];
+
+const ALLOWED_ORIGINS: string[] = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
+  : DEFAULT_ORIGINS;
 
 @WebSocketGateway({
   cors: {

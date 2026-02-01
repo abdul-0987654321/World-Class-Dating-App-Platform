@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Navigation } from '../../components/Navigation';
 import { FlamoralBackground } from '../../components/theme';
-import { authTokenService } from '../../services/auth-token.service';
+import { apiClient } from '../../services/api.client';
+import { SUBSCRIPTION_ENDPOINTS, PAYMENT_ENDPOINTS } from '../../config/api.config';
 
 interface Plan {
   id: string;
@@ -19,18 +20,11 @@ export const CheckoutPage: React.FC = () => {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal' | 'mobile'>('card');
-  const [cardDetails, setCardDetails] = useState({
-    number: '',
-    expiry: '',
-    cvc: '',
-    name: '',
-  });
-  const [billingAddress, setBillingAddress] = useState({
-    country: '',
-    postalCode: '',
-  });
-  const [saveCard, setSaveCard] = useState(true);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPlan();
@@ -43,17 +37,8 @@ export const CheckoutPage: React.FC = () => {
     }
 
     try {
-      const token = authTokenService.getToken();
-      const res = await fetch(`/api/subscriptions/plans/${planId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setPlan(data.data);
-      } else {
-        navigate('/subscription');
-      }
+      const data = await apiClient.get<{ data: Plan }>(`${SUBSCRIPTION_ENDPOINTS.PLANS}/${planId}`);
+      setPlan(data.data);
     } catch (err) {
       console.error('Failed to load plan:', err);
       navigate('/subscription');
@@ -62,71 +47,67 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoError(null);
+    try {
+      await apiClient.post(`${PAYMENT_ENDPOINTS.BASE}/validate-promo`, { code: promoCode });
+      setPromoApplied(true);
+    } catch (err) {
+      setPromoError('Invalid or expired promo code.');
+      setPromoApplied(false);
+    }
+  };
+
+  const handleCheckout = async () => {
     setProcessing(true);
+    setError(null);
 
     try {
-      const token = authTokenService.getToken();
-      const res = await fetch('/api/subscriptions/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await apiClient.postIdempotent<{ data: { checkoutUrl: string } }>(
+        `${PAYMENT_ENDPOINTS.BASE}/create-checkout-session`,
+        {
           planId: plan?.id,
-          paymentMethod,
-          cardDetails: paymentMethod === 'card' ? cardDetails : undefined,
-          billingAddress,
-          saveCard,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.data?.checkoutUrl) {
-          // Redirect to Stripe checkout
-          window.location.href = data.data.checkoutUrl;
-        } else {
-          // Payment successful
-          navigate('/subscription/success');
+          promoCode: promoCode || undefined,
         }
-      } else {
-        const error = await res.json();
-        alert(error.error?.message || 'Payment failed. Please try again.');
-      }
+      );
+
+      // Redirect to Stripe Checkout
+      window.location.href = response.data.checkoutUrl;
     } catch (err) {
-      console.error('Payment failed:', err);
-      alert('Payment failed. Please try again.');
+      console.error('Checkout failed:', err);
+      setError('Failed to initiate checkout. Please try again.');
     } finally {
       setProcessing(false);
     }
   };
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts: string[] = [];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
+    if (paymentMethod === 'card') {
+      await handleCheckout();
+    } else if (paymentMethod === 'paypal') {
+      // PayPal flow - redirect to PayPal checkout session
+      setProcessing(true);
+      setError(null);
+      try {
+        const response = await apiClient.postIdempotent<{ data: { checkoutUrl: string } }>(
+          `${PAYMENT_ENDPOINTS.BASE}/create-checkout-session`,
+          {
+            planId: plan?.id,
+            promoCode: promoCode || undefined,
+            paymentMethod: 'paypal',
+          }
+        );
+        window.location.href = response.data.checkoutUrl;
+      } catch (err) {
+        console.error('PayPal checkout failed:', err);
+        setError('Failed to initiate PayPal checkout. Please try again.');
+      } finally {
+        setProcessing(false);
+      }
     }
-
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
-  };
-
-  const formatExpiry = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return v.slice(0, 2) + (v.length > 2 ? ' / ' + v.slice(2, 4) : '');
-    }
-    return v;
   };
 
   if (loading) {
@@ -169,6 +150,12 @@ export const CheckoutPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="bg-fm-surface/80 backdrop-blur-sm rounded-xl border border-white/10 p-6">
                 <h2 className="text-2xl font-bold text-fm-text-primary mb-6">Payment Details</h2>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <p className="text-sm text-red-400">{error}</p>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit}>
                   {/* Payment Method Selection */}
@@ -240,82 +227,26 @@ export const CheckoutPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Card Details */}
+                  {/* Card - Stripe Checkout redirect message */}
                   {paymentMethod === 'card' && (
-                    <div className="space-y-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-fm-text-secondary mb-2">
-                          Card Number
-                        </label>
-                        <input
-                          type="text"
-                          value={cardDetails.number}
-                          onChange={(e) =>
-                            setCardDetails({
-                              ...cardDetails,
-                              number: formatCardNumber(e.target.value),
-                            })
-                          }
-                          placeholder="1234 5678 9012 3456"
-                          maxLength={19}
-                          required
-                          className="w-full px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary placeholder-fm-text-secondary/50 focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-fm-text-secondary mb-2">
-                            Expiry Date
-                          </label>
-                          <input
-                            type="text"
-                            value={cardDetails.expiry}
-                            onChange={(e) =>
-                              setCardDetails({
-                                ...cardDetails,
-                                expiry: formatExpiry(e.target.value),
-                              })
-                            }
-                            placeholder="MM / YY"
-                            maxLength={7}
-                            required
-                            className="w-full px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary placeholder-fm-text-secondary/50 focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
+                    <div className="mb-6 p-4 bg-fm-blue/10 border border-fm-blue/30 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-fm-blue flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                           />
-                        </div>
+                        </svg>
                         <div>
-                          <label className="block text-sm font-medium text-fm-text-secondary mb-2">
-                            CVC
-                          </label>
-                          <input
-                            type="text"
-                            value={cardDetails.cvc}
-                            onChange={(e) =>
-                              setCardDetails({
-                                ...cardDetails,
-                                cvc: e.target.value.replace(/\D/g, '').slice(0, 4),
-                              })
-                            }
-                            placeholder="123"
-                            maxLength={4}
-                            required
-                            className="w-full px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary placeholder-fm-text-secondary/50 focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
-                          />
+                          <p className="text-sm font-medium text-fm-blue">
+                            Secure Stripe Checkout
+                          </p>
+                          <p className="text-xs text-fm-blue/70 mt-1">
+                            You will be redirected to Stripe's secure checkout page to enter your card details. Your payment information is never stored on our servers.
+                          </p>
                         </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-fm-text-secondary mb-2">
-                          Cardholder Name
-                        </label>
-                        <input
-                          type="text"
-                          value={cardDetails.name}
-                          onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                          placeholder="John Doe"
-                          required
-                          className="w-full px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary placeholder-fm-text-secondary/50 focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
-                        />
                       </div>
                     </div>
                   )}
@@ -338,92 +269,69 @@ export const CheckoutPage: React.FC = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           type="button"
-                          className="p-3 bg-fm-surface border border-white/10 rounded-lg hover:border-green-500 transition"
+                          disabled
+                          className="p-3 bg-fm-surface border border-white/10 rounded-lg opacity-60 cursor-not-allowed"
                         >
                           <p className="font-medium text-fm-text-primary">Paystack</p>
-                          <p className="text-xs text-fm-text-secondary">For African markets</p>
+                          <p className="text-xs text-fm-text-secondary">Coming Soon</p>
                         </button>
                         <button
                           type="button"
-                          className="p-3 bg-fm-surface border border-white/10 rounded-lg hover:border-green-500 transition"
+                          disabled
+                          className="p-3 bg-fm-surface border border-white/10 rounded-lg opacity-60 cursor-not-allowed"
                         >
                           <p className="font-medium text-fm-text-primary">Flutterwave</p>
-                          <p className="text-xs text-fm-text-secondary">For African markets</p>
+                          <p className="text-xs text-fm-text-secondary">Coming Soon</p>
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Billing Address */}
-                  <div className="space-y-4 mb-6">
-                    <h3 className="font-semibold text-fm-text-primary">Billing Address</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-fm-text-secondary mb-2">
-                          Country
-                        </label>
-                        <select
-                          value={billingAddress.country}
-                          onChange={(e) =>
-                            setBillingAddress({ ...billingAddress, country: e.target.value })
-                          }
-                          required
-                          className="w-full px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
-                        >
-                          <option value="">Select country</option>
-                          <option value="US">United States</option>
-                          <option value="GB">United Kingdom</option>
-                          <option value="CA">Canada</option>
-                          <option value="NG">Nigeria</option>
-                          <option value="GH">Ghana</option>
-                          <option value="KE">Kenya</option>
-                          <option value="ZA">South Africa</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-fm-text-secondary mb-2">
-                          Postal Code
-                        </label>
-                        <input
-                          type="text"
-                          value={billingAddress.postalCode}
-                          onChange={(e) =>
-                            setBillingAddress({ ...billingAddress, postalCode: e.target.value })
-                          }
-                          placeholder="12345"
-                          required
-                          className="w-full px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary placeholder-fm-text-secondary/50 focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
-                        />
-                      </div>
+                  {/* Promo Code */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-fm-text-secondary mb-2">
+                      Promo Code
+                    </label>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value.toUpperCase());
+                          setPromoApplied(false);
+                          setPromoError(null);
+                        }}
+                        placeholder="Enter promo code"
+                        className="flex-1 px-4 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary placeholder-fm-text-secondary/50 focus:ring-2 focus:ring-fm-pink focus:border-transparent transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyPromo}
+                        disabled={!promoCode.trim() || promoApplied}
+                        className="px-6 py-3 bg-fm-surface border border-white/10 rounded-lg text-fm-text-primary hover:border-fm-pink transition disabled:opacity-50"
+                      >
+                        {promoApplied ? 'Applied' : 'Apply'}
+                      </button>
                     </div>
+                    {promoApplied && (
+                      <p className="mt-2 text-sm text-green-400">Promo code applied successfully!</p>
+                    )}
+                    {promoError && (
+                      <p className="mt-2 text-sm text-red-400">{promoError}</p>
+                    )}
                   </div>
-
-                  {/* Save Card */}
-                  {paymentMethod === 'card' && (
-                    <div className="mb-6">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={saveCard}
-                          onChange={(e) => setSaveCard(e.target.checked)}
-                          className="w-5 h-5 text-fm-pink bg-fm-surface border-white/20 rounded focus:ring-fm-pink"
-                        />
-                        <span className="text-sm text-fm-text-secondary">
-                          Save card for future purchases
-                        </span>
-                      </label>
-                    </div>
-                  )}
 
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={processing}
+                    disabled={processing || paymentMethod === 'mobile'}
                     className="w-full py-4 bg-gradient-to-r from-fm-pink to-fm-blue text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50"
                   >
                     {processing
-                      ? 'Processing...'
-                      : `Pay ${new Intl.NumberFormat('en-US', { style: 'currency', currency: plan.currency }).format(plan.price / 100)}`}
+                      ? 'Redirecting to checkout...'
+                      : paymentMethod === 'mobile'
+                        ? 'Coming Soon'
+                        : `Pay ${new Intl.NumberFormat('en-US', { style: 'currency', currency: plan.currency }).format(plan.price / 100)}`}
                   </button>
 
                   {/* Security Note */}

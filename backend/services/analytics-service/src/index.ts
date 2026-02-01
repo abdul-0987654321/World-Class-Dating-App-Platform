@@ -24,7 +24,7 @@ dotenv.config();
 // Validate environment variables at startup
 const validator = createValidator('analytics-service', [
   commonValidations.nodeEnv,
-  commonValidations.port(3008),
+  commonValidations.port(3011),
   commonValidations.jwtAccessSecret,
   commonValidations.jwtRefreshSecret,
   commonValidations.databaseUrl,

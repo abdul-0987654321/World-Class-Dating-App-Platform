@@ -50,7 +50,7 @@ export const AdminAnalyticsPage: React.FC = () => {
     setLoading(true);
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/analytics?range=${timeRange}`, {
+      const res = await fetch(`/api/v1/admin/analytics?range=${timeRange}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

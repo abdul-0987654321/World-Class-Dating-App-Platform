@@ -30,7 +30,7 @@ export const AdminVerificationsPage: React.FC = () => {
     setLoading(true);
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/verifications?status=${filter}`, {
+      const res = await fetch(`/api/v1/admin/verifications?status=${filter}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -94,7 +94,7 @@ export const AdminVerificationsPage: React.FC = () => {
   const handleApprove = async (requestId: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/verifications/${requestId}/approve`, {
+      await fetch(`/api/v1/admin/verifications/${requestId}/approve`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -110,7 +110,7 @@ export const AdminVerificationsPage: React.FC = () => {
   const handleReject = async (requestId: string, reason: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/verifications/${requestId}/reject`, {
+      await fetch(`/api/v1/admin/verifications/${requestId}/reject`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

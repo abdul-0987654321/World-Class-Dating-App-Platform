@@ -179,7 +179,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 // Send subscription to backend
 async function sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
-  const response = await fetch('/api/notifications/subscribe', {
+  const response = await fetch('/api/v1/notifications/devices', {
     method: 'POST',
     headers: {
       ...authTokenService.getAuthorizationHeader(),
@@ -195,8 +195,8 @@ async function sendSubscriptionToServer(subscription: PushSubscription): Promise
 
 // Remove subscription from backend
 async function removeSubscriptionFromServer(subscription: PushSubscription): Promise<void> {
-  const response = await fetch('/api/notifications/unsubscribe', {
-    method: 'POST',
+  const response = await fetch('/api/v1/notifications/devices', {
+    method: 'DELETE',
     headers: {
       ...authTokenService.getAuthorizationHeader(),
       'Content-Type': 'application/json',

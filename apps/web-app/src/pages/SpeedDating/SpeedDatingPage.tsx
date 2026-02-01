@@ -85,7 +85,7 @@ export const SpeedDatingPage: React.FC = () => {
       const token = authTokenService.getToken();
       const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-      const eventsRes = await fetch('/api/speed-dating/events', { headers });
+      const eventsRes = await fetch('/api/v1/speed-dating/sessions', { headers });
       if (eventsRes.ok) {
         const data = await eventsRes.json();
         setEvents(data.data?.events || getDefaultEvents());

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authService } from '../../services';
+import { useAuth } from '../../contexts/AuthContext';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,7 +19,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await authService.login(email, password);
+      await login(email, password);
       navigate('/discover');
     } catch (err: unknown) {
       // Provide user-friendly error messages based on error type

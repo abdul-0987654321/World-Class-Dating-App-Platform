@@ -45,7 +45,7 @@ export const AdminReportsPage: React.FC = () => {
     setLoading(true);
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/reports?status=${filter}`, {
+      const res = await fetch(`/api/v1/admin/reports?status=${filter}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -127,7 +127,7 @@ export const AdminReportsPage: React.FC = () => {
   const handleResolve = async (reportId: string, action: string, resolution: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/reports/${reportId}/resolve`, {
+      await fetch(`/api/v1/admin/reports/${reportId}/resolve`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

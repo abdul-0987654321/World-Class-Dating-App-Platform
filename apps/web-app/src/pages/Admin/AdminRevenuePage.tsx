@@ -80,12 +80,12 @@ export const AdminRevenuePage: React.FC = () => {
       // Load all data in parallel
       const [revenueRes, providersRes, plansRes, regionsRes, dailyRes, transactionsRes] =
         await Promise.all([
-          fetch(`/api/admin/revenue/summary?range=${dateRange}`, { headers }),
-          fetch(`/api/admin/revenue/by-provider?range=${dateRange}`, { headers }),
-          fetch(`/api/admin/revenue/by-plan?range=${dateRange}`, { headers }),
-          fetch(`/api/admin/revenue/by-region?range=${dateRange}`, { headers }),
-          fetch(`/api/admin/revenue/daily?range=${dateRange}`, { headers }),
-          fetch(`/api/admin/transactions?limit=20`, { headers }),
+          fetch(`/api/v1/admin/revenue/summary?range=${dateRange}`, { headers }),
+          fetch(`/api/v1/admin/revenue/by-provider?range=${dateRange}`, { headers }),
+          fetch(`/api/v1/admin/revenue/by-plan?range=${dateRange}`, { headers }),
+          fetch(`/api/v1/admin/revenue/by-region?range=${dateRange}`, { headers }),
+          fetch(`/api/v1/admin/revenue/daily?range=${dateRange}`, { headers }),
+          fetch(`/api/v1/admin/transactions?limit=20`, { headers }),
         ]);
 
       if (revenueRes.ok) {

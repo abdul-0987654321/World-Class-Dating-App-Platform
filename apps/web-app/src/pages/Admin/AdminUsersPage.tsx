@@ -37,7 +37,7 @@ export const AdminUsersPage: React.FC = () => {
     setLoading(true);
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/users?page=${page}&filter=${filter}&search=${search}`, {
+      const res = await fetch(`/api/v1/admin/users?page=${page}&filter=${filter}&search=${search}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -129,7 +129,7 @@ export const AdminUsersPage: React.FC = () => {
   ) => {
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/users/${userId}/${action}`, {
+      const res = await fetch(`/api/v1/admin/users/${userId}/${action}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

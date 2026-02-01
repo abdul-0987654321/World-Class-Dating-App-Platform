@@ -21,6 +21,11 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { apiClient } from '../../services/api.client';
+import {
+  DISCOVERY_ENDPOINTS,
+  BOOST_ENDPOINTS,
+} from '../../config/api.config';
 
 interface Profile {
   userId: string;
@@ -52,6 +57,14 @@ interface AdvancedFilters {
   drinking?: string[];
 }
 
+interface DiscoveryStats {
+  likesSent: number | null;
+  likesReceived: number | null;
+  matches: number | null;
+  profileViews: number | null;
+  whoLikedYouCount: number | null;
+}
+
 export const EnhancedDiscoveryPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -60,6 +73,7 @@ export const EnhancedDiscoveryPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Features state
   const [showMatch, setShowMatch] = useState(false);
@@ -71,6 +85,15 @@ export const EnhancedDiscoveryPage: React.FC = () => {
   const [hasActiveBoost, setHasActiveBoost] = useState(false);
   const [boostTimeRemaining, setBoostTimeRemaining] = useState(0);
   const [superLikeQuota, setSuperLikeQuota] = useState({ remaining: 1, total: 1 });
+
+  // Stats
+  const [stats, setStats] = useState<DiscoveryStats>({
+    likesSent: null,
+    likesReceived: null,
+    matches: null,
+    profileViews: null,
+    whoLikedYouCount: null,
+  });
 
   // Filters
   const [filters, setFilters] = useState<AdvancedFilters>({
@@ -84,6 +107,7 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     loadProfiles();
     loadSuperLikeQuota();
     checkActiveBoost();
+    loadStats();
     setupKeyboardShortcuts();
 
     return () => {
@@ -100,23 +124,6 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     if (e.key === 'ArrowRight') handleSwipeRight();
     if (e.key === 'ArrowUp') handleSuperLike();
     if (e.key === 'z' && (e.ctrlKey || e.metaKey)) handleUndo();
-  };
-
-  const loadProfiles = async () => {
-    setLoading(true);
-    try {
-      // API call
-      // const response = await api.get('/recommendations', { params: filters });
-      // setProfiles(response.data.recommendations);
-
-      // Mock data
-      const mockProfiles = generateMockProfiles();
-      setProfiles(mockProfiles);
-    } catch (error) {
-      console.error('Failed to load profiles:', error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const generateMockProfiles = (): Profile[] => {
@@ -138,23 +145,75 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     }));
   };
 
+  const loadProfiles = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const response = await apiClient.get<{ data: { recommendations: Profile[] } }>(
+        DISCOVERY_ENDPOINTS.FEED,
+        {
+          // Pass filters as query params would be handled by the API client
+        }
+      );
+      const recommendations = response.data?.recommendations || response.data || [];
+      setProfiles(Array.isArray(recommendations) ? recommendations : []);
+    } catch (error) {
+      console.error('Failed to load profiles:', error);
+      if (import.meta.env.DEV) {
+        console.warn('DEV MODE: Falling back to mock profiles');
+        const mockProfiles = generateMockProfiles();
+        setProfiles(mockProfiles);
+      } else {
+        setErrorMessage('Unable to load profiles. Please check your connection and try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadSuperLikeQuota = async () => {
     try {
-      // const response = await api.get('/super-likes/quota');
-      // setSuperLikeQuota(response.data);
-      setSuperLikeQuota({ remaining: 1, total: 1 });
+      const response = await apiClient.get<{ data: { remaining: number; total: number } }>(
+        DISCOVERY_ENDPOINTS.SUPER_LIKE_INFO
+      );
+      setSuperLikeQuota(response.data || { remaining: 1, total: 1 });
     } catch (error) {
       console.error('Failed to load quota:', error);
+      // Graceful fallback - keep default quota
+      setSuperLikeQuota({ remaining: 1, total: 1 });
     }
   };
 
   const checkActiveBoost = async () => {
     try {
-      // const response = await api.get('/boosts/active');
-      // setHasActiveBoost(response.data?.active || false);
-      // setBoostTimeRemaining(calculateTimeRemaining(response.data?.expiresAt));
+      const response = await apiClient.get<{ data: { active: boolean; expiresAt?: string } }>(
+        BOOST_ENDPOINTS.ACTIVE
+      );
+      const boostData = response.data;
+      setHasActiveBoost(boostData?.active || false);
+      if (boostData?.expiresAt) {
+        const remaining = Math.max(0, Math.floor((new Date(boostData.expiresAt).getTime() - Date.now()) / 1000));
+        setBoostTimeRemaining(remaining);
+      }
     } catch (error) {
       console.error('Failed to check boost:', error);
+      // Graceful fallback - no active boost
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const response = await apiClient.get<{ data: DiscoveryStats }>(DISCOVERY_ENDPOINTS.STATS);
+      setStats(response.data || {
+        likesSent: null,
+        likesReceived: null,
+        matches: null,
+        profileViews: null,
+        whoLikedYouCount: null,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      // Keep stats as null (loading/unknown state)
     }
   };
 
@@ -164,11 +223,14 @@ export const EnhancedDiscoveryPage: React.FC = () => {
 
     setUndoStack((prev) => [...prev, { profile, action: 'pass', index: currentIndex }]);
 
+    // Update UI immediately
+    nextProfile();
+
     try {
-      // await api.post('/swipes', { targetUserId: profile.userId, action: 'pass' });
-      nextProfile();
+      await apiClient.post(DISCOVERY_ENDPOINTS.PASS, { targetUserId: profile.userId }, { skipRetry: true });
     } catch (error) {
-      // Pass action failed
+      console.error('Failed to record pass:', error);
+      // UI already updated - swipe still works locally
     }
   }, [profiles, currentIndex]);
 
@@ -179,10 +241,13 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     setUndoStack((prev) => [...prev, { profile, action: 'like', index: currentIndex }]);
 
     try {
-      // const response = await api.post('/swipes', { targetUserId: profile.userId, action: 'like' });
+      const response = await apiClient.post<{ data: { matched: boolean } }>(
+        DISCOVERY_ENDPOINTS.LIKE,
+        { targetUserId: profile.userId },
+        { skipRetry: true }
+      );
 
-      const matched = Math.random() > 0.7;
-      if (matched) {
+      if (response.data?.matched) {
         setMatchedProfile(profile);
         setShowMatch(true);
       } else {
@@ -190,6 +255,8 @@ export const EnhancedDiscoveryPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to like:', error);
+      // Fallback: still advance to next profile
+      nextProfile();
     }
   }, [profiles, currentIndex]);
 
@@ -206,10 +273,14 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     if (!profile) return;
 
     try {
-      // await api.post('/super-likes', {
-      //   targetUserId: profile.userId,
-      //   message: superLikeMessage || undefined,
-      // });
+      await apiClient.post(
+        DISCOVERY_ENDPOINTS.SUPER_LIKE,
+        {
+          targetUserId: profile.userId,
+          message: superLikeMessage || undefined,
+        },
+        { skipRetry: true }
+      );
 
       setShowSuperLikeModal(false);
       setSuperLikeMessage('');
@@ -218,6 +289,14 @@ export const EnhancedDiscoveryPage: React.FC = () => {
       nextProfile();
     } catch (error) {
       console.error('Failed to Super Like:', error);
+      // Still update UI locally on failure in dev
+      if (import.meta.env.DEV) {
+        setShowSuperLikeModal(false);
+        setSuperLikeMessage('');
+        setSuperLikeQuota((prev) => ({ ...prev, remaining: prev.remaining - 1 }));
+        setUndoStack((prev) => [...prev, { profile, action: 'super_like', index: currentIndex }]);
+        nextProfile();
+      }
     }
   };
 
@@ -227,15 +306,17 @@ export const EnhancedDiscoveryPage: React.FC = () => {
       return;
     }
 
+    const lastAction = undoStack[undoStack.length - 1];
+
     try {
-      // await api.post('/swipes/undo');
-      const lastAction = undoStack[undoStack.length - 1];
-      setUndoStack((prev) => prev.slice(0, -1));
-      setCurrentIndex(lastAction.index);
-      alert('Last swipe undone');
+      await apiClient.post(DISCOVERY_ENDPOINTS.REWIND, {}, { skipRetry: true });
     } catch (error) {
-      console.error('Failed to undo:', error);
+      console.error('Failed to undo on server:', error);
+      // Still undo locally
     }
+
+    setUndoStack((prev) => prev.slice(0, -1));
+    setCurrentIndex(lastAction.index);
   };
 
   const activateBoost = async () => {
@@ -244,13 +325,20 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     }
 
     try {
-      // await api.post('/boosts/activate');
+      await apiClient.post(BOOST_ENDPOINTS.ACTIVATE, {}, { skipRetry: true });
       setHasActiveBoost(true);
       setBoostTimeRemaining(30 * 60);
       alert('Boost activated! Your profile is now 10x more visible!');
     } catch (error: any) {
       console.error('Failed to activate boost:', error);
-      alert(error.message || 'Failed to activate boost');
+      if (import.meta.env.DEV) {
+        // In dev mode, simulate boost activation
+        setHasActiveBoost(true);
+        setBoostTimeRemaining(30 * 60);
+        alert('DEV: Boost activated (mock)!');
+      } else {
+        alert(error.message || 'Failed to activate boost. Please try again.');
+      }
     }
   };
 
@@ -272,11 +360,28 @@ export const EnhancedDiscoveryPage: React.FC = () => {
     );
   }
 
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="text-6xl mb-4">!</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Something Went Wrong</h2>
+          <p className="text-gray-600 mb-6">{errorMessage}</p>
+          <button
+            onClick={loadProfiles}
+            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-full font-semibold hover:shadow-lg transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentProfile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8">
-          <div className="text-6xl mb-4">😊</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">No More Profiles</h2>
           <p className="text-gray-600 mb-6">Check back later for more matches!</p>
           <button
@@ -310,7 +415,7 @@ export const EnhancedDiscoveryPage: React.FC = () => {
 
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => navigate('/top-picks')}
+                onClick={() => navigate('/discover')}
                 className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full hover:shadow-lg transition"
               >
                 <Crown className="w-5 h-5" />
@@ -347,15 +452,15 @@ export const EnhancedDiscoveryPage: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Likes Sent</span>
-                  <span className="font-bold">42</span>
+                  <span className="font-bold">{stats.likesSent ?? '-'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Likes Received</span>
-                  <span className="font-bold text-pink-500">28</span>
+                  <span className="font-bold text-pink-500">{stats.likesReceived ?? '-'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Matches</span>
-                  <span className="font-bold text-green-500">15</span>
+                  <span className="font-bold text-green-500">{stats.matches ?? '-'}</span>
                 </div>
               </div>
             </div>
@@ -372,9 +477,9 @@ export const EnhancedDiscoveryPage: React.FC = () => {
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="font-semibold mb-3">Keyboard Shortcuts</h3>
               <div className="space-y-2 text-sm text-gray-600">
-                <div>← Pass</div>
-                <div>→ Like</div>
-                <div>↑ Super Like</div>
+                <div>&larr; Pass</div>
+                <div>&rarr; Like</div>
+                <div>&uarr; Super Like</div>
                 <div>Ctrl+Z Undo</div>
               </div>
             </div>
@@ -545,10 +650,10 @@ export const EnhancedDiscoveryPage: React.FC = () => {
           <div className="col-span-3">
             <div className="bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl p-6 text-white shadow-lg">
               <h3 className="font-semibold mb-4">Who Liked You</h3>
-              <div className="text-4xl font-bold mb-2">28</div>
+              <div className="text-4xl font-bold mb-2">{stats.whoLikedYouCount ?? '-'}</div>
               <p className="text-sm opacity-90 mb-4">See everyone who likes you</p>
               <button
-                onClick={() => navigate('/insights/likes')}
+                onClick={() => navigate('/discover')}
                 className="w-full py-2 bg-white text-pink-500 rounded-full font-semibold hover:shadow-lg transition"
               >
                 View All
@@ -557,10 +662,10 @@ export const EnhancedDiscoveryPage: React.FC = () => {
 
             <div className="bg-white rounded-2xl p-6 shadow-sm mt-4">
               <h3 className="font-semibold mb-4">Profile Views</h3>
-              <div className="text-3xl font-bold text-pink-500 mb-2">142</div>
+              <div className="text-3xl font-bold text-pink-500 mb-2">{stats.profileViews ?? '-'}</div>
               <p className="text-sm text-gray-600 mb-4">in the last 7 days</p>
               <button
-                onClick={() => navigate('/insights')}
+                onClick={() => navigate('/discover')}
                 className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-full font-semibold transition"
               >
                 View Insights

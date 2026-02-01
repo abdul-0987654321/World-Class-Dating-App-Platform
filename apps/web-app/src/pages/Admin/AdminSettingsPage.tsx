@@ -92,7 +92,7 @@ export const AdminSettingsPage: React.FC = () => {
     setSaving(true);
     try {
       const token = authTokenService.getToken();
-      await fetch('/api/admin/settings', {
+      await fetch('/api/v1/admin/settings', {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,

@@ -72,7 +72,7 @@ interface Config {
 }
 
 const config: Config = {
-  port: parseInt(process.env.PORT || '3007', 10),
+  port: parseInt(process.env.PORT || '3011', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
   database: (() => {

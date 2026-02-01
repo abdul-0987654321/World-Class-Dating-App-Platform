@@ -269,7 +269,38 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
   );
 };
 
+/**
+ * Helper to check if a social provider env var is actually configured.
+ * Returns false for empty strings, undefined, or common placeholder values.
+ */
+function isProviderConfigured(value: string | undefined): boolean {
+  if (!value) return false;
+  const trimmed = value.trim();
+  if (trimmed === '') return false;
+  // Reject common placeholder patterns
+  const placeholders = [
+    'your-client-id',
+    'your-app-id',
+    'placeholder',
+    'CHANGE_ME',
+    'TODO',
+    'xxx',
+    'your_client_id',
+    'your_app_id',
+  ];
+  return !placeholders.some((p) => trimmed.toLowerCase().includes(p.toLowerCase()));
+}
+
 const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = (props) => {
+  // Hide social login buttons entirely when no social providers are properly configured
+  const googleConfigured = isProviderConfigured(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+  const facebookConfigured = isProviderConfigured(import.meta.env.VITE_FACEBOOK_APP_ID);
+  const appleConfigured = isProviderConfigured(import.meta.env.VITE_APPLE_CLIENT_ID);
+
+  if (!googleConfigured && !facebookConfigured && !appleConfigured) {
+    return null;
+  }
+
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
       <SocialLoginButtonsContent {...props} />

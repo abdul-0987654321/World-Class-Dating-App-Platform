@@ -31,7 +31,7 @@ let isDegradedMode = false;
 // Validate environment variables at startup
 const validator = createValidator('messaging-service', [
   commonValidations.nodeEnv,
-  commonValidations.port(3004),
+  commonValidations.port(3005),
   commonValidations.jwtAccessSecret,
   {
     name: 'ENCRYPTION_KEY',
@@ -45,7 +45,7 @@ validator.validateOrThrow();
 
 // Create Express app
 const app: Application = express();
-const PORT = process.env.PORT || 3004;
+const PORT = process.env.PORT || 3005;
 
 // Create HTTP server
 const httpServer = createServer(app);

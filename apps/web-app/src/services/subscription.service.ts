@@ -180,7 +180,7 @@ const getMockSubscription = (): Subscription => {
 };
 
 class SubscriptionService {
-  private baseUrl = '/api/subscriptions';
+  private baseUrl = '/api/v1/subscriptions';
 
   async getCurrentSubscription(): Promise<Subscription> {
     // In mock mode, return mock data
@@ -203,7 +203,7 @@ class SubscriptionService {
     return response.json();
   }
 
-  async getPlans(): Promise<SubscriptionPlan[]> {
+  private getHardcodedPlans(): SubscriptionPlan[] {
     // 6-tier subscription plans (using lowercase tier names to match backend)
     return [
       {
@@ -274,6 +274,42 @@ class SubscriptionService {
         trialDays: 14,
       },
     ];
+  }
+
+  async getPlans(): Promise<SubscriptionPlan[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/plans`, {
+        headers: {
+          ...authTokenService.getAuthorizationHeader(),
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch plans: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const plans: SubscriptionPlan[] = data.data || data.plans || data;
+
+      if (Array.isArray(plans) && plans.length > 0) {
+        return plans;
+      }
+
+      throw new Error('Invalid plans data received from backend');
+    } catch (error) {
+      console.error('Failed to fetch subscription plans from backend:', error);
+
+      // In development mode or on API error, fall back to hardcoded plans
+      if (import.meta.env.DEV || import.meta.env.VITE_MOCK_API === 'true' || import.meta.env.VITE_ENABLE_MOCK_API === 'true') {
+        console.warn('Falling back to hardcoded subscription plans');
+        return this.getHardcodedPlans();
+      }
+
+      // In production, re-throw to let the caller handle the error
+      throw error;
+    }
   }
 
   async upgradePlan(

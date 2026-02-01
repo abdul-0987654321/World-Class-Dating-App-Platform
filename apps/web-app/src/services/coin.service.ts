@@ -59,7 +59,7 @@ class CoinService {
       };
     }
 
-    const response = await fetch('/api/coins/balance', {
+    const response = await fetch('/api/v1/coins/balance', {
       headers: {
         ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ class CoinService {
       ];
     }
 
-    const response = await fetch('/api/coins/packages', {
+    const response = await fetch('/api/v1/coins/packages', {
       headers: {
         ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ class CoinService {
       };
     }
 
-    const response = await fetch('/api/coins/purchase', {
+    const response = await fetch('/api/v1/coins/purchase', {
       method: 'POST',
       headers: {
         ...authTokenService.getAuthorizationHeader(),
@@ -176,7 +176,7 @@ class CoinService {
       };
     }
 
-    const response = await fetch('/api/coins/spend', {
+    const response = await fetch('/api/v1/coins/spend', {
       method: 'POST',
       headers: {
         ...authTokenService.getAuthorizationHeader(),
@@ -220,7 +220,7 @@ class CoinService {
       };
     }
 
-    const url = cursor ? `/api/coins/transactions?cursor=${cursor}` : '/api/coins/transactions';
+    const url = cursor ? `/api/v1/coins/transactions?cursor=${cursor}` : '/api/v1/coins/transactions';
 
     const response = await fetch(url, {
       headers: {

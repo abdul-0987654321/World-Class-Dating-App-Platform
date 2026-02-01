@@ -45,7 +45,7 @@ export const AdminAuditLogsPage: React.FC = () => {
       if (filters.endDate) params.append('endDate', filters.endDate);
       params.append('page', filters.page.toString());
 
-      const res = await fetch(`/api/admin/audit-logs?${params}`, {
+      const res = await fetch(`/api/v1/admin/audit-logs?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

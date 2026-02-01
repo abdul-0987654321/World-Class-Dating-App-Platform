@@ -131,8 +131,8 @@ export const loginSchema = Joi.object({
  * Refresh token request validation schema
  */
 export const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required().messages({
-    'any.required': 'Refresh token is required',
+  refreshToken: Joi.string().optional().messages({
+    'string.base': 'Refresh token must be a string',
   }),
 });
 

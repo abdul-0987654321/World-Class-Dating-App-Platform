@@ -54,7 +54,7 @@ export const AdminABTestsPage: React.FC = () => {
     setLoading(true);
     try {
       const token = authTokenService.getToken();
-      const res = await fetch(`/api/admin/ab-tests?status=${filter !== 'all' ? filter : ''}`, {
+      const res = await fetch(`/api/v1/admin/ab-tests?status=${filter !== 'all' ? filter : ''}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -141,7 +141,7 @@ export const AdminABTestsPage: React.FC = () => {
   const handleCreateTest = async () => {
     try {
       const token = authTokenService.getToken();
-      const res = await fetch('/api/admin/ab-tests', {
+      const res = await fetch('/api/v1/admin/ab-tests', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -170,7 +170,7 @@ export const AdminABTestsPage: React.FC = () => {
   const handleStartTest = async (testId: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/ab-tests/${testId}/start`, {
+      await fetch(`/api/v1/admin/ab-tests/${testId}/start`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -183,7 +183,7 @@ export const AdminABTestsPage: React.FC = () => {
   const handlePauseTest = async (testId: string) => {
     try {
       const token = authTokenService.getToken();
-      await fetch(`/api/admin/ab-tests/${testId}/pause`, {
+      await fetch(`/api/v1/admin/ab-tests/${testId}/pause`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
